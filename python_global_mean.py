@@ -1,4 +1,4 @@
-#!/usr/bin/python3
+#!/usr/bin/env python
 
 # this is a tentative python script to convert ECmean global mean operation to python3
 # uses a reference file from yaml and cdo bindings (not very efficient)
@@ -23,7 +23,7 @@ expname = args.exp
 year1 = args.year1
 year2 = args.year2
 
-# options
+# config file
 with open("config.yml", "r") as file:
     cfg = yaml.load(file, Loader=yaml.FullLoader)
 
