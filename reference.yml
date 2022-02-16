@@ -1,0 +1,28 @@
+tas:
+  varname: '2m Air Temperature'
+  units: 'K'
+  factor: '1'
+  observations: 
+    val: 287.575
+    data: "ERAI(1990-2010)"
+psl: 
+  varname: 'MSLP'
+  units: 'Pa'
+  factor: '1'
+  observations:
+    val: 101135
+    data: "ERAI(1990-2010)"
+pr:
+  varname: 'Precipitation'
+  units: 'mm/day'
+  factor: '86400'
+  observations:
+    val: 2.92339
+    data: 'ERAI(1990-2010)'
+evspsbl:
+  varname: 'Evaporation'
+  units: 'mm/day'
+  factor: '86400'
+  observations:
+    val: ''
+    data: ''
