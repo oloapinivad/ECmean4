@@ -7,6 +7,7 @@ import sys
 import os
 import glob
 import yaml
+import netCDF4 as nc
 from tabulate import tabulate
 from cdo import *
 cdo = Cdo()
@@ -25,6 +26,7 @@ os.makedirs(TMPDIR, exist_ok=True)
 eceinitfile = os.path.join(ECEDIR, "ICMGG" + expname + "INIT")
 #cdo.forceOutput = True
 #cdo.debug = True
+vardict = {}
 
 # loop
 var_field = ["tas", "psl", "pr", "evspsbl", "cll", "clm", "clh"]
@@ -35,21 +37,21 @@ for var in var_field + var_radiation:
         infile = os.path.join(ECEDIR, "output/oifs", expname +
                               "_atm_cmip6_1m_" + str(year) + "-" + str(year) + ".nc")
         outfile = os.path.join(TMPDIR, "tmp_" + str(year) + ".nc")
+        # regrid and select variable
         cdo.fldmean(input="-setgridtype,regular -setgrid," +
                     eceinitfile + " -selname," + var + " " + infile, output=outfile)
+    # cat and timmean
     cdo.timmean(input="-cat " + os.path.join(TMPDIR, "tmp*.nc"),
                 output=os.path.join(TMPDIR, var + "_mean.nc"))
+    # store mean value in a local dictionary
+    vardict[var] = float(nc.Dataset(os.path.join(
+        TMPDIR, var + "_mean.nc")).variables[var][:])
 
-# var_extra: NET_TOA
-extra_radiation=["net_toa", "net_sfc"]
-
-# this must be done with python, it is too dumb with CDO
-cdo.add(input=os.path.join(TMPDIR, "rsnt" + "_mean.nc ") + os.path.join(TMPDIR,
-        "rlnt" + "_mean.nc"), output=os.path.join(TMPDIR, "net_toa" + "_mean.nc"))
-cdo.add(input=os.path.join(TMPDIR, "rsns" + "_mean.nc ") + " -add " + os.path.join(TMPDIR,
-        "rlns" + "_mean.nc ") + " -add " + os.path.join(TMPDIR,
-        "hfss" + "_mean.nc ") + os.path.join(TMPDIR, "hfls" + "_mean.nc "), 
-        output=os.path.join(TMPDIR, "net_sfc" + "_mean.nc"))
+# extra radiative variables
+extra_radiation = ["net_toa", "net_sfc"]
+vardict["net_toa"] = vardict["rsnt"] + vardict["rlnt"]
+vardict["net_sfc"] = vardict["rsns"] + \
+    vardict["rlns"] - vardict["hfls"] - vardict["hfss"]
 
 # reference data: it is badly written but it can be implemented in a much more intelligent
 # and modulable way
@@ -59,22 +61,16 @@ with open(filename, 'r') as file:
 
 # define options for the output table
 head = ["Var", "Longname", "Units", "ECE4", "OBS", "Obs Dataset"]
-cdoformat = "%9.4f,1"
 global_table = list()
-radiation_table = list()
 
 # loop on the variables
 for var in var_field + var_radiation + extra_radiation:
-    filein = os.path.join(TMPDIR, var + "_mean.nc")
-    print(filein)
-    if os.path.isfile(filein):
-        beta = yummy[var]
-        # also this is better with python (do we need iris? I don't thnk so)
-        beta['value'] = cdo.outputf(
-            cdoformat, input=" -mulc," + beta['factor'] + " " + filein)
-        out_sequence = [var, beta['varname'], beta['units'], beta['value']
-                        [0], beta['observations']['val'], beta['observations']['data']]
-        global_table.append(out_sequence)
+    print(var)
+    beta = yummy[var]
+    beta['value'] = vardict[var] * float(beta['factor'])
+    out_sequence = [var, beta['varname'], beta['units'], beta['value'],
+                    float(beta['observations']['val']), beta['observations']['data']]
+    global_table.append(out_sequence)
 
 # write the file  with tabulate: cool python feature
 tablefile = os.path.join(TABDIR, "Global_Mean_" +

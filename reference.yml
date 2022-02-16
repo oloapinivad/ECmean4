@@ -24,8 +24,8 @@ evspsbl:
   units: 'mm/day'
   factor: '86400'
   observations:
-    val: ''
-    data: ''
+    val: 'nan'
+    data: 'nan'
 cll:
   varname: 'Low cloud cover'
   units: '[0-1]'
@@ -85,14 +85,14 @@ rsns:
 hfss:
   varname: 'Surface SH'
   units: 'W/m2'
-  factor: '1'
+  factor: '-1'
   observations:
     val: '-17'
     data: 'Trenberth09'
 hfls:
   varname: 'Surface LH'
   units: 'W/m2'
-  factor: '1'
+  factor: '-1'
   observations:
     val: '-80'
     data: 'Trenberth09'
