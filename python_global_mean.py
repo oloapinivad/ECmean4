@@ -29,7 +29,7 @@ with open("config.yml", "r") as file:
 
 ECEDIR = os.path.join(cfg["dirs"]["exp"], expname)
 TABDIR = os.path.join(cfg["dirs"]["tab"], "ECmean4", "table")
-TMPDIR = os.path.join(cfg["dirs"]["tab"], "ECmean4", "tmp")
+TMPDIR = os.path.join(cfg["dirs"]["tmp"], "ECmean4", "tmp")
 os.makedirs(TABDIR, exist_ok=True)
 os.makedirs(TMPDIR, exist_ok=True)
 eceinitfile = os.path.join(ECEDIR, "ICMGG" + expname + "INIT")
