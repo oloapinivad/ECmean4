@@ -8,14 +8,20 @@ import os
 import glob
 import yaml
 import netCDF4 as nc
+import argparse
 from tabulate import tabulate
 from cdo import *
 cdo = Cdo()
 
 # arguments
-expname = sys.argv[1]
-year1 = int(sys.argv[2])
-year2 = int(sys.argv[3])
+parser = argparse.ArgumentParser(description='ECmean global mean diagnostics for EC-Earth4')
+parser.add_argument('exp', metavar='EXP', type=str, help='experiment ID')
+parser.add_argument('year1', metavar='Y1', type=int, help='starting year')
+parser.add_argument('year2', metavar='Y2', type=int, help='final year')
+args = parser.parse_args()
+expname = args.exp
+year1 = args.year1
+year2 = args.year2
 
 # options
 with open("config.yml", "r") as file:
