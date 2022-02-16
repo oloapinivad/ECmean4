@@ -1,15 +1,17 @@
 #!/usr/bin/env python
 
-# this is a tentative python script to convert ECmean global mean operation to python3
-# uses a reference file from yaml and cdo bindings (not very efficient)
+# This is a tentative python script to convert ECmean global mean operation to python3
+# It uses a reference file from yaml and cdo bindings (not very efficient)
 
 import sys
 import os
 import glob
 import yaml
-import netCDF4 as nc
+import numpy as np
+#import netCDF4 as nc
 import argparse
 from tabulate import tabulate
+from statistics import mean
 from cdo import *
 from pathlib import Path
 cdo = Cdo()
@@ -31,15 +33,11 @@ with open("config.yml", "r") as file:
 ECEDIR = Path(cfg["dirs"]["exp"], expname)
 TABDIR = Path(cfg["dirs"]["tab"], "ECmean4", "table")
 TMPDIR = Path(cfg["dirs"]["tmp"], "ECmean4", "tmp")
-#ECEDIR = os.path.join(cfg["dirs"]["exp"], expname)
-#TABDIR = os.path.join(cfg["dirs"]["tab"], "ECmean4", "table")
-#TMPDIR = os.path.join(cfg["dirs"]["tmp"], "ECmean4", "tmp")
 os.makedirs(TABDIR, exist_ok=True)
-os.makedirs(TMPDIR, exist_ok=True)
+#os.makedirs(TMPDIR, exist_ok=True)
 
 #cdo.forceOutput = True
 #cdo.debug = True
-vardict = {}
 
 # prepare grid description file
 gridfile=str(TMPDIR / "grid.txt")
@@ -49,25 +47,23 @@ with open(gridfile, "w") as f:
         print(line, file=f)
 
 # loop
+vardict = {}
 var_field = cfg["atm_vars"]["field"]
 var_radiation = cfg["atm_vars"]["radiation"]
 for var in var_field + var_radiation:
+    a = []
     for year in range(year1, year2+1):
-        print(var, year)
         infile = ECEDIR / "output/oifs" / f"{expname}_atm_cmip6_1m_{year}-{year}.nc"
-        outfile = TMPDIR / f"tmp_{year}.nc"
-        # regrid and select variable
-        cdo.fldmean(input=f"-setgridtype,regular -setgrid,{gridfile} -selname,{var} {infile}", output=str(outfile))
-    # cat and timmean
-    cdo.timmean(input=f"-cat {TMPDIR}/tmp*.nc", output=f"{TMPDIR}/{var}_mean.nc")
-    # store mean value in a local dictionary
-    vardict[var] = float(nc.Dataset( TMPDIR / f"{var}_mean.nc").variables[var][:])
+        x=cdo.fldmean(input=f"-timmean -setgridtype,regular -setgrid,{gridfile} -selname,{var} {infile}", returnCdf  =  True).variables[var][:]
+        a.append(x.item())
+    vardict[var] = mean(a)
+    print("Average", var, mean(a))
 
 # extra radiative variables
 extra_radiation = ["net_toa", "net_sfc"]
 vardict["net_toa"] = vardict["rsnt"] + vardict["rlnt"]
 vardict["net_sfc"] = vardict["rsns"] + \
-    vardict["rlns"] - vardict["hfls"] - vardict["hfss"]
+   vardict["rlns"] - vardict["hfls"] - vardict["hfss"]
 
 # reference data: it is badly written but it can be implemented in a much more intelligent
 # and modulable way
@@ -90,9 +86,10 @@ for var in var_field + var_radiation + extra_radiation:
 
 # write the file  with tabulate: cool python feature
 tablefile = TABDIR / f"Global_Mean_{expname}_{year1}_{year2}.txt"
+print(tablefile)
 with open(tablefile, 'w') as f:
     f.write(tabulate(global_table, headers=head, tablefmt="orgtbl"))
 
 # clean
-for f in TMPDIR.glob("*.nc"):
-    os.remove(f)
+#for f in TMPDIR.glob("*.nc"):
+#    os.remove(f)
