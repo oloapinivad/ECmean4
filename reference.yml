@@ -26,3 +26,80 @@ evspsbl:
   observations:
     val: ''
     data: ''
+cll:
+  varname: 'Low cloud cover'
+  units: '[0-1]'
+  factor: '0.01'
+  observations:
+    val: '0.36627'
+    data: 'ERAI(1979-2006)'
+clm:
+  varname: 'Medium cloud cover'
+  units: '[0-1]'
+  factor: '0.01'
+  observations:
+    val: '0.17451'
+    data: 'ERAI(1979-2006)'
+clh:
+  varname: 'High cloud cover'
+  units: '[0-1]'
+  factor: '0.01'
+  observations:
+    val: '0.28723'
+    data: 'ERAI(1979-2006)'
+rsnt: 
+  varname: 'TOA net SW'
+  units: 'W/m2'
+  factor: '1'
+  observations:
+    val: '239.4'
+    data: 'Trenberth09'
+rlnt:
+  varname: 'TOA net LW'
+  units: 'W/m2'
+  factor: '1'
+  observations:
+    val: '-238.5'
+    data: 'Trenberth09'
+net_toa:
+  varname: 'Net TOA'
+  units: 'W/m2'
+  factor: '1'
+  observations:
+    val: '0.9'
+    data: 'Trenberth09'
+rlns:
+  varname: 'Surface net LW'
+  units: 'W/m2'
+  factor: '1'
+  observations:
+    val: '-63'
+    data: 'Trenberth09'
+rsns:
+  varname: 'Surface net SW'
+  units: 'W/m2'
+  factor: '1'
+  observations:
+    val: '161.2'
+    data: 'Trenberth09'
+hfss:
+  varname: 'Surface SH'
+  units: 'W/m2'
+  factor: '1'
+  observations:
+    val: '-17'
+    data: 'Trenberth09'
+hfls:
+  varname: 'Surface LH'
+  units: 'W/m2'
+  factor: '1'
+  observations:
+    val: '-80'
+    data: 'Trenberth09'
+net_sfc: 
+  varname: 'Net Surface'
+  units: 'W/m2'
+  factor: '1'
+  observations:
+    val: '0.9'
+    data: 'Trenberth09'
