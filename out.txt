@@ -1,6 +1,0 @@
-| Var     | Longname           | Units   |        ECE4 | OBS     | Obs Dataset     |
-|---------+--------------------+---------+-------------+---------+-----------------|
-| tas     | 2m Air Temperature | K       |    287.071  | 287.575 | ERAI(1990-2010) |
-| psl     | MSLP               | Pa      | 101118      | 101135  | ERAI(1990-2010) |
-| pr      | Precipitation      | mm/day  |      2.8324 | 2.92339 | ERAI(1990-2010) |
-| evspsbl | Evaporation        | mm/day  |      2.8486 |         |                 |

@@ -42,6 +42,8 @@ for var in var_field + var_radiation:
 
 # var_extra: NET_TOA
 extra_radiation=["net_toa", "net_sfc"]
+
+# this must be done with python, it is too dumb with CDO
 cdo.add(input=os.path.join(TMPDIR, "rsnt" + "_mean.nc ") + os.path.join(TMPDIR,
         "rlnt" + "_mean.nc"), output=os.path.join(TMPDIR, "net_toa" + "_mean.nc"))
 cdo.add(input=os.path.join(TMPDIR, "rsns" + "_mean.nc ") + " -add " + os.path.join(TMPDIR,
@@ -49,7 +51,8 @@ cdo.add(input=os.path.join(TMPDIR, "rsns" + "_mean.nc ") + " -add " + os.path.jo
         "hfss" + "_mean.nc ") + os.path.join(TMPDIR, "hfls" + "_mean.nc "), 
         output=os.path.join(TMPDIR, "net_sfc" + "_mean.nc"))
 
-# reference data
+# reference data: it is badly written but it can be implemented in a much more intelligent
+# and modulable way
 filename = "reference.yml"
 with open(filename, 'r') as file:
     yummy = yaml.load(file, Loader=yaml.FullLoader)
@@ -66,13 +69,14 @@ for var in var_field + var_radiation + extra_radiation:
     print(filein)
     if os.path.isfile(filein):
         beta = yummy[var]
+        # also this is better with python (do we need iris? I don't thnk so)
         beta['value'] = cdo.outputf(
             cdoformat, input=" -mulc," + beta['factor'] + " " + filein)
         out_sequence = [var, beta['varname'], beta['units'], beta['value']
                         [0], beta['observations']['val'], beta['observations']['data']]
         global_table.append(out_sequence)
 
-# write the file  with tabulate
+# write the file  with tabulate: cool python feature
 tablefile = os.path.join(TABDIR, "Global_Mean_" +
                          expname + "_" + str(year1) + "_" + str(year2) + ".txt")
 with open(tablefile, 'w') as f:
