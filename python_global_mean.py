@@ -36,11 +36,17 @@ TMPDIR = Path(cfg["dirs"]["tmp"], "ECmean4", "tmp")
 #TMPDIR = os.path.join(cfg["dirs"]["tmp"], "ECmean4", "tmp")
 os.makedirs(TABDIR, exist_ok=True)
 os.makedirs(TMPDIR, exist_ok=True)
-eceinitfile = ECEDIR / f"ICMGG{expname}INIT"
 
 #cdo.forceOutput = True
 #cdo.debug = True
 vardict = {}
+
+# prepare grid description file
+gridfile=str(TMPDIR / "grid.txt")
+griddes = cdo.griddes(input=str(ECEDIR / f"ICMGG{expname}INIT"))
+with open(gridfile, "w") as f:
+    for line in griddes:
+        print(line, file=f)
 
 # loop
 var_field = cfg["atm_vars"]["field"]
@@ -51,7 +57,7 @@ for var in var_field + var_radiation:
         infile = ECEDIR / "output/oifs" / f"{expname}_atm_cmip6_1m_{year}-{year}.nc"
         outfile = TMPDIR / f"tmp_{year}.nc"
         # regrid and select variable
-        cdo.fldmean(input=f"-setgridtype,regular -setgrid,{eceinitfile} -selname,{var} {infile}", output=str(outfile))
+        cdo.fldmean(input=f"-setgridtype,regular -setgrid,{gridfile} -selname,{var} {infile}", output=str(outfile))
     # cat and timmean
     cdo.timmean(input=f"-cat {TMPDIR}/tmp*.nc", output=f"{TMPDIR}/{var}_mean.nc")
     # store mean value in a local dictionary
