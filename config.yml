@@ -2,3 +2,7 @@ dirs:
    exp: /lus/h2resw01/scratch/ccpd/ece4 
    tmp: /ec/res4/scratch/ccjh/ece4 
    tab: /ec/res4/scratch/ccjh/ece4
+
+vars:
+   field: [tas, psl, pr, evspsbl, cll, clm, clh]
+   radiation: [rlnt, rsnt, rsns, rlns, hfss, hfls]

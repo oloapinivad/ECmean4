@@ -38,8 +38,8 @@ eceinitfile = os.path.join(ECEDIR, "ICMGG" + expname + "INIT")
 vardict = {}
 
 # loop
-var_field = ["tas", "psl", "pr", "evspsbl", "cll", "clm", "clh"]
-var_radiation = ["rlnt", "rsnt", "rsns", "rlns", "hfss", "hfls"]
+var_field = cfg["vars"]["field"]
+var_radiation = cfg["vars"]["radiation"]
 for var in var_field + var_radiation:
     for year in range(year1, year2+1):
         print(var, year)
