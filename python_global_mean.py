@@ -17,10 +17,13 @@ expname = sys.argv[1]
 year1 = int(sys.argv[2])
 year2 = int(sys.argv[3])
 
-# options (to be moved in a config file?)
-ECEDIR = os.path.join("/lus/h2resw01/scratch/ccpd/ece4", expname)
-TABDIR = os.path.join(ECEDIR, "ECmean4", "table")
-TMPDIR = os.path.join(ECEDIR, "ECmean4", "tmp")
+# options
+with open("config.yml", "r") as file:
+    cfg = yaml.load(file, Loader=yaml.FullLoader)
+
+ECEDIR = os.path.join(cfg["dirs"]["exp"], expname)
+TABDIR = os.path.join(cfg["dirs"]["tab"], "ECmean4", "table")
+TMPDIR = os.path.join(cfg["dirs"]["tab"], "ECmean4", "tmp")
 os.makedirs(TABDIR, exist_ok=True)
 os.makedirs(TMPDIR, exist_ok=True)
 eceinitfile = os.path.join(ECEDIR, "ICMGG" + expname + "INIT")
