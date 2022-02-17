@@ -52,54 +52,54 @@ rsnt:
   units: 'W/m2'
   factor: '1'
   observations:
-    val: '239.4'
-    data: 'Trenberth09'
+    val: '240.9'
+    data: 'CERES-EBAF'
 rlnt:
   varname: 'TOA net LW'
   units: 'W/m2'
   factor: '1'
   observations:
-    val: '-238.5'
-    data: 'Trenberth09'
+    val: '-240.1'
+    data: 'CERES-EBAF'
 net_toa:
   varname: 'Net TOA'
   units: 'W/m2'
   factor: '1'
   observations:
-    val: '0.9'
-    data: 'Trenberth09'
+    val: '0.71'
+    data: 'CERES-EBAF'
 rlns:
   varname: 'Surface net LW'
   units: 'W/m2'
   factor: '1'
   observations:
-    val: '-63'
-    data: 'Trenberth09'
+    val: '-56'
+    data: 'Wild2020'
 rsns:
   varname: 'Surface net SW'
   units: 'W/m2'
   factor: '1'
   observations:
-    val: '161.2'
-    data: 'Trenberth09'
+    val: '160'
+    data: 'Wild2020'
 hfss:
   varname: 'Surface SH'
   units: 'W/m2'
   factor: '-1'
   observations:
-    val: '-17'
-    data: 'Trenberth09'
+    val: '-21'
+    data: 'Wild2020'
 hfls:
   varname: 'Surface LH'
   units: 'W/m2'
   factor: '-1'
   observations:
-    val: '-80'
-    data: 'Trenberth09'
+    val: '-82'
+    data: 'Wild2020'
 net_sfc: 
   varname: 'Net Surface'
   units: 'W/m2'
   factor: '1'
   observations:
-    val: '0.9'
-    data: 'Trenberth09'
+    val: '0.6'
+    data: 'Wild2020'
