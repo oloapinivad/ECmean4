@@ -3,8 +3,9 @@ tas:
   units: 'K'
   factor: '1'
   observations: 
-    val: 287.578
-    data: "ERA5(2005-2015)"
+    val: 287.497
+    data: "ERA5"
+    years: "1990-2019"
 psl: 
   varname: 'MSLP'
   units: 'Pa'
@@ -17,8 +18,9 @@ pr:
   units: 'mm/day'
   factor: '86400'
   observations:
-    val: 2.95402
-    data: 'ERA5(2005-2015)'
+    val: 2.92552
+    data: 'ERA5'
+    years: "1990-2019"
 evspsbl:
   varname: 'Evaporation'
   units: 'mm/day'
@@ -47,6 +49,15 @@ clh:
   observations:
     val: '0.28723'
     data: 'ERAI(1979-2006)'
+tcc: 
+  varname: 'Total cloud cover'
+  units: '[0-1]'
+  factor: '0.01'
+  derived: 'clh+cll+clm'
+  observations:
+    val: '0.628433'
+    data: 'ERA5'
+    years: '1990-2019'
 rsnt: 
   varname: 'TOA net SW'
   units: 'W/m2'
@@ -105,6 +116,14 @@ net_sfc:
   observations:
     val: '0.6'
     data: 'Wild2020'
+toa_sfc: 
+  varname: 'TOA-SFC'
+  units: 'W/m2'
+  factor: '1'
+  derived: "'rsnt+rlnt-(rsns+rlns-hfls-hfss)'"
+  observations:
+    val: '0'
+    data: 'nan'
 rsntcs:
   varname: 'TOA net SW, CS'
   units: 'W/m2'

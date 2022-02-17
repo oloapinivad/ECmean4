@@ -1,8 +1,8 @@
 dirs:
    exp: /lus/h2resw01/scratch/ccpd/ece4 
-   tmp: /ec/res4/scratch/ccjh/ece4 
-   tab: /ec/res4/scratch/ccjh/ece4
+   tmp: /ec/res4/scratch/ccpd/ece4 
+   tab: /ec/res4/scratch/ccpd/ece4
 
 atm_vars:
    field: [tas, psl, pr, evspsbl, cll, clm, clh]
-   radiation: [rsnt, rlnt, rsns, rlns, hfss, hfls, rsntcs, rlntcs, net_toa, net_sfc]
+   radiation: [rsnt, rlnt, rsns, rlns, hfss, hfls, rsntcs, rlntcs, net_toa, net_sfc, toa_sfc]
