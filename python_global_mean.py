@@ -45,41 +45,48 @@ with open(gridfile, "w") as f:
     for line in griddes:
         print(line, file=f)
 
+# reference data: it is badly written but it can be implemented in a much more intelligent
+# and modular way
+filename = "reference.yml"
+with open(filename, 'r') as file:
+    ref = yaml.load(file, Loader=yaml.FullLoader)
+
 # loop
-vardict = {}
+varstat = {}
 var_field = cfg["atm_vars"]["field"]
 var_radiation = cfg["atm_vars"]["radiation"]
 for var in var_field + var_radiation:
     a = []
+    if 'derived' in ref[var].keys():
+       cmd = ref[var]['derived']
+       der = f" -expr,{var}={cmd} "
+    else: 
+       der = ""
     for year in range(year1, year2+1):
         infile = ECEDIR / "output/oifs" / f"{expname}_atm_cmip6_1m_{year}-{year}.nc"
 #        cmd = f"-timmean -setgridtype,regular -setgrid,{gridfile} -selname,{var} {infile}"
-        cmd = f"-timmean -zonmean -setgrid,{gridfile} -selname,{var} {infile}" # Equivalent, faster
+        cmd = f"-timmean -zonmean -setgrid,{gridfile} -selname,{var} {der} {infile}" # Equivalent, faster
         x=cdo.fldmean(input=cmd, returnCdf = True).variables[var][:]
         a.append(x.item())
-    vardict[var] = mean(a)
+    varstat[var] = mean(a)
     print("Average", var, mean(a))
 
 # extra radiative variables
-extra_radiation = ["net_toa", "net_sfc"]
-vardict["net_toa"] = vardict["rsnt"] + vardict["rlnt"]
-vardict["net_sfc"] = vardict["rsns"] + vardict["rlns"] - vardict["hfls"] - vardict["hfss"]
+#! Not needed anymore: now computed as derived variables as specified in reference.yml
+#extra_radiation = ["net_toa", "net_sfc"]
+#varstat["net_toa"] = varstat["rsnt"] + varstat["rlnt"]
+#varstat["net_sfc"] = varstat["rsns"] + varstat["rlns"] - varstat["hfls"] - varstat["hfss"]
 
-# reference data: it is badly written but it can be implemented in a much more intelligent
-# and modulable way
-filename = "reference.yml"
-with open(filename, 'r') as file:
-    yummy = yaml.load(file, Loader=yaml.FullLoader)
 
 # define options for the output table
 head = ["Var", "Longname", "Units", "ECE4", "OBS", "Obs Dataset"]
 global_table = list()
 
 # loop on the variables
-for var in var_field + var_radiation + extra_radiation:
+for var in var_field + var_radiation:
     print(var)
-    beta = yummy[var]
-    beta['value'] = vardict[var] * float(beta['factor'])
+    beta = ref[var]
+    beta['value'] = varstat[var] * float(beta['factor'])
     out_sequence = [var, beta['varname'], beta['units'], beta['value'],
                     float(beta['observations']['val']), beta['observations']['data']]
     global_table.append(out_sequence)
