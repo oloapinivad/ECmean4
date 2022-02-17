@@ -66,9 +66,9 @@ for var in var_field + var_radiation:
             f"{expname}_atm_cmip6_1m_{year}-{year}.nc"
         #cmd = f"-timmean -zonmean -setgrid,{gridfile} -selname,{var} {der} {infile}"
         #x=cdo.fldmean(input=cmd, returnCdf = True).variables[var][:]
-        # a.append(x.item())
+        #a.append(x.item())
         # simpler with cdo output
-        cmd = f"-timmean -fldmean -setgrid,{gridfile} -selname,{var} {der} {infile}"
+        cmd = f"-timmean -fldmean -setgridtype,regular -setgrid,{gridfile} -selname,{var} {der} {infile}"
         x = float(cdo.output(input=cmd)[0])
         a.append(x)
     varstat[var] = mean(a)
