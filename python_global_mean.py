@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 # This is a tentative python script to convert ECmean global mean operation to python3
 # It uses a reference file from yaml and cdo bindings (not very efficient)
