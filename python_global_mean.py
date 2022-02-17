@@ -25,8 +25,9 @@ expname = args.exp
 year1 = args.year1
 year2 = args.year2
 
-# config file
-with open("config.yml", "r") as file:
+# config file (looks for it in the same dir as the .py program file
+indir = Path(os.path.dirname(os.path.abspath(__file__)))
+with open(indir / "config.yml", "r") as file:
     cfg = yaml.load(file, Loader=yaml.FullLoader)
 
 ECEDIR = Path(cfg["dirs"]["exp"], expname)
