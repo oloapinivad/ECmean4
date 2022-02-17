@@ -53,7 +53,8 @@ for var in var_field + var_radiation:
     a = []
     for year in range(year1, year2+1):
         infile = ECEDIR / "output/oifs" / f"{expname}_atm_cmip6_1m_{year}-{year}.nc"
-        cmd = f"-timmean -setgridtype,regular -setgrid,{gridfile} -selname,{var} {infile}"
+#        cmd = f"-timmean -setgridtype,regular -setgrid,{gridfile} -selname,{var} {infile}"
+        cmd = f"-timmean -zonmean -setgrid,{gridfile} -selname,{var} {infile}" # Equivalent, faster
         x=cdo.fldmean(input=cmd, returnCdf = True).variables[var][:]
         a.append(x.item())
     vardict[var] = mean(a)
@@ -90,6 +91,6 @@ with open(tablefile, 'w') as f:
     f.write(tabulate(global_table, headers=head, tablefmt="orgtbl"))
 
 # clean
-os.unlink(gridfile)
+#os.unlink(gridfile)
 #for f in TMPDIR.glob("*.nc"):
 #    os.remove(f)

@@ -103,3 +103,18 @@ net_sfc:
   observations:
     val: '0.6'
     data: 'Wild2020'
+rsntcs:
+  varname: 'Top net SW, CS'
+  units: 'W/m2'
+  factor: '1'
+  observations:
+    val: '286.7'
+    data: 'CERES-EBAF'
+rlntcs:
+  varname: 'Top net LW, CS'
+  units: 'W/m2'
+  factor: '1'
+  observations:
+    val: '-268.1'
+    data: 'CERES-EBAF'
+
