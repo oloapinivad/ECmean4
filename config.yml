@@ -3,6 +3,6 @@ dirs:
    tmp: /ec/res4/scratch/ccjh/ece4 
    tab: /ec/res4/scratch/ccjh/ece4
 
-vars:
+atm_vars:
    field: [tas, psl, pr, evspsbl, cll, clm, clh]
-   radiation: [rlnt, rsnt, rsns, rlns, hfss, hfls]
+   radiation: [rsnt, rlnt, rsns, rlns, hfss, hfls, rsntcs, rlntcs, net_toa, net_sfc]
