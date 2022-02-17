@@ -3,8 +3,8 @@ tas:
   units: 'K'
   factor: '1'
   observations: 
-    val: 287.575
-    data: "ERAI(1990-2010)"
+    val: 287.578
+    data: "ERA5(2005-2015)"
 psl: 
   varname: 'MSLP'
   units: 'Pa'
@@ -17,8 +17,8 @@ pr:
   units: 'mm/day'
   factor: '86400'
   observations:
-    val: 2.92339
-    data: 'ERAI(1990-2010)'
+    val: 2.95402
+    data: 'ERA5(2005-2015)'
 evspsbl:
   varname: 'Evaporation'
   units: 'mm/day'
@@ -65,6 +65,7 @@ net_toa:
   varname: 'Net TOA'
   units: 'W/m2'
   factor: '1'
+  derived: 'rsnt+rlnt'
   observations:
     val: '0.71'
     data: 'CERES-EBAF'
@@ -100,18 +101,19 @@ net_sfc:
   varname: 'Net Surface'
   units: 'W/m2'
   factor: '1'
+  derived: 'rsns+rlns-hfls-hfss'
   observations:
     val: '0.6'
     data: 'Wild2020'
 rsntcs:
-  varname: 'Top net SW, CS'
+  varname: 'TOA net SW, CS'
   units: 'W/m2'
   factor: '1'
   observations:
     val: '286.7'
     data: 'CERES-EBAF'
 rlntcs:
-  varname: 'Top net LW, CS'
+  varname: 'TOA net LW, CS'
   units: 'W/m2'
   factor: '1'
   observations:
