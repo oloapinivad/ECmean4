@@ -1,0 +1,31 @@
+tas: 
+  dataset: CRU
+  oper: "-subc,273.15" 
+  dataname : t2m
+  domain: land
+  cmip3: 25.13
+psl: 
+  dataset: COADS
+  oper: "-divc,100"
+  dataname : msl
+  domain: global
+  cmip3: 11.69
+pr:
+  dataset: CMAP
+  oper: "-mulc,86400"
+  dataname : tp
+  domain: global
+  cmip3: 38.87
+tauu:
+  dataset: DASILVA
+  oper: ""
+  dataname : ewss
+  domain: ocean
+  cmip3: 4.03
+tauv:
+  dataset: DASILVA
+  oper: ""
+  dataname : nsss
+  domain: ocean
+  cmip3: 3.10
+

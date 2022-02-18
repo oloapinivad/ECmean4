@@ -1,8 +1,16 @@
 dirs:
    exp: /lus/h2resw01/scratch/ccpd/ece4 
-   tmp: /ec/res4/scratch/ccpd/ece4 
+   tmp: /ec/res4/scratch/ccpd/ece4
    tab: /ec/res4/scratch/ccpd/ece4
+   clm: /home/ccpd/perm/ecearth4/ECmean4/climatology
 
-atm_vars:
-   field: [tas, psl, pr, evspsbl, cll, clm, clh]
-   radiation: [rsnt, rlnt, rsns, rlns, hfss, hfls, rsntcs, rlntcs, net_toa, net_sfc, toa_sfc]
+global:
+  atm_vars:
+    field: [tas, psl, pr, evspsbl, cll, clm, clh]
+    radiation: [rsnt, rlnt, rsns, rlns, hfss, hfls, rsntcs, rlntcs, net_toa, net_sfc, toa_sfc]
+
+PI: 
+  2d_vars:
+    field: [tas, psl, pr, tauu, tauv]
+  3d_vars: 
+    field: [ua]

@@ -52,8 +52,8 @@ with open(filename, 'r') as file:
 
 # loop
 varstat = {}
-var_field = cfg["atm_vars"]["field"]
-var_radiation = cfg["atm_vars"]["radiation"]
+var_field = cfg["global"]["atm_vars"]["field"]
+var_radiation = cfg["global"]["atm_vars"]["radiation"]
 for var in var_field + var_radiation:
     a = []
     if 'derived' in ref[var].keys():
