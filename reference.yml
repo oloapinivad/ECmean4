@@ -24,8 +24,8 @@ evspsbl:
   units: 'mm/day'
   factor: 86400
   observations:
-    val: 'nan'
-    data: 'nan'
+    val: nan
+    data: 'NA'
 cll:
   varname: 'Low cloud cover'
   units: '[0-1]'
@@ -140,5 +140,21 @@ pme:
   factor: 86400
   derived: 'pr-evspsbl'
   observations:
-    val: 'nan'
-    data: 'nan'
+    val: nan
+    data: 'NA'
+swcf:
+  varname: 'SW cloud forcing'
+  units: 'W/m2'
+  factor: 1
+  derived: 'rsnt-rsntcs'
+  observations:
+    val: nan
+    data: 'NA'
+lwcf:
+  varname: 'LW cloud forcing'
+  units: 'W/m2'
+  factor: 1
+  derived: 'rlnt-rlntcs'
+  observations:
+    val: nan
+    data: 'NA'

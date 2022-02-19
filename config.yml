@@ -4,5 +4,7 @@ dirs:
    tab: /ec/res4/scratch/ccjh/ece4
 
 atm_vars:
-   field: [tas, psl, pr, evspsbl, cll, clm, clh]
-   radiation: [rsnt, rlnt, rsns, rlns, hfss, hfls, rsntcs, rlntcs, net_toa, net_sfc]
+   field: [tas, psl, pr, evspsbl, cll, clm, clh, clt, pme]
+   radiation: [rsnt, rlnt, rsns, rlns, hfss, hfls, rsntcs, rlntcs, swcf, lwcf, net_toa, net_sfc, toamsfc]
+
+tab_vars: [rsnt, rlnt, rsns, net_toa, rsns, rlns, hfss, hfls, swcf, lwcf, net_sfc, toamsfc, tas, clt, cll, clm, clh, pr, pme, psl]
