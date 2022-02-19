@@ -74,6 +74,7 @@ for var in var_field + var_radiation:
         infile = ECEDIR / 'output/oifs' / f'{expname}_atm_cmip6_1m_{year}-{year}.nc'
 #        cmd = f'-timmean -setgridtype,regular -setgrid,{gridfile} -selname,{var} {infile}'
         cmd = f'-timmean -zonmean -setgrid,{gridfile} -selname,{var} {der} {infile}' # Equivalent, faster
+        print(cmd)
         x=cdo.fldmean(input=cmd, returnCdf = True).variables[var][:]
         a.append(x.item())
     varstat[var] = mean(a)
@@ -127,6 +128,4 @@ if ftable:
         print(file=f)
 
 # clean
-#os.unlink(gridfile)
-#for f in TMPDIR.glob('*.nc'):
-#    os.remove(f)
+os.unlink(gridfile)
