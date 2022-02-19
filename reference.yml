@@ -1,122 +1,144 @@
 tas:
   varname: '2m Air Temperature'
   units: 'K'
-  factor: '1'
+  factor: 1
   observations: 
     val: 287.578
     data: "ERA5(2005-2015)"
 psl: 
   varname: 'MSLP'
   units: 'Pa'
-  factor: '1'
+  factor: 1
   observations:
     val: 101135
     data: "ERAI(1990-2010)"
 pr:
   varname: 'Precipitation'
   units: 'mm/day'
-  factor: '86400'
+  factor: 86400
   observations:
     val: 2.95402
     data: 'ERA5(2005-2015)'
 evspsbl:
   varname: 'Evaporation'
   units: 'mm/day'
-  factor: '86400'
+  factor: 86400
   observations:
     val: 'nan'
     data: 'nan'
 cll:
   varname: 'Low cloud cover'
   units: '[0-1]'
-  factor: '0.01'
+  factor: 0.01
   observations:
-    val: '0.36627'
+    val: 0.36627
     data: 'ERAI(1979-2006)'
 clm:
   varname: 'Medium cloud cover'
   units: '[0-1]'
-  factor: '0.01'
+  factor: 0.01
   observations:
-    val: '0.17451'
+    val: 0.17451
     data: 'ERAI(1979-2006)'
 clh:
   varname: 'High cloud cover'
   units: '[0-1]'
-  factor: '0.01'
+  factor: 0.01
   observations:
-    val: '0.28723'
+    val: 0.28723
+    data: 'ERAI(1979-2006)'
+clt:
+  varname: 'Total cloud cover'
+  units: '[0-1]'
+  factor: 0.01
+  observations:
+    val: 0.60461
     data: 'ERAI(1979-2006)'
 rsnt: 
   varname: 'TOA net SW'
   units: 'W/m2'
-  factor: '1'
+  factor: 1
   observations:
-    val: '240.9'
+    val: 240.9
     data: 'CERES-EBAF'
 rlnt:
   varname: 'TOA net LW'
   units: 'W/m2'
-  factor: '1'
+  factor: 1
   observations:
-    val: '-240.1'
+    val: -240.1
     data: 'CERES-EBAF'
 net_toa:
   varname: 'Net TOA'
   units: 'W/m2'
-  factor: '1'
+  factor: 1
   derived: 'rsnt+rlnt'
   observations:
-    val: '0.71'
+    val: 0.71
     data: 'CERES-EBAF'
 rlns:
   varname: 'Surface net LW'
   units: 'W/m2'
-  factor: '1'
+  factor: 1
   observations:
-    val: '-56'
+    val: -56
     data: 'Wild2020'
 rsns:
   varname: 'Surface net SW'
   units: 'W/m2'
-  factor: '1'
+  factor: 1
   observations:
-    val: '160'
+    val: 160
     data: 'Wild2020'
 hfss:
   varname: 'Surface SH'
   units: 'W/m2'
-  factor: '-1'
+  factor: -1
   observations:
-    val: '-21'
+    val: -21
     data: 'Wild2020'
 hfls:
   varname: 'Surface LH'
   units: 'W/m2'
-  factor: '-1'
+  factor: -1
   observations:
-    val: '-82'
+    val: -82
     data: 'Wild2020'
 net_sfc: 
   varname: 'Net Surface'
   units: 'W/m2'
-  factor: '1'
+  factor: 1
+  derived: 'rsnt+rlnt-rsns-rlns+hfls+hfss'
+  observations:
+    val: 0.
+    data: ''
+toamsfc:
+  varname: 'TOA-Sfc net radiation'
+  units: 'W/m2'
+  factor: 1
   derived: 'rsns+rlns-hfls-hfss'
   observations:
-    val: '0.6'
+    val: 0.6
     data: 'Wild2020'
 rsntcs:
   varname: 'TOA net SW, CS'
   units: 'W/m2'
-  factor: '1'
+  factor: 1
   observations:
-    val: '286.7'
+    val: 286.7
     data: 'CERES-EBAF'
 rlntcs:
   varname: 'TOA net LW, CS'
   units: 'W/m2'
-  factor: '1'
+  factor: 1
   observations:
-    val: '-268.1'
+    val: -268.1
     data: 'CERES-EBAF'
-
+pme:
+  varname: 'Precip. minus evap.'
+  units: 'mm/day'
+  factor: 86400
+  derived: 'pr-evspsbl'
+  observations:
+    val: 'nan'
+    data: 'nan'
