@@ -13,6 +13,7 @@ from tabulate import tabulate
 from statistics import mean
 from cdo import *
 from pathlib import Path
+import re
 
 # arguments
 parser = argparse.ArgumentParser(description='ECmean global mean diagnostics for EC-Earth4')
@@ -40,10 +41,6 @@ ECEDIR = Path(cfg['dirs']['exp'], expname)
 TABDIR = Path(cfg['dirs']['tab'], 'ECmean4', 'table')
 #TMPDIR = Path(cfg['dirs']['tmp'], 'ECmean4', 'tmp')
 os.makedirs(TABDIR, exist_ok=True)
-#os.makedirs(TMPDIR, exist_ok=True)
-
-#cdo.forceOutput = True
-#cdo.debug = True
 
 # prepare grid description file
 gridfile=str(TABDIR / 'grid.txt')
@@ -52,19 +49,38 @@ with open(gridfile, 'w') as f:
     for line in griddes:
         print(line, file=f)
 
-# reference data: it is badly written but it can be implemented in a much more intelligent
-# and modular way
+# reference data
 filename = 'reference.yml'
 with open(filename, 'r') as file:
     ref = yaml.load(file, Loader=yaml.FullLoader)
 
-# loop
-varstat = {}
+# list of vars on which to work
 var_field = cfg['atm_vars']['field']
 var_radiation = cfg['atm_vars']['radiation']
 var_table = cfg['tab_vars']
-
 var_all = list(set(var_field + var_radiation + var_table)) # Extract all variables, avoid duplicates
+
+# make sure all requested vars are available (use first year)
+# first find all needed variables (including those needed for derived ones)
+var_req = []
+var_der = []
+for v in var_all:
+     d = ref[v].get('derived')
+     if d:
+         var_req.extend(re.split('[\*+-]', d))
+         var_der.append(v)
+var_req = list(set(var_req + var_all))
+for v in var_der:
+    var_req.remove(v)
+# find available vars and check
+infile = str(ECEDIR / 'output/oifs' / f'{expname}_atm_cmip6_1m_{year1}-{year1}.nc')
+var_avail = [v.split()[1] for v in cdo.pardes(input=infile)]
+for v in var_req:
+    if v not in var_avail:
+        sys.exit(f'Variable {v} needed but not available in model output!')
+
+# loop
+varstat = {}
 for var in var_all:
     a = []
     if 'derived' in ref[var].keys():
