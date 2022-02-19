@@ -4,21 +4,21 @@ tas:
   factor: 1
   observations: 
     val: 287.578
-    data: "ERA5(2005-2015)"
+    data: "ERA5 (2005-2015)"
 psl: 
   varname: 'MSLP'
   units: 'Pa'
   factor: 1
   observations:
     val: 101135
-    data: "ERAI(1990-2010)"
+    data: "ERAI (1990-2010)"
 pr:
   varname: 'Precipitation'
   units: 'mm/day'
   factor: 86400
   observations:
     val: 2.95402
-    data: 'ERA5(2005-2015)'
+    data: 'ERA5 (2005-2015)'
 evspsbl:
   varname: 'Evaporation'
   units: 'mm/day'
@@ -32,28 +32,28 @@ cll:
   factor: 0.01
   observations:
     val: 0.36627
-    data: 'ERAI(1979-2006)'
+    data: 'ERAI (1979-2006)'
 clm:
   varname: 'Medium cloud cover'
   units: '[0-1]'
   factor: 0.01
   observations:
     val: 0.17451
-    data: 'ERAI(1979-2006)'
+    data: 'ERAI (1979-2006)'
 clh:
   varname: 'High cloud cover'
   units: '[0-1]'
   factor: 0.01
   observations:
     val: 0.28723
-    data: 'ERAI(1979-2006)'
+    data: 'ERAI (1979-2006)'
 clt:
   varname: 'Total cloud cover'
   units: '[0-1]'
   factor: 0.01
   observations:
     val: 0.60461
-    data: 'ERAI(1979-2006)'
+    data: 'ERAI (1979-2006)'
 rsnt: 
   varname: 'TOA net SW'
   units: 'W/m2'
@@ -82,28 +82,28 @@ rlns:
   factor: 1
   observations:
     val: -56
-    data: 'Wild2020'
+    data: 'Wild 2020'
 rsns:
   varname: 'Surface net SW'
   units: 'W/m2'
   factor: 1
   observations:
     val: 160
-    data: 'Wild2020'
+    data: 'Wild 2020'
 hfss:
   varname: 'Surface SH'
   units: 'W/m2'
   factor: -1
   observations:
     val: -21
-    data: 'Wild2020'
+    data: 'Wild 2020'
 hfls:
   varname: 'Surface LH'
   units: 'W/m2'
   factor: -1
   observations:
     val: -82
-    data: 'Wild2020'
+    data: 'Wild 2020'
 net_sfc: 
   varname: 'Net Surface'
   units: 'W/m2'
@@ -119,7 +119,7 @@ toamsfc:
   derived: 'rsns+rlns-hfls-hfss'
   observations:
     val: 0.6
-    data: 'Wild2020'
+    data: 'Wild 2020'
 rsntcs:
   varname: 'TOA net SW, CS'
   units: 'W/m2'

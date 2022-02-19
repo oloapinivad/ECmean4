@@ -62,8 +62,10 @@ with open(filename, 'r') as file:
 varstat = {}
 var_field = cfg['atm_vars']['field']
 var_radiation = cfg['atm_vars']['radiation']
+var_table = cfg['tab_vars']
 
-for var in var_field + var_radiation:
+var_all = list(set(var_field + var_radiation + var_table)) # Extract all variables, avoid duplicates
+for var in var_all:
     a = []
     if 'derived' in ref[var].keys():
        cmd = ref[var]['derived']
@@ -74,18 +76,10 @@ for var in var_field + var_radiation:
         infile = ECEDIR / 'output/oifs' / f'{expname}_atm_cmip6_1m_{year}-{year}.nc'
 #        cmd = f'-timmean -setgridtype,regular -setgrid,{gridfile} -selname,{var} {infile}'
         cmd = f'-timmean -zonmean -setgrid,{gridfile} -selname,{var} {der} {infile}' # Equivalent, faster
-        print(cmd)
         x=cdo.fldmean(input=cmd, returnCdf = True).variables[var][:]
         a.append(x.item())
     varstat[var] = mean(a)
     if fverb: print('Average', var, mean(a))
-
-# extra radiative variables
-#! Not needed anymore: now computed as derived variables as specified in reference.yml
-#extra_radiation = ['net_toa', 'net_sfc']
-#varstat['net_toa'] = varstat['rsnt'] + varstat['rlnt']
-#varstat['net_sfc'] = varstat['rsns'] + varstat['rlns'] - varstat['hfls'] - varstat['hfss']
-
 
 # define options for the output table
 head = ['Var', 'Longname', 'Units', 'ECE4', 'OBS', 'Obs Dataset']
@@ -110,7 +104,6 @@ if ftable:
     linefile = TABDIR / 'global_means.txt'
     if args.output: 
         linefile = args.output
-    var_table = cfg['tab_vars']
     if not os.path.isfile(linefile):
         with open(linefile, 'w') as f:
             print('%exp from   to ', end='', file=f)
