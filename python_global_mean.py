@@ -15,6 +15,13 @@ from cdo import *
 from pathlib import Path
 import re
 
+def is_number(s):
+    try:
+        float(s)
+        return True
+    except ValueError:
+        return False
+
 # arguments
 parser = argparse.ArgumentParser(description='ECmean global mean diagnostics for EC-Earth4')
 parser.add_argument('exp', metavar='EXP', type=str, help='experiment ID')
@@ -69,7 +76,13 @@ for v in var_all:
      if d:
          var_req.extend(re.split('[\*+-]', d))
          var_der.append(v)
-var_req = list(set(var_req + var_all))
+
+for v in var_req:
+    if is_number(v):
+        var_req.remove(v)
+# print("Vars requested", var_req)
+
+var_req = list(set(var_req + var_all)) # this avoids duplicates
 for v in var_der:
     var_req.remove(v)
 # find available vars and check

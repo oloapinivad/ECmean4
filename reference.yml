@@ -108,18 +108,34 @@ net_sfc:
   varname: 'Net Surface'
   units: 'W/m2'
   factor: 1
-  derived: 'rsnt+rlnt-rsns-rlns+hfls+hfss'
+  derived: 'rsns+rlns-hfls-hfss-prsn*334000'
   observations:
-    val: 0.
-    data: ''
-toamsfc:
-  varname: 'TOA-Sfc net radiation'
+    val: 0.6
+    data: 'Wild 2020'
+net_sfc_nosn:
+  varname: 'Net Surface'
   units: 'W/m2'
   factor: 1
   derived: 'rsns+rlns-hfls-hfss'
   observations:
     val: 0.6
     data: 'Wild 2020'
+toamsfc:
+  varname: 'TOA-Sfc net radiation'
+  units: 'W/m2'
+  factor: 1
+  derived: 'rsnt+rlnt-rsns-rlns+hfls+hfss+prsn*334000'
+  observations:
+    val: 0
+    data: ''
+toamsfc_nosn:
+  varname: 'TOA-Sfc net rad. (no snow)'
+  units: 'W/m2'
+  factor: 1
+  derived: 'rsnt+rlnt-rsns-rlns+hfls+hfss'
+  observations:
+    val: 0
+    data: ''
 rsntcs:
   varname: 'TOA net SW, CS'
   units: 'W/m2'
