@@ -1,22 +1,22 @@
 tas:
   varname: '2m Air Temperature'
   units: 'K'
-  factor: '1'
+  factor: 1
   observations: 
     val: 287.497
     data: "ERA5"
-    years: "1990-2019"
+    years: '1990-2019'
 psl: 
   varname: 'MSLP'
   units: 'Pa'
-  factor: '1'
+  factor: 1
   observations:
     val: 101135
-    data: "ERAI(1990-2010)"
+    data: "ERAI (1990-2010)"
 pr:
   varname: 'Precipitation'
   units: 'mm/day'
-  factor: '86400'
+  factor: 86400
   observations:
     val: 2.92552
     data: 'ERA5'
@@ -24,36 +24,39 @@ pr:
 evspsbl:
   varname: 'Evaporation'
   units: 'mm/day'
-  factor: '86400'
+  factor: 86400
   observations:
-    val: 'nan'
-    data: 'nan'
+    val: "-2.90113"
+    data: 'ERA5'
+    years: '1990-2019'
 cll:
   varname: 'Low cloud cover'
   units: '[0-1]'
-  factor: '0.01'
+  factor: 0.01
   observations:
-    val: '0.36627'
-    data: 'ERAI(1979-2006)'
+    val: 0.36627
+    data: 'ERA5'
+    years: '1990-2019'
 clm:
   varname: 'Medium cloud cover'
   units: '[0-1]'
-  factor: '0.01'
+  factor: 0.01
   observations:
-    val: '0.17451'
-    data: 'ERAI(1979-2006)'
+    val: 0.247956
+    data: 'ERA5'
+    years: '1990-2019'
 clh:
   varname: 'High cloud cover'
   units: '[0-1]'
-  factor: '0.01'
+  factor: 0.01
   observations:
-    val: '0.28723'
-    data: 'ERAI(1979-2006)'
-tcc: 
+    val: '0.341018'
+    data: 'ERA5'
+    years: '1990-2019'
+clt: 
   varname: 'Total cloud cover'
   units: '[0-1]'
   factor: '0.01'
-  derived: 'clh+cll+clm'
   observations:
     val: '0.628433'
     data: 'ERA5'
@@ -61,81 +64,120 @@ tcc:
 rsnt: 
   varname: 'TOA net SW'
   units: 'W/m2'
-  factor: '1'
+  factor: 1
   observations:
-    val: '240.9'
+    val: 240.9
     data: 'CERES-EBAF'
 rlnt:
   varname: 'TOA net LW'
   units: 'W/m2'
-  factor: '1'
+  factor: 1
   observations:
-    val: '-240.1'
+    val: -240.1
     data: 'CERES-EBAF'
 net_toa:
   varname: 'Net TOA'
   units: 'W/m2'
-  factor: '1'
+  factor: 1
   derived: 'rsnt+rlnt'
   observations:
-    val: '0.71'
+    val: 0.71
     data: 'CERES-EBAF'
 rlns:
   varname: 'Surface net LW'
   units: 'W/m2'
-  factor: '1'
+  factor: 1
   observations:
-    val: '-56'
-    data: 'Wild2020'
+    val: -56
+    data: 'Wild 2020'
 rsns:
   varname: 'Surface net SW'
   units: 'W/m2'
-  factor: '1'
+  factor: 1
   observations:
-    val: '160'
-    data: 'Wild2020'
+    val: 160
+    data: 'Wild 2020'
 hfss:
   varname: 'Surface SH'
   units: 'W/m2'
-  factor: '-1'
+  factor: -1
   observations:
-    val: '-21'
-    data: 'Wild2020'
+    val: -21
+    data: 'Wild 2020'
 hfls:
   varname: 'Surface LH'
   units: 'W/m2'
-  factor: '-1'
+  factor: -1
   observations:
-    val: '-82'
-    data: 'Wild2020'
+    val: -82
+    data: 'Wild 2020'
 net_sfc: 
   varname: 'Net Surface'
   units: 'W/m2'
-  factor: '1'
+  factor: 1
+  derived: 'rsns+rlns-hfls-hfss-prsn*334000'
+  observations:
+    val: 0.6
+    data: 'Wild 2020'
+net_sfc_nosn:
+  varname: 'Net Surface'
+  units: 'W/m2'
+  factor: 1
   derived: 'rsns+rlns-hfls-hfss'
   observations:
-    val: '0.6'
-    data: 'Wild2020'
-toa_sfc: 
-  varname: 'TOA-SFC'
+    val: 0.6
+    data: 'Wild 2020'
+toamsfc:
+  varname: 'TOA-Sfc net radiation'
   units: 'W/m2'
-  factor: '1'
-  derived: "'rsnt+rlnt-(rsns+rlns-hfls-hfss)'"
+  factor: 1
+  derived: 'rsnt+rlnt-rsns-rlns+hfls+hfss+prsn*334000'
   observations:
-    val: '0'
-    data: 'nan'
+    val: 0
+    data: ''
+toamsfc_nosn:
+  varname: 'TOA-Sfc net rad. (no snow)'
+  units: 'W/m2'
+  factor: 1
+  derived: 'rsnt+rlnt-rsns-rlns+hfls+hfss'
+  observations:
+    val: 0
+    data: ''
 rsntcs:
   varname: 'TOA net SW, CS'
   units: 'W/m2'
-  factor: '1'
+  factor: 1
   observations:
-    val: '286.7'
+    val: 286.7
     data: 'CERES-EBAF'
 rlntcs:
   varname: 'TOA net LW, CS'
   units: 'W/m2'
-  factor: '1'
+  factor: 1
   observations:
-    val: '-268.1'
+    val: -268.1
     data: 'CERES-EBAF'
-
+pme:
+  varname: 'Precip. minus evap.'
+  units: 'mm/day'
+  factor: 86400
+  derived: 'pr-evspsbl'
+  observations:
+    val: nan
+    data: 'NA'
+swcf:
+  varname: 'SW cloud forcing'
+  units: 'W/m2'
+  factor: 1
+  derived: 'rsnt-rsntcs'
+  observations:
+    val: nan
+    data: 'NA'
+lwcf:
+  varname: 'LW cloud forcing'
+  units: 'W/m2'
+  factor: 1
+  derived: 'rlnt-rlntcs'
+  observations:
+    val: nan
+    data: 'NA'
