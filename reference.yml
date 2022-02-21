@@ -4,15 +4,16 @@ tas:
   factor: 1
   observations: 
     val: 287.497
-    data: "ERA5"
+    data: 'ERA5'
     years: '1990-2019'
 psl: 
   varname: 'MSLP'
   units: 'Pa'
   factor: 1
   observations:
-    val: 101135
-    data: "ERAI (1990-2010)"
+    val: 101142
+    data: 'ERA5'
+    years: '1990-2019'
 pr:
   varname: 'Precipitation'
   units: 'mm/day'
@@ -26,7 +27,7 @@ evspsbl:
   units: 'mm/day'
   factor: 86400
   observations:
-    val: "-2.90113"
+    val: '-2.90113'
     data: 'ERA5'
     years: '1990-2019'
 cll:
@@ -163,8 +164,8 @@ pme:
   factor: 86400
   derived: 'pr-evspsbl'
   observations:
-    val: nan
-    data: 'NA'
+    val: 0
+    data: ''
 swcf:
   varname: 'SW cloud forcing'
   units: 'W/m2'

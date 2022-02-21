@@ -67,7 +67,9 @@ with open(filename, 'r') as file:
 var_field = cfg["global"]["atm_vars"]["field"]
 var_radiation = cfg["global"]["atm_vars"]["radiation"]
 var_table = cfg["global"]['tab_vars']
-var_all = list(set(var_field + var_radiation + var_table)) # Extract all variables, avoid duplicates
+
+# create a list for all variable, avoid duplicates
+var_all = list(set(var_field + var_radiation + var_table))
 
 # make sure all requested vars are available (use first year)
 # first find all needed variables (including those needed for derived ones)
@@ -82,11 +84,12 @@ for v in var_all:
 for v in var_req:
     if is_number(v):
         var_req.remove(v)
-# print("Vars requested", var_req)
 
-var_req = list(set(var_req + var_all)) # this avoids duplicates
+# avoid duplicates
+var_req = list(set(var_req + var_all))
 for v in var_der:
     var_req.remove(v)
+
 # find available vars and check
 infile = str(ECEDIR / 'output/oifs' / f'{expname}_atm_cmip6_1m_{year1}-{year1}.nc')
 var_avail = [v.split()[1] for v in cdo.pardes(input=infile)]
@@ -98,18 +101,18 @@ for v in var_req:
 varstat = {}
 for var in var_all:
     a = []
+
+    # check if var is derived
     if 'derived' in ref[var].keys():
         cmd = ref[var]['derived']
         der = f" -expr,{var}={cmd} "
     else:
         der = ""
+
+    # loop on years: call CDO to perform all the computation
     for year in range(year1, year2+1):
         infile = ECEDIR / "output/oifs" / \
             f"{expname}_atm_cmip6_1m_{year}-{year}.nc"
-        #cmd = f"-timmean -zonmean -setgrid,{gridfile} -selname,{var} {der} {infile}"
-        #x=cdo.fldmean(input=cmd, returnCdf = True).variables[var][:]
-        #a.append(x.item())
-        # simpler with cdo output
         cmd = f"-timmean -fldmean -setgridtype,regular -setgrid,{gridfile} -selname,{var} {der} {infile}"
         x = float(cdo.output(input=cmd)[0])
         a.append(x)
@@ -120,7 +123,7 @@ for var in var_all:
 head = ['Var', 'Longname', 'Units', 'ECE4', 'OBS', 'Obs Dataset']
 global_table = list()
 
-# loop on the variables
+# loop on the variables to create the table
 for var in var_field + var_radiation:
     beta = ref[var]
     beta['value'] = varstat[var] * float(beta['factor'])
@@ -128,7 +131,7 @@ for var in var_field + var_radiation:
                     float(beta['observations']['val']), beta['observations']['data']]
     global_table.append(out_sequence)
 
-# write the file  with tabulate: cool python feature
+# write the file with tabulate: cool python feature
 tablefile = TABDIR / f'Global_Mean_{expname}_{year1}_{year2}.txt'
 print(tablefile)
 with open(tablefile, 'w') as f:
