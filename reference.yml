@@ -121,7 +121,7 @@ net_sfc:
     val: 0.6
     data: 'Wild 2020'
 net_sfc_nosn:
-  varname: 'Net Surface'
+  varname: 'Net Surface (no snowfall)'
   units: 'W/m2'
   factor: 1
   derived: 'rsns+rlns-hfls-hfss'
@@ -137,7 +137,7 @@ toamsfc:
     val: 0
     data: ''
 toamsfc_nosn:
-  varname: 'TOA-Sfc net rad. (no snow)'
+  varname: 'TOA-Sfc net rad. (no snowfall)'
   units: 'W/m2'
   factor: 1
   derived: 'rsnt+rlnt-rsns-rlns+hfls+hfss'
