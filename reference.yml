@@ -27,7 +27,7 @@ evspsbl:
   units: 'mm/day'
   factor: 86400
   observations:
-    val: '-2.90113'
+    val: -2.90113
     data: 'ERA5'
     years: '1990-2019'
 cll:
@@ -51,15 +51,15 @@ clh:
   units: '[0-1]'
   factor: 0.01
   observations:
-    val: '0.341018'
+    val: 0.341018
     data: 'ERA5'
     years: '1990-2019'
 clt: 
   varname: 'Total cloud cover'
   units: '[0-1]'
-  factor: '0.01'
+  factor: 0.01
   observations:
-    val: '0.628433'
+    val: 0.628433
     data: 'ERA5'
     years: '1990-2019'
 rsnt: 
