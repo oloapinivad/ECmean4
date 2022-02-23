@@ -53,10 +53,25 @@ os.makedirs(TABDIR, exist_ok=True)
 
 # prepare grid description file
 gridfile=str(TABDIR / 'grid.txt')
-griddes = cdo.griddes(input=str(ECEDIR / f'ICMGG{expname}INIT'))
+inifile=str(ECEDIR / f'ICMGG{expname}INIT')
+griddes = cdo.griddes(input=inifile)
 with open(gridfile, 'w') as f:
     for line in griddes:
         print(line, file=f)
+
+# prepare LSM
+lmfile=str(TABDIR / 'lmask.nc')
+smfile=str(TABDIR / 'smask.nc')
+gafile=str(TABDIR / 'ga.nc')
+cdo.selname('LSM', input=f'-setgridtype,regular {inifile}', output=lmfile, options='-t ecmwf')
+cdo.mulc('-1', input=f'-subc,1 {lmfile}', output=smfile)  
+cdo.gridarea(input=f'-setgridtype,regular {lmfile}', output=gafile)
+#lmean=cdo.output(input=f'-fldmean {lmfile}')[0]
+#tmpfile=cdo.divc(lmean, input=lmfile)
+#cdo.copy(input=tmpfile, outfile=lmfile)
+#smean=cdo.output(input=f'-fldmean {smfile}')[0]
+#tmpfile=cdo.divc(smean, input=smfile)
+#cdo.copy(input=tmpfile, outfile=smfile)
 
 # reference data
 filename = 'reference.yml'
@@ -64,9 +79,9 @@ with open(filename, 'r') as file:
     ref = yaml.load(file, Loader=yaml.FullLoader)
 
 # list of vars on which to work
-var_field = cfg["global"]["atm_vars"]["field"]
-var_radiation = cfg["global"]["atm_vars"]["radiation"]
-var_table = cfg["global"]['tab_vars']
+var_field = cfg['global']['atm_vars']['field']
+var_radiation = cfg['global']['atm_vars']['radiation']
+var_table = cfg['global']['tab_vars']
 
 # create a list for all variable, avoid duplicates
 var_all = list(set(var_field + var_radiation + var_table))
@@ -105,15 +120,28 @@ for var in var_all:
     # check if var is derived
     if 'derived' in ref[var].keys():
         cmd = ref[var]['derived']
-        der = f" -expr,{var}={cmd} "
+        der = f' -expr,{var}={cmd} '
     else:
-        der = ""
+        der = ''
+   
+    
+    # land/sea variables
+    mask = ''
+    op='-fldmean'
+    if 'total' in ref[var].keys():
+        mask_type = ref[var]['total']
+        if mask_type == 'land':
+            mask = f'-mul {gafile} -mul {lmfile}'
+            op='-fldsum'
+        elif mask_type in ['sea', 'ocean']:
+            mask = f'-mul {gafile} -mul {smfile}'
+            op='-fldsum'
 
     # loop on years: call CDO to perform all the computation
     for year in range(year1, year2+1):
-        infile = ECEDIR / "output/oifs" / \
-            f"{expname}_atm_cmip6_1m_{year}-{year}.nc"
-        cmd = f"-timmean -fldmean -setgridtype,regular -setgrid,{gridfile} -selname,{var} {der} {infile}"
+        infile = ECEDIR / 'output/oifs' / \
+            f'{expname}_atm_cmip6_1m_{year}-{year}.nc'
+        cmd = f'-timmean {op} {mask} -setgridtype,regular -setgrid,{gridfile} -selname,{var} {der} {infile}'
         x = float(cdo.output(input=cmd)[0])
         a.append(x)
     varstat[var] = mean(a)
@@ -160,3 +188,5 @@ if ftable:
 
 # clean
 os.unlink(gridfile)
+#os.unlink(lmask)
+#os.unlink(smask)

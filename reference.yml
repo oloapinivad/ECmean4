@@ -21,7 +21,47 @@ pr:
   observations:
     val: 2.92552
     data: 'ERA5'
-    years: "1990-2019"
+    years: '1990-2019'
+pr_land:
+  varname: 'Precipitation (land)'
+  units: 'Sv'
+  factor: 1e-9
+  total: 'land'
+  derived: 'pr'
+  observations:
+    val: nan
+    data: ''
+    years: ''
+pr_oce:
+  varname: 'Precipitation (ocean)'
+  units: 'Sv'
+  factor: 1e-9
+  total: 'ocean'
+  derived: 'pr'
+  observations:
+    val: nan
+    data: ''
+    years: ''
+pme_land:
+  varname: 'Precip. minus evap. (land)'
+  units: 'Sv'
+  factor: 1e-9
+  total: 'land'
+  derived: 'pr-evspsbl'
+  observations:
+    val: nan
+    data: ''
+    years: ''
+pme_oce:
+  varname: 'Precip. minus evap. (ocean)'
+  units: 'Sv'
+  factor: 1e-9
+  total: 'ocean'
+  derived: 'pr-evspsbl'
+  observations:
+    val: nan
+    data: ''
+    years: ''
 evspsbl:
   varname: 'Evaporation'
   units: 'mm/day'

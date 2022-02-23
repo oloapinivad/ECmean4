@@ -6,7 +6,7 @@ dirs:
 
 global:
   atm_vars:
-    field: [tas, psl, pr, evspsbl, pme, clt, cll, clm, clh]
+    field: [tas, psl, pr, evspsbl, pme, clt, cll, clm, clh, pr_oce, pme_oce, pr_land, pme_land]
     radiation: [rsnt, rlnt, rsns, rlns, hfss, hfls, rsntcs, rlntcs, net_toa, net_sfc_nosn, toamsfc_nosn, net_sfc, toamsfc]
   tab_vars: [rsnt, rlnt, net_toa, rsns, rlns, hfss, hfls, swcf, lwcf, net_sfc, toamsfc, tas, clt, cll, clm, clh, pr, pme, psl]
 
