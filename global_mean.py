@@ -143,7 +143,7 @@ for var in var_all:
         if fverb: print('Average', var, mean(a))
 
 # define options for the output table
-head = ['Variable', 'Longname', 'Units', 'EC-Earth4', 'Obs.', 'Dataset', 'years']
+head = ['Variable', 'Longname', 'Units', 'EC-Earth4', 'Obs.', 'Dataset', 'Years']
 global_table = list()
 
 # loop on the variables to create the table
