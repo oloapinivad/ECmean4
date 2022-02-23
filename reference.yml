@@ -29,7 +29,7 @@ pr_land:
   total: 'land'
   derived: 'pr'
   observations:
-    val: nan
+    val: NaN
     data: ''
     years: ''
 pr_oce:
@@ -39,7 +39,7 @@ pr_oce:
   total: 'ocean'
   derived: 'pr'
   observations:
-    val: nan
+    val: NaN
     data: ''
     years: ''
 pme_land:
@@ -49,7 +49,7 @@ pme_land:
   total: 'land'
   derived: 'pr-evspsbl'
   observations:
-    val: nan
+    val: NaN
     data: ''
     years: ''
 pme_oce:
@@ -59,7 +59,7 @@ pme_oce:
   total: 'ocean'
   derived: 'pr-evspsbl'
   observations:
-    val: nan
+    val: NaN
     data: ''
     years: ''
 evspsbl:
@@ -212,13 +212,13 @@ swcf:
   factor: 1
   derived: 'rsnt-rsntcs'
   observations:
-    val: nan
-    data: 'NA'
+    val: NaN
+    data: 'NaN'
 lwcf:
   varname: 'LW cloud forcing'
   units: 'W/m2'
   factor: 1
   derived: 'rlnt-rlntcs'
   observations:
-    val: nan
-    data: 'NA'
+    val: NaN
+    data: 'NaN'

@@ -83,69 +83,70 @@ var_field = cfg['global']['atm_vars']['field']
 var_radiation = cfg['global']['atm_vars']['radiation']
 var_table = cfg['global']['tab_vars']
 
+# make sure all requested vars are available (use first year)
+# first find all needed variables (including those needed for derived ones)
+
 # create a list for all variable, avoid duplicates
 var_all = list(set(var_field + var_radiation + var_table))
 
-# make sure all requested vars are available (use first year)
-# first find all needed variables (including those needed for derived ones)
-var_req = []
-var_der = []
-for v in var_all:
-     d = ref[v].get('derived')
-     if d:
-         var_req.extend(re.split('[\*+-]', d))
-         var_der.append(v)
-
-for v in var_req:
-    if is_number(v):
-        var_req.remove(v)
-
-# avoid duplicates
-var_req = list(set(var_req + var_all))
-for v in var_der:
-    var_req.remove(v)
-
-# find available vars and check
 infile = str(ECEDIR / 'output/oifs' / f'{expname}_atm_cmip6_1m_{year1}-{year1}.nc')
 var_avail = [v.split()[1] for v in cdo.pardes(input=infile)]
-for v in var_req:
-    if v not in var_avail:
-        sys.exit(f'Variable {v} needed but not available in model output!')
+
+#var_der = []
+isavail = {}
+for v in var_all:
+     isavail[v] = True
+     d = ref[v].get('derived')
+     if d:
+#         var_der.append(v)
+         var_req = re.split('[\*+-]', d)
+         for x in var_req:
+             if is_number(x):
+                 var_req.remove(x)
+     else:
+         var_req = [v] 
+
+     for x in var_req:
+         if x not in var_avail:
+             isavail[v] = False
+             print(f"Variable {x} needed by {v} is not available in the model output!")
 
 # loop
 varstat = {}
 for var in var_all:
-    a = []
-
-    # check if var is derived
-    if 'derived' in ref[var].keys():
-        cmd = ref[var]['derived']
-        der = f' -expr,{var}={cmd} '
+    if not isavail[var]:
+        varstat[var] = float("NaN")
     else:
-        der = ''
-   
-    
-    # land/sea variables
-    mask = ''
-    op='-fldmean'
-    if 'total' in ref[var].keys():
-        mask_type = ref[var]['total']
-        if mask_type == 'land':
-            mask = f'-mul {gafile} -mul {lmfile}'
-            op='-fldsum'
-        elif mask_type in ['sea', 'ocean']:
-            mask = f'-mul {gafile} -mul {smfile}'
-            op='-fldsum'
+        a = []
 
-    # loop on years: call CDO to perform all the computation
-    for year in range(year1, year2+1):
-        infile = ECEDIR / 'output/oifs' / \
-            f'{expname}_atm_cmip6_1m_{year}-{year}.nc'
-        cmd = f'-timmean {op} {mask} -setgridtype,regular -setgrid,{gridfile} -selname,{var} {der} {infile}'
-        x = float(cdo.output(input=cmd)[0])
-        a.append(x)
-    varstat[var] = mean(a)
-    if fverb: print('Average', var, mean(a))
+        # check if var is derived
+        if 'derived' in ref[var].keys():
+            cmd = ref[var]['derived']
+            der = f' -expr,{var}={cmd} '
+        else:
+            der = ''
+    
+        # land/sea variables
+        mask = ''
+        op='-fldmean'
+        if 'total' in ref[var].keys():
+            mask_type = ref[var]['total']
+            if mask_type == 'land':
+                mask = f'-mul {gafile} -mul {lmfile}'
+                op='-fldsum'
+            elif mask_type in ['sea', 'ocean']:
+                mask = f'-mul {gafile} -mul {smfile}'
+                op='-fldsum'
+
+        # loop on years: call CDO to perform all the computation
+        for year in range(year1, year2+1):
+            infile = ECEDIR / 'output/oifs' / \
+               f'{expname}_atm_cmip6_1m_{year}-{year}.nc'
+            cmd = f'-timmean {op} {mask} -setgridtype,regular -setgrid,{gridfile} -selname,{var} {der} {infile}'
+            x = float(cdo.output(input=cmd)[0])
+            a.append(x)
+        varstat[var] = mean(a)
+        if fverb: print('Average', var, mean(a))
 
 # define options for the output table
 head = ['Var', 'Longname', 'Units', 'ECE4', 'OBS', 'Obs Dataset']
@@ -190,3 +191,4 @@ if ftable:
 os.unlink(gridfile)
 #os.unlink(lmask)
 #os.unlink(smask)
+#!/usr/bin/env python3
