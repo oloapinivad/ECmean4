@@ -66,12 +66,6 @@ gafile=str(TABDIR / 'ga.nc')
 cdo.selname('LSM', input=f'-setgridtype,regular {inifile}', output=lmfile, options='-t ecmwf')
 cdo.mulc('-1', input=f'-subc,1 {lmfile}', output=smfile)  
 cdo.gridarea(input=f'-setgridtype,regular {lmfile}', output=gafile)
-#lmean=cdo.output(input=f'-fldmean {lmfile}')[0]
-#tmpfile=cdo.divc(lmean, input=lmfile)
-#cdo.copy(input=tmpfile, outfile=lmfile)
-#smean=cdo.output(input=f'-fldmean {smfile}')[0]
-#tmpfile=cdo.divc(smean, input=smfile)
-#cdo.copy(input=tmpfile, outfile=smfile)
 
 # reference data
 filename = 'reference.yml'
@@ -138,7 +132,7 @@ for var in var_all:
                 mask = f'-mul {gafile} -mul {smfile}'
                 op='-fldsum'
 
-        # loop on years: call CDO to perform all the computation
+        # loop on years: call CDO to perform all the computations
         for year in range(year1, year2+1):
             infile = ECEDIR / 'output/oifs' / \
                f'{expname}_atm_cmip6_1m_{year}-{year}.nc'
@@ -149,7 +143,7 @@ for var in var_all:
         if fverb: print('Average', var, mean(a))
 
 # define options for the output table
-head = ['Var', 'Longname', 'Units', 'ECE4', 'OBS', 'Obs Dataset']
+head = ['Variable', 'Longname', 'Units', 'EC-Earth4', 'Obs.', 'Dataset', 'years']
 global_table = list()
 
 # loop on the variables to create the table
@@ -157,7 +151,8 @@ for var in var_field + var_radiation:
     beta = ref[var]
     beta['value'] = varstat[var] * float(beta['factor'])
     out_sequence = [var, beta['varname'], beta['units'], beta['value'],
-                    float(beta['observations']['val']), beta['observations']['data']]
+                    float(beta['observations']['val']),
+                    beta['observations'].get('data',''),  beta['observations'].get('years','')]
     global_table.append(out_sequence)
 
 # write the file with tabulate: cool python feature
@@ -189,6 +184,6 @@ if ftable:
 
 # clean
 os.unlink(gridfile)
-#os.unlink(lmask)
-#os.unlink(smask)
-#!/usr/bin/env python3
+os.unlink(lmfile)
+os.unlink(smfile)
+os.unlink(gafile)
