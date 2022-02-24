@@ -8,11 +8,11 @@ import os
 import yaml
 import numpy as np
 import argparse
+import re
 from tabulate import tabulate
 from statistics import mean
 from cdo import *
 from pathlib import Path
-import re
 
 def is_number(s):
     try:
@@ -40,15 +40,12 @@ ftable = args.table
 cdo = Cdo()
 
 # config file (looks for it in the same dir as the .py program file
-indir = Path(os.path.dirname(os.path.abspath(__file__)))
-with open(indir / 'config.yml', 'r') as file:
+INDIR = Path(os.path.dirname(os.path.abspath(__file__)))
+with open(INDIR / 'config.yml', 'r') as file:
     cfg = yaml.load(file, Loader=yaml.FullLoader)
 
-#cdo.forceOutput = True
-#cdo.debug = True
-
 ECEDIR = Path(cfg['dirs']['exp'], expname)
-TABDIR = Path(cfg['dirs']['tab'], 'ECmean4', 'table')
+TABDIR = Path(cfg['dirs']['tab'])
 os.makedirs(TABDIR, exist_ok=True)
 
 # prepare grid description file
@@ -68,8 +65,7 @@ cdo.mulc('-1', input=f'-subc,1 {lmfile}', output=smfile)
 cdo.gridarea(input=f'-setgridtype,regular {lmfile}', output=gafile)
 
 # reference data
-filename = 'reference.yml'
-with open(filename, 'r') as file:
+with open(INDIR / 'reference.yml', 'r') as file:
     ref = yaml.load(file, Loader=yaml.FullLoader)
 
 # list of vars on which to work
@@ -86,13 +82,11 @@ var_all = list(set(var_field + var_radiation + var_table))
 infile = str(ECEDIR / 'output/oifs' / f'{expname}_atm_cmip6_1m_{year1}-{year1}.nc')
 var_avail = [v.split()[1] for v in cdo.pardes(input=infile)]
 
-#var_der = []
 isavail = {}
 for v in var_all:
      isavail[v] = True
      d = ref[v].get('derived')
      if d:
-#         var_der.append(v)
          var_req = re.split('[\*+-]', d)
          for x in var_req:
              if is_number(x):
@@ -116,7 +110,7 @@ for var in var_all:
         # check if var is derived
         if 'derived' in ref[var].keys():
             cmd = ref[var]['derived']
-            der = f' -expr,{var}={cmd} '
+            der = f'-expr,{var}={cmd}'
         else:
             der = ''
     
@@ -152,11 +146,12 @@ for var in var_field + var_radiation:
     beta['value'] = varstat[var] * float(beta['factor'])
     out_sequence = [var, beta['varname'], beta['units'], beta['value'],
                     float(beta['observations']['val']),
-                    beta['observations'].get('data',''),  beta['observations'].get('years','')]
+                    beta['observations'].get('data',''), 
+                    beta['observations'].get('years','')]
     global_table.append(out_sequence)
 
 # write the file with tabulate: cool python feature
-tablefile = TABDIR / f'Global_Mean_{expname}_{year1}_{year2}.txt'
+tablefile = TABDIR / f'global_mean_{expname}_{year1}_{year2}.txt'
 print(tablefile)
 with open(tablefile, 'w') as f:
     f.write(tabulate(global_table, headers=head, tablefmt='orgtbl'))
