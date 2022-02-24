@@ -29,7 +29,9 @@ pr_land:
   total: land
   derived: pr
   observations:
-    val: NaN
+    val: 3.82094
+    data: ERA5
+    years: 1990-2019
 pr_oce:
   varname: 'Precipitation (ocean)'
   units: Sv
@@ -37,7 +39,9 @@ pr_oce:
   total: ocean
   derived: pr
   observations:
-    val: NaN
+    val: 13.4499
+    data: ERA5
+    years: 1990-2019
 pme_land:
   varname: 'Precip. minus evap. (land)'
   units: Sv
@@ -45,7 +49,9 @@ pme_land:
   total: land
   derived: 'pr-evspsbl'
   observations:
-    val: NaN
+    val: 1.39091
+    data: ERA5
+    years: 1990-2019
 pme_oce:
   varname: 'Precip. minus evap. (ocean)'
   units: Sv
@@ -53,7 +59,9 @@ pme_oce:
   total: ocean
   derived: 'pr-evspsbl'
   observations:
-    val: NaN
+    val: -1.24691
+    data: ERA5
+    years: 1990-2019
 evspsbl:
   varname: Evaporation
   units: mm/day
