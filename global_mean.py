@@ -46,10 +46,11 @@ with open(INDIR / 'config.yml', 'r') as file:
 
 ECEDIR = Path(cfg['dirs']['exp'], expname)
 TABDIR = Path(cfg['dirs']['tab'])
+TMPDIR = Path(cfg['dirs']['tmp'])
 os.makedirs(TABDIR, exist_ok=True)
 
 # prepare grid description file
-gridfile=str(TABDIR / 'grid.txt')
+gridfile=str(TMPDIR / 'grid.txt')
 inifile=str(ECEDIR / f'ICMGG{expname}INIT')
 griddes = cdo.griddes(input=inifile)
 with open(gridfile, 'w') as f:
@@ -57,9 +58,9 @@ with open(gridfile, 'w') as f:
         print(line, file=f)
 
 # prepare LSM
-lmfile=str(TABDIR / 'lmask.nc')
-smfile=str(TABDIR / 'smask.nc')
-gafile=str(TABDIR / 'ga.nc')
+lmfile=str(TMPDIR / 'lmask.nc')
+smfile=str(TMPDIR / 'smask.nc')
+gafile=str(TMPDIR / 'ga.nc')
 cdo.selname('LSM', input=f'-setgridtype,regular {inifile}', output=lmfile, options='-t ecmwf')
 cdo.mulc('-1', input=f'-subc,1 {lmfile}', output=smfile)  
 cdo.gridarea(input=f'-setgridtype,regular {lmfile}', output=gafile)
