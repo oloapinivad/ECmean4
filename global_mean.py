@@ -3,16 +3,14 @@
 # python3 version of ECmean global mean tool
 # It uses a reference file from yaml and cdo bindings
 
-import sys
 import os
-import yaml
-import numpy as np
-import argparse
-from tabulate import tabulate
-from statistics import mean
-from cdo import *
-from pathlib import Path
 import re
+import argparse
+from statistics import mean
+from pathlib import Path
+import yaml
+from tabulate import tabulate
+from cdo import Cdo
 
 def is_number(s):
     try:
@@ -27,9 +25,12 @@ parser = argparse.ArgumentParser(
 parser.add_argument('exp', metavar='EXP', type=str, help='experiment ID')
 parser.add_argument('year1', metavar='Y1', type=int, help='starting year')
 parser.add_argument('year2', metavar='Y2', type=int, help='final year')
-parser.add_argument('-s', '--silent', action='store_true', help='do not print anything to std output')
-parser.add_argument('-t', '--table', action='store_true', help='appends also single line to a table')
-parser.add_argument('-o', '--output', type=str, default='',  help='path of output one-line table')
+parser.add_argument('-s', '--silent', action='store_true',
+                    help='do not print anything to std output')
+parser.add_argument('-t', '--table', action='store_true',
+                    help='appends also single line to a table')
+parser.add_argument('-o', '--output', type=str, default='',
+                    help='path of output one-line table')
 args = parser.parse_args()
 expname = args.exp
 year1 = args.year1
@@ -40,99 +41,121 @@ ftable = args.table
 cdo = Cdo()
 
 # config file (looks for it in the same dir as the .py program file
-indir = Path(os.path.dirname(os.path.abspath(__file__)))
-with open(indir / 'config.yml', 'r') as file:
+INDIR = Path(os.path.dirname(os.path.abspath(__file__)))
+with open(INDIR / 'config.yml', 'r') as file:
     cfg = yaml.load(file, Loader=yaml.FullLoader)
 
-#cdo.forceOutput = True
-#cdo.debug = True
-
 ECEDIR = Path(cfg['dirs']['exp'], expname)
-TABDIR = Path(cfg['dirs']['tab'], 'ECmean4', 'table')
+TABDIR = Path(cfg['dirs']['tab'])
+TMPDIR = Path(cfg['dirs']['tmp'])
 os.makedirs(TABDIR, exist_ok=True)
 
 # prepare grid description file
-gridfile=str(TABDIR / 'grid.txt')
-griddes = cdo.griddes(input=str(ECEDIR / f'ICMGG{expname}INIT'))
-with open(gridfile, 'w') as f:
+GRIDFILE=str(TMPDIR / 'grid.txt')
+INIFILE=str(ECEDIR / f'ICMGG{expname}INIT')
+griddes = cdo.griddes(input=INIFILE)
+with open(GRIDFILE, 'w') as f:
     for line in griddes:
         print(line, file=f)
 
+# prepare LSM
+LMFILE=str(TMPDIR / 'lmask.nc')
+SMFILE=str(TMPDIR / 'smask.nc')
+GAFILE=str(TMPDIR / 'ga.nc')
+cdo.selname('LSM', input=f'-setgridtype,regular {INIFILE}', output=LMFILE, options='-t ecmwf')
+cdo.mulc('-1', input=f'-subc,1 {LMFILE}', output=SMFILE)
+cdo.gridarea(input=f'-setgridtype,regular {LMFILE}', output=GAFILE)
+
 # reference data
-filename = 'reference.yml'
-with open(filename, 'r') as file:
+with open(INDIR / 'reference.yml', 'r') as file:
     ref = yaml.load(file, Loader=yaml.FullLoader)
 
 # list of vars on which to work
-var_field = cfg["global"]["atm_vars"]["field"]
-var_radiation = cfg["global"]["atm_vars"]["radiation"]
-var_table = cfg["global"]['tab_vars']
+var_field = cfg['global']['atm_vars']['field']
+var_radiation = cfg['global']['atm_vars']['radiation']
+var_table = cfg['global']['tab_vars']
+
+# make sure all requested vars are available (use first year)
+# first find all needed variables (including those needed for derived ones)
 
 # create a list for all variable, avoid duplicates
 var_all = list(set(var_field + var_radiation + var_table))
 
-# make sure all requested vars are available (use first year)
-# first find all needed variables (including those needed for derived ones)
-var_req = []
-var_der = []
+INFILE = str(ECEDIR / 'output/oifs' / f'{expname}_atm_cmip6_1m_{year1}-{year1}.nc')
+var_avail = [v.split()[1] for v in cdo.pardes(input=INFILE)]
+
+isavail = {}
 for v in var_all:
-     d = ref[v].get('derived')
-     if d:
-         var_req.extend(re.split('[\*+-]', d))
-         var_der.append(v)
+    isavail[v] = True
+    d = ref[v].get('derived')
+    if d:
+        var_req = re.split('[*+-]', d)
+        for x in var_req:
+            if is_number(x):
+                var_req.remove(x)
+    else:
+        var_req = [v]
 
-for v in var_req:
-    if is_number(v):
-        var_req.remove(v)
-
-# avoid duplicates
-var_req = list(set(var_req + var_all))
-for v in var_der:
-    var_req.remove(v)
-
-# find available vars and check
-infile = str(ECEDIR / 'output/oifs' / f'{expname}_atm_cmip6_1m_{year1}-{year1}.nc')
-var_avail = [v.split()[1] for v in cdo.pardes(input=infile)]
-for v in var_req:
-    if v not in var_avail:
-        sys.exit(f'Variable {v} needed but not available in model output!')
+    for x in var_req:
+        if x not in var_avail:
+            isavail[v] = False
+            print(f"Variable {x} needed by {v} is not available in the model output!")
 
 # loop
 varstat = {}
 for var in var_all:
-    a = []
-
-    # check if var is derived
-    if 'derived' in ref[var].keys():
-        cmd = ref[var]['derived']
-        der = f" -expr,{var}={cmd} "
+    if not isavail[var]:
+        varstat[var] = float("NaN")
     else:
-        der = ""
+        a = []
 
-    # loop on years: call CDO to perform all the computation
-    for year in range(year1, year2+1):
-        infile = ECEDIR / "output/oifs" / \
-            f"{expname}_atm_cmip6_1m_{year}-{year}.nc"
-        cmd = f"-timmean -fldmean -setgridtype,regular -setgrid,{gridfile} -selname,{var} {der} {infile}"
-        x = float(cdo.output(input=cmd)[0])
-        a.append(x)
-    varstat[var] = mean(a)
-    if fverb: print('Average', var, mean(a))
+        # check if var is derived
+        if 'derived' in ref[var].keys():
+            cmd = ref[var]['derived']
+            der = f'-expr,{var}={cmd}'
+        else:
+            der = ''
+
+        # land/sea variables
+        mask = ''
+        op='-fldmean'
+        if 'total' in ref[var].keys():
+            mask_type = ref[var]['total']
+            if mask_type == 'land':
+                mask = f'-mul {GAFILE} -mul {LMFILE}'
+                op='-fldsum'
+            elif mask_type in ['sea', 'ocean']:
+                mask = f'-mul {GAFILE} -mul {SMFILE}'
+                op='-fldsum'
+
+        # loop on years: call CDO to perform all the computations
+        for year in range(year1, year2+1):
+            INFILE = ECEDIR / 'output/oifs' / \
+               f'{expname}_atm_cmip6_1m_{year}-{year}.nc'
+            cmd = f'-timmean {op} {mask} -setgridtype,regular ' \
+                  f'-setgrid,{GRIDFILE} -selname,{var} {der} {INFILE}'
+            x = float(cdo.output(input=cmd)[0])
+            a.append(x)
+        varstat[var] = mean(a)
+        if fverb:
+            print('Average', var, mean(a))
 
 # define options for the output table
-head = ['Var', 'Longname', 'Units', 'ECE4', 'OBS', 'Obs Dataset']
-global_table = list()
+head = ['Variable', 'Longname', 'Units', 'EC-Earth4', 'Obs.', 'Dataset', 'Years']
+global_table = []
 
 # loop on the variables to create the table
 for var in var_field + var_radiation:
     beta = ref[var]
     beta['value'] = varstat[var] * float(beta['factor'])
     out_sequence = [var, beta['varname'], beta['units'], beta['value'],
-                    float(beta['observations']['val']), beta['observations']['data']]
+                    float(beta['observations']['val']),
+                    beta['observations'].get('data',''),
+                    beta['observations'].get('years','')]
     global_table.append(out_sequence)
 
 # write the file with tabulate: cool python feature
-tablefile = TABDIR / f'Global_Mean_{expname}_{year1}_{year2}.txt'
+tablefile = TABDIR / f'global_mean_{expname}_{year1}_{year2}.txt'
 print(tablefile)
 with open(tablefile, 'w') as f:
     f.write(tabulate(global_table, headers=head, tablefmt='orgtbl'))
@@ -140,7 +163,7 @@ with open(tablefile, 'w') as f:
 # Print appending one line to table (for tuning)
 if ftable:
     linefile = TABDIR / 'global_means.txt'
-    if args.output: 
+    if args.output:
         linefile = args.output
     if not os.path.isfile(linefile):
         with open(linefile, 'w') as f:
@@ -154,9 +177,12 @@ if ftable:
 
     with open(linefile, 'a') as f:
         print(expname,'{:4d} {:4d} '.format(year1, year2), end='', file=f)
-        for var in var_table: 
+        for var in var_table:
             print('{:12.5f}'.format(varstat[var] * ref[var]['factor']), end=' ', file=f)
         print(file=f)
 
 # clean
-os.unlink(gridfile)
+os.unlink(GRIDFILE)
+os.unlink(LMFILE)
+os.unlink(SMFILE)
+os.unlink(GAFILE)
