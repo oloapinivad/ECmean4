@@ -61,3 +61,24 @@ hus:
   domain: global
   filetype: pl_1m
   cmip3: 29.41
+tos: 
+  dataset: GISS
+  oper: ""
+  dataname : SST
+  domain: ocean
+  filetype: 1m
+  cmip3: 17.21
+sos: 
+  dataset: levitus
+  oper: ""
+  dataname : SSS
+  domain: ocean
+  filetype: 1m
+  cmip3: 0.22
+sic: 
+  dataset: GISS
+  oper: ""
+  dataname : SICE
+  domain: ocean
+  filetype: 1m
+  cmip3: 0.34
