@@ -15,4 +15,4 @@ PI:
   2d_vars:
     field: [tas, psl, pr, tauu, tauv]
   3d_vars: 
-    field: [ua]
+    field: [ta, ua, va, hus]

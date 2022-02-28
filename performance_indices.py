@@ -42,7 +42,7 @@ os.makedirs(TABDIR, exist_ok=True)
 os.makedirs(TMPDIR, exist_ok=True)
 
 #cdo.forceOutput = True
-#cdo.debug = True
+# cdo.debug = True
 
 # prepare grid description file
 icmgg_file = ECEDIR / f"ICMGG{expname}INIT"
@@ -65,6 +65,12 @@ cdo.addc(
 years_list = [str(element) for element in range(year1, year2+1)]
 years_joined = ",".join(years_list)
 
+# special treatment to exploit bash wild cards on multiple years
+if len(years_list) > 1:
+    years_joined = '{' + years_joined + '}'
+
+print(years_joined)
+
 # reference data: it is badly written but it can be implemented in a much more intelligent
 # and modular way
 filename = "pi_climatology.yml"
@@ -75,16 +81,17 @@ with open(filename, 'r') as file:
 varstat = {}
 field_2d = cfg["PI"]["2d_vars"]["field"]
 field_3d = cfg["PI"]["3d_vars"]["field"]
-for var in field_2d :
+for var in field_3d + field_2d:
 
     # extract info from reference.yml
     oper = ref[var]["oper"]
     dataref = ref[var]["dataset"]
     dataname = ref[var]["dataname"]
+    filetype = ref[var]["filetype"]
 
     # file names
     infile = ECEDIR / "output/oifs" / \
-        f"{expname}_atm_cmip6_1m_{{{years_joined}}}-????.nc"
+        f"{expname}_atm_cmip6_{filetype}_{years_joined}-????.nc"
     outfile = TMPDIR / f"tmp_{expname}_{var}_2x2grid.nc"
     clim = CLMDIR / f"climate_{dataref}_{dataname}.nc"
     vvvv = CLMDIR / f"variance_{dataref}_{dataname}.nc"
@@ -101,17 +108,50 @@ for var in field_2d :
     cmd1 = f"-timmean -setgridtype,regular -setgrid,{gridfile} -select,name={var} {infile}"
     cdo.remapcon2(resolution, input=cmd1, output=f"{outfile}")
 
-    # cannot test it, missing 3d vars in ECE output still
     # ERA40 data ha no weights, so pressure level are not weighted
-    if var in field_3d :
-        cmd_vertical = f"-zonmean -intllevel,{clim}"
-        mask="-vertmean"
-    else :
+
+    if var in field_3d:
+
+        # special treatment which includes vertical interpolation
+        # and extraction of pressure weights
+
+        # extract the vertical levels from the file
+        vlevels = cdo.showlevel(input=f"{clim}")
+
+        # perform multiple string manipulation to produce a Pa list of levels
+        v0 = ''.join(vlevels).split()
+        v1 = [int(x) for x in v0]
+
+        # if the grid is hPa, move to Pa (there might be a better solution)
+        if np.max(v1) < 10000:
+            v1 = [x * 100 for x in v1]
+
+        # compute level weights (numpy is not that smart, or it's me?)
+        half_levels = np.convolve(v1, np.ones(2)/2, mode='valid')
+        args = (np.array([0]), half_levels, np.array([100000]))
+        level_weights = np.diff(np.concatenate(args))
+
+        # format for CDO, converting to string
+        format_vlevels = ' '.join(str(x) for x in v1).replace(" ", ",")
+
+        # assign the vertical command for interpolation and zonal mean
+        cmd_vertical = f"-zonmean -intlevelx,{format_vlevels}"
+    else:
         cmd_vertical = ""
 
     # compute the PI
     cmd2 = f"-setname,{var} {mask} -div -sqr -sub -invertlat {cmd_vertical} {oper} {outfile} {clim} {vvvv}"
-    varstat[var] = float(cdo.fldmean(input=cmd2, returnCdf=True).variables[var][:])
+    x = np.squeeze(cdo.fldmean(input=cmd2, returnCdf=True).variables[var])
+
+    # deprecated: pre-estimated weights from previous version of ECmean (climatology dependent!)
+    #level_weights = np.array([30, 45, 75, 100, 100, 100, 150, 175, 112.5, 75, 37.5])
+
+    # prepare the code for a weighted average
+    if var in field_3d:
+        x = np.average(x, weights=level_weights)
+
+    # store the PI
+    varstat[var] = float(x)
     print("PI for ", var, varstat[var])
 
     # clean
@@ -122,7 +162,7 @@ head = ["Var", "PI", "Domain", "Dataset", "CMIP3", "Ratio to CMIP3"]
 global_table = list()
 
 # loop on the variables
-for var in field_2d:
+for var in field_3d + field_2d:
     out_sequence = [var, varstat[var], ref[var]["domain"], ref[var]
                     ["dataset"], ref[var]["cmip3"], varstat[var]/ref[var]["cmip3"]]
     global_table.append(out_sequence)
