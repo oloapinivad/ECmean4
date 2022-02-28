@@ -193,8 +193,14 @@ for var in field_all:
                     ["dataset"], ref[var]["cmip3"], varstat[var]/ref[var]["cmip3"]]
     global_table.append(out_sequence)
 
+# nice loop on dictionary to get the partial and total pi
+partial_pi = np.mean([varstat[k] for k in field_2d + field_3d])
+total_pi = np.mean([varstat[k] for k in field_2d + field_3d + field_oce])
+
 # write the file  with tabulate: cool python feature
 tablefile = TABDIR / f"PI4_RK08_{expname}_{year1}_{year2}.txt"
 print(tablefile)
 with open(tablefile, 'w') as f:
     f.write(tabulate(global_table, headers=head, tablefmt="orgtbl"))
+    f.write("\n\nPartial PI (atm only) is   :" + str(partial_pi))
+    f.write("\nTotal Performance Index is :" + str(total_pi))
