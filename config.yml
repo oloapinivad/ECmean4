@@ -2,7 +2,7 @@ dirs:
    exp: /lus/h2resw01/scratch/ccpd/ece4 
    tmp: /ec/res4/scratch/ccjh/ece4/ECmean4/table/
    tab: /ec/res4/scratch/ccjh/ece4/ECmean4/table/
-   clm: /home/ccpd/perm/ecearth4/ECmean4/climatology
+   clm: /perm/ccpd/ecearth4/ECmean4/climatology
 
 global:
   atm_vars:
