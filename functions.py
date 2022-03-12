@@ -16,7 +16,7 @@ def is_number(s):
 # make sure all requested vars are available (use first year)
 # first find all needed variables (including those needed for derived ones)
 # added extra if to check if file exists
-def vars_are_there(infile, var_needed, reference) :
+def vars_are_there(infile, var_needed, reference):
 
     isavail = {}
 
@@ -43,3 +43,4 @@ def vars_are_there(infile, var_needed, reference) :
         for v in var_needed : 
             isavail[v] = False
     return isavail
+

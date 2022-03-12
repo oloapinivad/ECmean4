@@ -1,8 +1,8 @@
 dirs:
-   exp: $SCRATCH/ece4 
+   exp: $SCRATCH/../ccpd/ece4 
    tmp: $SCRATCH/ece4/ECmean4/table
    tab: $SCRATCH/ece4/ECmean4/table
-   clm: $PERM/ecearth4/ECmean4/climatology
+   clm: $HPCPERM/ecearth4/ECmean4/climatology
 
 global:
   atm_vars:
