@@ -1,8 +1,8 @@
 dirs:
-   exp: /lus/h2resw01/scratch/ccpd/ece4 
-   tmp: /ec/res4/scratch/ccjh/ece4/ECmean4/table/
-   tab: /ec/res4/scratch/ccjh/ece4/ECmean4/table/
-   clm: /perm/ccpd/ecearth4/ECmean4/climatology
+   exp: $SCRATCH/ece4 
+   tmp: $SCRATCH/ece4/ECmean4/table
+   tab: $SCRATCH/ece4/ECmean4/table
+   clm: $PERM/ecearth4/ECmean4/climatology
 
 global:
   atm_vars:
@@ -15,3 +15,5 @@ PI:
     field: [tas, psl, pr, tauu, tauv]
   3d_vars: 
     field: [ta, ua, va, hus]
+  oce_vars: 
+    field: [tos]

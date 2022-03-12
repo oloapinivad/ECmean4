@@ -4,7 +4,6 @@
 # It uses a reference file from yaml and cdo bindings
 
 import os
-import re
 import argparse
 from statistics import mean
 from pathlib import Path
@@ -12,12 +11,8 @@ import yaml
 from tabulate import tabulate
 from cdo import Cdo
 
-def is_number(s):
-    try:
-        float(s)
-        return True
-    except ValueError:
-        return False
+# import functions from functions.py
+import functions as fn
 
 # arguments
 parser = argparse.ArgumentParser(
@@ -45,10 +40,12 @@ INDIR = Path(os.path.dirname(os.path.abspath(__file__)))
 with open(INDIR / 'config.yml', 'r') as file:
     cfg = yaml.load(file, Loader=yaml.FullLoader)
 
-ECEDIR = Path(cfg['dirs']['exp'], expname)
-TABDIR = Path(cfg['dirs']['tab'])
-TMPDIR = Path(cfg['dirs']['tmp'])
+ECEDIR = Path(os.path.expandvars(cfg['dirs']['exp']), expname)
+TABDIR = Path(os.path.expandvars(cfg['dirs']['tab']))
+TMPDIR = Path(os.path.expandvars(cfg['dirs']['tmp']))
 os.makedirs(TABDIR, exist_ok=True)
+
+print(TMPDIR)
 
 # prepare grid description file
 GRIDFILE=str(TMPDIR / 'grid.txt')
@@ -81,25 +78,11 @@ var_table = cfg['global']['tab_vars']
 # create a list for all variable, avoid duplicates
 var_all = list(set(var_field + var_radiation + var_table))
 
+# create a filename
 INFILE = str(ECEDIR / 'output/oifs' / f'{expname}_atm_cmip6_1m_{year1}-{year1}.nc')
-var_avail = [v.split()[1] for v in cdo.pardes(input=INFILE)]
 
-isavail = {}
-for v in var_all:
-    isavail[v] = True
-    d = ref[v].get('derived')
-    if d:
-        var_req = re.split('[*+-]', d)
-        for x in var_req:
-            if is_number(x):
-                var_req.remove(x)
-    else:
-        var_req = [v]
-
-    for x in var_req:
-        if x not in var_avail:
-            isavail[v] = False
-            print(f"Variable {x} needed by {v} is not available in the model output!")
+# which vars are available
+isavail=fn.vars_are_there(INFILE, var_all, ref)
 
 # loop
 varstat = {}

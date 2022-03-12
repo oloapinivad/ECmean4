@@ -12,6 +12,10 @@ from tabulate import tabulate
 from statistics import mean
 from cdo import *
 from pathlib import Path
+
+# import functions from functions.py
+import functions as fn
+
 cdo = Cdo()
 
 # arguments
@@ -34,10 +38,10 @@ with open(indir / "config.yml", "r") as file:
 resolution = "r180x91"
 
 # folder definition
-ECEDIR = Path(cfg["dirs"]["exp"], expname)
-TABDIR = Path(cfg["dirs"]["tab"], "ECmean4", "table")
-TMPDIR = Path(cfg["dirs"]["tmp"], "tmp", expname)
-CLMDIR = Path(cfg["dirs"]["clm"])
+ECEDIR = Path(os.path.expandvars(cfg["dirs"]["exp"]), expname)
+TABDIR = Path(os.path.expandvars(cfg["dirs"]["tab"]), "ECmean4", "table")
+TMPDIR = Path(os.path.expandvars(cfg["dirs"]["tmp"]), "tmp", expname)
+CLMDIR = Path(os.path.expandvars(cfg["dirs"]["clm"]))
 os.makedirs(TABDIR, exist_ok=True)
 os.makedirs(TMPDIR, exist_ok=True)
 
@@ -77,98 +81,126 @@ filename = "pi_climatology.yml"
 with open(filename, 'r') as file:
     ref = yaml.load(file, Loader=yaml.FullLoader)
 
-# loop
-varstat = {}
+# defines the two varlist
 field_2d = cfg["PI"]["2d_vars"]["field"]
 field_3d = cfg["PI"]["3d_vars"]["field"]
-for var in field_3d + field_2d:
+field_oce = cfg["PI"]["oce_vars"]["field"]
+field_all = field_2d + field_3d + field_oce
 
-    # extract info from reference.yml
-    oper = ref[var]["oper"]
-    dataref = ref[var]["dataset"]
-    dataname = ref[var]["dataname"]
-    filetype = ref[var]["filetype"]
+# check if required vars are available in the output
+# create a filename from the first year
+INFILE_2D = str(ECEDIR / 'output/oifs' / f'{expname}_atm_cmip6_1m_{year1}-{year1}.nc')
+INFILE_3D = str(ECEDIR / 'output/oifs' / f'{expname}_atm_cmip6_pl_1m_{year1}-{year1}.nc')
+INFILE_OCE = str(ECEDIR / 'output/nemo' / f'{expname}_oce_cmip6_1m_{year1}-{year1}.nc')
+#isavail_2d=fn.vars_are_there(INFILE_2D, field_2d, ref)
+#isavail_3d=fn.vars_are_there(INFILE_3D, field_3d, ref)
+#isavail_oce=fn.vars_are_there(INFILE_OCE, field_oce, ref)
+#isavail={**isavail_2d, **isavail_3d, **isavail_oce}
 
-    # file names
-    infile = ECEDIR / "output/oifs" / \
-        f"{expname}_atm_cmip6_{filetype}_{years_joined}-????.nc"
-    outfile = TMPDIR / f"tmp_{expname}_{var}_2x2grid.nc"
-    clim = CLMDIR / f"climate_{dataref}_{dataname}.nc"
-    vvvv = CLMDIR / f"variance_{dataref}_{dataname}.nc"
+# alternative method with loop
+isavail={}
+for a,b in zip([INFILE_2D, INFILE_3D, INFILE_OCE], [field_2d, field_3d, field_oce]) : 
+    isavail={**isavail, **fn.vars_are_there(a,b,ref)}
 
-    # apply masks when needed
-    if ref[var]["domain"] == "land":
-        mask = f"-mul {land_mask}"
-    elif ref[var]["domain"] == "ocean":
-        mask = f"-mul {ocean_mask}"
-    elif ref[var]["domain"] == "global":
-        mask = ""
 
-    # timmean and remap
-    cmd1 = f"-timmean -setgridtype,regular -setgrid,{gridfile} -select,name={var} {infile}"
-    cdo.remapcon2(resolution, input=cmd1, output=f"{outfile}")
+# loop
+varstat = {}
+for var in field_all :
 
-    # ERA40 data ha no weights, so pressure level are not weighted
-
-    if var in field_3d:
-
-        # special treatment which includes vertical interpolation
-        # and extraction of pressure weights
-
-        # extract the vertical levels from the file
-        vlevels = cdo.showlevel(input=f"{clim}")
-
-        # perform multiple string manipulation to produce a Pa list of levels
-        v0 = ''.join(vlevels).split()
-        v1 = [int(x) for x in v0]
-
-        # if the grid is hPa, move to Pa (there might be a better solution)
-        if np.max(v1) < 10000:
-            v1 = [x * 100 for x in v1]
-
-        # compute level weights (numpy is not that smart, or it's me?)
-        half_levels = np.convolve(v1, np.ones(2)/2, mode='valid')
-        args = (np.array([0]), half_levels, np.array([100000]))
-        level_weights = np.diff(np.concatenate(args))
-
-        # format for CDO, converting to string
-        format_vlevels = ' '.join(str(x) for x in v1).replace(" ", ",")
-
-        # assign the vertical command for interpolation and zonal mean
-        cmd_vertical = f"-zonmean -intlevelx,{format_vlevels}"
+    if not isavail[var] : 
+        varstat[var] = float("NaN")
     else:
-        cmd_vertical = ""
 
-    # compute the PI
-    cmd2 = f"-setname,{var} {mask} -div -sqr -sub -invertlat {cmd_vertical} {oper} {outfile} {clim} {vvvv}"
-    x = np.squeeze(cdo.fldmean(input=cmd2, returnCdf=True).variables[var])
+        # extract info from reference.yml
+        oper = ref[var]["oper"]
+        dataref = ref[var]["dataset"]
+        dataname = ref[var]["dataname"]
+        filetype = ref[var]["filetype"]
 
-    # deprecated: pre-estimated weights from previous version of ECmean (climatology dependent!)
-    #level_weights = np.array([30, 45, 75, 100, 100, 100, 150, 175, 112.5, 75, 37.5])
+        # file names
+        infile = str(ECEDIR / "output/oifs" / \
+            f"{expname}_atm_cmip6_{filetype}_{years_joined}-????.nc")
+        outfile = str(TMPDIR / f"tmp_{expname}_{var}_2x2grid.nc")
+        clim = str(CLMDIR / f"climate_{dataref}_{dataname}.nc")
+        vvvv = str(CLMDIR / f"variance_{dataref}_{dataname}.nc")
 
-    # prepare the code for a weighted average
-    if var in field_3d:
-        x = np.average(x, weights=level_weights)
+        # apply masks when needed
+        if ref[var]["domain"] == "land":
+            mask = f"-mul {land_mask}"
+        elif ref[var]["domain"] == "ocean":
+            mask = f"-mul {ocean_mask}"
+        elif ref[var]["domain"] == "global":
+            mask = ""
 
-    # store the PI
-    varstat[var] = float(x)
-    print("PI for ", var, varstat[var])
+        # timmean and remap
+        cmd1 = f"-timmean -setgridtype,regular -setgrid,{gridfile} -select,name={var} {infile}"
+        cdo.remapcon2(resolution, input=cmd1, output=outfile)
 
-    # clean
-    os.remove(f"{outfile}")
+        if var in field_3d:
+
+            # special treatment which includes vertical interpolation
+            # and extraction of pressure weights
+
+            # extract the vertical levels from the file
+            vlevels = cdo.showlevel(input=f"{clim}")
+
+            # perform multiple string manipulation to produce a Pa list of levels
+            v0 = ''.join(vlevels).split()
+            v1 = [int(x) for x in v0]
+
+            # if the grid is hPa, move to Pa (there might be a better solution)
+            if np.max(v1) < 10000:
+                v1 = [x * 100 for x in v1]
+
+            # compute level weights (numpy is not that smart, or it's me?)
+            half_levels = np.convolve(v1, np.ones(2)/2, mode='valid')
+            args = (np.array([0]), half_levels, np.array([100000]))
+            level_weights = np.diff(np.concatenate(args))
+
+            # format for CDO, converting to string
+            format_vlevels = ' '.join(str(x) for x in v1).replace(" ", ",")
+
+            # assign the vertical command for interpolation and zonal mean
+            cmd_vertical = f"-zonmean -intlevelx,{format_vlevels}"
+        else:
+            cmd_vertical = ""
+
+        # compute the PI
+        cmd2 = f"-setname,{var} {mask} -div -sqr -sub -invertlat {cmd_vertical} {oper} {outfile} {clim} {vvvv}"
+        x = np.squeeze(cdo.fldmean(input=cmd2, returnCdf=True).variables[var])
+
+        # deprecated: pre-estimated weights from previous version of ECmean (climatology dependent!)
+        #level_weights = np.array([30, 45, 75, 100, 100, 100, 150, 175, 112.5, 75, 37.5])
+
+        # weighted average
+        if var in field_3d:
+            x = np.average(x, weights=level_weights)
+
+        # store the PI
+        varstat[var] = float(x)
+        print("PI for ", var, varstat[var])
+
+        # clean
+        os.unlink(outfile)
 
 # define options for the output table
 head = ["Var", "PI", "Domain", "Dataset", "CMIP3", "Ratio to CMIP3"]
 global_table = list()
 
 # loop on the variables
-for var in field_3d + field_2d:
+for var in field_all:
     out_sequence = [var, varstat[var], ref[var]["domain"], ref[var]
                     ["dataset"], ref[var]["cmip3"], varstat[var]/ref[var]["cmip3"]]
     global_table.append(out_sequence)
+
+# nice loop on dictionary to get the partial and total pi
+partial_pi = np.mean([varstat[k] for k in field_2d + field_3d])
+total_pi = np.mean([varstat[k] for k in field_2d + field_3d + field_oce])
 
 # write the file  with tabulate: cool python feature
 tablefile = TABDIR / f"PI4_RK08_{expname}_{year1}_{year2}.txt"
 print(tablefile)
 with open(tablefile, 'w') as f:
     f.write(tabulate(global_table, headers=head, tablefmt="orgtbl"))
+    f.write("\n\nPartial PI (atm only) is   :" + str(partial_pi))
+    f.write("\nTotal Performance Index is :" + str(total_pi))
