@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 '''
  python3 version of ECmean global mean tool
- It uses a reference file from yaml and cdo bindings
+ Using a reference file from yaml and cdo bindings
 
  @author Paolo Davini (p.davini@isac.cnr.it), March 2022
  @author Jost von Hardenberg (jost.hardenberg@polito.it), March 2022
@@ -104,6 +104,12 @@ def main(args):
 
     # which vars are available
     isavail=vars_are_there(infile, var_all, ref)
+    isavail['tos']=True
+    isavail['sos']=True
+    isavail['zos']=True
+    isavail['wfo']=True
+
+    var_all = list(set(var_field + var_radiation + var_table + var_ocean))
 
     # loop
     varstat = {}
@@ -119,6 +125,12 @@ def main(args):
                 der = f'-expr,{var}={cmd}'
             else:
                 der = ''
+
+            # ocean variables require specifying grid areas
+            if(ref[var].get('domain','atm')=='oce'):
+                pre = '-setgridarea,' + cfg['areas']['oce']
+            else:
+                pre = ''
 
             # land/sea variables
             mask = ''
@@ -136,7 +148,7 @@ def main(args):
             for year in range(year1, year2+1):
                 infile =  make_filename(ECEDIR, var, expname, year, ref)
                 cmd = f'-timmean {op} {mask} -setgridtype,regular ' \
-                      f'-setgrid,{GRIDFILE} -selname,{var} {der} {infile}'
+                      f'-setgrid,{GRIDFILE} -selname,{var} {der} {pre} {infile}'
                 x = float(cdo.output(input=cmd)[0])
                 a.append(x)
             varstat[var] = mean(a)
@@ -148,7 +160,7 @@ def main(args):
     global_table = []
 
     # loop on the variables to create the table
-    for var in var_field + var_radiation:
+    for var in var_field + var_radiation + var_ocean:
         beta = ref[var]
         beta['value'] = varstat[var] * float(beta.get('factor', 1))
         out_sequence = [var, beta['varname'], beta['units'], beta['value'],

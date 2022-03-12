@@ -223,16 +223,24 @@ tos:
   varname: 'SST'
   units: 'degC'
   domain: 'oce'
+  observations:
+    val: 0
 sos:
   varname: 'SSS'
   units: 'psu'
   domain: 'oce'
+  observations:
+    val: 0
 zos:
   varname: 'SSH'
   units: 'm'
   domain: 'oce'
+  observations:
+    val: 0
 wfo:
   varname: 'Net Water Flux'
   factor: -1
   units: 'kg/m2/s' 
   domain: 'oce'
+  observations:
+    val: 0
