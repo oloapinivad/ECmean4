@@ -222,13 +222,17 @@ lwcf:
 tos:
   varname: 'SST'
   units: 'degC'
+  domain: 'oce'
 sos:
   varname: 'SSS'
   units: 'psu'
+  domain: 'oce'
 zos:
   varname: 'SSH'
   units: 'm'
+  domain: 'oce'
 wfo:
   varname: 'Net Water Flux'
   factor: -1
   units: 'kg/m2/s' 
+  domain: 'oce'

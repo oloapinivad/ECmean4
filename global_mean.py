@@ -37,6 +37,15 @@ def write_tuning_table(linefile, varstat, var_table, expname, year1, year2, ref)
         print(file=f)
 
 
+def make_filename(dr, var, expname, year, ref):
+    if(ref[var].get('domain','atm')=='oce'):
+        fname = dr / 'output/nemo' / \
+                 f'{expname}_oce_1m_T_{year}-{year}.nc'
+    else:
+        fname = dr / 'output/oifs' / \
+                 f'{expname}_atm_cmip6_1m_{year}-{year}.nc'
+    return str(fname)
+
 def main(args):
 
     expname = args.exp
@@ -91,10 +100,10 @@ def main(args):
     var_all = list(set(var_field + var_radiation + var_table))
 
     # create a sample filename
-    INFILE = str(ECEDIR / 'output/oifs' / f'{expname}_atm_cmip6_1m_{year1}-{year1}.nc')
+    infile = make_filename(ECEDIR, 'tas', expname, year1, ref)
 
     # which vars are available
-    isavail=vars_are_there(INFILE, var_all, ref)
+    isavail=vars_are_there(infile, var_all, ref)
 
     # loop
     varstat = {}
@@ -125,10 +134,9 @@ def main(args):
 
             # loop on years: call CDO to perform all the computations
             for year in range(year1, year2+1):
-                INFILE = ECEDIR / 'output/oifs' / \
-                   f'{expname}_atm_cmip6_1m_{year}-{year}.nc'
+                infile =  make_filename(ECEDIR, var, expname, year, ref)
                 cmd = f'-timmean {op} {mask} -setgridtype,regular ' \
-                      f'-setgrid,{GRIDFILE} -selname,{var} {der} {INFILE}'
+                      f'-setgrid,{GRIDFILE} -selname,{var} {der} {infile}'
                 x = float(cdo.output(input=cmd)[0])
                 a.append(x)
             varstat[var] = mean(a)
