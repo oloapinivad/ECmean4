@@ -1,7 +1,6 @@
 tas:
   varname: '2m Air Temperature'
   units: K
-  factor: 1
   observations: 
     val: 287.497
     data: ERA5
@@ -9,7 +8,6 @@ tas:
 psl: 
   varname: MSLP
   units: Pa
-  factor: 1
   observations:
     val: 101142
     data: ERA5
@@ -114,7 +112,6 @@ rsnt:
 rlnt:
   varname: 'TOA net LW'
   units: W/m2
-  factor: 1
   observations:
     val: -240.11
     data: CERES-EBAF
@@ -123,7 +120,6 @@ rlnt:
 net_toa:
   varname: 'Net TOA'
   units: W/m2
-  factor: 1
   derived: 'rsnt+rlnt'
   observations:
     val: 0.75262
@@ -133,14 +129,12 @@ net_toa:
 rlns:
   varname: 'Surface net LW'
   units: W/m2
-  factor: 1
   observations:
     val: -56
     data: 'Wild 2020'
 rsns:
   varname: 'Surface net SW'
   units: W/m2
-  factor: 1
   observations:
     val: 160
     data: 'Wild 2020'
@@ -161,7 +155,6 @@ hfls:
 net_sfc: 
   varname: 'Net Surface'
   units: W/m2
-  factor: 1
   derived: 'rsns+rlns-hfls-hfss-prsn*334000'
   observations:
     val: 0.6
@@ -169,7 +162,6 @@ net_sfc:
 net_sfc_nosn:
   varname: 'Net Surface (no snowfall)'
   units: W/m2
-  factor: 1
   derived: 'rsns+rlns-hfls-hfss'
   observations:
     val: 0.6
@@ -177,21 +169,18 @@ net_sfc_nosn:
 toamsfc:
   varname: 'TOA-Sfc net radiation'
   units: W/m2
-  factor: 1
   derived: 'rsnt+rlnt-rsns-rlns+hfls+hfss+prsn*334000'
   observations:
     val: 0
 toamsfc_nosn:
   varname: 'TOA-Sfc net rad. (no snowfall)'
   units: W/m2
-  factor: 1
   derived: 'rsnt+rlnt-rsns-rlns+hfls+hfss'
   observations:
     val: 0
 rsntcs:
   varname: 'TOA net SW, CS'
   units: W/m2
-  factor: 1
   observations:
     val: 286.66
     data: CERES-EBAF
@@ -200,7 +189,6 @@ rsntcs:
 rlntcs:
   varname: 'TOA net LW, CS'
   units: W/m2
-  factor: 1
   observations:
     val: -268.04
     data: CERES-EBAF
@@ -216,7 +204,6 @@ pme:
 swcf:
   varname: 'SW CRE'
   units: W/m2
-  factor: 1
   derived: 'rsnt-rsntcs'
   observations:
     val:  -45.32
@@ -226,10 +213,22 @@ swcf:
 lwcf:
   varname: 'LW CRE'
   units: W/m2
-  factor: 1
   derived: 'rlnt-rlntcs'
   observations:
     val:  25.76
     data: CERES-EBAF
     years: 2005-2015
     note: CERES-EBAF Ed4.1 07/2005-06/2015
+tos:
+  varname: 'SST'
+  units: 'degC'
+sos:
+  varname: 'SSS'
+  units: 'psu'
+zos:
+  varname: 'SSH'
+  units: 'm'
+wfo:
+  varname: 'Net Water Flux'
+  factor: -1
+  units: 'kg/m2/s' 

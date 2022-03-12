@@ -1,7 +1,12 @@
 #!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+'''
+ python3 version of ECmean global mean tool
+ It uses a reference file from yaml and cdo bindings
 
-# python3 version of ECmean global mean tool
-# It uses a reference file from yaml and cdo bindings
+ @author Paolo Davini (p.davini@isac.cnr.it), March 2022
+ @author Jost von Hardenberg (jost.hardenberg@polito.it), March 2022
+'''
 
 import os
 import argparse
@@ -28,7 +33,7 @@ def write_tuning_table(linefile, varstat, var_table, expname, year1, year2, ref)
     with open(linefile, 'a') as f:
         print(expname,'{:4d} {:4d} '.format(year1, year2), end='', file=f)
         for var in var_table:
-            print('{:12.5f}'.format(varstat[var] * ref[var]['factor']), end=' ', file=f)
+            print('{:12.5f}'.format(varstat[var] * ref[var].get('factor',1)), end=' ', file=f)
         print(file=f)
 
 
@@ -76,6 +81,7 @@ def main(args):
     # list of vars on which to work
     var_field = cfg['global']['atm_vars']['field']
     var_radiation = cfg['global']['atm_vars']['radiation']
+    var_ocean = cfg['global']['oce_vars']
     var_table = cfg['global']['tab_vars']
 
     # make sure all requested vars are available (use first year)
@@ -84,7 +90,7 @@ def main(args):
     # create a list for all variable, avoid duplicates
     var_all = list(set(var_field + var_radiation + var_table))
 
-    # create a filename
+    # create a sample filename
     INFILE = str(ECEDIR / 'output/oifs' / f'{expname}_atm_cmip6_1m_{year1}-{year1}.nc')
 
     # which vars are available
@@ -136,7 +142,7 @@ def main(args):
     # loop on the variables to create the table
     for var in var_field + var_radiation:
         beta = ref[var]
-        beta['value'] = varstat[var] * float(beta['factor'])
+        beta['value'] = varstat[var] * float(beta.get('factor', 1))
         out_sequence = [var, beta['varname'], beta['units'], beta['value'],
                         float(beta['observations']['val']),
                         beta['observations'].get('data',''),
