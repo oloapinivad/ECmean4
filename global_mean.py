@@ -20,7 +20,7 @@ from cdo import Cdo
 from functions import vars_are_there, is_number
 
 
-def write_tuning_table(linefile, varstat, var_table, expname, year1, year2, ref):
+def write_tuning_table(linefile, varmean, var_table, expname, year1, year2, ref):
 
     if not os.path.isfile(linefile):
         with open(linefile, 'w') as f:
@@ -35,7 +35,7 @@ def write_tuning_table(linefile, varstat, var_table, expname, year1, year2, ref)
     with open(linefile, 'a') as f:
         print(expname,'{:4d} {:4d} '.format(year1, year2), end='', file=f)
         for var in var_table:
-            print('{:12.5f}'.format(varstat[var] * ref[var].get('factor',1)), end=' ', file=f)
+            print('{:12.5f}'.format(varmean[var] * ref[var].get('factor',1)), end=' ', file=f)
         print(file=f)
 
 
@@ -58,6 +58,7 @@ def main(args):
     fverb = not args.silent
     ftable = args.line
     ftrend = args.trend
+    modelname = args.model
     if year1 == year2: # Ignore if only one year requested
         ftrend = False
 
@@ -114,12 +115,12 @@ def main(args):
     var_all = list(set(var_all + var_oce))
 
     # loop
-    varstat = {}
-    trend = {}
+    varmean = {}
+    vartrend = {}
     for var in var_all:
         if not isavail[var]:
-            varstat[var] = float("NaN")
-            trend[var] = float("NaN")
+            varmean[var] = float("NaN")
+            vartrend[var] = float("NaN")
         else:
             a = []
 
@@ -156,25 +157,25 @@ def main(args):
                       f'-setgrid,{GRIDFILE} -selname,{var} {der} {pre} {infile}'
                 x = float(cdo.output(input=cmd)[0])
                 a.append(x)
-            varstat[var] = mean(a)
+            varmean[var] = mean(a)
             if ftrend:
-                trend[var] = np.polyfit(yrange, a, 1)[0]
+                vartrend[var] = np.polyfit(yrange, a, 1)[0]
             if fverb:
                 print('Average', var, mean(a))
 
     # define options for the output table
     if ftrend:
-        head = ['Variable', 'Longname', 'Units', 'EC-Earth4', 'Trend', 'Obs.', 'Dataset', 'Years']
+        head = ['Variable', 'Longname', 'Units', modelname, 'Trend', 'Obs.', 'Dataset', 'Years']
     else:
-        head = ['Variable', 'Longname', 'Units', 'EC-Earth4', 'Obs.', 'Dataset', 'Years']
+        head = ['Variable', 'Longname', 'Units', modelname, 'Obs.', 'Dataset', 'Years']
     global_table = []
 
     # loop on the variables to create the table
     for var in var_atm + var_oce:
         beta = ref[var]
-        beta['value'] = varstat[var] * float(beta.get('factor', 1))
+        beta['value'] = varmean[var] * float(beta.get('factor', 1))
         if ftrend:
-            beta['trend'] = trend[var] * float(beta.get('factor', 1))
+            beta['trend'] = vartrend[var] * float(beta.get('factor', 1))
             out_sequence = [var, beta['varname'], beta['units'], beta['value'],
                         beta['trend'],
                         float(beta['observations']['val']),
@@ -198,7 +199,7 @@ def main(args):
         linefile = TABDIR / 'global_means.txt'
         if args.output:
             linefile = args.output
-        write_tuning_table(linefile, varstat, var_table, expname, year1, year2, ref)
+        write_tuning_table(linefile, varmean, var_table, expname, year1, year2, ref)
 
     # clean
     os.unlink(GRIDFILE)
@@ -220,6 +221,8 @@ if __name__ == "__main__":
                     help='appends also single line to a table')
     parser.add_argument('-o', '--output', type=str, default='',
                     help='path of output one-line table')
+    parser.add_argument('-m', '--model', type=str, default='EC-Earth4',
+                    help='model name')
     args = parser.parse_args()
 
     main(args)

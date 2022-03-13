@@ -221,26 +221,26 @@ lwcf:
     note: CERES-EBAF Ed4.1 07/2005-06/2015
 tos:
   varname: 'SST'
-  units: 'degC'
-  domain: 'oce'
+  units: degC
+  domain: oce
   observations:
     val: 0
 sos:
   varname: 'SSS'
-  units: 'psu'
-  domain: 'oce'
+  units: psu
+  domain: oce
   observations:
     val: 0
 zos:
   varname: 'SSH'
-  units: 'm'
-  domain: 'oce'
+  units: m
+  domain: oce
   observations:
     val: 0
 wfo:
   varname: 'Net Water Flux into ocean'
-  units: 'm/100y' 
+  units: m/100y 
   factor: -3155760
-  domain: 'oce'
+  domain: oce
   observations:
     val: 0
