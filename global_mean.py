@@ -195,10 +195,11 @@ def main(args):
         f.write(tabulate(global_table, headers=head, tablefmt='orgtbl'))
 
     # Print appending one line to table (for tuning)
+    linefile = TABDIR / 'global_means.txt'
+    if args.output:
+        linefile = args.output
+        ftable = True
     if ftable:
-        linefile = TABDIR / 'global_means.txt'
-        if args.output:
-            linefile = args.output
         write_tuning_table(linefile, varmean, var_table, expname, year1, year2, ref)
 
     # clean
@@ -219,7 +220,7 @@ if __name__ == "__main__":
                     help='compute trends')
     parser.add_argument('-l', '--line', action='store_true',
                     help='appends also single line to a table')
-    parser.add_argument('-o', '--output', type=str, default='',
+    parser.add_argument('-o', '--output', metavar='FILE', type=str, default='',
                     help='path of output one-line table')
     parser.add_argument('-m', '--model', type=str, default='EC-Earth4',
                     help='model name')
