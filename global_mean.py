@@ -113,7 +113,7 @@ def main(args):
 
     var_all = list(set(var_all + var_oce))
 
-    # loop
+    # main loop
     varmean = {}
     vartrend = {}
     for var in var_all:
@@ -162,14 +162,8 @@ def main(args):
             if fverb:
                 print('Average', var, mean(a))
 
-    # define options for the output table
-    if ftrend:
-        head = ['Variable', 'Longname', 'Units', modelname, 'Trend', 'Obs.', 'Dataset', 'Years']
-    else:
-        head = ['Variable', 'Longname', 'Units', modelname, 'Obs.', 'Dataset', 'Years']
+    # loop on the variables to create the output table
     global_table = []
-
-    # loop on the variables to create the table
     for var in var_atm + var_oce:
         beta = ref[var]
         beta['value'] = varmean[var] * float(beta.get('factor', 1))
@@ -186,6 +180,11 @@ def main(args):
                         beta['observations'].get('data',''),
                         beta['observations'].get('years','')]
         global_table.append(out_sequence)
+
+    if ftrend:
+        head = ['Variable', 'Longname', 'Units', modelname, 'Trend', 'Obs.', 'Dataset', 'Years']
+    else:
+        head = ['Variable', 'Longname', 'Units', modelname, 'Obs.', 'Dataset', 'Years']
 
     # write the file with tabulate: cool python feature
     tablefile = TABDIR / f'global_mean_{expname}_{year1}_{year2}.txt'
