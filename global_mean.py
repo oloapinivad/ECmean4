@@ -9,6 +9,7 @@
 '''
 
 import os
+import sys
 import argparse
 from statistics import mean
 from pathlib import Path
@@ -16,8 +17,8 @@ import yaml
 from tabulate import tabulate
 import numpy as np
 from cdo import Cdo
-
 from functions import vars_are_there, is_number
+
 
 def write_tuning_table(linefile, varstat, var_table, expname, year1, year2, ref):
 
@@ -38,7 +39,7 @@ def write_tuning_table(linefile, varstat, var_table, expname, year1, year2, ref)
         print(file=f)
 
 
-def make_filename(dr, var, expname, year, ref):
+def make_input_filename(dr, var, expname, year, ref):
     if(ref[var].get('domain','atm')=='oce'):
         fname = dr / 'output/nemo' / \
                  f'{expname}_oce_1m_T_{year}-{year}.nc'
@@ -48,6 +49,8 @@ def make_filename(dr, var, expname, year, ref):
     return str(fname)
 
 def main(args):
+
+    assert sys.version_info >= (3, 5)
 
     expname = args.exp
     year1 = args.year1
@@ -103,9 +106,9 @@ def main(args):
     var_all = list(set(var_atm + var_table))
 
     # Check if vars are available
-    infile = make_filename(ECEDIR, var_all[0], expname, year1, ref)
+    infile = make_input_filename(ECEDIR, var_atm[0], expname, year1, ref)
     isavail = vars_are_there(infile, var_all, ref)
-    infile = make_filename(ECEDIR, var_oce[0], expname, year1, ref)
+    infile = make_input_filename(ECEDIR, var_oce[0], expname, year1, ref)
     isavail = {**isavail, **vars_are_there(infile, var_oce, ref)} # python>=3.5 syntax for joining 2 dicts
 
     var_all = list(set(var_all + var_oce))
@@ -148,7 +151,7 @@ def main(args):
             # loop on years: call CDO to perform all the computations
             yrange = range(year1, year2+1)
             for year in yrange:
-                infile =  make_filename(ECEDIR, var, expname, year, ref)
+                infile =  make_input_filename(ECEDIR, var, expname, year, ref)
                 cmd = f'-timmean {op} {mask} -setgridtype,regular ' \
                       f'-setgrid,{GRIDFILE} -selname,{var} {der} {pre} {infile}'
                 x = float(cdo.output(input=cmd)[0])
