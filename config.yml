@@ -8,9 +8,11 @@ areas:
    oce: /ec/res4/hpcperm/ccpd/ECE4-DATA/nemo/ORCA1L75/domain_cfg.nc
 
 global:
-  atm_vars:
-    field: [tas, psl, pr, evspsbl, pme, clt, cll, clm, clh, pr_oce, pme_oce, pr_land, pme_land]
-    radiation: [net_toa, rsnt, rlnt, rsntcs, rlntcs, swcf, lwcf, rsns, rlns, hfss, hfls, net_sfc_nosn, net_sfc, toamsfc_nosn, toamsfc]
+  atm_vars: [tas, psl, pr, evspsbl, pme, clt, cll, clm, clh,
+             pr_oce, pme_oce, pr_land, pme_land,
+             net_toa, rsnt, rlnt, rsntcs, rlntcs, swcf, lwcf,
+             rsns, rlns, hfss, hfls, net_sfc_nosn, net_sfc,
+             toamsfc_nosn, toamsfc]
   oce_vars: [tos, sos, zos, wfo]
   tab_vars: [rsnt, rlnt, net_toa, rsns, rlns, hfss, hfls, swcf, lwcf, net_sfc, toamsfc, tas, clt, cll, clm, clh, pr, pme, psl]
 

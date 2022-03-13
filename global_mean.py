@@ -85,29 +85,28 @@ def main(args):
     # prepare OCE areas
     OCEGAFILE = cdo.expr('area=e1t*e2t', input=cfg['areas']['oce']) 
 
-    # reference data
+    # load reference data
     with open(INDIR / 'reference.yml', 'r') as file:
         ref = yaml.load(file, Loader=yaml.FullLoader)
 
     # list of vars on which to work
-    var_field = cfg['global']['atm_vars']['field']
-    var_radiation = cfg['global']['atm_vars']['radiation']
-    var_ocean = cfg['global']['oce_vars']
+    var_atm = cfg['global']['atm_vars']
+    var_oce = cfg['global']['oce_vars']
     var_table = cfg['global']['tab_vars']
 
     # make sure all requested vars are available (use first year)
     # first find all needed variables (including those needed for derived ones)
 
     # create a list for all atm variables, avoid duplicates
-    var_all = list(set(var_field + var_radiation + var_table))
+    var_all = list(set(var_atm + var_table))
 
     # Check if vars are available
     infile = make_filename(ECEDIR, var_all[0], expname, year1, ref)
     isavail = vars_are_there(infile, var_all, ref)
-    infile = make_filename(ECEDIR, var_ocean[0], expname, year1, ref)
-    isavail = {**isavail, **vars_are_there(infile, var_ocean, ref)} # python>=3.5 syntax for joining 2 dicts
+    infile = make_filename(ECEDIR, var_oce[0], expname, year1, ref)
+    isavail = {**isavail, **vars_are_there(infile, var_oce, ref)} # python>=3.5 syntax for joining 2 dicts
 
-    var_all = list(set(var_all + var_ocean))
+    var_all = list(set(var_all + var_oce))
 
     # loop
     varstat = {}
@@ -166,7 +165,7 @@ def main(args):
     global_table = []
 
     # loop on the variables to create the table
-    for var in var_field + var_radiation + var_ocean:
+    for var in var_atm + var_oce:
         beta = ref[var]
         beta['value'] = varstat[var] * float(beta.get('factor', 1))
         if ftrend:
@@ -198,9 +197,6 @@ def main(args):
 
     # clean
     os.unlink(GRIDFILE)
-    os.unlink(LMFILE)
-    os.unlink(SMFILE)
-    os.unlink(GAFILE)
     cdo.cleanTempDir()
 
 
