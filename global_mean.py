@@ -75,7 +75,7 @@ def main(args):
     os.makedirs(TABDIR, exist_ok=True)
 
     # prepare grid description file
-    GRIDFILE=str(TMPDIR / 'grid.txt')
+    GRIDFILE=str(TMPDIR / f'grid_{expname}.txt')
     INIFILE=str(ECEDIR / f'ICMGG{expname}INIT')
     griddes = cdo.griddes(input=INIFILE)
     with open(GRIDFILE, 'w') as f:

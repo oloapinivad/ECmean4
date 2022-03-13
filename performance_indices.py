@@ -39,33 +39,27 @@ def main(args):
     # folder definition
     ECEDIR = Path(os.path.expandvars(cfg['dirs']['exp']), expname)
     TABDIR = Path(os.path.expandvars(cfg['dirs']['tab']), 'ECmean4', 'table')
-    TMPDIR = Path(os.path.expandvars(cfg['dirs']['tmp']), 'tmp', expname)
     CLMDIR = Path(os.path.expandvars(cfg['dirs']['clm']), resolution)
+    TMPDIR = Path(os.path.expandvars(cfg['dirs']['tmp']))
     os.makedirs(TABDIR, exist_ok=True)
-    os.makedirs(TMPDIR, exist_ok=True)
 
     #cdo.forceOutput = True
     # cdo.debug = True
 
     # prepare grid description file
     icmgg_file = ECEDIR / f'ICMGG{expname}INIT'
-    gridfile = str(TABDIR / 'grid.txt')
+    gridfile = str(TMPDIR / f'grid_{expname}.txt')
     griddes = cdo.griddes(input=f'{icmgg_file}')
     with open(gridfile, 'w') as f:
         for line in griddes:
             print(line, file=f)
 
     # land-sea masks
-    land_mask = TMPDIR / 'land_mask_2x2.nc'
-    ocean_mask = TMPDIR / 'ocean_mask_2x2.nc'
-    cdo.setctomiss( 0,
+    ocean_mask = cdo.setctomiss( 0,
         input=f'-ltc,0.5 -invertlat -remapcon2,{resolution} ' \
               f'-setgridtype,regular -setgrid,{gridfile} ' \
-              f'-selcode,172 {icmgg_file}',
-        output=f'{ocean_mask}', options='-f nc')
-    cdo.addc( 1,
-        input=f'-setctomiss,1 -setmisstoc,0 {ocean_mask}',
-        output=f'{land_mask}')
+              f'-selcode,172 {icmgg_file}', options='-f nc')
+    land_mask = cdo.addc( 1, input=f'-setctomiss,1 -setmisstoc,0 {ocean_mask}') 
 
     # trick to avoid the loop on years
     # define required years with a {year1,year2} and then use cdo select feature
@@ -122,7 +116,6 @@ def main(args):
             # file names
             infile = str(ECEDIR / 'output/oifs' / \
                 f'{expname}_atm_cmip6_{filetype}_{years_joined}-????.nc')
-            outfile = str(TMPDIR / f'tmp_{expname}_{var}_2x2grid.nc')
             clim = str(CLMDIR / f'climate_{dataref}_{dataname}.nc')
             vvvv = str(CLMDIR / f'variance_{dataref}_{dataname}.nc')
 
@@ -136,7 +129,7 @@ def main(args):
 
             # timmean and remap
             cmd1 = f'-timmean -setgridtype,regular -setgrid,{gridfile} -select,name={var} {infile}'
-            cdo.remapcon2(resolution, input=cmd1, output=outfile)
+            outfile = cdo.remapcon2(resolution, input=cmd1)
 
             if var in field_3d:
 
@@ -182,9 +175,6 @@ def main(args):
             varstat[var] = float(x)
             if fverb: print('PI for ', var, varstat[var])
 
-            # clean
-            os.unlink(outfile)
-
     # define options for the output table
     head = ['Var', 'PI', 'Domain', 'Dataset', 'CMIP3', 'Ratio to CMIP3']
     global_table = list()
@@ -207,6 +197,8 @@ def main(args):
         f.write('\n\nPartial PI (atm only) is   :' + str(partial_pi))
         f.write('\nTotal Performance Index is :' + str(total_pi))
 
+    os.unlink(gridfile)
+    cdo.cleanTempDir()
 
 if __name__ == '__main__':
 
