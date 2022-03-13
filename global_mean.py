@@ -73,7 +73,6 @@ def main(args):
     TABDIR = Path(os.path.expandvars(cfg['dirs']['tab']))
     TMPDIR = Path(os.path.expandvars(cfg['dirs']['tmp']))
     os.makedirs(TABDIR, exist_ok=True)
-    print(TMPDIR)
 
     # prepare grid description file
     GRIDFILE=str(TMPDIR / 'grid.txt')
@@ -190,12 +189,13 @@ def main(args):
 
     # write the file with tabulate: cool python feature
     tablefile = TABDIR / f'global_mean_{expname}_{year1}_{year2}.txt'
-    print(tablefile)
+    if fverb: print(tablefile)
     with open(tablefile, 'w') as f:
         f.write(tabulate(global_table, headers=head, tablefmt='orgtbl'))
 
     # Print appending one line to table (for tuning)
     linefile = TABDIR / 'global_means.txt'
+    if fverb: print(linefile)
     if args.output:
         linefile = args.output
         ftable = True
