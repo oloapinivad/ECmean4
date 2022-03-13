@@ -96,20 +96,16 @@ def main(args):
     # make sure all requested vars are available (use first year)
     # first find all needed variables (including those needed for derived ones)
 
-    # create a list for all variable, avoid duplicates
+    # create a list for all atm variables, avoid duplicates
     var_all = list(set(var_field + var_radiation + var_table))
 
-    # create a sample filename
-    infile = make_filename(ECEDIR, 'tas', expname, year1, ref)
+    # Check if vars are available
+    infile = make_filename(ECEDIR, var_all[0], expname, year1, ref)
+    isavail = vars_are_there(infile, var_all, ref)
+    infile = make_filename(ECEDIR, var_ocean[0], expname, year1, ref)
+    isavail = {**isavail, **vars_are_there(infile, var_ocean, ref)} # python>=3.5 syntax for joining 2 dicts
 
-    # which vars are available
-    isavail=vars_are_there(infile, var_all, ref)
-    isavail['tos']=True
-    isavail['sos']=True
-    isavail['zos']=True
-    isavail['wfo']=True
-
-    var_all = list(set(var_field + var_radiation + var_table + var_ocean))
+    var_all = list(set(var_all + var_ocean))
 
     # loop
     varstat = {}
