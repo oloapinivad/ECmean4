@@ -34,13 +34,13 @@ def main(args):
         cfg = yaml.load(file, Loader=yaml.FullLoader)
 
     # hard-coded resolution (due to climatological dataset)
-    resolution = 'r180x91'
+    resolution = cfg['PI']['resolution']
 
     # folder definition
     ECEDIR = Path(os.path.expandvars(cfg['dirs']['exp']), expname)
     TABDIR = Path(os.path.expandvars(cfg['dirs']['tab']), 'ECmean4', 'table')
     TMPDIR = Path(os.path.expandvars(cfg['dirs']['tmp']), 'tmp', expname)
-    CLMDIR = Path(os.path.expandvars(cfg['dirs']['clm']))
+    CLMDIR = Path(os.path.expandvars(cfg['dirs']['clm']), resolution)
     os.makedirs(TABDIR, exist_ok=True)
     os.makedirs(TMPDIR, exist_ok=True)
 

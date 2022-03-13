@@ -23,3 +23,4 @@ PI:
     field: [ta, ua, va, hus]
   oce_vars: 
     field: [tos]
+  resolution: r180x91
