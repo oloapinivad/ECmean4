@@ -55,6 +55,8 @@ def main(args):
     fverb = not args.silent
     ftable = args.line
     ftrend = args.trend
+    if year1 == year2: # Ignore if only one year requested
+        ftrend = False
 
     cdo = Cdo()
 
