@@ -194,8 +194,8 @@ def main(args):
     if fverb: print(tablefile)
     with open(tablefile, 'w') as f:
         f.write(tabulate(global_table, headers=head, tablefmt='orgtbl'))
-        f.write('\n\nPartial PI (atm only) is   :' + str(partial_pi))
-        f.write('\nTotal Performance Index is :' + str(total_pi))
+        f.write('\n\nPartial PI (atm only) is   : ' + str(partial_pi))
+        f.write('\nTotal Performance Index is : ' + str(total_pi))
 
     os.unlink(gridfile)
     cdo.cleanTempDir()
