@@ -2,7 +2,7 @@ dirs:
    exp: $SCRATCH/../ccpd/ece4 
    tmp: $SCRATCH/ece4/ECmean4/table
    tab: $SCRATCH/ece4/ECmean4/table
-   clm: $HPCPERM/ecearth4/ECmean4/climatology
+   clm: $HPCPERM/ece4/tools/ECmean4/climatology
 
 areas:
    oce: /ec/res4/hpcperm/ccpd/ECE4-DATA/nemo/ORCA1L75/domain_cfg.nc
