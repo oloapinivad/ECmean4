@@ -5,7 +5,7 @@ dirs:
    clm: $HPCPERM/ecearth4/ECmean4/climatology
 
 areas:
-   oce: /ec/res4/hpcperm/ccjh/ece4/tools/ECmean4/grids/areas_o1t0.nc
+   oce: /ec/res4/hpcperm/ccpd/ECE4-DATA/nemo/ORCA1L75/domain_cfg.nc
 
 global:
   atm_vars:

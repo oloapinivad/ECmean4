@@ -238,9 +238,9 @@ zos:
   observations:
     val: 0
 wfo:
-  varname: 'Net Water Flux'
-  factor: -1
-  units: 'kg/m2/s' 
+  varname: 'Net Water Flux into ocean'
+  units: 'm/100y' 
+  factor: -3155760
   domain: 'oce'
   observations:
     val: 0

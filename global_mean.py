@@ -14,6 +14,7 @@ from statistics import mean
 from pathlib import Path
 import yaml
 from tabulate import tabulate
+import numpy as np
 from cdo import Cdo
 
 from functions import vars_are_there, is_number
@@ -52,7 +53,8 @@ def main(args):
     year1 = args.year1
     year2 = args.year2
     fverb = not args.silent
-    ftable = args.table
+    ftable = args.line
+    ftrend = args.trend
 
     cdo = Cdo()
 
@@ -75,13 +77,13 @@ def main(args):
         for line in griddes:
             print(line, file=f)
 
-    # prepare LSM
-    LMFILE=str(TMPDIR / 'lmask.nc')
-    SMFILE=str(TMPDIR / 'smask.nc')
-    GAFILE=str(TMPDIR / 'ga.nc')
-    cdo.selname('LSM', input=f'-setgridtype,regular {INIFILE}', output=LMFILE, options='-t ecmwf')
-    cdo.mulc('-1', input=f'-subc,1 {LMFILE}', output=SMFILE)
-    cdo.gridarea(input=f'-setgridtype,regular {LMFILE}', output=GAFILE)
+    # prepare ATM LSM
+    LMFILE = cdo.selname('LSM', input=f'-setgridtype,regular {INIFILE}', options='-t ecmwf')
+    SMFILE = cdo.mulc('-1', input=f'-subc,1 {LMFILE}')
+    GAFILE = cdo.gridarea(input=f'-setgridtype,regular {LMFILE}')
+
+    # prepare OCE areas
+    OCEGAFILE = cdo.expr('area=e1t*e2t', input=cfg['areas']['oce']) 
 
     # reference data
     with open(INDIR / 'reference.yml', 'r') as file:
@@ -109,9 +111,11 @@ def main(args):
 
     # loop
     varstat = {}
+    trend = {}
     for var in var_all:
         if not isavail[var]:
             varstat[var] = float("NaN")
+            trend[var] = float("NaN")
         else:
             a = []
 
@@ -124,7 +128,7 @@ def main(args):
 
             # ocean variables require specifying grid areas
             if(ref[var].get('domain','atm')=='oce'):
-                pre = '-setgridarea,' + cfg['areas']['oce']
+                pre = '-setgridarea,' + OCEGAFILE
             else:
                 pre = ''
 
@@ -141,25 +145,39 @@ def main(args):
                     op='-fldsum'
 
             # loop on years: call CDO to perform all the computations
-            for year in range(year1, year2+1):
+            yrange = range(year1, year2+1)
+            for year in yrange:
                 infile =  make_filename(ECEDIR, var, expname, year, ref)
                 cmd = f'-timmean {op} {mask} -setgridtype,regular ' \
                       f'-setgrid,{GRIDFILE} -selname,{var} {der} {pre} {infile}'
                 x = float(cdo.output(input=cmd)[0])
                 a.append(x)
             varstat[var] = mean(a)
+            if ftrend:
+                trend[var] = np.polyfit(yrange, a, 1)[0]
             if fverb:
                 print('Average', var, mean(a))
 
     # define options for the output table
-    head = ['Variable', 'Longname', 'Units', 'EC-Earth4', 'Obs.', 'Dataset', 'Years']
+    if ftrend:
+        head = ['Variable', 'Longname', 'Units', 'EC-Earth4', 'Trend', 'Obs.', 'Dataset', 'Years']
+    else:
+        head = ['Variable', 'Longname', 'Units', 'EC-Earth4', 'Obs.', 'Dataset', 'Years']
     global_table = []
 
     # loop on the variables to create the table
     for var in var_field + var_radiation + var_ocean:
         beta = ref[var]
         beta['value'] = varstat[var] * float(beta.get('factor', 1))
-        out_sequence = [var, beta['varname'], beta['units'], beta['value'],
+        if ftrend:
+            beta['trend'] = trend[var] * float(beta.get('factor', 1))
+            out_sequence = [var, beta['varname'], beta['units'], beta['value'],
+                        beta['trend'],
+                        float(beta['observations']['val']),
+                        beta['observations'].get('data',''),
+                        beta['observations'].get('years','')]
+        else:
+            out_sequence = [var, beta['varname'], beta['units'], beta['value'],
                         float(beta['observations']['val']),
                         beta['observations'].get('data',''),
                         beta['observations'].get('years','')]
@@ -183,6 +201,7 @@ def main(args):
     os.unlink(LMFILE)
     os.unlink(SMFILE)
     os.unlink(GAFILE)
+    cdo.cleanTempDir()
 
 
 if __name__ == "__main__":
@@ -194,7 +213,9 @@ if __name__ == "__main__":
     parser.add_argument('year2', metavar='Y2', type=int, help='final year')
     parser.add_argument('-s', '--silent', action='store_true',
                     help='do not print anything to std output')
-    parser.add_argument('-t', '--table', action='store_true',
+    parser.add_argument('-t', '--trend', action='store_true',
+                    help='compute trends')
+    parser.add_argument('-l', '--line', action='store_true',
                     help='appends also single line to a table')
     parser.add_argument('-o', '--output', type=str, default='',
                     help='path of output one-line table')
