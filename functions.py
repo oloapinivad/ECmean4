@@ -6,6 +6,7 @@ cdo = Cdo()
 
 # small function to define if a number is a float 
 def is_number(s):
+    """Check if input is a float type"""
     try:
         float(s)
         return True
@@ -17,6 +18,7 @@ def is_number(s):
 # first find all needed variables (including those needed for derived ones)
 # added extra if to check if file exists
 def vars_are_there(infile, var_needed, reference):
+    """Check if a list of variables is available in the input file"""
 
     isavail = {}
 

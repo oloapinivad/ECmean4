@@ -21,7 +21,7 @@ from functions import vars_are_there, is_number
 
 
 def write_tuning_table(linefile, varmean, var_table, expname, year1, year2, ref):
-
+    """Write results appending one line to a text file"""
     if not os.path.isfile(linefile):
         with open(linefile, 'w') as f:
             print('%exp from   to ', end='', file=f)
@@ -40,6 +40,7 @@ def write_tuning_table(linefile, varmean, var_table, expname, year1, year2, ref)
 
 
 def make_input_filename(dr, var, expname, year, ref):
+    """Generate appropriate input filename for a variable"""
     if(ref[var].get('domain','atm')=='oce'):
         fname = dr / 'output/nemo' / \
                  f'{expname}_oce_1m_T_{year}-{year}.nc'
