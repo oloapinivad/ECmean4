@@ -43,7 +43,7 @@ def main(args):
     os.makedirs(TABDIR, exist_ok=True)
 
     #cdo.forceOutput = True
-    # cdo.debug = True
+    #cdo.debug = True
 
     # prepare grid description file
     icmgg_file = ECEDIR / f'ICMGG{expname}INIT'
@@ -88,10 +88,6 @@ def main(args):
     INFILE_2D = str(ECEDIR / 'output/oifs' / f'{expname}_atm_cmip6_1m_{year1}-{year1}.nc')
     INFILE_3D = str(ECEDIR / 'output/oifs' / f'{expname}_atm_cmip6_pl_1m_{year1}-{year1}.nc')
     INFILE_OCE = str(ECEDIR / 'output/nemo' / f'{expname}_oce_cmip6_1m_{year1}-{year1}.nc')
-    #isavail_2d=fn.vars_are_there(INFILE_2D, field_2d, ref)
-    #isavail_3d=fn.vars_are_there(INFILE_3D, field_3d, ref)
-    #isavail_oce=fn.vars_are_there(INFILE_OCE, field_oce, ref)
-    #isavail={**isavail_2d, **isavail_3d, **isavail_oce}
 
     # alternative method with loop
     isavail={}
@@ -133,7 +129,6 @@ def main(args):
             if var in field_3d:
 
                 # special treatment which includes vertical interpolation
-                # and extraction of pressure weights
 
                 # extract the vertical levels from the file
                 vlevels = cdo.showlevel(input=f'{clim}')
@@ -146,29 +141,27 @@ def main(args):
                 if np.max(v1) < 10000:
                     v1 = [x * 100 for x in v1]
 
-                # compute level weights (numpy is not that smart, or it's me?)
-                half_levels = np.convolve(v1, np.ones(2)/2, mode='valid')
-                args = (np.array([0]), half_levels, np.array([100000]))
-                level_weights = np.diff(np.concatenate(args))
+                # DEPRECATED with genlevelbounds: compute level weights (numpy is not that smart, or it's me?)
+                #half_levels = np.convolve(v1, np.ones(2)/2, mode='valid')
+                #args = (np.array([0]), half_levels, np.array([100000]))
+                #level_weights = np.diff(np.concatenate(args))
 
                 # format for CDO, converting to string
                 format_vlevels = ' '.join(str(x) for x in v1).replace(' ', ',')
 
                 # assign the vertical command for interpolation and zonal mean
-                cmd_vertical = f'-zonmean -intlevelx,{format_vlevels}'
+                cmd_vertinterp = f'-zonmean -intlevelx,{format_vlevels}'
+                cmd_vertmean = f'-vertmean -genlevelbounds,zbot=0,ztop=100000'
             else:
-                cmd_vertical = ''
+                cmd_vertmean = ''
+                cmd_vertinterp = ''
 
-            # compute the PI
-            cmd2 = f'-setname,{var} {mask} -div -sqr -sub -invertlat {cmd_vertical} {oper} {outfile} {clim} {vvvv}'
+            cmd2 = f'-setname,{var} {mask} {cmd_vertmean} -div -sqr -sub -invertlat {cmd_vertinterp} {oper} {outfile} {clim} {vvvv}'
             x = np.squeeze(cdo.fldmean(input=cmd2, returnCdf=True).variables[var])
 
-            # deprecated: pre-estimated weights from previous version of ECmean (climatology dependent!)
-            #level_weights = np.array([30, 45, 75, 100, 100, 100, 150, 175, 112.5, 75, 37.5])
-
-            # weighted average
-            if var in field_3d:
-                x = np.average(x, weights=level_weights)
+            # DEPRECATED with genlevelbounds: weighted average
+            #if var in field_3d:
+            #    x = np.average(x, weights=level_weights)
 
             # store the PI
             varstat[var] = float(x)
