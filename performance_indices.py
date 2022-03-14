@@ -71,6 +71,11 @@ def main(args):
 
     if fverb: print(years_joined)
 
+    # loading the var-to-file interface
+    filename = 'interface_ece4.yml'
+    with open(INDIR / filename, 'r') as file:
+        face = yaml.load(file, Loader=yaml.FullLoader)
+
     # reference data: it is badly written but it can be implemented in a much more intelligent
     # and modular way
     filename = 'pi_climatology.yml'
@@ -84,17 +89,25 @@ def main(args):
     field_ice = cfg['PI']['ice_vars']['field']
     field_all = field_2d + field_3d + field_oce + field_ice
 
+    # check if required variables are there: use interface file
+    # check into first file
+    isavail={}
+    for field in field_all :
+        infile = fn.make_input_filename(ECEDIR, field, expname, year1, year1, face)
+        isavail = {**isavail, **fn.vars_are_there(infile, [field], face)}
+
+
     # check if required vars are available in the output
     # create a filename from the first year
-    INFILE_2D = str(ECEDIR / 'output/oifs' / f'{expname}_atm_cmip6_1m_{year1}-{year1}.nc')
-    INFILE_3D = str(ECEDIR / 'output/oifs' / f'{expname}_atm_cmip6_pl_1m_{year1}-{year1}.nc')
-    INFILE_OCE = str(ECEDIR / 'output/nemo' / f'{expname}_oce_1m_T_{year1}-{year1}.nc')
-    INFILE_ICE = str(ECEDIR / 'output/nemo' / f'{expname}_ice_1m_{year1}-{year1}.nc')
+    #INFILE_2D = str(ECEDIR / 'output/oifs' / f'{expname}_atm_cmip6_1m_{year1}-{year1}.nc')
+    #INFILE_3D = str(ECEDIR / 'output/oifs' / f'{expname}_atm_cmip6_pl_1m_{year1}-{year1}.nc')
+    #INFILE_OCE = str(ECEDIR / 'output/nemo' / f'{expname}_oce_1m_T_{year1}-{year1}.nc')
+    #INFILE_ICE = str(ECEDIR / 'output/nemo' / f'{expname}_ice_1m_{year1}-{year1}.nc')
 
     # alternative method with loop
-    isavail={}
-    for a,b in zip([INFILE_2D, INFILE_3D, INFILE_OCE, INFILE_ICE], [field_2d, field_3d, field_oce, field_ice]) : 
-        isavail={**isavail, **fn.vars_are_there(a,b,ref)}
+    #isavail={}
+    #for a,b in zip([INFILE_2D, INFILE_3D, INFILE_OCE, INFILE_ICE], [field_2d, field_3d, field_oce, field_ice]) : 
+    #    isavail={**isavail, **fn.vars_are_there(a,b,ref)}
 
     # main loop
     varstat = {}
@@ -108,16 +121,15 @@ def main(args):
             oper = ref[var]['oper']
             dataref = ref[var]['dataset']
             dataname = ref[var]['dataname']
-            filetype = ref[var]['filetype']
 
             # file names
             if var in field_oce + field_ice : 
-                model = 'nemo'
                 cmd_grid = '' 
             else : 
-                model = 'oifs' 
                 cmd_grid = f'-setgridtype,regular -setgrid,{gridfile}'
-            infile = str(ECEDIR / 'output' / model  / f'{expname}_{filetype}_{years_joined}-????.nc')
+            infile = fn.make_input_filename(ECEDIR, var, expname, years_joined, '????', face)
+            print(infile)
+            #infile = str(ECEDIR / 'output' / model  / f'{expname}_{filetype}_{years_joined}-????.nc')
             clim = str(CLMDIR / f'climate_{dataref}_{dataname}.nc')
             vvvv = str(CLMDIR / f'variance_{dataref}_{dataname}.nc')
 

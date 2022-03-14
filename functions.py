@@ -60,4 +60,12 @@ def load_config_file(indir):
 
     return cfg
 
+# create input filenames for the required variable and a given year
+def make_input_filename(dr, var, expname, year1, year2, face):
+    """Generate appropriate input filename for a variable"""
+    filetype = face[var]['filetype']
+    fname = dr / 'output' / face[var]['component'] / \
+                f'{expname}_{filetype}_{year1}-{year2}.nc'
+    return str(fname)
+
 

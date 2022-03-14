@@ -1,0 +1,15 @@
+tas:
+  varname: '2m Air Temperature'
+  units: K
+  component: oifs
+  filetype: atm_cmip6_1m 
+ta: 
+  varname: 'Air Temperature'
+  units: K
+  component: oifs
+  filetype: atm_cmip6_pl_1m
+tos: 
+  varname: SST
+  units: C
+  component: nemo
+  filetype: oce_1m_T

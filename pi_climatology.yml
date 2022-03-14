@@ -3,7 +3,6 @@ tas:
   oper: "-subc,273.15" 
   dataname : t2m
   domain: land
-  filetype: atm_cmip6_1m
   cmip3: 25.13
 psl: 
   dataset: COADS
