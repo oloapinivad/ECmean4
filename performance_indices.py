@@ -81,17 +81,19 @@ def main(args):
     field_2d = cfg['PI']['2d_vars']['field']
     field_3d = cfg['PI']['3d_vars']['field']
     field_oce = cfg['PI']['oce_vars']['field']
-    field_all = field_2d + field_3d + field_oce
+    field_ice = cfg['PI']['ice_vars']['field']
+    field_all = field_2d + field_3d + field_oce + field_ice
 
     # check if required vars are available in the output
     # create a filename from the first year
     INFILE_2D = str(ECEDIR / 'output/oifs' / f'{expname}_atm_cmip6_1m_{year1}-{year1}.nc')
     INFILE_3D = str(ECEDIR / 'output/oifs' / f'{expname}_atm_cmip6_pl_1m_{year1}-{year1}.nc')
-    INFILE_OCE = str(ECEDIR / 'output/nemo' / f'{expname}_oce_cmip6_1m_{year1}-{year1}.nc')
+    INFILE_OCE = str(ECEDIR / 'output/nemo' / f'{expname}_oce_1m_T_{year1}-{year1}.nc')
+    INFILE_ICE = str(ECEDIR / 'output/nemo' / f'{expname}_ice_1m_{year1}-{year1}.nc')
 
     # alternative method with loop
     isavail={}
-    for a,b in zip([INFILE_2D, INFILE_3D, INFILE_OCE], [field_2d, field_3d, field_oce]) : 
+    for a,b in zip([INFILE_2D, INFILE_3D, INFILE_OCE, INFILE_ICE], [field_2d, field_3d, field_oce, field_ice]) : 
         isavail={**isavail, **fn.vars_are_there(a,b,ref)}
 
     # main loop
@@ -109,8 +111,13 @@ def main(args):
             filetype = ref[var]['filetype']
 
             # file names
-            infile = str(ECEDIR / 'output/oifs' / \
-                f'{expname}_atm_cmip6_{filetype}_{years_joined}-????.nc')
+            if var in field_oce + field_ice : 
+                model = 'nemo'
+                cmd_grid = '' 
+            else : 
+                model = 'oifs' 
+                cmd_grid = f'-setgridtype,regular -setgrid,{gridfile}'
+            infile = str(ECEDIR / 'output' / model  / f'{expname}_{filetype}_{years_joined}-????.nc')
             clim = str(CLMDIR / f'climate_{dataref}_{dataname}.nc')
             vvvv = str(CLMDIR / f'variance_{dataref}_{dataname}.nc')
 
@@ -123,8 +130,10 @@ def main(args):
                 mask = ''
 
             # timmean and remap
-            cmd1 = f'-timmean -setgridtype,regular -setgrid,{gridfile} -select,name={var} {infile}'
-            outfile = cdo.remapcon2(resolution, input=cmd1)
+            cmd1 = f'-timmean {cmd_grid} -select,name={var} {infile}'
+            
+            # temporarily using remapbil instead of remapcon due to NEMO grid missing corner
+            outfile = cdo.remapbil(resolution, input=cmd1)
 
             if var in field_3d:
 
