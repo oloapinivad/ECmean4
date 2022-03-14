@@ -52,9 +52,15 @@ def make_input_filename(dr, var, expname, year, ref):
 
 class CdoPipe:
     """A class to add commands in sequence to a cdo pipe"""
-    def __init__(self, atminifile, oceinifile, gridfile):
+    def __init__(self, atminifile, oceinifile, tmpdir):
         """Initialize object, preparing some useful helper files"""
         self.pipe = ''
+
+        self.GRIDFILE=str(tmpdir / f'grid.txt')
+        griddes = cdo.griddes(input=atminifile)
+        with open(self.GRIDFILE, 'w') as f:
+            for line in griddes:
+                print(line, file=f)
 
         # prepare ATM LSM
         self.LMFILE = cdo.selname('LSM', input=f'-setgridtype,regular {atminifile}', options='-t ecmwf')
@@ -63,7 +69,6 @@ class CdoPipe:
 
         # prepare OCE areas
         self.OCEGAFILE = cdo.expr('area=e1t*e2t', input=oceinifile)
-        self.GRIDFILE = gridfile
 
     def start(self, domain):
         """Cleans pipe for a new application, requires specifying the domain"""
@@ -128,16 +133,11 @@ def main(args):
     os.makedirs(TABDIR, exist_ok=True)
 
     # prepare grid description file
-    GRIDFILE=str(TMPDIR / f'grid_{expname}.txt')
     INIFILE=str(ECEDIR / f'ICMGG{expname}INIT')
-    griddes = cdo.griddes(input=INIFILE)
-    with open(GRIDFILE, 'w') as f:
-        for line in griddes:
-            print(line, file=f)
     OCEINIFILE=cfg['areas']['oce']
 
     # Init CdoPipe object to use in the following, specifying the LM and SM files
-    mycdo = CdoPipe(INIFILE, OCEINIFILE, GRIDFILE)
+    mycdo = CdoPipe(INIFILE, OCEINIFILE, TMPDIR)
 
     # load reference data
     with open(INDIR / 'reference.yml', 'r') as file:
@@ -236,7 +236,7 @@ def main(args):
         write_tuning_table(linefile, varmean, var_table, expname, year1, year2, ref)
 
     # clean
-    os.unlink(GRIDFILE)
+    os.unlink(mycdo.GRIDFILE)
     cdo.cleanTempDir()
 
 
