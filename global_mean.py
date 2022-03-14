@@ -18,6 +18,7 @@ from tabulate import tabulate
 import numpy as np
 from cdo import Cdo
 from functions import vars_are_there, is_number
+from cdopipe import CdoPipe
 
 cdo = Cdo()
 
@@ -50,62 +51,6 @@ def make_input_filename(dr, var, expname, year, ref):
                  f'{expname}_atm_cmip6_1m_{year}-{year}.nc'
     return str(fname)
 
-class CdoPipe:
-    """A class to add commands in sequence to a cdo pipe"""
-    def __init__(self, atminifile, oceinifile, tmpdir):
-        """Initialize object, preparing some useful helper files"""
-        self.pipe = ''
-
-        self.GRIDFILE=str(tmpdir / f'grid.txt')
-        griddes = cdo.griddes(input=atminifile)
-        with open(self.GRIDFILE, 'w') as f:
-            for line in griddes:
-                print(line, file=f)
-
-        # prepare ATM LSM
-        self.LMFILE = cdo.selname('LSM', input=f'-setgridtype,regular {atminifile}', options='-t ecmwf')
-        self.SMFILE = cdo.mulc('-1', input=f'-subc,1 {self.LMFILE}')
-        self.GAFILE = cdo.gridarea(input=f'-setgridtype,regular {self.LMFILE}')
-
-        # prepare OCE areas
-        self.OCEGAFILE = cdo.expr('area=e1t*e2t', input=oceinifile)
-
-    def start(self, domain):
-        """Cleans pipe for a new application, requires specifying the domain"""
-        # ocean variables require specifying grid areas
-        # atm variables require fixing the grid
-        if(domain=='oce'):
-            self.pipe = '-setgridarea,' + self.OCEGAFILE
-        else:
-            self.pipe = f'-setgridtype,regular -setgrid,{self.GRIDFILE}'
-
-    def add(self, cmd):
-        """Adds a generic cdo operator"""
-        self.pipe = '-' + cmd + ' ' + self.pipe
-
-    def masked_mean(self, mask_type):
-        if mask_type == 'land':
-            self.add(f'fldsum -mul {self.GAFILE} -mul {self.LMFILE}')
-        elif mask_type in ['sea', 'ocean']:
-            self.add(f'fldsum -mul {self.GAFILE} -mul {self.SMFILE}')
-        else:
-            self.add('fldmean')
-
-    def selvar(self, var):
-        self.add(f'selname,{var}')
-
-    def expr(self, var, expr):
-        self.add(f'expr,{var}={expr}')
-
-    def selcode(self, var):
-        self.add(f'selcode,{var}')
-
-    def timmean(self):
-        self.add(f'timmean')
-
-    def output(self, infile):
-        cmd = self.pipe + f' {infile}'
-        return float(cdo.output(input=cmd)[0])
 
 def main(args):
 
@@ -120,7 +65,6 @@ def main(args):
     modelname = args.model
     if year1 == year2: # Ignore if only one year requested
         ftrend = False
-
 
     # config file (looks for it in the same dir as the .py program file
     INDIR = Path(os.path.dirname(os.path.abspath(__file__)))
@@ -137,7 +81,8 @@ def main(args):
     OCEINIFILE=cfg['areas']['oce']
 
     # Init CdoPipe object to use in the following, specifying the LM and SM files
-    mycdo = CdoPipe(INIFILE, OCEINIFILE, TMPDIR)
+    mycdo = CdoPipe(tempdir=TMPDIR)
+    mycdo.make_grids(INIFILE, OCEINIFILE)
 
     # load reference data
     with open(INDIR / 'reference.yml', 'r') as file:
@@ -153,6 +98,8 @@ def main(args):
 
     # create a list for all atm variables, avoid duplicates
     var_all = list(set(var_atm + var_table))
+
+    infile = make_input_filename(ECEDIR, var_atm[0], expname, year1, ref)
 
     # Check if vars are available
     infile = make_input_filename(ECEDIR, var_atm[0], expname, year1, ref)
@@ -176,7 +123,7 @@ def main(args):
             if 'derived' in ref[var].keys():
                 mycdo.expr(var, ref[var]['derived'])
 
-            mycdo.selvar(var)
+            mycdo.selname(var)
 
             # land/sea variables
             mycdo.masked_mean(ref[var].get('total','global'))
@@ -237,7 +184,7 @@ def main(args):
 
     # clean
     os.unlink(mycdo.GRIDFILE)
-    cdo.cleanTempDir()
+    #cdo.cleanTempDir()
 
 
 if __name__ == "__main__":
