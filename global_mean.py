@@ -132,10 +132,11 @@ def main(args):
                 der = ''
 
             # ocean variables require specifying grid areas
+            # atm variables require fixing the grid
             if(ref[var].get('domain','atm')=='oce'):
                 pre = '-setgridarea,' + OCEGAFILE
             else:
-                pre = ''
+                pre = f'-setgridtype,regular -setgrid,{GRIDFILE}'
 
             # land/sea variables
             mask = ''
@@ -153,8 +154,7 @@ def main(args):
             yrange = range(year1, year2+1)
             for year in yrange:
                 infile =  make_input_filename(ECEDIR, var, expname, year, ref)
-                cmd = f'-timmean {op} {mask} -setgridtype,regular ' \
-                      f'-setgrid,{GRIDFILE} -selname,{var} {der} {pre} {infile}'
+                cmd = f'-timmean {op} {mask} -selname,{var} {der} {pre} {infile}'
                 x = float(cdo.output(input=cmd)[0])
                 a.append(x)
             varmean[var] = mean(a)
