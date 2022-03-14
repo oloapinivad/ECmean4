@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 import re
 import os.path
+import sys
+import yaml
 from cdo import Cdo
 cdo = Cdo()
 
@@ -45,4 +47,17 @@ def vars_are_there(infile, var_needed, reference):
         for v in var_needed : 
             isavail[v] = False
     return isavail
+
+# given a folder, verify that the config.yml exists and open it
+def load_config_file(indir): 
+
+    CONFIGFILE = str(indir / 'config.yml')
+    if os.path.exists(CONFIGFILE):
+        with open(CONFIGFILE, 'r') as file:
+            cfg = yaml.load(file, Loader=yaml.FullLoader)
+    else:
+        sys.exit('config.yml not found: you need to have a configuration file!')
+
+    return cfg
+
 

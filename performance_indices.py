@@ -29,9 +29,8 @@ def main(args):
     fverb = not args.silent
 
     # config file (looks for it in the same dir as the .py program file
-    indir = Path(os.path.dirname(os.path.abspath(__file__)))
-    with open(indir / 'config.yml', 'r') as file:
-        cfg = yaml.load(file, Loader=yaml.FullLoader)
+    INDIR = Path(os.path.dirname(os.path.abspath(__file__)))
+    cfg = fn.load_config_file(INDIR)
 
     # hard-coded resolution (due to climatological dataset)
     resolution = cfg['PI']['resolution']
@@ -75,7 +74,7 @@ def main(args):
     # reference data: it is badly written but it can be implemented in a much more intelligent
     # and modular way
     filename = 'pi_climatology.yml'
-    with open(filename, 'r') as file:
+    with open(INDIR / filename, 'r') as file:
         ref = yaml.load(file, Loader=yaml.FullLoader)
 
     # defines the two varlist
