@@ -9,75 +9,70 @@ psl:
   oper: "-divc,100"
   dataname : msl
   domain: global
-  filetype: atm_cmip6_1m
   cmip3: 11.69
 pr:
   dataset: CMAP
   oper: "-mulc,86400"
   dataname : tp
   domain: global
-  filetype: atm_cmip6_1m
   cmip3: 38.87
 tauu:
   dataset: DASILVA
   oper: ""
   dataname : ewss
   domain: ocean
-  filetype: atm_cmip6_1m
   cmip3: 4.03
 tauv:
   dataset: DASILVA
   oper: ""
   dataname : nsss
   domain: ocean
-  filetype: atm_cmip6_1m
   cmip3: 3.10
 ua: 
   dataset: ERA40
   oper: ""
   dataname : U_zonal
   domain: global
-  filetype: atm_cmip6_pl_1m
   cmip3: 12.07
 va:
   dataset: ERA40
   oper: ""
   dataname : V_zonal
   domain: global
-  filetype: atm_cmip6_pl_1m
   cmip3: 8.25
 ta:
   dataset: ERA40
   oper: ""
   dataname : T_zonal
   domain: global
-  filetype: atm_cmip6_pl_1m
   cmip3: 38.89
 hus:
   dataset: ERA40
   oper: ""
   dataname : Q_zonal
   domain: global
-  filetype: atm_cmip6_pl_1m
   cmip3: 29.41
 tos: 
   dataset: GISS
   oper: ""
   dataname : SST
   domain: ocean
-  filetype: oce_1m_T
   cmip3: 17.21
 sos: 
   dataset: levitus
   oper: ""
   dataname : SSS
   domain: ocean
-  filetype: oce_1m_T
   cmip3: 0.22
 siconc: 
   dataset: GISS
   oper: ""
   dataname : SICE
   domain: ocean
-  filetype: ice_1m
   cmip3: 0.34
+net_sfc: 
+  dataset: OAFLUX
+  oper: ""
+  dataname: qnet
+  domain : ocean
+  cmip3: 14.24

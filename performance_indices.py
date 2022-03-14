@@ -30,6 +30,8 @@ def main(args):
 
     # config file (looks for it in the same dir as the .py program file
     INDIR = Path(os.path.dirname(os.path.abspath(__file__)))
+
+    # load - if exists - config file
     cfg = fn.load_config_file(INDIR)
 
     # hard-coded resolution (due to climatological dataset)
@@ -54,11 +56,11 @@ def main(args):
             print(line, file=f)
 
     # land-sea masks
-    ocean_mask = cdo.setctomiss( 0,
-        input=f'-ltc,0.5 -invertlat -remapcon2,{resolution} ' \
-              f'-setgridtype,regular -setgrid,{gridfile} ' \
-              f'-selcode,172 {icmgg_file}', options='-f nc')
-    land_mask = cdo.addc( 1, input=f'-setctomiss,1 -setmisstoc,0 {ocean_mask}') 
+    ocean_mask = cdo.setctomiss(0,
+                                input=f'-ltc,0.5 -invertlat -remapcon2,{resolution} '
+                                f'-setgridtype,regular -setgrid,{gridfile} '
+                                f'-selcode,172 {icmgg_file}', options='-f nc')
+    land_mask = cdo.addc(1, input=f'-setctomiss,1 -setmisstoc,0 {ocean_mask}')
 
     # trick to avoid the loop on years
     # define required years with a {year1,year2} and then use cdo select feature
@@ -69,7 +71,8 @@ def main(args):
     if len(years_list) > 1:
         years_joined = '{' + years_joined + '}'
 
-    if fverb: print(years_joined)
+    if fverb:
+        print(years_joined)
 
     # loading the var-to-file interface
     filename = 'interface_ece4.yml'
@@ -91,49 +94,53 @@ def main(args):
 
     # check if required variables are there: use interface file
     # check into first file
-    isavail={}
-    for field in field_all :
-        infile = fn.make_input_filename(ECEDIR, field, expname, year1, year1, face)
+    isavail = {}
+    for field in field_all:
+        infile = fn.make_input_filename(
+            ECEDIR, field, expname, year1, year1, face)
         isavail = {**isavail, **fn.vars_are_there(infile, [field], face)}
-
-
-    # check if required vars are available in the output
-    # create a filename from the first year
-    #INFILE_2D = str(ECEDIR / 'output/oifs' / f'{expname}_atm_cmip6_1m_{year1}-{year1}.nc')
-    #INFILE_3D = str(ECEDIR / 'output/oifs' / f'{expname}_atm_cmip6_pl_1m_{year1}-{year1}.nc')
-    #INFILE_OCE = str(ECEDIR / 'output/nemo' / f'{expname}_oce_1m_T_{year1}-{year1}.nc')
-    #INFILE_ICE = str(ECEDIR / 'output/nemo' / f'{expname}_ice_1m_{year1}-{year1}.nc')
-
-    # alternative method with loop
-    #isavail={}
-    #for a,b in zip([INFILE_2D, INFILE_3D, INFILE_OCE, INFILE_ICE], [field_2d, field_3d, field_oce, field_ice]) : 
-    #    isavail={**isavail, **fn.vars_are_there(a,b,ref)}
 
     # main loop
     varstat = {}
-    for var in field_all :
+    for var in field_all:
 
-        if not isavail[var] : 
+        if not isavail[var]:
             varstat[var] = float('NaN')
         else:
 
             # extract info from reference.yml
+            # cdo operation, reference dataset and reference varname
             oper = ref[var]['oper']
             dataref = ref[var]['dataset']
             dataname = ref[var]['dataname']
 
-            # file names
-            if var in field_oce + field_ice : 
-                cmd_grid = '' 
-            else : 
+            # check if var is derived
+            # if this is the case, get the derived expression and select
+            # the set of variables you need
+            # otherwise, use only select (this avoid loop)
+            # WARNING: it may scale badly with high-resolution centennial runs
+            if 'derived' in face[var].keys():
+                cmd = face[var]['derived']
+                dervars = (",".join(re.findall("[a-zA-Z]+", cmd)))
+                cmd_select = f'-expr,{var}={cmd} -select,name={dervars}'
+            else:
+                cmd_select = f'-select,name={var}'
+
+            # field atm need a grid defition to be handled by cdo
+            if var in field_2d + field_3d:
                 cmd_grid = f'-setgridtype,regular -setgrid,{gridfile}'
-            infile = fn.make_input_filename(ECEDIR, var, expname, years_joined, '????', face)
-            print(infile)
-            #infile = str(ECEDIR / 'output' / model  / f'{expname}_{filetype}_{years_joined}-????.nc')
+            else:
+                cmd_grid = ''
+
+            # create a file list using bash wildcards
+            infile = fn.make_input_filename(
+                ECEDIR, var, expname, years_joined, '????', face)
+
+            # get files for climatology
             clim = str(CLMDIR / f'climate_{dataref}_{dataname}.nc')
             vvvv = str(CLMDIR / f'variance_{dataref}_{dataname}.nc')
 
-            # apply masks when needed
+            # apply masks when needed (PI feature)
             if ref[var]['domain'] == 'land':
                 mask = f'-mul {land_mask}'
             elif ref[var]['domain'] == 'ocean':
@@ -142,8 +149,8 @@ def main(args):
                 mask = ''
 
             # timmean and remap
-            cmd1 = f'-timmean {cmd_grid} -select,name={var} {infile}'
-            
+            cmd1 = f'-timmean {cmd_grid} {cmd_select} {infile}'
+
             # temporarily using remapbil instead of remapcon due to NEMO grid missing corner
             outfile = cdo.remapbil(resolution, input=cmd1)
 
@@ -162,11 +169,6 @@ def main(args):
                 if np.max(v1) < 10000:
                     v1 = [x * 100 for x in v1]
 
-                # DEPRECATED with genlevelbounds: compute level weights (numpy is not that smart, or it's me?)
-                #half_levels = np.convolve(v1, np.ones(2)/2, mode='valid')
-                #args = (np.array([0]), half_levels, np.array([100000]))
-                #level_weights = np.diff(np.concatenate(args))
-
                 # format for CDO, converting to string
                 format_vlevels = ' '.join(str(x) for x in v1).replace(' ', ',')
 
@@ -180,13 +182,10 @@ def main(args):
             cmd2 = f'-setname,{var} {mask} {cmd_vertmean} -div -sqr -sub -invertlat {cmd_vertinterp} {oper} {outfile} {clim} {vvvv}'
             x = np.squeeze(cdo.fldmean(input=cmd2, returnCdf=True).variables[var])
 
-            # DEPRECATED with genlevelbounds: weighted average
-            #if var in field_3d:
-            #    x = np.average(x, weights=level_weights)
-
             # store the PI
             varstat[var] = float(x)
-            if fverb: print('PI for ', var, varstat[var])
+            if fverb:
+                print('PI for ', var, varstat[var])
 
     # define options for the output table
     head = ['Var', 'PI', 'Domain', 'Dataset', 'CMIP3', 'Ratio to CMIP3']
@@ -204,7 +203,8 @@ def main(args):
 
     # write the file  with tabulate: cool python feature
     tablefile = TABDIR / f'PI4_RK08_{expname}_{year1}_{year2}.txt'
-    if fverb: print(tablefile)
+    if fverb:
+        print(tablefile)
     with open(tablefile, 'w') as f:
         f.write(tabulate(global_table, headers=head, tablefmt='orgtbl'))
         f.write('\n\nPartial PI (atm only) is   : ' + str(partial_pi))
@@ -212,6 +212,7 @@ def main(args):
 
     os.unlink(gridfile)
     cdo.cleanTempDir()
+
 
 if __name__ == '__main__':
 

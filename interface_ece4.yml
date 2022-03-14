@@ -8,8 +8,95 @@ ta:
   units: K
   component: oifs
   filetype: atm_cmip6_pl_1m
-tos: 
+ua:
+  varname: 'Zonal Wind'
+  units: m/s
+  component: oifs
+  filetype: atm_cmip6_pl_1m
+va:
+  varname: 'Meridional Wind'
+  units: m/s
+  component: oifs
+  filetype: atm_cmip6_pl_1m
+hus:
+  varname: 'Specific Humidity'
+  units: ''
+  component: oifs
+  filetype: atm_cmip6_pl_1m
+psl: 
+  varname: MSLP
+  units: Pa
+  component: oifs
+  filetype: atm_cmip6_1m
+pr: 
+  varname: Precipitation
+  units: mm/day
+  component: oifs
+  filetype: atm_cmip6_1m
+evspsbl:
+  varname: Evaporation
+  units: mm/day
+  component: oifs
+  filetype: atm_cmip6_1m
+tauu: 
+  varname: 'Zonal Wind Stress'
+  units: ''
+  component: oifs
+  filetype: atm_cmip6_1m
+tauv:
+  varname: 'Meridional Wind Stress'
+  units: ''
+  component: oifs
+  filetype: atm_cmip6_1m
+sos:
+  varname: 'SSS'
+  units: psu
+  component: nemo
+  filetype: oce_1m_T
+zos:
+  varname: 'SSH'
+  units: m
+  component: nemo
+  filetype: oce_1m_T
+tos:
   varname: SST
   units: C
   component: nemo
   filetype: oce_1m_T
+siconc:
+  varname: 'Sea-ice Concentration'
+  units: '[0-1]'
+  component: nemo
+  filetype: ice_1m
+rlns:
+  varname: 'Surface net LW'
+  units: W/m2
+  component: oifs
+  filetype: atm_cmip6_1m
+rsns:
+  varname: 'Surface net SW'
+  units: W/m2
+  component: oifs
+  filetype: atm_cmip6_1m
+hfss:
+  varname: 'Surface SH'
+  units: W/m2
+  component: oifs
+  filetype: atm_cmip6_1m
+hfls:
+  varname: 'Surface LH'
+  units: W/m2
+  component: oifs
+  filetype: atm_cmip6_1m
+net_sfc_nosn:
+  varname: 'Net Surface (no snowfall)'
+  units: W/m2
+  component: oifs
+  filetype: atm_cmip6_1m
+  derived: 'rsns+rlns-hfls-hfss'
+net_sfc:
+  varname: 'Net Surface'
+  units: W/m2
+  component: oifs
+  filetype: atm_cmip6_1m
+  derived: 'rsns+rlns-hfls-hfss-prsn*334000'
