@@ -9,12 +9,10 @@
 from cdo import Cdo, CdoTempfileStore
 import tempfile
 
-cdo = Cdo()
-
 class CdoPipe:
     """A class to add commands in sequence to a cdo pipe"""
 
-    def __init__(self, tempdir=tempfile.gettempdir()):
+    def __init__(self, tempdir=tempfile.gettempdir(), *args, **kwargs):
         """Initialize object pipe"""
         self.pipe = ''
         self.GRIDFILE = ''
@@ -24,24 +22,25 @@ class CdoPipe:
         self.OCEGAFILE = ''
         self.TMPDIR = tempdir
         self.tempStore = CdoTempfileStore(dir = tempdir)
+        self.cdo = Cdo(*args, **kwargs)
 
     def make_grids(self, atminifile, oceinifile):
         """Initialize some useful helper files"""
 
         self.GRIDFILE = self.tempStore.newFile()
         #self.GRIDFILE=str(self.TMPDIR / f'grid.txt')
-        griddes = cdo.griddes(input=atminifile)
+        griddes = self.cdo.griddes(input=atminifile)
         with open(self.GRIDFILE, 'w') as f:
             for line in griddes:
                 print(line, file=f)
 
         # prepare ATM LSM
-        self.LMFILE = cdo.selname('LSM', input=f'-setgridtype,regular {atminifile}', options='-t ecmwf')
-        self.SMFILE = cdo.mulc('-1', input=f'-subc,1 {self.LMFILE}')
-        self.GAFILE = cdo.gridarea(input=f'-setgridtype,regular {self.LMFILE}')
+        self.LMFILE = self.cdo.selname('LSM', input=f'-setgridtype,regular {atminifile}', options='-t ecmwf')
+        self.SMFILE = self.cdo.mulc('-1', input=f'-subc,1 {self.LMFILE}')
+        self.GAFILE = self.cdo.gridarea(input=f'-setgridtype,regular {self.LMFILE}')
 
         # prepare OCE areas
-        self.OCEGAFILE = cdo.expr('area=e1t*e2t', input=oceinifile)
+        self.OCEGAFILE = self.cdo.expr('area=e1t*e2t', input=oceinifile)
 
     def chain(self, cmd):
         """Adds a generic cdo operator"""
@@ -84,7 +83,10 @@ class CdoPipe:
 
     def output(self, infile):
         cmd = self.pipe + f' {infile}'
-        return float(cdo.output(input=cmd)[0])
+        return float(self.cdo.output(input=cmd)[0])
+
+    def levels(self, infile):
+        return list(map(float, self.cdo.showlevel(input=infile)[0].split()))
 
     def execute(self, *args, **kwargs):
         return cdo(self.pipe, *args, **kwargs)
