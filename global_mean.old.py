@@ -17,10 +17,8 @@ import yaml
 from tabulate import tabulate
 import numpy as np
 from cdo import Cdo
-import functions as fn
-from cdopipe import CdoPipe
+from functions import vars_are_there, is_number
 
-cdo = Cdo()
 
 def write_tuning_table(linefile, varmean, var_table, expname, year1, year2, ref):
     """Write results appending one line to a text file"""
@@ -51,7 +49,6 @@ def make_input_filename(dr, var, expname, year, ref):
                  f'{expname}_atm_cmip6_1m_{year}-{year}.nc'
     return str(fname)
 
-
 def main(args):
 
     assert sys.version_info >= (3, 5)
@@ -66,23 +63,33 @@ def main(args):
     if year1 == year2: # Ignore if only one year requested
         ftrend = False
 
+    cdo = Cdo()
+
     # config file (looks for it in the same dir as the .py program file
     INDIR = Path(os.path.dirname(os.path.abspath(__file__)))
-    cfg = fn.load_config_file(INDIR)
-    
-    # define a few folders and create missing ones
+    with open(INDIR / 'config.yml', 'r') as file:
+        cfg = yaml.load(file, Loader=yaml.FullLoader)
+
     ECEDIR = Path(os.path.expandvars(cfg['dirs']['exp']), expname)
     TABDIR = Path(os.path.expandvars(cfg['dirs']['tab']))
     TMPDIR = Path(os.path.expandvars(cfg['dirs']['tmp']))
     os.makedirs(TABDIR, exist_ok=True)
 
     # prepare grid description file
+    GRIDFILE=str(TMPDIR / f'grid_{expname}.txt')
     INIFILE=str(ECEDIR / f'ICMGG{expname}INIT')
-    OCEINIFILE=cfg['areas']['oce']
+    griddes = cdo.griddes(input=INIFILE)
+    with open(GRIDFILE, 'w') as f:
+        for line in griddes:
+            print(line, file=f)
 
-    # Init CdoPipe object to use in the following, specifying the LM and SM files
-    mycdo = CdoPipe(tempdir=TMPDIR)
-    mycdo.make_grids(INIFILE, OCEINIFILE)
+    # prepare ATM LSM
+    LMFILE = cdo.selname('LSM', input=f'-setgridtype,regular {INIFILE}', options='-t ecmwf')
+    SMFILE = cdo.mulc('-1', input=f'-subc,1 {LMFILE}')
+    GAFILE = cdo.gridarea(input=f'-setgridtype,regular {LMFILE}')
+
+    # prepare OCE areas
+    OCEGAFILE = cdo.expr('area=e1t*e2t', input=cfg['areas']['oce']) 
 
     # load reference data
     with open(INDIR / 'reference.yml', 'r') as file:
@@ -99,16 +106,14 @@ def main(args):
     # create a list for all atm variables, avoid duplicates
     var_all = list(set(var_atm + var_table))
 
-    infile = make_input_filename(ECEDIR, var_atm[0], expname, year1, ref)
-
     # Check if vars are available
     infile = make_input_filename(ECEDIR, var_atm[0], expname, year1, ref)
-    isavail = fn.vars_are_there(infile, var_all, ref)
+    isavail = vars_are_there(infile, var_all, ref)
     infile = make_input_filename(ECEDIR, var_oce[0], expname, year1, ref)
-    isavail = {**isavail, **fn.vars_are_there(infile, var_oce, ref)} # python>=3.5 syntax for joining 2 dicts
+    isavail = {**isavail, **vars_are_there(infile, var_oce, ref)} # python>=3.5 syntax for joining 2 dicts
 
     var_all = list(set(var_all + var_oce))
-    
+
     # main loop
     varmean = {}
     vartrend = {}
@@ -117,31 +122,46 @@ def main(args):
             varmean[var] = float("NaN")
             vartrend[var] = float("NaN")
         else:
-            # Refresh cdo pipe and specify type of file (atm or oce)
-            mycdo.start(ref[var].get('domain','atm'))
+            a = []
 
+            # check if var is derived
             if 'derived' in ref[var].keys():
-                mycdo.expr(var, ref[var]['derived'])
+                cmd = ref[var]['derived']
+                der = f'-expr,{var}={cmd}'
+            else:
+                der = ''
 
-            mycdo.selname(var)
+            # ocean variables require specifying grid areas
+            # atm variables require fixing the grid
+            if(ref[var].get('domain','atm')=='oce'):
+                pre = '-setgridarea,' + OCEGAFILE
+            else:
+                pre = f'-setgridtype,regular -setgrid,{GRIDFILE}'
 
             # land/sea variables
-            mycdo.masked_mean(ref[var].get('total','global'))
-                
-            mycdo.timmean()
+            mask = ''
+            op='-fldmean'
+            if 'total' in ref[var].keys():
+                mask_type = ref[var]['total']
+                if mask_type == 'land':
+                    mask = f'-mul {GAFILE} -mul {LMFILE}'
+                    op='-fldsum'
+                elif mask_type in ['sea', 'ocean']:
+                    mask = f'-mul {GAFILE} -mul {SMFILE}'
+                    op='-fldsum'
 
-            a = []
             # loop on years: call CDO to perform all the computations
             yrange = range(year1, year2+1)
             for year in yrange:
                 infile =  make_input_filename(ECEDIR, var, expname, year, ref)
-                x = mycdo.output(infile)
+                cmd = f'-timmean {op} {mask} -selname,{var} {der} {pre} {infile}'
+                x = float(cdo.output(input=cmd)[0])
                 a.append(x)
             varmean[var] = mean(a)
             if ftrend:
                 vartrend[var] = np.polyfit(yrange, a, 1)[0]
             if fverb:
-                print('Average', var, varmean[var])
+                print('Average', var, mean(a))
 
     # loop on the variables to create the output table
     global_table = []
@@ -183,8 +203,8 @@ def main(args):
         write_tuning_table(linefile, varmean, var_table, expname, year1, year2, ref)
 
     # clean
-    os.unlink(mycdo.GRIDFILE)
-    #cdo.cleanTempDir()
+    os.unlink(GRIDFILE)
+    cdo.cleanTempDir()
 
 
 if __name__ == "__main__":
