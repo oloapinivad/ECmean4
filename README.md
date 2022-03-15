@@ -17,5 +17,8 @@ Recommend to work into a python virtual environment
 
 Then install everything with pip
 
+A template configuration file is included in the repo, including folder definition and all the details that can be manually adjusted
+You will need to copy `cp config.tmpl config.yml` and then edit the required folder before running the script`
+
 More will come, sooner or later
 

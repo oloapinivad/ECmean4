@@ -29,9 +29,8 @@ def main(args):
     fverb = not args.silent
 
     # config file (looks for it in the same dir as the .py program file
-    indir = Path(os.path.dirname(os.path.abspath(__file__)))
-    with open(indir / 'config.yml', 'r') as file:
-        cfg = yaml.load(file, Loader=yaml.FullLoader)
+    INDIR = Path(os.path.dirname(os.path.abspath(__file__)))
+    cfg = fn.load_config_file(INDIR)
 
     # hard-coded resolution (due to climatological dataset)
     resolution = cfg['PI']['resolution']
@@ -44,7 +43,7 @@ def main(args):
     os.makedirs(TABDIR, exist_ok=True)
 
     #cdo.forceOutput = True
-    # cdo.debug = True
+    #cdo.debug = True
 
     # prepare grid description file
     icmgg_file = ECEDIR / f'ICMGG{expname}INIT'
@@ -75,28 +74,26 @@ def main(args):
     # reference data: it is badly written but it can be implemented in a much more intelligent
     # and modular way
     filename = 'pi_climatology.yml'
-    with open(filename, 'r') as file:
+    with open(INDIR / filename, 'r') as file:
         ref = yaml.load(file, Loader=yaml.FullLoader)
 
     # defines the two varlist
     field_2d = cfg['PI']['2d_vars']['field']
     field_3d = cfg['PI']['3d_vars']['field']
     field_oce = cfg['PI']['oce_vars']['field']
-    field_all = field_2d + field_3d + field_oce
+    field_ice = cfg['PI']['ice_vars']['field']
+    field_all = field_2d + field_3d + field_oce + field_ice
 
     # check if required vars are available in the output
     # create a filename from the first year
     INFILE_2D = str(ECEDIR / 'output/oifs' / f'{expname}_atm_cmip6_1m_{year1}-{year1}.nc')
     INFILE_3D = str(ECEDIR / 'output/oifs' / f'{expname}_atm_cmip6_pl_1m_{year1}-{year1}.nc')
-    INFILE_OCE = str(ECEDIR / 'output/nemo' / f'{expname}_oce_cmip6_1m_{year1}-{year1}.nc')
-    #isavail_2d=fn.vars_are_there(INFILE_2D, field_2d, ref)
-    #isavail_3d=fn.vars_are_there(INFILE_3D, field_3d, ref)
-    #isavail_oce=fn.vars_are_there(INFILE_OCE, field_oce, ref)
-    #isavail={**isavail_2d, **isavail_3d, **isavail_oce}
+    INFILE_OCE = str(ECEDIR / 'output/nemo' / f'{expname}_oce_1m_T_{year1}-{year1}.nc')
+    INFILE_ICE = str(ECEDIR / 'output/nemo' / f'{expname}_ice_1m_{year1}-{year1}.nc')
 
     # alternative method with loop
     isavail={}
-    for a,b in zip([INFILE_2D, INFILE_3D, INFILE_OCE], [field_2d, field_3d, field_oce]) : 
+    for a,b in zip([INFILE_2D, INFILE_3D, INFILE_OCE, INFILE_ICE], [field_2d, field_3d, field_oce, field_ice]) : 
         isavail={**isavail, **fn.vars_are_there(a,b,ref)}
 
     # main loop
@@ -114,8 +111,13 @@ def main(args):
             filetype = ref[var]['filetype']
 
             # file names
-            infile = str(ECEDIR / 'output/oifs' / \
-                f'{expname}_atm_cmip6_{filetype}_{years_joined}-????.nc')
+            if var in field_oce + field_ice : 
+                model = 'nemo'
+                cmd_grid = '' 
+            else : 
+                model = 'oifs' 
+                cmd_grid = f'-setgridtype,regular -setgrid,{gridfile}'
+            infile = str(ECEDIR / 'output' / model  / f'{expname}_{filetype}_{years_joined}-????.nc')
             clim = str(CLMDIR / f'climate_{dataref}_{dataname}.nc')
             vvvv = str(CLMDIR / f'variance_{dataref}_{dataname}.nc')
 
@@ -128,13 +130,14 @@ def main(args):
                 mask = ''
 
             # timmean and remap
-            cmd1 = f'-timmean -setgridtype,regular -setgrid,{gridfile} -select,name={var} {infile}'
-            outfile = cdo.remapcon2(resolution, input=cmd1)
+            cmd1 = f'-timmean {cmd_grid} -select,name={var} {infile}'
+            
+            # temporarily using remapbil instead of remapcon due to NEMO grid missing corner
+            outfile = cdo.remapbil(resolution, input=cmd1)
 
             if var in field_3d:
 
                 # special treatment which includes vertical interpolation
-                # and extraction of pressure weights
 
                 # extract the vertical levels from the file
                 vlevels = cdo.showlevel(input=f'{clim}')
@@ -147,29 +150,27 @@ def main(args):
                 if np.max(v1) < 10000:
                     v1 = [x * 100 for x in v1]
 
-                # compute level weights (numpy is not that smart, or it's me?)
-                half_levels = np.convolve(v1, np.ones(2)/2, mode='valid')
-                args = (np.array([0]), half_levels, np.array([100000]))
-                level_weights = np.diff(np.concatenate(args))
+                # DEPRECATED with genlevelbounds: compute level weights (numpy is not that smart, or it's me?)
+                #half_levels = np.convolve(v1, np.ones(2)/2, mode='valid')
+                #args = (np.array([0]), half_levels, np.array([100000]))
+                #level_weights = np.diff(np.concatenate(args))
 
                 # format for CDO, converting to string
                 format_vlevels = ' '.join(str(x) for x in v1).replace(' ', ',')
 
                 # assign the vertical command for interpolation and zonal mean
-                cmd_vertical = f'-zonmean -intlevelx,{format_vlevels}'
+                cmd_vertinterp = f'-zonmean -intlevelx,{format_vlevels}'
+                cmd_vertmean = f'-vertmean -genlevelbounds,zbot=0,ztop=100000'
             else:
-                cmd_vertical = ''
+                cmd_vertmean = ''
+                cmd_vertinterp = ''
 
-            # compute the PI
-            cmd2 = f'-setname,{var} {mask} -div -sqr -sub -invertlat {cmd_vertical} {oper} {outfile} {clim} {vvvv}'
+            cmd2 = f'-setname,{var} {mask} {cmd_vertmean} -div -sqr -sub -invertlat {cmd_vertinterp} {oper} {outfile} {clim} {vvvv}'
             x = np.squeeze(cdo.fldmean(input=cmd2, returnCdf=True).variables[var])
 
-            # deprecated: pre-estimated weights from previous version of ECmean (climatology dependent!)
-            #level_weights = np.array([30, 45, 75, 100, 100, 100, 150, 175, 112.5, 75, 37.5])
-
-            # weighted average
-            if var in field_3d:
-                x = np.average(x, weights=level_weights)
+            # DEPRECATED with genlevelbounds: weighted average
+            #if var in field_3d:
+            #    x = np.average(x, weights=level_weights)
 
             # store the PI
             varstat[var] = float(x)

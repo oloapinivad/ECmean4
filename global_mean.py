@@ -17,7 +17,8 @@ import yaml
 from tabulate import tabulate
 import numpy as np
 from cdo import Cdo
-from functions import vars_are_there, is_number
+<<<<<<< HEAD
+from functions import vars_are_there, is_number, load_config_file
 from cdopipe import CdoPipe
 
 cdo = Cdo()
@@ -68,9 +69,9 @@ def main(args):
 
     # config file (looks for it in the same dir as the .py program file
     INDIR = Path(os.path.dirname(os.path.abspath(__file__)))
-    with open(INDIR / 'config.yml', 'r') as file:
-        cfg = yaml.load(file, Loader=yaml.FullLoader)
-
+    cfg = load_config_file(INDIR)
+    
+    # define a few folders and create missing ones
     ECEDIR = Path(os.path.expandvars(cfg['dirs']['exp']), expname)
     TABDIR = Path(os.path.expandvars(cfg['dirs']['tab']))
     TMPDIR = Path(os.path.expandvars(cfg['dirs']['tmp']))
