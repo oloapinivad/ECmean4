@@ -81,8 +81,8 @@ def main(args):
     OCEINIFILE=cfg['areas']['oce']
 
     # Init CdoPipe object to use in the following, specifying the LM and SM files
-    mycdo = CdoPipe(tempdir=TMPDIR)
-    mycdo.make_grids(INIFILE, OCEINIFILE)
+    cdop = CdoPipe()
+    cdop.make_grids(INIFILE, OCEINIFILE)
 
     # load reference data
     with open(INDIR / 'reference.yml', 'r') as file:
@@ -118,24 +118,22 @@ def main(args):
             vartrend[var] = float("NaN")
         else:
             # Refresh cdo pipe and specify type of file (atm or oce)
-            mycdo.start(ref[var].get('domain','atm'))
+            cdop.start(domain=ref[var].get('domain','atm'))
 
             if 'derived' in ref[var].keys():
-                mycdo.expr(var, ref[var]['derived'])
+                cdop.expr(var, ref[var]['derived'])
 
-            mycdo.selname(var)
-
+            cdop.selname(var)
             # land/sea variables
-            mycdo.masked_mean(ref[var].get('total','global'))
-                
-            mycdo.timmean()
+            cdop.masked_mean(ref[var].get('total','global'))
+            cdop.timmean()
 
             a = []
             # loop on years: call CDO to perform all the computations
             yrange = range(year1, year2+1)
             for year in yrange:
                 infile =  make_input_filename(ECEDIR, var, expname, year, ref)
-                x = mycdo.output(infile)
+                x = cdop.output(infile, keep=True)
                 a.append(x)
             varmean[var] = mean(a)
             if ftrend:
@@ -183,7 +181,7 @@ def main(args):
         write_tuning_table(linefile, varmean, var_table, expname, year1, year2, ref)
 
     # clean
-    os.unlink(mycdo.GRIDFILE)
+    os.unlink(cdop.GRIDFILE)
     #cdo.cleanTempDir()
 
 

@@ -48,8 +48,8 @@ def vars_are_there(infile, var_needed, reference):
             isavail[v] = False
     return isavail
 
-# given a folder, verify that the config.yml exists and open it
 def load_config_file(indir): 
+    """given a folder, verify that the config.yml exists and open it"""
 
     CONFIGFILE = str(indir / 'config.yml')
     if os.path.exists(CONFIGFILE):
@@ -60,4 +60,7 @@ def load_config_file(indir):
 
     return cfg
 
-
+def load_yaml(infile):
+    with open(infile, 'r') as file:
+        ref = yaml.load(file, Loader=yaml.FullLoader)
+    return ref

@@ -15,13 +15,32 @@ from pathlib import Path
 
 # import functions from functions.py
 import functions as fn
+from cdopipe import CdoPipe
+
+cdo = Cdo()
+
+def get_levels(infile):
+    """Extract vertical levels from file,
+       including Pa conversion"""
+
+    # extract the vertical levels from the file
+    vlevels = cdo.showlevel(input=infile)
+
+    # perform multiple string manipulation to produce a Pa list of levels
+    v0 = ''.join(vlevels).split()
+    v1 = [int(x) for x in v0]
+
+    # if the grid is hPa, move to Pa (there might be a better solution)
+    if np.max(v1) < 10000:
+        v1 = [x * 100 for x in v1]
+
+    # format for CDO, converting to string
+    return ' '.join(str(x) for x in v1).replace(' ', ',')
 
 
 def main(args):
 
     assert sys.version_info >= (3, 5)
-
-    cdo = Cdo()
 
     expname = args.exp
     year1 = args.year1
@@ -43,21 +62,21 @@ def main(args):
     os.makedirs(TABDIR, exist_ok=True)
 
     #cdo.forceOutput = True
-    #cdo.debug = True
 
     # prepare grid description file
-    icmgg_file = ECEDIR / f'ICMGG{expname}INIT'
-    gridfile = str(TMPDIR / f'grid_{expname}.txt')
-    griddes = cdo.griddes(input=f'{icmgg_file}')
-    with open(gridfile, 'w') as f:
-        for line in griddes:
-            print(line, file=f)
+    INIFILE = ECEDIR / f'ICMGG{expname}INIT'
+    OCEINIFILE=cfg['areas']['oce']
+ 
+    # Init CdoPipe object to use in the following, specifying the LM and SM files
+    cdop = CdoPipe()
+    #cdop.debug=True
+    cdop.make_grids(INIFILE, OCEINIFILE)
 
     # land-sea masks
     ocean_mask = cdo.setctomiss( 0,
         input=f'-ltc,0.5 -invertlat -remapcon2,{resolution} ' \
-              f'-setgridtype,regular -setgrid,{gridfile} ' \
-              f'-selcode,172 {icmgg_file}', options='-f nc')
+              f'-setgridtype,regular -setgrid,{cdop.GRIDFILE} ' \
+              f'-selcode,172 {INIFILE}', options='-f nc')
     land_mask = cdo.addc( 1, input=f'-setctomiss,1 -setmisstoc,0 {ocean_mask}') 
 
     # trick to avoid the loop on years
@@ -71,11 +90,8 @@ def main(args):
 
     if fverb: print(years_joined)
 
-    # reference data: it is badly written but it can be implemented in a much more intelligent
-    # and modular way
-    filename = 'pi_climatology.yml'
-    with open(INDIR / filename, 'r') as file:
-        ref = yaml.load(file, Loader=yaml.FullLoader)
+    # Load reference data
+    ref = fn.load_yaml('pi_climatology.yml')
 
     # defines the two varlist
     field_2d = cfg['PI']['2d_vars']['field']
@@ -93,7 +109,8 @@ def main(args):
 
     # alternative method with loop
     isavail={}
-    for a,b in zip([INFILE_2D, INFILE_3D, INFILE_OCE, INFILE_ICE], [field_2d, field_3d, field_oce, field_ice]) : 
+    for a,b in zip([INFILE_2D, INFILE_3D, INFILE_OCE, INFILE_ICE],
+                   [field_2d, field_3d, field_oce, field_ice]) : 
         isavail={**isavail, **fn.vars_are_there(a,b,ref)}
 
     # main loop
@@ -104,73 +121,75 @@ def main(args):
             varstat[var] = float('NaN')
         else:
 
+            # Refresh cdo pipe and specify type of file (atm or oce)
+            # Temporary hack ... wil need to be homeginized with global_mean
+            # The type of model should be read from ref
+            if var in field_oce + field_ice : 
+                cdop.domain = 'oce'
+                model = 'nemo'
+            else : 
+                cdop.domain = 'atm'
+                model = 'oifs' 
+
+            cdop.start() # Start fresh pipe
+
+            # This leaves the input file undefined for now. It can be set later with 
+            # cdop.set_infile(infile) or by specifying input=infile cdop.execute
+
+            # Select variable
+            cdop.selectname(var)
+
             # extract info from reference.yml
-            oper = ref[var]['oper']
             dataref = ref[var]['dataset']
             dataname = ref[var]['dataname']
             filetype = ref[var]['filetype']
 
-            # file names
-            if var in field_oce + field_ice : 
-                model = 'nemo'
-                cmd_grid = '' 
-            else : 
-                model = 'oifs' 
-                cmd_grid = f'-setgridtype,regular -setgrid,{gridfile}'
             infile = str(ECEDIR / 'output' / model  / f'{expname}_{filetype}_{years_joined}-????.nc')
             clim = str(CLMDIR / f'climate_{dataref}_{dataname}.nc')
             vvvv = str(CLMDIR / f'variance_{dataref}_{dataname}.nc')
 
-            # apply masks when needed
-            if ref[var]['domain'] == 'land':
-                mask = f'-mul {land_mask}'
-            elif ref[var]['domain'] == 'ocean':
-                mask = f'-mul {ocean_mask}'
-            elif ref[var]['domain'] == 'global':
-                mask = ''
+            cdop.timmean()
 
-            # timmean and remap
-            cmd1 = f'-timmean {cmd_grid} -select,name={var} {infile}'
-            
+            oper = ref[var]['oper']
+            if oper:
+                cdop.chain(oper[1:]) # Hack to remove leading '-' - to be fixed
+    
             # temporarily using remapbil instead of remapcon due to NEMO grid missing corner
-            outfile = cdo.remapbil(resolution, input=cmd1)
+            outfile = cdop.execute('remapbil', resolution, input=infile)
 
             if var in field_3d:
 
                 # special treatment which includes vertical interpolation
 
                 # extract the vertical levels from the file
-                vlevels = cdo.showlevel(input=f'{clim}')
+                format_vlevels = get_levels(clim)
 
-                # perform multiple string manipulation to produce a Pa list of levels
-                v0 = ''.join(vlevels).split()
-                v1 = [int(x) for x in v0]
+                cdop.chain(f'intlevelx,{format_vlevels}')
+                cdop.zonmean()
+                cdop.invertlat()
+                cdop.sub(clim)
+                cdop.sqr()
+                cdop.div(vvvv)
+                cdop.chain(f'vertmean -genlevelbounds,zbot=0,ztop=100000')
 
-                # if the grid is hPa, move to Pa (there might be a better solution)
-                if np.max(v1) < 10000:
-                    v1 = [x * 100 for x in v1]
-
-                # DEPRECATED with genlevelbounds: compute level weights (numpy is not that smart, or it's me?)
-                #half_levels = np.convolve(v1, np.ones(2)/2, mode='valid')
-                #args = (np.array([0]), half_levels, np.array([100000]))
-                #level_weights = np.diff(np.concatenate(args))
-
-                # format for CDO, converting to string
-                format_vlevels = ' '.join(str(x) for x in v1).replace(' ', ',')
-
-                # assign the vertical command for interpolation and zonal mean
-                cmd_vertinterp = f'-zonmean -intlevelx,{format_vlevels}'
-                cmd_vertmean = f'-vertmean -genlevelbounds,zbot=0,ztop=100000'
             else:
-                cmd_vertmean = ''
-                cmd_vertinterp = ''
+                cdop.invertlat()
+                cdop.sub(clim)
+                cdop.sqr()
+                cdop.div(vvvv)
 
-            cmd2 = f'-setname,{var} {mask} {cmd_vertmean} -div -sqr -sub -invertlat {cmd_vertinterp} {oper} {outfile} {clim} {vvvv}'
-            x = np.squeeze(cdo.fldmean(input=cmd2, returnCdf=True).variables[var])
+                # apply masks when needed
+                # this is a hack for now
+                if ref[var]['domain'] == 'land':
+                    cdop.mul(land_mask)
+                elif ref[var]['domain'] == 'ocean':
+                    cdop.mul(ocean_mask)
 
-            # DEPRECATED with genlevelbounds: weighted average
-            #if var in field_3d:
-            #    x = np.average(x, weights=level_weights)
+                cdop.setname(var)
+
+            #cmd2 = f'-setname,{var} {mask} {cmd_vertmean} -div -sqr -sub -invertlat {cmd_vertinterp} {oper} {outfile} {clim} {vvvv}'
+            x = np.squeeze(cdop.execute('fldmean', input=outfile,
+                                        returnCdf=True).variables[var])
 
             # store the PI
             varstat[var] = float(x)
@@ -198,8 +217,7 @@ def main(args):
         f.write('\n\nPartial PI (atm only) is   : ' + str(partial_pi))
         f.write('\nTotal Performance Index is : ' + str(total_pi))
 
-    os.unlink(gridfile)
-    cdo.cleanTempDir()
+    cdop.cdo.cleanTempDir()
 
 if __name__ == '__main__':
 

@@ -8,6 +8,7 @@
 
 from cdo import Cdo, CdoTempfileStore
 import tempfile
+import os
 
 class CdoPipe:
     """A class to add commands in sequence to a cdo pipe"""
@@ -29,7 +30,9 @@ class CdoPipe:
 
         self.GRIDFILE = self.tempStore.newFile()
         #self.GRIDFILE=str(self.TMPDIR / f'grid.txt')
-        griddes = self.cdo.griddes(input=atminifile)
+
+        griddes = self.cdo.griddes(input=str(atminifile))
+
         with open(self.GRIDFILE, 'w') as f:
             for line in griddes:
                 print(line, file=f)
@@ -46,17 +49,24 @@ class CdoPipe:
         """Adds a generic cdo operator"""
         self.pipe = '-' + cmd + ' ' + self.pipe
 
-    def start(self, domain):
+    def domain(self, domain):
+        """Specify variable domain: used to set needed grid manipulations"""
+        self.domain = domain
+
+    def start(self, domain='', **kwargs):
         """Cleans pipe for a new application, requires specifying the domain"""
         # ocean variables require specifying grid areas
         # atm variables require fixing the grid
+        if domain:
+            self.domain = domain
+
         if not self.GRIDFILE:
             sys.exit('Needed grid file not defined, call make_grids method first')
 
-        if(domain=='oce'):
-            self.pipe = f'-setgridarea,' + self.OCEGAFILE
+        if(self.domain=='oce'):
+            self.pipe = f'-setgridarea,' + self.OCEGAFILE + ' {infile}'
         else:
-            self.pipe = f'-setgridtype,regular -setgrid,{self.GRIDFILE}'
+            self.pipe = f'-setgridtype,regular -setgrid,{self.GRIDFILE}' + ' {infile}'
 
     def masked_mean(self, mask_type):
         if not self.LMFILE:
@@ -69,8 +79,14 @@ class CdoPipe:
         else:
             self.chain('fldmean')
 
+    def setname(self, var):
+        self.chain(f'setname,{var}')
+
     def selname(self, var):
         self.chain(f'selname,{var}')
+
+    def selectname(self, var):
+        self.chain(f'select,name={var}')
 
     def expr(self, var, expr):
         self.chain(f'expr,{var}={expr}')
@@ -79,15 +95,49 @@ class CdoPipe:
         self.chain(f'selcode,{var}')
 
     def timmean(self):
-        self.chain(f'timmean')
+        self.chain('timmean')
 
-    def output(self, infile):
-        cmd = self.pipe + f' {infile}'
-        return float(self.cdo.output(input=cmd)[0])
+    def invertlat(self):
+        self.chain('invertlat')
+
+    def zonmean(self):
+        self.chain('zonmean')
+
+    def sqr(self):
+        self.chain('sqr')
+
+#    def remapbil(self, res, infile):
+#        cmd = self.pipe.format(infile=infile)
+#        out = self.cdo.remapbil(res, input=cmd, output='/home/ccjh/ece4/tools/ECmean4/test.nc', debug=True)
+#
+#        print("Output of rmpb is:" , out)
+#        print("it does exist?: ", os.path.isfile(out))
+#        return out
+
+    def sub(self, fname):
+        self.pipe = '-sub ' + self.pipe + ' ' + fname
+
+    def mul(self, fname):
+        self.pipe = '-mul ' + self.pipe + ' ' + fname
+
+    def div(self, fname):
+        self.pipe = '-div ' + self.pipe + ' ' + fname
 
     def levels(self, infile):
         return list(map(float, self.cdo.showlevel(input=infile)[0].split()))
 
-    def execute(self, *args, **kwargs):
-        return cdo(self.pipe, *args, **kwargs)
+    def set_input(self, infile):
+        self.infile = infile
+
+    def execute(self, cmd, *args, input='', keep=False, **kwargs):
+        fn = getattr(self.cdo, cmd) 
+        if not input: input = self.infile
+        # print("EXE ",self.pipe)
+        out = fn(input=self.pipe.format(infile=input), *args, **kwargs)
+        if not keep:
+            self.start() # clear pipe
+        return out
+
+    def output(self, infile, **kwargs):
+        return float(self.execute('output', input=infile, **kwargs)[0])
 
