@@ -16,11 +16,14 @@ global:
   oce_vars: [tos, sos, zos, wfo]
   tab_vars: [rsnt, rlnt, net_toa, rsns, rlns, hfss, hfls, swcf, lwcf, net_sfc, toamsfc, tas, clt, cll, clm, clh, pr, pme, psl]
 
-PI: 
+PI:
   2d_vars:
-    field: [tas, psl, pr, tauu, tauv]
-  3d_vars: 
+    field: [net_sfc, tas, psl, pr, tauu, tauv]
+  3d_vars:
     field: [ta, ua, va, hus]
-  oce_vars: 
-    field: [tos]
+  oce_vars:
+    field: [tos, sos]
+  ice_vars:
+    field: [siconc]
   resolution: r180x91
+
