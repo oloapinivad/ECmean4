@@ -54,19 +54,25 @@ class CdoPipe:
         self.domain = domain
 
     def start(self, domain='', **kwargs):
-        """Cleans pipe for a new application, requires specifying the domain"""
+        """Cleans pipe for a new application"""
         # ocean variables require specifying grid areas
         # atm variables require fixing the grid
         if domain:
             self.domain = domain
+        self.pipe = '{infile}'
+
+    def fixgrid(self, domain='', **kwargs):
+        """Applies grid fixes, requires specifying the domain"""
+        # ocean variables require specifying grid areas
+        # atm variables require fixing the grid
 
         if not self.GRIDFILE:
             sys.exit('Needed grid file not defined, call make_grids method first')
 
         if(self.domain=='oce'):
-            self.pipe = f'-setgridarea,' + self.OCEGAFILE + ' {infile}'
+            self.pipe = f'-setgridarea,{self.OCEGAFILE} ' + self.pipe
         else:
-            self.pipe = f'-setgridtype,regular -setgrid,{self.GRIDFILE}' + ' {infile}'
+            self.pipe = f'-setgridtype,regular -setgrid,{self.GRIDFILE} ' + self.pipe
 
     def masked_mean(self, mask_type):
         if not self.LMFILE:
