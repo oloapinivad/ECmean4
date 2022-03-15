@@ -52,7 +52,7 @@ def vars_are_there(infile, var_needed, reference):
 
 # given a folder, verify that the config.yml exists and open it
 def load_config_file(indir): 
-
+    """Load configuration file, once you have it!"""
     CONFIGFILE = str(indir / 'config.yml')
     if os.path.exists(CONFIGFILE):
         with open(CONFIGFILE, 'r') as file:
@@ -69,5 +69,24 @@ def make_input_filename(dr, var, expname, year1, year2, face):
     fname = dr / 'output' / face[var]['component'] / \
                 f'{expname}_{filetype}_{year1}-{year2}.nc'
     return str(fname)
+
+# write a tuning table: need to fix reference to face/ref
+def write_tuning_table(linefile, varmean, var_table, expname, year1, year2, face, ref):
+    """Write results appending one line to a text file"""
+    if not os.path.isfile(linefile):
+        with open(linefile, 'w') as f:
+            print('%exp from   to ', end='', file=f)
+            for var in var_table:
+                print('{:>12s}'.format(var), end=' ', file=f)
+            print('\n%             ', end=' ', file=f)
+            for var in var_table:
+                print('{:>12s}'.format(face[var]['units']), end=' ', file=f)
+            print(file=f)
+
+    with open(linefile, 'a') as f:
+        print(expname,'{:4d} {:4d} '.format(year1, year2), end='', file=f)
+        for var in var_table:
+            print('{:12.5f}'.format(varmean[var] * ref[var].get('factor',1)), end=' ', file=f)
+        print(file=f)
 
 

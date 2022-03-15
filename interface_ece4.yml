@@ -136,6 +136,12 @@ net_sfc:
   component: oifs
   filetype: atm_cmip6_1m
   derived: 'rsns+rlns-hfls-hfss-prsn*334000'
+toamsfc:
+  varname: 'TOA-Sfc net radiation'
+  units: W/m2
+  component: oifs
+  filetype: atm_cmip6_1m
+  derived: 'rsnt+rlnt-rsns-rlns+hfls+hfss+prsn*334000'
 toamsfc_nosn:
   varname: 'TOA-Sfc net rad. (no snowfall)'
   units: W/m2
@@ -168,5 +174,34 @@ lwcf:
   varname: 'LW CRE'
   units: W/m2
   derived: 'rlnt-rlntcs'
+  component: oifs
+  filetype: atm_cmip6_1m
+wfo:
+  varname: 'Net Water Flux into ocean'
+  units: m/100y
+  component: nemo
+  filetype: oce_1m_T
+pr_land:
+  varname: 'Precipitation (land)'
+  units: Sv
+  derived: pr
+  component: oifs
+  filetype: atm_cmip6_1m
+pr_oce:
+  varname: 'Precipitation (ocean)'
+  units: Sv
+  derived: pr
+  component: oifs
+  filetype: atm_cmip6_1m
+pme_land:
+  varname: 'Precip. minus evap. (land)'
+  units: Sv
+  derived: 'pr-evspsbl'
+  component: oifs
+  filetype: atm_cmip6_1m
+pme_oce:
+  varname: 'Precip. minus evap. (ocean)'
+  units: Sv
+  derived: 'pr-evspsbl'
   component: oifs
   filetype: atm_cmip6_1m

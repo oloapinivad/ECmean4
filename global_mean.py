@@ -22,39 +22,9 @@ from cdopipe import CdoPipe
 
 cdo = Cdo()
 
-def write_tuning_table(linefile, varmean, var_table, expname, year1, year2, ref):
-    """Write results appending one line to a text file"""
-    if not os.path.isfile(linefile):
-        with open(linefile, 'w') as f:
-            print('%exp from   to ', end='', file=f)
-            for var in var_table:
-                print('{:>12s}'.format(var), end=' ', file=f)
-            print('\n%             ', end=' ', file=f)
-            for var in var_table:
-                print('{:>12s}'.format(ref[var]['units']), end=' ', file=f)
-            print(file=f)
-
-    with open(linefile, 'a') as f:
-        print(expname,'{:4d} {:4d} '.format(year1, year2), end='', file=f)
-        for var in var_table:
-            print('{:12.5f}'.format(varmean[var] * ref[var].get('factor',1)), end=' ', file=f)
-        print(file=f)
-
-
-def make_input_filename(dr, var, expname, year, ref):
-    """Generate appropriate input filename for a variable"""
-    if(ref[var].get('domain','atm')=='oce'):
-        fname = dr / 'output/nemo' / \
-                 f'{expname}_oce_1m_T_{year}-{year}.nc'
-    else:
-        fname = dr / 'output/oifs' / \
-                 f'{expname}_atm_cmip6_1m_{year}-{year}.nc'
-    return str(fname)
-
-
 def main(args):
 
-    assert sys.version_info >= (3, 5)
+    assert sys.version_info >= (3, 7)
 
     expname = args.exp
     year1 = args.year1
@@ -85,29 +55,42 @@ def main(args):
     mycdo.make_grids(INIFILE, OCEINIFILE)
 
     # load reference data
-    with open(INDIR / 'reference.yml', 'r') as file:
+    filename = 'reference.yml'
+    with open(INDIR / filename, 'r') as file:
         ref = yaml.load(file, Loader=yaml.FullLoader)
+    
+    # loading the var-to-file interface
+    filename = 'interface_ece4.yml'
+    with open(INDIR / filename, 'r') as file:
+        face = yaml.load(file, Loader=yaml.FullLoader)
 
     # list of vars on which to work
     var_atm = cfg['global']['atm_vars']
     var_oce = cfg['global']['oce_vars']
     var_table = cfg['global']['tab_vars']
+    #var_all = list(set(var_atm + var_table + var_oce))
+    var_all = list(dict.fromkeys(var_atm + var_table + var_oce)) # python 3.7+, preserver order
 
     # make sure all requested vars are available (use first year)
     # first find all needed variables (including those needed for derived ones)
+    isavail = {}
+    for var in var_all:
+        infile = fn.make_input_filename(
+            ECEDIR, var, expname, year1, year1, face)
+        isavail = {**isavail, **fn.vars_are_there(infile, [var], face)}
 
     # create a list for all atm variables, avoid duplicates
-    var_all = list(set(var_atm + var_table))
+    #var_all = list(set(var_atm + var_table))
 
-    infile = make_input_filename(ECEDIR, var_atm[0], expname, year1, ref)
+    #infile = make_input_filename(ECEDIR, var_atm[0], expname, year1, ref)
 
     # Check if vars are available
-    infile = make_input_filename(ECEDIR, var_atm[0], expname, year1, ref)
-    isavail = fn.vars_are_there(infile, var_all, ref)
-    infile = make_input_filename(ECEDIR, var_oce[0], expname, year1, ref)
-    isavail = {**isavail, **fn.vars_are_there(infile, var_oce, ref)} # python>=3.5 syntax for joining 2 dicts
+    #infile = make_input_filename(ECEDIR, var_atm[0], expname, year1, ref)
+    #isavail = fn.vars_are_there(infile, var_all, ref)
+    #infile = make_input_filename(ECEDIR, var_oce[0], expname, year1, ref)
+    #isavail = {**isavail, **fn.vars_are_there(infile, var_oce, ref)} # python>=3.5 syntax for joining 2 dicts
 
-    var_all = list(set(var_all + var_oce))
+    #var_all = list(set(var_all + var_oce))
     
     # main loop
     varmean = {}
@@ -120,8 +103,8 @@ def main(args):
             # Refresh cdo pipe and specify type of file (atm or oce)
             mycdo.start(ref[var].get('domain','atm'))
 
-            if 'derived' in ref[var].keys():
-                mycdo.expr(var, ref[var]['derived'])
+            if 'derived' in face[var].keys():
+                mycdo.expr(var, face[var]['derived'])
 
             mycdo.selname(var)
 
@@ -134,7 +117,7 @@ def main(args):
             # loop on years: call CDO to perform all the computations
             yrange = range(year1, year2+1)
             for year in yrange:
-                infile =  make_input_filename(ECEDIR, var, expname, year, ref)
+                infile =  fn.make_input_filename(ECEDIR, var, expname, year, year, face)
                 x = mycdo.output(infile)
                 a.append(x)
             varmean[var] = mean(a)
@@ -146,20 +129,21 @@ def main(args):
     # loop on the variables to create the output table
     global_table = []
     for var in var_atm + var_oce:
-        beta = ref[var]
-        beta['value'] = varmean[var] * float(beta.get('factor', 1))
+        beta = face[var]
+        gamma = ref[var]
+        beta['value'] = varmean[var] * float(gamma.get('factor', 1))
         if ftrend:
-            beta['trend'] = vartrend[var] * float(beta.get('factor', 1))
+            beta['trend'] = vartrend[var] * float(gamma.get('factor', 1))
             out_sequence = [var, beta['varname'], beta['units'], beta['value'],
                         beta['trend'],
-                        float(beta['observations']['val']),
-                        beta['observations'].get('data',''),
-                        beta['observations'].get('years','')]
+                        float(gamma['observations']['val']),
+                        gamma['observations'].get('data',''),
+                        gamma['observations'].get('years','')]
         else:
             out_sequence = [var, beta['varname'], beta['units'], beta['value'],
-                        float(beta['observations']['val']),
-                        beta['observations'].get('data',''),
-                        beta['observations'].get('years','')]
+                        float(gamma['observations']['val']),
+                        gamma['observations'].get('data',''),
+                        gamma['observations'].get('years','')]
         global_table.append(out_sequence)
 
     if ftrend:
@@ -180,7 +164,7 @@ def main(args):
         linefile = args.output
         ftable = True
     if ftable:
-        write_tuning_table(linefile, varmean, var_table, expname, year1, year2, ref)
+        fn.write_tuning_table(linefile, varmean, var_table, expname, year1, year2, ref)
 
     # clean
     os.unlink(mycdo.GRIDFILE)

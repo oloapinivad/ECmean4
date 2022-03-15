@@ -18,7 +18,7 @@ import functions as fn
 
 def main(args):
 
-    assert sys.version_info >= (3, 5)
+    assert sys.version_info >= (3, 7)
 
     cdo = Cdo()
 
