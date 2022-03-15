@@ -11,6 +11,8 @@ import argparse
 from tabulate import tabulate
 from cdo import *
 from pathlib import Path
+from pint import UnitRegistry
+from metpy.units import units
 
 # import functions from functions.py
 import functions as fn
@@ -21,6 +23,12 @@ def main(args):
     assert sys.version_info >= (3, 5)
 
     cdo = Cdo()
+
+    # special units definition, need to be moved in another placce
+    units.define('fraction = [] = frac')
+    units.define('percent = 1e-2 frac = pct')
+    units.define('psu = 1e-3 frac')
+    units.define('ppm = 1e-6 fraction')
 
     expname = args.exp
     year1 = args.year1
@@ -82,7 +90,7 @@ def main(args):
     # and modular way
     filename = 'pi_climatology.yml'
     with open(INDIR / filename, 'r') as file:
-        ref = yaml.load(file, Loader=yaml.FullLoader)
+        piclim = yaml.load(file, Loader=yaml.FullLoader)
 
     # defines the two varlist
     field_2d = cfg['PI']['2d_vars']['field']
@@ -92,26 +100,52 @@ def main(args):
     field_all = field_2d + field_3d + field_oce + field_ice
 
     # check if required variables are there: use interface file
-    # check into first file
+    # check into first file, and load also model variable units
     isavail = {}
+    varunit = {}
     for field in field_all:
         infile = fn.make_input_filename(
             ECEDIR, field, expname, year1, year1, face)
-        isavail = {**isavail, **fn.vars_are_there(infile, [field], face)}
+        retavail, retunit = fn.vars_are_there(infile, [field], face)
+        isavail = {**isavail, **retavail}
+        varunit = {**varunit, **retunit}
 
     # main loop
     varstat = {}
     for var in field_all:
 
+        # if var is not available, store a NaN for the table
         if not isavail[var]:
             varstat[var] = float('NaN')
         else:
 
-            # extract info from reference.yml
-            # cdo operation, reference dataset and reference varname
-            oper = ref[var]['oper']
-            dataref = ref[var]['dataset']
-            dataname = ref[var]['dataname']
+            # unit conversion: from original data to data required by PI
+            # using metpy avoid the definition of operations inside the dataset
+            # special treatment for temperature and precipitation fields (need to improved)
+            piunits = piclim[var]['units']
+
+            if units(varunit[var]) != units(piunits) : 
+                print(var+'... Unit converson required')
+                if var in ['tas', 'tos'] : 
+                    standard = 0 * units(varunit[var])
+                    conversion = standard.to(piunits).magnitude
+                    oper = f'-addc,{conversion}'
+                else : 
+                    standard = 1 * units(varunit[var])
+                    if var in ['pr','prsn'] :
+                        density_water = units('kg / m^3') * 1000
+                        conversion = (standard/density_water).to(piunits).magnitude
+                    else : 
+                        conversion = standard.to(piunits).magnitude
+                    oper = f'-mulc,{conversion}'
+                        
+            else:
+                oper = ''
+
+            # extract info from pi_climatology.yml
+            # reference dataset and reference varname
+            dataref = piclim[var]['dataset']
+            dataname = piclim[var]['dataname']
 
             # check if var is derived
             # if this is the case, get the derived expression and select
@@ -125,7 +159,7 @@ def main(args):
             else:
                 cmd_select = f'-select,name={var}'
 
-            # field atm need a grid defition to be handled by cdo
+            # field atm cubic grid defition to be handled by cdo
             if var in field_2d + field_3d:
                 cmd_grid = f'-setgridtype,regular -setgrid,{gridfile}'
             else:
@@ -139,12 +173,12 @@ def main(args):
             clim = str(CLMDIR / f'climate_{dataref}_{dataname}.nc')
             vvvv = str(CLMDIR / f'variance_{dataref}_{dataname}.nc')
 
-            # apply masks when needed (PI feature)
-            if ref[var]['domain'] == 'land':
+            # apply masks when needed (PI-dependent feature)
+            if piclim[var]['domain'] == 'land':
                 mask = f'-mul {land_mask}'
-            elif ref[var]['domain'] == 'ocean':
+            elif piclim[var]['domain'] == 'ocean':
                 mask = f'-mul {ocean_mask}'
-            elif ref[var]['domain'] == 'global':
+            elif piclim[var]['domain'] == 'global':
                 mask = ''
 
             # timmean and remap
@@ -153,9 +187,8 @@ def main(args):
             # temporarily using remapbil instead of remapcon due to NEMO grid missing corner
             outfile = cdo.remapbil(resolution, input=cmd1)
 
+            # special treatment which includes vertical interpolation
             if var in field_3d:
-
-                # special treatment which includes vertical interpolation
 
                 # extract the vertical levels from the file
                 vlevels = cdo.showlevel(input=f'{clim}')
@@ -178,7 +211,10 @@ def main(args):
                 cmd_vertmean = ''
                 cmd_vertinterp = ''
 
+            # defining the PI computation: RMS normalized by dataset interannual variance
             cmd2 = f'-setname,{var} {mask} {cmd_vertmean} -div -sqr -sub -invertlat {cmd_vertinterp} {oper} {outfile} {clim} {vvvv}'
+        
+            # calling PI computation
             x = np.squeeze(cdo.fldmean(input=cmd2, returnCdf=True).variables[var])
 
             # store the PI
@@ -192,13 +228,13 @@ def main(args):
 
     # loop on the variables
     for var in field_all:
-        out_sequence = [var, varstat[var], ref[var]['domain'], ref[var]
-                        ['dataset'], ref[var]['cmip3'], varstat[var]/ref[var]['cmip3']]
+        out_sequence = [var, varstat[var], piclim[var]['domain'], piclim[var]
+                        ['dataset'], piclim[var]['cmip3'], varstat[var]/piclim[var]['cmip3']]
         global_table.append(out_sequence)
 
     # nice loop on dictionary to get the partial and total pi
     partial_pi = np.mean([varstat[k] for k in field_2d + field_3d])
-    total_pi = np.mean([varstat[k] for k in field_2d + field_3d + field_oce])
+    total_pi = np.mean([varstat[k] for k in field_2d + field_3d + field_oce + field_ice])
 
     # write the file  with tabulate: cool python feature
     tablefile = TABDIR / f'PI4_RK08_{expname}_{year1}_{year2}.txt'
@@ -209,6 +245,7 @@ def main(args):
         f.write('\n\nPartial PI (atm only) is   : ' + str(partial_pi))
         f.write('\nTotal Performance Index is : ' + str(total_pi))
 
+    # cleaning
     os.unlink(gridfile)
     cdo.cleanTempDir()
 

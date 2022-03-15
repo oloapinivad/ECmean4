@@ -19,36 +19,61 @@ def is_number(s):
 # make sure all requested vars are available (use first year)
 # first find all needed variables (including those needed for derived ones)
 # added extra if to check if file exists
+# extract also units from files
 def vars_are_there(infile, var_needed, reference):
     """Check if a list of variables is available in the input file"""
 
-    isavail = {}
     # if file exists, check which variables are inside
+    isavail = {}
+    isunit = {}
     if os.path.isfile(infile) : 
-        var_avail = [v.split()[1] for v in cdo.pardes(input=infile)]
+
+        # extract units from attributes: messy string manipulation to get it
+        #units_avail_list = re.findall('"([^"]*)"', ",".join(cdo.showattribute('*@units', input=infile)[1::2]))
+        units_avail_list = cdo.showattribute('*@units', input=infile)
+        
+        # extract variables
+        var_avail_list = [v.split()[1] for v in cdo.pardes(input=infile)]
+
+        # create a dictionary, taking care when units are missing
+        # not really pythonic, need to be improved
+        var_avail = {} 
+        for u in units_avail_list : 
+            if u.replace(':','') in var_avail_list : 
+                ind = units_avail_list.index(u)
+                if 'units' in units_avail_list[ind+1] : 
+                    found_unit = re.findall('"([^"]*)"', units_avail_list[ind+1])[0]
+                else : 
+                    found_unit = ''
+                var_avail[u.replace(':','')] = found_unit
 
         # loop on vars
         for v in var_needed:
             isavail[v] = True
+            
             d = reference[v].get('derived')
             # if variable is derived, extract required vars
             if d:
                 var_req = re.split('[*+-]', d)
+                isunit[v] = var_avail[var_req[0]]
                 for x in var_req:
                     if is_number(x):
                         var_req.remove(x)
             else:
                 var_req = [v]
+                isunit[v] = var_avail[v]
 
             # check if required varialbes are in model output
             for x in var_req:
                 if x not in var_avail:
                     isavail[v] = False
+                    isunit[v] = None
                     print(f"Variable {x} needed by {v} is not available in the model output!")
     else: 
         for v in var_needed : 
             isavail[v] = False
-    return isavail
+            isunit[v] = None
+    return isavail, isunit
 
 # given a folder, verify that the config.yml exists and open it
 def load_config_file(indir): 

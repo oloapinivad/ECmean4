@@ -50,7 +50,7 @@ psl:
   filetype: atm_cmip6_1m
 pr: 
   varname: Precipitation
-  units: m/s
+  units: mm/day
   component: oifs
   filetype: atm_cmip6_1m
 evspsbl:
