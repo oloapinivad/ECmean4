@@ -23,14 +23,15 @@ def vars_are_there(infile, var_needed, reference):
     """Check if a list of variables is available in the input file"""
 
     isavail = {}
-
+    # if file exists, check which variables are inside
     if os.path.isfile(infile) : 
-
         var_avail = [v.split()[1] for v in cdo.pardes(input=infile)]
 
+        # loop on vars
         for v in var_needed:
             isavail[v] = True
             d = reference[v].get('derived')
+            # if variable is derived, extract required vars
             if d:
                 var_req = re.split('[*+-]', d)
                 for x in var_req:
@@ -39,6 +40,7 @@ def vars_are_there(infile, var_needed, reference):
             else:
                 var_req = [v]
 
+            # check if required varialbes are in model output
             for x in var_req:
                 if x not in var_avail:
                     isavail[v] = False

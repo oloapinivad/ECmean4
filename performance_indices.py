@@ -9,7 +9,6 @@ import yaml
 import numpy as np
 import argparse
 from tabulate import tabulate
-from statistics import mean
 from cdo import *
 from pathlib import Path
 

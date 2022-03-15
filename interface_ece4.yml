@@ -3,6 +3,26 @@ tas:
   units: K
   component: oifs
   filetype: atm_cmip6_1m 
+cll:
+  varname: 'Low cloud cover'
+  units: '[0-1]'
+  component: oifs
+  filetype: atm_cmip6_1m
+clm:
+  varname: 'Medium cloud cover'
+  units: '[0-1]'
+  component: oifs
+  filetype: atm_cmip6_1m
+clh:
+  varname: 'High cloud cover'
+  units: '[0-1]'
+  component: oifs
+  filetype: atm_cmip6_1m
+clt:
+  varname: 'Total cloud cover'
+  units: '[0-1]'
+  component: oifs
+  filetype: atm_cmip6_1m
 ta: 
   varname: 'Air Temperature'
   units: K
@@ -30,12 +50,12 @@ psl:
   filetype: atm_cmip6_1m
 pr: 
   varname: Precipitation
-  units: mm/day
+  units: m/s
   component: oifs
   filetype: atm_cmip6_1m
 evspsbl:
   varname: Evaporation
-  units: mm/day
+  units: m/s
   component: oifs
   filetype: atm_cmip6_1m
 tauu: 
@@ -68,6 +88,22 @@ siconc:
   units: '[0-1]'
   component: nemo
   filetype: ice_1m
+rsnt:
+  varname: 'TOA net SW'
+  units: W/m2
+  component: oifs
+  filetype: atm_cmip6_1m
+rlnt:
+  varname: 'TOA net LW'
+  units: W/m2
+  component: oifs
+  filetype: atm_cmip6_1m
+net_toa:
+  varname: 'Net TOA'
+  units: W/m2
+  derived: 'rsnt+rlnt'
+  component: oifs
+  filetype: atm_cmip6_1m
 rlns:
   varname: 'Surface net LW'
   units: W/m2
@@ -100,3 +136,37 @@ net_sfc:
   component: oifs
   filetype: atm_cmip6_1m
   derived: 'rsns+rlns-hfls-hfss-prsn*334000'
+toamsfc_nosn:
+  varname: 'TOA-Sfc net rad. (no snowfall)'
+  units: W/m2
+  component: oifs
+  filetype: atm_cmip6_1m
+  derived: 'rsnt+rlnt-rsns-rlns+hfls+hfss'
+rsntcs:
+  varname: 'TOA net SW, CS'
+  units: W/m2
+  component: oifs
+  filetype: atm_cmip6_1m
+rlntcs:
+  varname: 'TOA net LW, CS'
+  units: W/m2
+  component: oifs
+  filetype: atm_cmip6_1m
+pme:
+  varname: 'Precip. minus evap.'
+  units: m/s
+  derived: 'pr-evspsbl'
+  component: oifs
+  filetype: atm_cmip6_1m
+swcf:
+  varname: 'SW CRE'
+  units: W/m2
+  derived: 'rsnt-rsntcs'
+  component: oifs
+  filetype: atm_cmip6_1m
+lwcf:
+  varname: 'LW CRE'
+  units: W/m2
+  derived: 'rlnt-rlntcs'
+  component: oifs
+  filetype: atm_cmip6_1m
