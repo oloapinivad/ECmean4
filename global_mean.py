@@ -79,19 +79,6 @@ def main(args):
             ECEDIR, var, expname, year1, year1, face)
         isavail = {**isavail, **vars_are_there(infile, [var], face)}
 
-    # create a list for all atm variables, avoid duplicates
-    #var_all = list(set(var_atm + var_table))
-
-    #infile = make_input_filename(ECEDIR, var_atm[0], expname, year1, ref)
-
-    # Check if vars are available
-    #infile = make_input_filename(ECEDIR, var_atm[0], expname, year1, ref)
-    #isavail = fn.vars_are_there(infile, var_all, ref)
-    #infile = make_input_filename(ECEDIR, var_oce[0], expname, year1, ref)
-    #isavail = {**isavail, **fn.vars_are_there(infile, var_oce, ref)} # python>=3.5 syntax for joining 2 dicts
-
-    #var_all = list(set(var_all + var_oce))
-    
     # main loop
     varmean = {}
     vartrend = {}
@@ -100,8 +87,8 @@ def main(args):
             varmean[var] = float("NaN")
             vartrend[var] = float("NaN")
         else:
-            # Refresh cdo pipe and specify type of file (atm or oce)
-            cdop.start(domain=ref[var].get('domain','atm'))
+            # Refresh cdo pipe
+            cdop.start()
 
             if 'derived' in face[var].keys():
                 cmd = face[var]['derived']
@@ -111,7 +98,8 @@ def main(args):
             else:
                 cdop.selectname(var)
 
-            cdop.fixgrid()
+            # Introduce grid fixes specifying type of file (atm or oce)
+            cdop.fixgrid(domain=ref[var].get('domain','atm'))
 
             # land/sea variables
             cdop.masked_mean(ref[var].get('total','global'))
@@ -172,8 +160,7 @@ def main(args):
         write_tuning_table(linefile, varmean, var_table, expname, year1, year2, ref)
 
     # clean
-    os.unlink(cdop.GRIDFILE)
-    #cdo.cleanTempDir()
+    cdop.cdo.cleanTempDir()
 
 
 if __name__ == "__main__":

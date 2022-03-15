@@ -203,7 +203,6 @@ def main(args):
 
                 cdop.setname(var)
 
-            #cmd2 = f'-setname,{var} {mask} {cmd_vertmean} -div -sqr -sub -invertlat {cmd_vertinterp} {oper} {outfile} {clim} {vvvv}'
             x = np.squeeze(cdop.execute('fldmean', input=outfile,
                                         returnCdf=True).variables[var])
 
@@ -235,6 +234,7 @@ def main(args):
         f.write('\n\nPartial PI (atm only) is   : ' + str(partial_pi))
         f.write('\nTotal Performance Index is : ' + str(total_pi))
 
+    # Make sure al temp files have been removed
     cdop.cdo.cleanTempDir()
 
 
