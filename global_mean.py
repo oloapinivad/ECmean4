@@ -17,7 +17,6 @@ import yaml
 from tabulate import tabulate
 import numpy as np
 from cdo import Cdo
-<<<<<<< HEAD
 from functions import vars_are_there, is_number, load_config_file
 from cdopipe import CdoPipe
 
