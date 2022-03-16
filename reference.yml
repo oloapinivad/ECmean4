@@ -151,19 +151,15 @@ lwcf:
     years: 2005-2015
     note: CERES-EBAF Ed4.1 07/2005-06/2015
 tos:
-  domain: oce
   observations:
     val: 0
 sos:
-  domain: oce
   observations:
     val: 0
 zos:
-  domain: oce
   observations:
     val: 0
 wfo:
   factor: -3155760
-  domain: oce
   observations:
     val: 0

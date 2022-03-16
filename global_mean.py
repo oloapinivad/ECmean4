@@ -100,7 +100,8 @@ def main(args):
                 cdop.selectname(var)
 
             # Introduce grid fixes specifying type of file (atm or oce)
-            cdop.fixgrid(domain=ref[var].get('domain','atm'))
+            cdop.setdomain(domain=face[var]['component'])
+            cdop.fixgrid()
 
             # land/sea variables
             cdop.masked_mean(ref[var].get('total','global'))

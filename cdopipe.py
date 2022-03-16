@@ -4,6 +4,7 @@
  Class to create pipes of cdo commands
 
  @author Jost von Hardenberg (jost.hardenberg@polito.it), March 2022
+ @author Paolo Davini (p.davini@isac.cnr.it), March 2022
 '''
 
 import sys
@@ -57,28 +58,25 @@ class CdoPipe:
         """Specify variable domain: used to set needed grid manipulations"""
         self.domain = domain
 
-    def start(self, domain=''):
+    def start(self):
         """Cleans pipe for a new application"""
         # ocean variables require specifying grid areas
         # atm variables require fixing the grid
-        if domain:
-            self.domain = domain
         self.pipe = '{infile}'
 
-    def fixgrid(self, domain=''):
+    def fixgrid(self):
         """Applies grid fixes, requires specifying the domain"""
         # ocean variables require specifying grid areas
         # atm variables require fixing the grid
 
-        if domain:
-            self.domain = domain
-
         if not self.GRIDFILE:
             sys.exit('Needed grid file not defined, call make_grids method first')
+        if not self.domain : 
+            sys.exit('Needed to define a domain with setdomain() method first') 
 
-        if self.domain=='oce':
+        if self.domain=='nemo':
             self.pipe = f'-setgridarea,{self.OCEGAFILE} ' + self.pipe
-        else:
+        elif self.domain=='oifs':
             self.pipe = f'-setgridtype,regular -setgrid,{self.GRIDFILE} ' + self.pipe
 
     def masked_mean(self, mask_type):
@@ -131,7 +129,7 @@ class CdoPipe:
     def levels(self, infile):
         return list(map(float, self.cdo.showlevel(input=infile)[0].split()))
 
-    def set_input(self, infile):
+    def set_infile(self, infile):
         self.infile = infile
 
     def execute(self, cmd, *args, input='', keep=False, **kwargs):

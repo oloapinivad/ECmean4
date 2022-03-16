@@ -79,7 +79,7 @@ def main(args):
     cdop = CdoPipe()
     cdop.make_grids(INIFILE, OCEINIFILE)
 
-    # land-sea masks
+    # land-sea masks on regular 2x2 grid
     ocean_mask = cdo.setctomiss(0,
                                 input=f'-ltc,0.5 -invertlat -remapcon2,{resolution} '
                                 f'-setgridtype,regular -setgrid,{cdop.GRIDFILE} '
@@ -129,14 +129,6 @@ def main(args):
             varstat[var] = float('NaN')
         else:
 
-            # Refresh cdo pipe and specify type of file (atm or oce)
-            # Temporary hack ... wil need to be homeginized with global_mean
-            # The type of model should be read from ref
-            if var in field_2d + field_3d :
-                cdop.domain = 'atm'
-            else:
-                cdop.domain = 'oce'
-
             # extract info from reference.yml
             dataref = ref[var]['dataset']
             dataname = ref[var]['dataname']
@@ -145,10 +137,20 @@ def main(args):
             clim = str(CLMDIR / f'climate_{dataref}_{dataname}.nc')
             vvvv = str(CLMDIR / f'variance_{dataref}_{dataname}.nc')
 
-            cdop.start() # Start fresh pipe
+            # create a file list using bash wildcards
+            infile = make_input_filename(
+                ECEDIR, var, expname, years_joined, '????', face)
 
+            # Start fresh pipe
             # This leaves the input file undefined for now. It can be set later with
             # cdop.set_infile(infile) or by specifying input=infile cdop.execute
+            cdop.start() 
+
+             # set domain making use component key from interface file
+            cdop.setdomain(face[var]['component'])
+
+            # set input file
+            cdop.set_infile(infile)
 
             # check if var is derived
             # if this is the case, get the derived expression and select
@@ -170,12 +172,8 @@ def main(args):
             if oper:
                 cdop.chain(oper[1:]) # Hack to remove leading '-' - to be fixed
 
-            # create a file list using bash wildcards
-            infile = make_input_filename(
-                ECEDIR, var, expname, years_joined, '????', face)
-
             # temporarily using remapbil instead of remapcon due to NEMO grid missing corner
-            outfile = cdop.execute('remapbil', resolution, input=infile)
+            outfile = cdop.execute('remapbil', resolution)
 
             if var in field_3d:
 
@@ -200,9 +198,9 @@ def main(args):
 
                 # apply masks when needed
                 # this is a hack for now
-                if ref[var]['domain'] == 'land':
+                if ref[var]['mask'] == 'land':
                     cdop.mul(land_mask)
-                elif ref[var]['domain'] == 'ocean':
+                elif ref[var]['mask'] == 'ocean':
                     cdop.mul(ocean_mask)
 
                 cdop.setname(var)
@@ -221,7 +219,7 @@ def main(args):
 
     # loop on the variables
     for var in field_all:
-        out_sequence = [var, varstat[var], ref[var]['domain'], ref[var]
+        out_sequence = [var, varstat[var], ref[var]['mask'], ref[var]
                         ['dataset'], ref[var]['cmip3'], varstat[var]/ref[var]['cmip3']]
         global_table.append(out_sequence)
 
