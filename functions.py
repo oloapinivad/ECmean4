@@ -5,9 +5,9 @@ import sys
 import yaml
 from cdo import Cdo
 from metpy.units import units
+
 cdo = Cdo()
 
-# small function to define if a number is a float 
 def is_number(s):
     """Check if input is a float type"""
     try:
@@ -16,13 +16,11 @@ def is_number(s):
     except ValueError:
         return False
 
-
-# make sure all requested vars are available (use first year)
-# first find all needed variables (including those needed for derived ones)
-# added extra if to check if file exists
-# extract also units from files
 def vars_are_there(infile, var_needed, reference):
-    """Check if a list of variables is available in the input file"""
+    """Check if a list of variables is available in the input file.
+       Make sure all requested vars are available (use first year)
+       first find all needed variables (including those needed for derived ones)
+       added extra if to check if file exists"""
 
     # if file exists, check which variables are inside
     isavail = {}
@@ -70,15 +68,14 @@ def vars_are_there(infile, var_needed, reference):
                     isavail[v] = False
                     isunit[v] = None
                     print(f"Variable {x} needed by {v} is not available in the model output!")
-    else: 
-        for v in var_needed : 
+    else:
+        for v in var_needed :
             isavail[v] = False
             isunit[v] = None
     return isavail, isunit
 
-# given a folder, verify that the config.yml exists and open it
-def load_config_file(indir): 
-
+def load_config_file(indir):
+    """Load configuration file, once you have it!"""
     CONFIGFILE = str(indir / 'config.yml')
     if os.path.exists(CONFIGFILE):
         with open(CONFIGFILE, 'r') as file:
@@ -88,9 +85,15 @@ def load_config_file(indir):
 
     return cfg
 
-# create input filenames for the required variable and a given year
+def load_yaml(infile):
+    """Load generic yaml file"""
+    with open(infile, 'r') as file:
+        ref = yaml.load(file, Loader=yaml.FullLoader)
+    return ref
+
 def make_input_filename(dr, var, expname, year1, year2, face):
-    """Generate appropriate input filename for a variable"""
+    """Create input filenames for the required variable and a given year"""
+
     filetype = face[var]['filetype']
     fname = dr / 'output' / face[var]['component'] / \
                 f'{expname}_{filetype}_{year1}-{year2}.nc'
@@ -129,5 +132,22 @@ def units_converter(org_units, tgt_units):
 
     return {'offset': offset, 'factor': factor}
 
+def write_tuning_table(linefile, varmean, var_table, expname, year1, year2, face, ref):
+    """Write results appending one line to a text file.
+       Write a tuning table: need to fix reference to face/ref"""
 
+    if not os.path.isfile(linefile):
+        with open(linefile, 'w') as f:
+            print('%exp from   to ', end='', file=f)
+            for var in var_table:
+                print('{:>12s}'.format(var), end=' ', file=f)
+            print('\n%             ', end=' ', file=f)
+            for var in var_table:
+                print('{:>12s}'.format(face[var]['units']), end=' ', file=f)
+            print(file=f)
 
+    with open(linefile, 'a') as f:
+        print(expname,'{:4d} {:4d} '.format(year1, year2), end='', file=f)
+        for var in var_table:
+            print('{:12.5f}'.format(varmean[var] * ref[var].get('factor',1)), end=' ', file=f)
+        print(file=f)

@@ -17,41 +17,15 @@ import yaml
 from tabulate import tabulate
 import numpy as np
 from cdo import Cdo
-from functions import vars_are_there, is_number, load_config_file
+from functions import *
+from cdopipe import CdoPipe
 
-
-def write_tuning_table(linefile, varmean, var_table, expname, year1, year2, ref):
-    """Write results appending one line to a text file"""
-    if not os.path.isfile(linefile):
-        with open(linefile, 'w') as f:
-            print('%exp from   to ', end='', file=f)
-            for var in var_table:
-                print('{:>12s}'.format(var), end=' ', file=f)
-            print('\n%             ', end=' ', file=f)
-            for var in var_table:
-                print('{:>12s}'.format(ref[var]['units']), end=' ', file=f)
-            print(file=f)
-
-    with open(linefile, 'a') as f:
-        print(expname,'{:4d} {:4d} '.format(year1, year2), end='', file=f)
-        for var in var_table:
-            print('{:12.5f}'.format(varmean[var] * ref[var].get('factor',1)), end=' ', file=f)
-        print(file=f)
-
-
-def make_input_filename(dr, var, expname, year, ref):
-    """Generate appropriate input filename for a variable"""
-    if(ref[var].get('domain','atm')=='oce'):
-        fname = dr / 'output/nemo' / \
-                 f'{expname}_oce_1m_T_{year}-{year}.nc'
-    else:
-        fname = dr / 'output/oifs' / \
-                 f'{expname}_atm_cmip6_1m_{year}-{year}.nc'
-    return str(fname)
+cdo = Cdo()
 
 def main(args):
+    """The main EC-mean4 code"""
 
-    assert sys.version_info >= (3, 5)
+    assert sys.version_info >= (3, 7)
 
     expname = args.exp
     year1 = args.year1
@@ -63,12 +37,10 @@ def main(args):
     if year1 == year2: # Ignore if only one year requested
         ftrend = False
 
-    cdo = Cdo()
-
     # config file (looks for it in the same dir as the .py program file
     INDIR = Path(os.path.dirname(os.path.abspath(__file__)))
     cfg = load_config_file(INDIR)
-    
+
     # define a few folders and create missing ones
     ECEDIR = Path(os.path.expandvars(cfg['dirs']['exp']), expname)
     TABDIR = Path(os.path.expandvars(cfg['dirs']['tab']))
@@ -76,43 +48,37 @@ def main(args):
     os.makedirs(TABDIR, exist_ok=True)
 
     # prepare grid description file
-    GRIDFILE=str(TMPDIR / f'grid_{expname}.txt')
     INIFILE=str(ECEDIR / f'ICMGG{expname}INIT')
-    griddes = cdo.griddes(input=INIFILE)
-    with open(GRIDFILE, 'w') as f:
-        for line in griddes:
-            print(line, file=f)
+    OCEINIFILE=cfg['areas']['oce']
 
-    # prepare ATM LSM
-    LMFILE = cdo.selname('LSM', input=f'-setgridtype,regular {INIFILE}', options='-t ecmwf')
-    SMFILE = cdo.mulc('-1', input=f'-subc,1 {LMFILE}')
-    GAFILE = cdo.gridarea(input=f'-setgridtype,regular {LMFILE}')
-
-    # prepare OCE areas
-    OCEGAFILE = cdo.expr('area=e1t*e2t', input=cfg['areas']['oce']) 
+    # Init CdoPipe object to use in the following, specifying the LM and SM files
+    cdop = CdoPipe()
+    cdop.make_grids(INIFILE, OCEINIFILE)
 
     # load reference data
-    with open(INDIR / 'reference.yml', 'r') as file:
+    filename = 'reference.yml'
+    with open(INDIR / filename, 'r') as file:
         ref = yaml.load(file, Loader=yaml.FullLoader)
+ 
+    # loading the var-to-file interface
+    filename = 'interface_ece4.yml'
+    with open(INDIR / filename, 'r') as file:
+        face = yaml.load(file, Loader=yaml.FullLoader)
 
     # list of vars on which to work
     var_atm = cfg['global']['atm_vars']
     var_oce = cfg['global']['oce_vars']
     var_table = cfg['global']['tab_vars']
+    #var_all = list(set(var_atm + var_table + var_oce))
+    var_all = list(dict.fromkeys(var_atm + var_table + var_oce)) # python 3.7+, preserver order
 
     # make sure all requested vars are available (use first year)
     # first find all needed variables (including those needed for derived ones)
-
-    # create a list for all atm variables, avoid duplicates
-    var_all = list(set(var_atm + var_table))
-
-    # Check if vars are available
-    infile = make_input_filename(ECEDIR, var_atm[0], expname, year1, ref)
-    isavail = vars_are_there(infile, var_all, ref)
-    infile = make_input_filename(ECEDIR, var_oce[0], expname, year1, ref)
-    isavail = {**isavail, **vars_are_there(infile, var_oce, ref)} # python>=3.5 syntax for joining 2 dicts
-
-    var_all = list(set(var_all + var_oce))
+    isavail = {}
+    for var in var_all:
+        infile = make_input_filename(
+            ECEDIR, var, expname, year1, year1, face)
+        isavail = {**isavail, **vars_are_there(infile, [var], face)}
 
     # main loop
     varmean = {}
@@ -122,64 +88,57 @@ def main(args):
             varmean[var] = float("NaN")
             vartrend[var] = float("NaN")
         else:
-            a = []
+            # Refresh cdo pipe
+            cdop.start()
 
-            # check if var is derived
-            if 'derived' in ref[var].keys():
-                cmd = ref[var]['derived']
-                der = f'-expr,{var}={cmd}'
+            if 'derived' in face[var].keys():
+                cmd = face[var]['derived']
+                dervars = (",".join(re.findall("[a-zA-Z]+", cmd)))
+                cdop.selectname(dervars)
+                cdop.expr(var, cmd)
             else:
-                der = ''
+                cdop.selectname(var)
 
-            # ocean variables require specifying grid areas
-            if(ref[var].get('domain','atm')=='oce'):
-                pre = '-setgridarea,' + OCEGAFILE
-            else:
-                pre = ''
+            # Introduce grid fixes specifying type of file (atm or oce)
+            cdop.setdomain(domain=face[var]['component'])
+            cdop.fixgrid()
 
             # land/sea variables
-            mask = ''
-            op='-fldmean'
-            if 'total' in ref[var].keys():
-                mask_type = ref[var]['total']
-                if mask_type == 'land':
-                    mask = f'-mul {GAFILE} -mul {LMFILE}'
-                    op='-fldsum'
-                elif mask_type in ['sea', 'ocean']:
-                    mask = f'-mul {GAFILE} -mul {SMFILE}'
-                    op='-fldsum'
+            cdop.masked_mean(ref[var].get('total','global'))
+            cdop.timmean()
 
+            a = []
             # loop on years: call CDO to perform all the computations
             yrange = range(year1, year2+1)
             for year in yrange:
-                infile =  make_input_filename(ECEDIR, var, expname, year, ref)
-                cmd = f'-timmean {op} {mask} -setgridtype,regular ' \
-                      f'-setgrid,{GRIDFILE} -selname,{var} {der} {pre} {infile}'
-                x = float(cdo.output(input=cmd)[0])
+                infile =  make_input_filename(ECEDIR, var, expname, year, year, face)
+                x = cdop.output(infile, keep=True)
                 a.append(x)
+
             varmean[var] = mean(a)
             if ftrend:
                 vartrend[var] = np.polyfit(yrange, a, 1)[0]
             if fverb:
-                print('Average', var, mean(a))
+                print('Average', var, varmean[var])
 
     # loop on the variables to create the output table
     global_table = []
     for var in var_atm + var_oce:
-        beta = ref[var]
-        beta['value'] = varmean[var] * float(beta.get('factor', 1))
+        beta = face[var]
+        gamma = ref[var]
+        beta['value'] = varmean[var] * float(gamma.get('factor', 1))
         if ftrend:
-            beta['trend'] = vartrend[var] * float(beta.get('factor', 1))
+            beta['trend'] = vartrend[var] * float(gamma.get('factor', 1))
             out_sequence = [var, beta['varname'], beta['units'], beta['value'],
                         beta['trend'],
-                        float(beta['observations']['val']),
-                        beta['observations'].get('data',''),
-                        beta['observations'].get('years','')]
+                        float(gamma['observations']['val']),
+                        gamma['observations'].get('data',''),
+                        gamma['observations'].get('years','')]
         else:
             out_sequence = [var, beta['varname'], beta['units'], beta['value'],
-                        float(beta['observations']['val']),
-                        beta['observations'].get('data',''),
-                        beta['observations'].get('years','')]
+                        float(gamma['observations']['val']),
+                        gamma['observations'].get('data',''),
+                        gamma['observations'].get('years','')]
         global_table.append(out_sequence)
 
     if ftrend:
@@ -203,8 +162,7 @@ def main(args):
         write_tuning_table(linefile, varmean, var_table, expname, year1, year2, ref)
 
     # clean
-    os.unlink(GRIDFILE)
-    cdo.cleanTempDir()
+    cdop.cdo.cleanTempDir()
 
 
 if __name__ == "__main__":

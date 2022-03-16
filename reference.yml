@@ -1,246 +1,165 @@
 tas:
-  varname: '2m Air Temperature'
-  units: K
   observations: 
     val: 287.497
     data: ERA5
     years: 1990-2019
 psl: 
-  varname: MSLP
-  units: Pa
   observations:
     val: 101142
     data: ERA5
     years: 1990-2019
 pr:
-  varname: Precipitation
-  units: mm/day
   factor: 86400
   observations:
     val: 2.92552
     data: ERA5
     years: 1990-2019
 pr_land:
-  varname: 'Precipitation (land)'
-  units: Sv
   factor: 1e-9
   total: land
-  derived: pr
   observations:
     val: 3.82094
     data: ERA5
     years: 1990-2019
 pr_oce:
-  varname: 'Precipitation (ocean)'
-  units: Sv
   factor: 1e-9
   total: ocean
-  derived: pr
   observations:
     val: 13.4499
     data: ERA5
     years: 1990-2019
 pme_land:
-  varname: 'Precip. minus evap. (land)'
-  units: Sv
   factor: 1e-9
   total: land
-  derived: 'pr-evspsbl'
   observations:
     val: 1.39091
     data: ERA5
     years: 1990-2019
 pme_oce:
-  varname: 'Precip. minus evap. (ocean)'
-  units: Sv
   factor: 1e-9
   total: ocean
-  derived: 'pr-evspsbl'
   observations:
     val: -1.24691
     data: ERA5
     years: 1990-2019
 evspsbl:
-  varname: Evaporation
-  units: mm/day
   factor: 86400
   observations:
     val: -2.90113
     data: ERA5
     years: 1990-2019
 cll:
-  varname: 'Low cloud cover'
-  units: '[0-1]'
   factor: 0.01
   observations:
     val: 0.36627
     data: ERA5
     years: 1990-2019
 clm:
-  varname: 'Medium cloud cover'
-  units: '[0-1]'
   factor: 0.01
   observations:
     val: 0.247956
     data: ERA5
     years: 1990-2019
 clh:
-  varname: 'High cloud cover'
-  units: '[0-1]'
   factor: 0.01
   observations:
     val: 0.341018
     data: ERA5
     years: 1990-2019
 clt: 
-  varname: 'Total cloud cover'
-  units: '[0-1]'
   factor: 0.01
   observations:
     val: 0.628433
     data: ERA5
     years: 1990-2019
 rsnt: 
-  varname: 'TOA net SW'
-  units: W/m2
-  factor: 1
   observations:
     val: 240.87
     data: CERES-EBAF
     years: 2005-2015
     note: CERES-EBAF Ed4.1 07/2005-06/2015
 rlnt:
-  varname: 'TOA net LW'
-  units: W/m2
   observations:
     val: -240.11
     data: CERES-EBAF
     years: 2005-2015
     note: CERES-EBAF Ed4.1 07/2005-06/2015
 net_toa:
-  varname: 'Net TOA'
-  units: W/m2
-  derived: 'rsnt+rlnt'
   observations:
     val: 0.75262
     data: CERES-EBAF
     years: 2005-2015
     note: CERES-EBAF Ed4.1 07/2005-06/2015
 rlns:
-  varname: 'Surface net LW'
-  units: W/m2
   observations:
     val: -56
     data: 'Wild 2020'
 rsns:
-  varname: 'Surface net SW'
-  units: W/m2
   observations:
     val: 160
     data: 'Wild 2020'
 hfss:
-  varname: 'Surface SH'
-  units: W/m2
   factor: -1
   observations:
     val: -21
     data: 'Wild 2020'
 hfls:
-  varname: 'Surface LH'
-  units: W/m2
   factor: -1
   observations:
     val: -82
     data: 'Wild 2020'
 net_sfc: 
-  varname: 'Net Surface'
-  units: W/m2
-  derived: 'rsns+rlns-hfls-hfss-prsn*334000'
   observations:
     val: 0.6
     data: 'Wild 2020'
 net_sfc_nosn:
-  varname: 'Net Surface (no snowfall)'
-  units: W/m2
-  derived: 'rsns+rlns-hfls-hfss'
   observations:
     val: 0.6
     data: 'Wild 2020'
 toamsfc:
-  varname: 'TOA-Sfc net radiation'
-  units: W/m2
-  derived: 'rsnt+rlnt-rsns-rlns+hfls+hfss+prsn*334000'
   observations:
     val: 0
 toamsfc_nosn:
-  varname: 'TOA-Sfc net rad. (no snowfall)'
-  units: W/m2
-  derived: 'rsnt+rlnt-rsns-rlns+hfls+hfss'
   observations:
     val: 0
 rsntcs:
-  varname: 'TOA net SW, CS'
-  units: W/m2
   observations:
     val: 286.66
     data: CERES-EBAF
     years: 2005-2015
     note: CERES-EBAF Ed4.1 07/2005-06/2015
 rlntcs:
-  varname: 'TOA net LW, CS'
-  units: W/m2
   observations:
     val: -268.04
     data: CERES-EBAF
     years: 2005-2015
     note: CERES-EBAF Ed4.1 07/2005-06/2015
 pme:
-  varname: 'Precip. minus evap.'
-  units: mm/day
   factor: 86400
-  derived: 'pr-evspsbl'
   observations:
     val: 0
 swcf:
-  varname: 'SW CRE'
-  units: W/m2
-  derived: 'rsnt-rsntcs'
   observations:
     val:  -45.32
     data: CERES-EBAF
     years: 2005-2015
     note: CERES-EBAF Ed4.1 07/2005-06/2015
 lwcf:
-  varname: 'LW CRE'
-  units: W/m2
-  derived: 'rlnt-rlntcs'
   observations:
     val:  25.76
     data: CERES-EBAF
     years: 2005-2015
     note: CERES-EBAF Ed4.1 07/2005-06/2015
 tos:
-  varname: 'SST'
-  units: degC
-  domain: oce
   observations:
     val: 0
 sos:
-  varname: 'SSS'
-  units: psu
-  domain: oce
   observations:
     val: 0
 zos:
-  varname: 'SSH'
-  units: m
-  domain: oce
   observations:
     val: 0
 wfo:
-  varname: 'Net Water Flux into ocean'
-  units: m/100y 
   factor: -3155760
-  domain: oce
   observations:
     val: 0
