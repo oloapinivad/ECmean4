@@ -121,24 +121,29 @@ def main(args):
 
             # unit conversion: from original data to data required by PI
             # using metpy avoid the definition of operations inside the dataset
-            # special treatment for temperature and precipitation fields (need to improved)
             piunits = piclim[var]['units']
 
             if units(varunit[var]) != units(piunits) : 
                 print(var+'... Unit converson required')
-                if var in ['tas', 'tos'] : 
-                    standard = 0 * units(varunit[var])
-                    conversion = standard.to(piunits).magnitude
-                    oper = f'-addc,{conversion}'
-                else : 
-                    standard = 1 * units(varunit[var])
-                    if var in ['pr','prsn'] :
-                        density_water = units('kg / m^3') * 1000
-                        conversion = (standard/density_water).to(piunits).magnitude
-                    else : 
-                        conversion = standard.to(piunits).magnitude
-                    oper = f'-mulc,{conversion}'
-                        
+                offset_standard = 0 * units(varunit[var])
+                factor_standard = 1 * units(varunit[var])
+                try: 
+                    offset = offset_standard.to(piunits).magnitude
+                    if offset != 0:
+                        print(offset)
+                        oper = f'-addc,{offset}'
+
+                    # for all the others
+                    else :
+                        factor = factor_standard.to(piunits).magnitude
+                        print(factor)
+                        oper = f'-mulc,{factor}'
+
+                except : 
+                    print("Assuming this as a precipitation field! Am I correct?")
+                    density_water = units('kg / m^3') * 1000
+                    factor = (factor_standard/density_water).to(piunits).magnitude
+                    oper = f'-mulc,{factor}'
             else:
                 oper = ''
 
