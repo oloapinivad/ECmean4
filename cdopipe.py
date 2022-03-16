@@ -90,6 +90,12 @@ class CdoPipe:
         else:
             self.chain('fldmean')
 
+    def convert(self, offset, factor):
+        if offset != 0 :
+            self.chain(f'addc,{offset}')
+        if factor !=0 :
+            self.chain(f'mulc,{factor}')
+
     def setname(self, var):
         self.chain(f'setname,{var}')
 

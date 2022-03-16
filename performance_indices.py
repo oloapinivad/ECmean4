@@ -17,9 +17,6 @@ import yaml
 import numpy as np
 from tabulate import tabulate
 from cdo import *
-from pathlib import Path
-from pint import UnitRegistry
-from metpy.units import units
 
 from functions import *
 from cdopipe import CdoPipe
@@ -49,12 +46,6 @@ def main(args):
     """Main performance indices calculation"""
 
     assert sys.version_info >= (3, 7)
-
-    # special units definition, need to be moved in another placce
-    units.define('fraction = [] = frac')
-    units.define('percent = 1e-2 frac = pct')
-    units.define('psu = 1e-3 frac')
-    units.define('ppm = 1e-6 fraction')
 
     expname = args.exp
     year1 = args.year1
@@ -146,16 +137,8 @@ def main(args):
             # unit conversion: from original data to data required by PI
             # using metpy avoid the definition of operations inside the dataset
             # use offset and factor separately (e.g. will not work with Fahrenait)
-
-            piunits = piclim[var]['units']
-
-            units_conversion = units_converter(varunit[var], piunits)
-
-            oper = ''
-            if units_conversion['offset'] != 0 :
-                oper = f'-addc,{units_conversion["offset"]}'
-            if units_conversion['factor'] != 1 : 
-                oper = f'-mulc,{units_conversion["factor"]}' 
+            # now in functions.py
+            units_conversion = units_converter(varunit[var], piclim[var]['units'])
 
             # extract info from pi_climatology.yml
             # reference dataset and reference varname
@@ -196,9 +179,9 @@ def main(args):
 
             cdop.fixgrid()
             cdop.timmean()
-
-            if oper:
-                cdop.chain(oper[1:]) # Hack to remove leading '-' - to be fixed
+            
+            # use convert() of cdopipe class to convert units
+            cdop.convert(units_conversion['offset'], units_conversion['factor'])
 
             # temporarily using remapbil instead of remapcon due to NEMO grid missing corner
             outfile = cdop.execute('remapbil', resolution)

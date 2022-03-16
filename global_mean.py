@@ -72,13 +72,17 @@ def main(args):
     #var_all = list(set(var_atm + var_table + var_oce))
     var_all = list(dict.fromkeys(var_atm + var_table + var_oce)) # python 3.7+, preserver order
 
-    # make sure all requested vars are available (use first year)
-    # first find all needed variables (including those needed for derived ones)
+    # check if required variables are there: use interface file
+    # check into first file, and load also model variable units
     isavail = {}
+    varunit = {}
     for var in var_all:
         infile = make_input_filename(
             ECEDIR, var, expname, year1, year1, face)
-        isavail = {**isavail, **vars_are_there(infile, [var], face)}
+        retavail, retunit = vars_are_there(infile, [var], face)
+        isavail = {**isavail, **retavail}
+        varunit = {**varunit, **retunit}
+
 
     # main loop
     varmean = {}
