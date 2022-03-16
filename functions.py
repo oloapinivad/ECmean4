@@ -4,9 +4,9 @@ import os.path
 import sys
 import yaml
 from cdo import Cdo
+
 cdo = Cdo()
 
-# small function to define if a number is a float 
 def is_number(s):
     """Check if input is a float type"""
     try:
@@ -23,7 +23,7 @@ def vars_are_there(infile, var_needed, reference):
 
     isavail = {}
     # if file exists, check which variables are inside
-    if os.path.isfile(infile) : 
+    if os.path.isfile(infile):
         var_avail = [v.split()[1] for v in cdo.pardes(input=infile)]
 
         # loop on vars
@@ -44,12 +44,12 @@ def vars_are_there(infile, var_needed, reference):
                 if x not in var_avail:
                     isavail[v] = False
                     print(f"Variable {x} needed by {v} is not available in the model output!")
-    else: 
-        for v in var_needed : 
+    else:
+        for v in var_needed :
             isavail[v] = False
     return isavail
 
-def load_config_file(indir): 
+def load_config_file(indir):
     """Load configuration file, once you have it!"""
     CONFIGFILE = str(indir / 'config.yml')
     if os.path.exists(CONFIGFILE):
@@ -61,6 +61,7 @@ def load_config_file(indir):
     return cfg
 
 def load_yaml(infile):
+    """Load generic yaml file"""
     with open(infile, 'r') as file:
         ref = yaml.load(file, Loader=yaml.FullLoader)
     return ref
@@ -92,4 +93,3 @@ def write_tuning_table(linefile, varmean, var_table, expname, year1, year2, face
         for var in var_table:
             print('{:12.5f}'.format(varmean[var] * ref[var].get('factor',1)), end=' ', file=f)
         print(file=f)
-

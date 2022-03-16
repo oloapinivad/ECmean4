@@ -1,19 +1,24 @@
 #!/usr/bin/env python3
+'''
+ python3 version of ECmean performance indices tool
+ Using a reference file from yaml and cdo bindings
 
-# This is a tentative python script to convert ECmean global mean operation to python3
-# It uses a reference file from yaml and cdo bindings (not very efficient)
+ @author Paolo Davini (p.davini@isac.cnr.it), 2022
+ @author Jost von Hardenberg (jost.hardenberg@polito.it), 2022
+'''
+
 
 import sys
 import os
+import re
+import argparse
+from pathlib import Path
 import yaml
 import numpy as np
-import argparse
 from tabulate import tabulate
 from cdo import *
-from pathlib import Path
 
-# import functions from functions.py
-import functions as fn
+from functions import *
 from cdopipe import CdoPipe
 
 cdo = Cdo()
@@ -38,6 +43,7 @@ def get_levels(infile):
 
 
 def main(args):
+    """Main performance indices calculation"""
 
     assert sys.version_info >= (3, 7)
 
@@ -50,7 +56,7 @@ def main(args):
     INDIR = Path(os.path.dirname(os.path.abspath(__file__)))
 
     # load - if exists - config file
-    cfg = fn.load_config_file(INDIR)
+    cfg = load_config_file(INDIR)
 
     # hard-coded resolution (due to climatological dataset)
     resolution = cfg['PI']['resolution']
@@ -67,7 +73,7 @@ def main(args):
     # prepare grid description file
     INIFILE = ECEDIR / f'ICMGG{expname}INIT'
     OCEINIFILE=cfg['areas']['oce']
- 
+
     # Init CdoPipe object to use in the following, specifying the LM and SM files
     #cdop = CdoPipe(debug=True)
     cdop = CdoPipe()
@@ -98,7 +104,7 @@ def main(args):
         face = yaml.load(file, Loader=yaml.FullLoader)
 
     # Load reference data
-    ref = fn.load_yaml('pi_climatology.yml')
+    ref = load_yaml('pi_climatology.yml')
 
     # defines the two varlist
     field_2d = cfg['PI']['2d_vars']['field']
@@ -111,9 +117,9 @@ def main(args):
     # check into first file
     isavail = {}
     for field in field_all:
-        infile = fn.make_input_filename(
+        infile = make_input_filename(
             ECEDIR, field, expname, year1, year1, face)
-        isavail = {**isavail, **fn.vars_are_there(infile, [field], face)}
+        isavail = {**isavail, **vars_are_there(infile, [field], face)}
 
     # main loop
     varstat = {}
@@ -126,12 +132,10 @@ def main(args):
             # Refresh cdo pipe and specify type of file (atm or oce)
             # Temporary hack ... wil need to be homeginized with global_mean
             # The type of model should be read from ref
-            if var in field_2d + field_3d : 
+            if var in field_2d + field_3d :
                 cdop.domain = 'atm'
-                model = 'oifs' 
-            else : 
+            else:
                 cdop.domain = 'oce'
-                model = 'nemo'
 
             # extract info from reference.yml
             dataref = ref[var]['dataset']
@@ -143,7 +147,7 @@ def main(args):
 
             cdop.start() # Start fresh pipe
 
-            # This leaves the input file undefined for now. It can be set later with 
+            # This leaves the input file undefined for now. It can be set later with
             # cdop.set_infile(infile) or by specifying input=infile cdop.execute
 
             # check if var is derived
@@ -165,9 +169,9 @@ def main(args):
             oper = ref[var]['oper']
             if oper:
                 cdop.chain(oper[1:]) # Hack to remove leading '-' - to be fixed
-    
+
             # create a file list using bash wildcards
-            infile = fn.make_input_filename(
+            infile = make_input_filename(
                 ECEDIR, var, expname, years_joined, '????', face)
 
             # temporarily using remapbil instead of remapcon due to NEMO grid missing corner
@@ -186,7 +190,7 @@ def main(args):
                 cdop.sub(clim)
                 cdop.sqr()
                 cdop.div(vvvv)
-                cdop.chain(f'vertmean -genlevelbounds,zbot=0,ztop=100000')
+                cdop.chain('vertmean -genlevelbounds,zbot=0,ztop=100000')
 
             else:
                 cdop.invertlat()

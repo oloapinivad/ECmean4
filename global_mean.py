@@ -23,6 +23,7 @@ from cdopipe import CdoPipe
 cdo = Cdo()
 
 def main(args):
+    """The main EC-mean4 code"""
 
     assert sys.version_info >= (3, 7)
 
@@ -39,7 +40,7 @@ def main(args):
     # config file (looks for it in the same dir as the .py program file
     INDIR = Path(os.path.dirname(os.path.abspath(__file__)))
     cfg = load_config_file(INDIR)
-    
+
     # define a few folders and create missing ones
     ECEDIR = Path(os.path.expandvars(cfg['dirs']['exp']), expname)
     TABDIR = Path(os.path.expandvars(cfg['dirs']['tab']))
@@ -58,7 +59,7 @@ def main(args):
     filename = 'reference.yml'
     with open(INDIR / filename, 'r') as file:
         ref = yaml.load(file, Loader=yaml.FullLoader)
-    
+ 
     # loading the var-to-file interface
     filename = 'interface_ece4.yml'
     with open(INDIR / filename, 'r') as file:

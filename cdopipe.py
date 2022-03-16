@@ -6,14 +6,14 @@
  @author Jost von Hardenberg (jost.hardenberg@polito.it), March 2022
 '''
 
-from cdo import Cdo, CdoTempfileStore
+import sys
 import tempfile
-import os
+from cdo import Cdo, CdoTempfileStore
 
 class CdoPipe:
     """A class to add commands in sequence to a cdo pipe"""
 
-    def __init__(self, tempdir=tempfile.gettempdir(), *args, **kwargs):
+    def __init__(self, *args, tempdir=tempfile.gettempdir(), **kwargs):
         """Initialize object pipe"""
         self.pipe = ''
         self.GRIDFILE = ''
@@ -24,6 +24,8 @@ class CdoPipe:
         self.TMPDIR = tempdir
         self.tempStore = CdoTempfileStore(dir = tempdir)
         self.cdo = Cdo(*args, **kwargs)
+        self.domain = ''
+        self.infile = ''
 
     def make_grids(self, atminifile, oceinifile):
         """Initialize some useful helper files"""
@@ -38,7 +40,9 @@ class CdoPipe:
                 print(line, file=f)
 
         # prepare ATM LSM
-        self.LMFILE = self.cdo.selname('LSM', input=f'-setgridtype,regular {atminifile}', options='-t ecmwf')
+        self.LMFILE = self.cdo.selname('LSM',
+                                       input=f'-setgridtype,regular {atminifile}',
+                                       options='-t ecmwf')
         self.SMFILE = self.cdo.mulc('-1', input=f'-subc,1 {self.LMFILE}')
         self.GAFILE = self.cdo.gridarea(input=f'-setgridtype,regular {self.LMFILE}')
 
@@ -49,11 +53,11 @@ class CdoPipe:
         """Adds a generic cdo operator"""
         self.pipe = '-' + cmd + ' ' + self.pipe
 
-    def domain(self, domain):
+    def setdomain(self, domain):
         """Specify variable domain: used to set needed grid manipulations"""
         self.domain = domain
 
-    def start(self, domain='', **kwargs):
+    def start(self, domain=''):
         """Cleans pipe for a new application"""
         # ocean variables require specifying grid areas
         # atm variables require fixing the grid
@@ -61,15 +65,18 @@ class CdoPipe:
             self.domain = domain
         self.pipe = '{infile}'
 
-    def fixgrid(self, domain='', **kwargs):
+    def fixgrid(self, domain=''):
         """Applies grid fixes, requires specifying the domain"""
         # ocean variables require specifying grid areas
         # atm variables require fixing the grid
 
+        if domain:
+            self.domain = domain
+
         if not self.GRIDFILE:
             sys.exit('Needed grid file not defined, call make_grids method first')
 
-        if(self.domain=='oce'):
+        if self.domain=='oce':
             self.pipe = f'-setgridarea,{self.OCEGAFILE} ' + self.pipe
         else:
             self.pipe = f'-setgridtype,regular -setgrid,{self.GRIDFILE} ' + self.pipe
@@ -112,14 +119,6 @@ class CdoPipe:
     def sqr(self):
         self.chain('sqr')
 
-#    def remapbil(self, res, infile):
-#        cmd = self.pipe.format(infile=infile)
-#        out = self.cdo.remapbil(res, input=cmd, output='/home/ccjh/ece4/tools/ECmean4/test.nc', debug=True)
-#
-#        print("Output of rmpb is:" , out)
-#        print("it does exist?: ", os.path.isfile(out))
-#        return out
-
     def sub(self, fname):
         self.pipe = '-sub ' + self.pipe + ' ' + fname
 
@@ -136,8 +135,9 @@ class CdoPipe:
         self.infile = infile
 
     def execute(self, cmd, *args, input='', keep=False, **kwargs):
-        fn = getattr(self.cdo, cmd) 
-        if not input: input = self.infile
+        fn = getattr(self.cdo, cmd)
+        if not input:
+            input = self.infile
         # print("EXE ",self.pipe)
         out = fn(input=self.pipe.format(infile=input), *args, **kwargs)
         if not keep:
@@ -146,4 +146,3 @@ class CdoPipe:
 
     def output(self, infile, **kwargs):
         return float(self.execute('output', input=infile, **kwargs)[0])
-
