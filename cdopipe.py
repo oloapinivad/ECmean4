@@ -93,7 +93,7 @@ class CdoPipe:
     def convert(self, offset, factor):
         if offset != 0 :
             self.chain(f'addc,{offset}')
-        if factor !=0 :
+        if factor != 1 :
             self.chain(f'mulc,{factor}')
 
     def setname(self, var):
