@@ -95,6 +95,22 @@ def main(args):
             # Refresh cdo pipe
             cdop.start()
 
+            # conversion
+            #print(var)
+            #print(varunit[var] + ' ---> ' + face[var]['units'])
+
+            # temporary function to adjust integrated quantities
+            new_units = units_are_integrals(varunit[var], ref[var])
+            #print(new_units)
+            units_conversion = units_converter(new_units, face[var]['units'])
+            #print(units_conversion)
+            #print('--------------')
+            # temporary hack to skip if conversion is not digested
+            if (units_conversion == 'error') :
+                #var_atm.remove(var)
+                var_oce.remove(var)
+                continue
+
             if 'derived' in face[var].keys():
                 cmd = face[var]['derived']
                 dervars = (",".join(re.findall("[a-zA-Z]+", cmd)))
@@ -119,7 +135,7 @@ def main(args):
                 x = cdop.output(infile, keep=True)
                 a.append(x)
 
-            varmean[var] = mean(a)
+            varmean[var] = (mean(a) + units_conversion['offset']) * units_conversion['factor']
             if ftrend:
                 vartrend[var] = np.polyfit(yrange, a, 1)[0]
             if fverb:
@@ -130,9 +146,9 @@ def main(args):
     for var in var_atm + var_oce:
         beta = face[var]
         gamma = ref[var]
-        beta['value'] = varmean[var] * float(gamma.get('factor', 1))
+        beta['value'] = varmean[var]
         if ftrend:
-            beta['trend'] = vartrend[var] * float(gamma.get('factor', 1))
+            beta['trend'] = vartrend[var]
             out_sequence = [var, beta['varname'], beta['units'], beta['value'],
                         beta['trend'],
                         float(gamma['observations']['val']),

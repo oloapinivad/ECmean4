@@ -111,6 +111,8 @@ def units_converter(org_units, tgt_units):
     units.define('percent = 1e-2 frac = pct')
     units.define('psu = 1e-3 frac')
     units.define('ppm = 1e-6 fraction')
+    units.define('Sv = 10e+9 m^3/s')
+    #units.define('_100y = 100 * years')
 
     units_relation = (units(org_units)/units(tgt_units)).to_base_units()
     if units_relation.magnitude != 1 :
@@ -132,12 +134,24 @@ def units_converter(org_units, tgt_units):
             factor = (factor_standard/density_water).to(tgt_units).magnitude
 
         else :
-             sys.exit("Units mismatch, this cannot be handled!")
+            print(units_relation)
+            print("Units mismatch, this cannot be handled!")
+            return('error')
+            #sys.exit("Units mismatch, this cannot be handled!")
     else:
         offset = 0.
         factor = 1.
 
     return {'offset': offset, 'factor': factor}
+
+def units_are_integrals(org_units, ref_var):
+    """Check functions for spatially integrated variables"""
+    if 'total' in ref_var.keys() :
+        new_units = str((units(org_units) * units('m^2')).units)
+        print(new_units)
+    else :
+        new_units = org_units
+    return new_units
 
 def write_tuning_table(linefile, varmean, var_table, expname, year1, year2, face, ref):
     """Write results appending one line to a text file.

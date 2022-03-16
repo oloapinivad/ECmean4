@@ -5,22 +5,22 @@ tas:
   filetype: atm_cmip6_1m 
 cll:
   varname: 'Low cloud cover'
-  units: '[0-1]'
+  units: ''
   component: oifs
   filetype: atm_cmip6_1m
 clm:
   varname: 'Medium cloud cover'
-  units: '[0-1]'
+  units: ''
   component: oifs
   filetype: atm_cmip6_1m
 clh:
   varname: 'High cloud cover'
-  units: '[0-1]'
+  units: ''
   component: oifs
   filetype: atm_cmip6_1m
 clt:
   varname: 'Total cloud cover'
-  units: '[0-1]'
+  units: ''
   component: oifs
   filetype: atm_cmip6_1m
 ta: 
@@ -55,7 +55,7 @@ pr:
   filetype: atm_cmip6_1m
 evspsbl:
   varname: Evaporation
-  units: m/s
+  units: mm/day
   component: oifs
   filetype: atm_cmip6_1m
 tauu: 
@@ -80,12 +80,12 @@ zos:
   filetype: oce_1m_T
 tos:
   varname: SST
-  units: C
+  units: degC
   component: nemo
   filetype: oce_1m_T
 siconc:
   varname: 'Sea-ice Concentration'
-  units: '[0-1]'
+  units: ''
   component: nemo
   filetype: ice_1m
 rsnt:
@@ -160,7 +160,7 @@ rlntcs:
   filetype: atm_cmip6_1m
 pme:
   varname: 'Precip. minus evap.'
-  units: m/s
+  units: mm/day
   derived: 'pr-evspsbl'
   component: oifs
   filetype: atm_cmip6_1m
@@ -178,7 +178,7 @@ lwcf:
   filetype: atm_cmip6_1m
 wfo:
   varname: 'Net Water Flux into ocean'
-  units: m/100y
+  units: m/100years
   component: nemo
   filetype: oce_1m_T
 pr_land:

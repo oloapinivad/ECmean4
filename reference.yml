@@ -9,34 +9,29 @@ psl:
     data: ERA5
     years: 1990-2019
 pr:
-  factor: 86400
   observations:
     val: 2.92552
     data: ERA5
     years: 1990-2019
 pr_land:
-  factor: 1e-9
   total: land
   observations:
     val: 3.82094
     data: ERA5
     years: 1990-2019
 pr_oce:
-  factor: 1e-9
   total: ocean
   observations:
     val: 13.4499
     data: ERA5
     years: 1990-2019
 pme_land:
-  factor: 1e-9
   total: land
   observations:
     val: 1.39091
     data: ERA5
     years: 1990-2019
 pme_oce:
-  factor: 1e-9
   total: ocean
   observations:
     val: -1.24691
@@ -49,25 +44,21 @@ evspsbl:
     data: ERA5
     years: 1990-2019
 cll:
-  factor: 0.01
   observations:
     val: 0.36627
     data: ERA5
     years: 1990-2019
 clm:
-  factor: 0.01
   observations:
     val: 0.247956
     data: ERA5
     years: 1990-2019
 clh:
-  factor: 0.01
   observations:
     val: 0.341018
     data: ERA5
     years: 1990-2019
 clt: 
-  factor: 0.01
   observations:
     val: 0.628433
     data: ERA5
@@ -99,12 +90,10 @@ rsns:
     val: 160
     data: 'Wild 2020'
 hfss:
-  factor: -1
   observations:
     val: -21
     data: 'Wild 2020'
 hfls:
-  factor: -1
   observations:
     val: -82
     data: 'Wild 2020'
@@ -160,6 +149,5 @@ zos:
   observations:
     val: 0
 wfo:
-  factor: -3155760
   observations:
     val: 0

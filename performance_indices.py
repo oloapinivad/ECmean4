@@ -138,7 +138,12 @@ def main(args):
             # using metpy avoid the definition of operations inside the dataset
             # use offset and factor separately (e.g. will not work with Fahrenait)
             # now in functions.py
+            #print(var)
+            #print(varunit[var] + ' ---> ' + piclim[var]['units'])
             units_conversion = units_converter(varunit[var], piclim[var]['units'])
+            #print(units_conversion)
+            #print('--------------')
+
 
             # extract info from pi_climatology.yml
             # reference dataset and reference varname
