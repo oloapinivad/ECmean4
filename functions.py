@@ -4,6 +4,7 @@ import os.path
 import sys
 import yaml
 from cdo import Cdo
+from metpy.units import units
 cdo = Cdo()
 
 # small function to define if a number is a float 
@@ -94,5 +95,39 @@ def make_input_filename(dr, var, expname, year1, year2, face):
     fname = dr / 'output' / face[var]['component'] / \
                 f'{expname}_{filetype}_{year1}-{year2}.nc'
     return str(fname)
+
+# use metpy/pint to provide factors for correction of units
+def units_converter(org_units, tgt_units):
+    """Units conversion using metpy and pint"""
+    """From a org_units convert to tgt_units providing offset and factor"""
+    """Some assumptions are done for precipitation field: must be extended to other vars"""
+    """It will not work if BOTH factor and offset are required"""
+    units_relation = (units(org_units)/units(tgt_units)).to_base_units()
+    if units_relation.magnitude != 1 :
+        print('Unit converson required...')
+        offset_standard = 0 * units(org_units)
+        factor_standard = 1 * units(org_units)
+        if units_relation.units == units('dimensionless'):    
+            offset = offset_standard.to(tgt_units).magnitude
+            if offset == 0:
+                factor = factor_standard.to(tgt_units).magnitude
+            else :
+                factor = 1.
+
+        elif units_relation.units == units('kg / m^3') :     
+            print("Assuming this as a precipitation field! Am I correct?")
+            print("Dividing by water density...")
+            density_water = units('kg / m^3') * 1000
+            offset = 0.
+            factor = (factor_standard/density_water).to(tgt_units).magnitude
+
+        else :
+             sys.exit("Units mismatch, this cannot be handled!")
+    else:
+        offset = 0.
+        factor = 1.
+
+    return {'offset': offset, 'factor': factor}
+
 
 

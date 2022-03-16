@@ -121,31 +121,17 @@ def main(args):
 
             # unit conversion: from original data to data required by PI
             # using metpy avoid the definition of operations inside the dataset
+            # use offset and factor separately (e.g. will not work with Fahrenait)
+
             piunits = piclim[var]['units']
 
-            if units(varunit[var]) != units(piunits) : 
-                print(var+'... Unit converson required')
-                offset_standard = 0 * units(varunit[var])
-                factor_standard = 1 * units(varunit[var])
-                try: 
-                    offset = offset_standard.to(piunits).magnitude
-                    if offset != 0:
-                        print(offset)
-                        oper = f'-addc,{offset}'
+            units_conversion = fn.units_converter(varunit[var], piunits)
 
-                    # for all the others
-                    else :
-                        factor = factor_standard.to(piunits).magnitude
-                        print(factor)
-                        oper = f'-mulc,{factor}'
-
-                except : 
-                    print("Assuming this as a precipitation field! Am I correct?")
-                    density_water = units('kg / m^3') * 1000
-                    factor = (factor_standard/density_water).to(piunits).magnitude
-                    oper = f'-mulc,{factor}'
-            else:
-                oper = ''
+            oper = ''
+            if units_conversion['offset'] != 0 :
+                oper = f'-addc,{units_conversion["offset"]}'
+            if units_conversion['factor'] != 1 : 
+                oper = f'-mulc,{units_conversion["factor"]}' 
 
             # extract info from pi_climatology.yml
             # reference dataset and reference varname
