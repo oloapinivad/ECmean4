@@ -178,7 +178,7 @@ lwcf:
   filetype: atm_cmip6_1m
 wfo:
   varname: 'Net Water Flux into ocean'
-  units: m/100years
+  units: m/century
   component: nemo
   filetype: oce_1m_T
 pr_land:

@@ -112,7 +112,6 @@ def units_converter(org_units, tgt_units):
     units.define('psu = 1e-3 frac')
     units.define('ppm = 1e-6 fraction')
     units.define('Sv = 10e+9 m^3/s')
-    #units.define('_100y = 100 * years')
 
     units_relation = (units(org_units)/units(tgt_units)).to_base_units()
     if units_relation.magnitude != 1 :
