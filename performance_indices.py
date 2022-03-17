@@ -77,14 +77,14 @@ def main(args):
     # Init CdoPipe object to use in the following, specifying the LM and SM files
     #cdop = CdoPipe(debug=True)
     cdop = CdoPipe()
-    cdop.make_grids(INIFILE, OCEINIFILE)
+    cdop.make_grids(INIFILE, OCEINIFILE, extra=f'-invertlat -remapcon2,{resolution}')
 
     # land-sea masks on regular 2x2 grid
-    ocean_mask = cdo.setctomiss(0,
-                                input=f'-ltc,0.5 -invertlat -remapcon2,{resolution} '
-                                f'-setgridtype,regular -setgrid,{cdop.GRIDFILE} '
-                                f'-selcode,172 {INIFILE}', options='-f nc')
-    land_mask = cdo.addc(1, input=f'-setctomiss,1 -setmisstoc,0 {ocean_mask}')
+    #ocean_mask = cdo.setctomiss(0,
+    #                            input=f'-ltc,0.5 -invertlat -remapcon2,{resolution} '
+    #                            f'-setgridtype,regular -setgrid,{cdop.GRIDFILE} '
+    #                            f'-selcode,172 {INIFILE}', options='-f nc')
+    #land_mask = cdo.addc(1, input=f'-setctomiss,1 -setmisstoc,0 {ocean_mask}')
 
     # trick to avoid the loop on years
     # define required years with a {year1,year2} and then use cdo select feature
@@ -199,9 +199,9 @@ def main(args):
                 # apply masks when needed
                 # this is a hack for now
                 if ref[var]['mask'] == 'land':
-                    cdop.mul(land_mask)
+                    cdop.mul(cdop.LMFILE)
                 elif ref[var]['mask'] == 'ocean':
-                    cdop.mul(ocean_mask)
+                    cdop.mul(cdop.SMFILE)
 
                 cdop.setname(var)
 
