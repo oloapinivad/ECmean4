@@ -2,83 +2,77 @@ tas:
   dataset: CRU
   oper: "-subc,273.15" 
   dataname : t2m
-  domain: land
-  filetype: 1m
+  mask: land
   cmip3: 25.13
 psl: 
   dataset: COADS
   oper: "-divc,100"
   dataname : msl
-  domain: global
-  filetype: 1m
+  mask: global
   cmip3: 11.69
 pr:
   dataset: CMAP
   oper: "-mulc,86400"
   dataname : tp
-  domain: global
-  filetype: 1m
+  mask: global
   cmip3: 38.87
 tauu:
   dataset: DASILVA
   oper: ""
   dataname : ewss
-  domain: ocean
-  filetype: 1m
+  mask: ocean
   cmip3: 4.03
 tauv:
   dataset: DASILVA
   oper: ""
   dataname : nsss
-  domain: ocean
-  filetype: 1m
+  mask: ocean
   cmip3: 3.10
 ua: 
   dataset: ERA40
   oper: ""
   dataname : U_zonal
-  domain: global
-  filetype: pl_1m
+  mask: global
   cmip3: 12.07
 va:
   dataset: ERA40
   oper: ""
   dataname : V_zonal
-  domain: global
-  filetype: pl_1m
+  mask: global
   cmip3: 8.25
 ta:
   dataset: ERA40
   oper: ""
   dataname : T_zonal
-  domain: global
-  filetype: pl_1m
+  mask: global
   cmip3: 38.89
 hus:
   dataset: ERA40
   oper: ""
   dataname : Q_zonal
-  domain: global
-  filetype: pl_1m
+  mask: global
   cmip3: 29.41
 tos: 
   dataset: GISS
   oper: ""
   dataname : SST
-  domain: ocean
-  filetype: 1m
+  mask: ocean
   cmip3: 17.21
 sos: 
   dataset: levitus
   oper: ""
   dataname : SSS
-  domain: ocean
-  filetype: 1m
+  mask: ocean
   cmip3: 0.22
-sic: 
+siconc: 
   dataset: GISS
   oper: ""
   dataname : SICE
-  domain: ocean
-  filetype: 1m
+  mask: ocean
   cmip3: 0.34
+net_sfc: 
+  dataset: OAFLUX
+  oper: ""
+  dataname: qnet
+  mask : ocean
+  cmip3: 14.24

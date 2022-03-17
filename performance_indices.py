@@ -1,27 +1,51 @@
 #!/usr/bin/env python3
+'''
+ python3 version of ECmean performance indices tool
+ Using a reference file from yaml and cdo bindings
 
-# This is a tentative python script to convert ECmean global mean operation to python3
-# It uses a reference file from yaml and cdo bindings (not very efficient)
+ @author Paolo Davini (p.davini@isac.cnr.it), 2022
+ @author Jost von Hardenberg (jost.hardenberg@polito.it), 2022
+'''
+
 
 import sys
 import os
+import re
+import argparse
+from pathlib import Path
 import yaml
 import numpy as np
-import argparse
 from tabulate import tabulate
-from statistics import mean
 from cdo import *
-from pathlib import Path
 
-# import functions from functions.py
-import functions as fn
+from functions import *
+from cdopipe import CdoPipe
+
+cdo = Cdo()
+
+def get_levels(infile):
+    """Extract vertical levels from file,
+       including Pa conversion"""
+
+    # extract the vertical levels from the file
+    vlevels = cdo.showlevel(input=infile)
+
+    # perform multiple string manipulation to produce a Pa list of levels
+    v0 = ''.join(vlevels).split()
+    v1 = [int(x) for x in v0]
+
+    # if the grid is hPa, move to Pa (there might be a better solution)
+    if np.max(v1) < 10000:
+        v1 = [x * 100 for x in v1]
+
+    # format for CDO, converting to string
+    return ' '.join(str(x) for x in v1).replace(' ', ',')
 
 
 def main(args):
+    """Main performance indices calculation"""
 
-    assert sys.version_info >= (3, 5)
-
-    cdo = Cdo()
+    assert sys.version_info >= (3, 7)
 
     expname = args.exp
     year1 = args.year1
@@ -29,37 +53,38 @@ def main(args):
     fverb = not args.silent
 
     # config file (looks for it in the same dir as the .py program file
-    indir = Path(os.path.dirname(os.path.abspath(__file__)))
-    with open(indir / 'config.yml', 'r') as file:
-        cfg = yaml.load(file, Loader=yaml.FullLoader)
+    INDIR = Path(os.path.dirname(os.path.abspath(__file__)))
+
+    # load - if exists - config file
+    cfg = load_config_file(INDIR)
 
     # hard-coded resolution (due to climatological dataset)
     resolution = cfg['PI']['resolution']
 
     # folder definition
     ECEDIR = Path(os.path.expandvars(cfg['dirs']['exp']), expname)
-    TABDIR = Path(os.path.expandvars(cfg['dirs']['tab']), 'ECmean4', 'table')
+    TABDIR = Path(os.path.expandvars(cfg['dirs']['tab']))
     CLMDIR = Path(os.path.expandvars(cfg['dirs']['clm']), resolution)
     TMPDIR = Path(os.path.expandvars(cfg['dirs']['tmp']))
     os.makedirs(TABDIR, exist_ok=True)
 
     #cdo.forceOutput = True
-    # cdo.debug = True
 
     # prepare grid description file
-    icmgg_file = ECEDIR / f'ICMGG{expname}INIT'
-    gridfile = str(TMPDIR / f'grid_{expname}.txt')
-    griddes = cdo.griddes(input=f'{icmgg_file}')
-    with open(gridfile, 'w') as f:
-        for line in griddes:
-            print(line, file=f)
+    INIFILE = ECEDIR / f'ICMGG{expname}INIT'
+    OCEINIFILE=cfg['areas']['oce']
 
-    # land-sea masks
-    ocean_mask = cdo.setctomiss( 0,
-        input=f'-ltc,0.5 -invertlat -remapcon2,{resolution} ' \
-              f'-setgridtype,regular -setgrid,{gridfile} ' \
-              f'-selcode,172 {icmgg_file}', options='-f nc')
-    land_mask = cdo.addc( 1, input=f'-setctomiss,1 -setmisstoc,0 {ocean_mask}') 
+    # Init CdoPipe object to use in the following, specifying the LM and SM files
+    #cdop = CdoPipe(debug=True)
+    cdop = CdoPipe()
+    cdop.make_grids(INIFILE, OCEINIFILE)
+
+    # land-sea masks on regular 2x2 grid
+    ocean_mask = cdo.setctomiss(0,
+                                input=f'-ltc,0.5 -invertlat -remapcon2,{resolution} '
+                                f'-setgridtype,regular -setgrid,{cdop.GRIDFILE} '
+                                f'-selcode,172 {INIFILE}', options='-f nc')
+    land_mask = cdo.addc(1, input=f'-setctomiss,1 -setmisstoc,0 {ocean_mask}')
 
     # trick to avoid the loop on years
     # define required years with a {year1,year2} and then use cdo select feature
@@ -70,110 +95,123 @@ def main(args):
     if len(years_list) > 1:
         years_joined = '{' + years_joined + '}'
 
-    if fverb: print(years_joined)
+    if fverb:
+        print(years_joined)
 
-    # reference data: it is badly written but it can be implemented in a much more intelligent
-    # and modular way
-    filename = 'pi_climatology.yml'
-    with open(filename, 'r') as file:
-        ref = yaml.load(file, Loader=yaml.FullLoader)
+    # loading the var-to-file interface
+    filename = 'interface_ece4.yml'
+    with open(INDIR / filename, 'r') as file:
+        face = yaml.load(file, Loader=yaml.FullLoader)
+
+    # Load reference data
+    ref = load_yaml('pi_climatology.yml')
 
     # defines the two varlist
     field_2d = cfg['PI']['2d_vars']['field']
     field_3d = cfg['PI']['3d_vars']['field']
     field_oce = cfg['PI']['oce_vars']['field']
-    field_all = field_2d + field_3d + field_oce
+    field_ice = cfg['PI']['ice_vars']['field']
+    field_all = field_2d + field_3d + field_oce + field_ice
 
-    # check if required vars are available in the output
-    # create a filename from the first year
-    INFILE_2D = str(ECEDIR / 'output/oifs' / f'{expname}_atm_cmip6_1m_{year1}-{year1}.nc')
-    INFILE_3D = str(ECEDIR / 'output/oifs' / f'{expname}_atm_cmip6_pl_1m_{year1}-{year1}.nc')
-    INFILE_OCE = str(ECEDIR / 'output/nemo' / f'{expname}_oce_cmip6_1m_{year1}-{year1}.nc')
-    #isavail_2d=fn.vars_are_there(INFILE_2D, field_2d, ref)
-    #isavail_3d=fn.vars_are_there(INFILE_3D, field_3d, ref)
-    #isavail_oce=fn.vars_are_there(INFILE_OCE, field_oce, ref)
-    #isavail={**isavail_2d, **isavail_3d, **isavail_oce}
-
-    # alternative method with loop
-    isavail={}
-    for a,b in zip([INFILE_2D, INFILE_3D, INFILE_OCE], [field_2d, field_3d, field_oce]) : 
-        isavail={**isavail, **fn.vars_are_there(a,b,ref)}
+    # check if required variables are there: use interface file
+    # check into first file
+    isavail = {}
+    for field in field_all:
+        infile = make_input_filename(
+            ECEDIR, field, expname, year1, year1, face)
+        isavail = {**isavail, **vars_are_there(infile, [field], face)}
 
     # main loop
     varstat = {}
-    for var in field_all :
+    for var in field_all:
 
-        if not isavail[var] : 
+        if not isavail[var]:
             varstat[var] = float('NaN')
         else:
 
             # extract info from reference.yml
-            oper = ref[var]['oper']
             dataref = ref[var]['dataset']
             dataname = ref[var]['dataname']
-            filetype = ref[var]['filetype']
 
-            # file names
-            infile = str(ECEDIR / 'output/oifs' / \
-                f'{expname}_atm_cmip6_{filetype}_{years_joined}-????.nc')
+            # get files for climatology
             clim = str(CLMDIR / f'climate_{dataref}_{dataname}.nc')
             vvvv = str(CLMDIR / f'variance_{dataref}_{dataname}.nc')
 
-            # apply masks when needed
-            if ref[var]['domain'] == 'land':
-                mask = f'-mul {land_mask}'
-            elif ref[var]['domain'] == 'ocean':
-                mask = f'-mul {ocean_mask}'
-            elif ref[var]['domain'] == 'global':
-                mask = ''
+            # create a file list using bash wildcards
+            infile = make_input_filename(
+                ECEDIR, var, expname, years_joined, '????', face)
 
-            # timmean and remap
-            cmd1 = f'-timmean -setgridtype,regular -setgrid,{gridfile} -select,name={var} {infile}'
-            outfile = cdo.remapcon2(resolution, input=cmd1)
+            # Start fresh pipe
+            # This leaves the input file undefined for now. It can be set later with
+            # cdop.set_infile(infile) or by specifying input=infile cdop.execute
+            cdop.start() 
+
+             # set domain making use component key from interface file
+            cdop.setdomain(face[var]['component'])
+
+            # set input file
+            cdop.set_infile(infile)
+
+            # check if var is derived
+            # if this is the case, get the derived expression and select
+            # the set of variables you need
+            # otherwise, use only select (this avoid loop)
+            # WARNING: it may scale badly with high-resolution centennial runs
+            if 'derived' in face[var].keys():
+                cmd = face[var]['derived']
+                dervars = (",".join(re.findall("[a-zA-Z]+", cmd)))
+                cdop.selectname(dervars)
+                cdop.expr(var, cmd)
+            else:
+                cdop.selectname(var)
+
+            cdop.fixgrid()
+            cdop.timmean()
+
+            oper = ref[var]['oper']
+            if oper:
+                cdop.chain(oper[1:]) # Hack to remove leading '-' - to be fixed
+
+            # temporarily using remapbil instead of remapcon due to NEMO grid missing corner
+            outfile = cdop.execute('remapbil', resolution)
 
             if var in field_3d:
 
                 # special treatment which includes vertical interpolation
-                # and extraction of pressure weights
 
                 # extract the vertical levels from the file
-                vlevels = cdo.showlevel(input=f'{clim}')
+                format_vlevels = get_levels(clim)
 
-                # perform multiple string manipulation to produce a Pa list of levels
-                v0 = ''.join(vlevels).split()
-                v1 = [int(x) for x in v0]
+                cdop.chain(f'intlevelx,{format_vlevels}')
+                cdop.zonmean()
+                cdop.invertlat()
+                cdop.sub(clim)
+                cdop.sqr()
+                cdop.div(vvvv)
+                cdop.chain('vertmean -genlevelbounds,zbot=0,ztop=100000')
 
-                # if the grid is hPa, move to Pa (there might be a better solution)
-                if np.max(v1) < 10000:
-                    v1 = [x * 100 for x in v1]
-
-                # compute level weights (numpy is not that smart, or it's me?)
-                half_levels = np.convolve(v1, np.ones(2)/2, mode='valid')
-                args = (np.array([0]), half_levels, np.array([100000]))
-                level_weights = np.diff(np.concatenate(args))
-
-                # format for CDO, converting to string
-                format_vlevels = ' '.join(str(x) for x in v1).replace(' ', ',')
-
-                # assign the vertical command for interpolation and zonal mean
-                cmd_vertical = f'-zonmean -intlevelx,{format_vlevels}'
             else:
-                cmd_vertical = ''
+                cdop.invertlat()
+                cdop.sub(clim)
+                cdop.sqr()
+                cdop.div(vvvv)
 
-            # compute the PI
-            cmd2 = f'-setname,{var} {mask} -div -sqr -sub -invertlat {cmd_vertical} {oper} {outfile} {clim} {vvvv}'
-            x = np.squeeze(cdo.fldmean(input=cmd2, returnCdf=True).variables[var])
+                # apply masks when needed
+                # this is a hack for now
+                if ref[var]['mask'] == 'land':
+                    cdop.mul(land_mask)
+                elif ref[var]['mask'] == 'ocean':
+                    cdop.mul(ocean_mask)
 
-            # deprecated: pre-estimated weights from previous version of ECmean (climatology dependent!)
-            #level_weights = np.array([30, 45, 75, 100, 100, 100, 150, 175, 112.5, 75, 37.5])
+                cdop.setname(var)
 
-            # weighted average
-            if var in field_3d:
-                x = np.average(x, weights=level_weights)
+            x = np.squeeze(cdop.execute('fldmean', input=outfile,
+                                        returnCdf=True).variables[var])
 
             # store the PI
             varstat[var] = float(x)
-            if fverb: print('PI for ', var, varstat[var])
+            if fverb:
+                print('PI for ', var, varstat[var])
 
     # define options for the output table
     head = ['Var', 'PI', 'Domain', 'Dataset', 'CMIP3', 'Ratio to CMIP3']
@@ -181,7 +219,7 @@ def main(args):
 
     # loop on the variables
     for var in field_all:
-        out_sequence = [var, varstat[var], ref[var]['domain'], ref[var]
+        out_sequence = [var, varstat[var], ref[var]['mask'], ref[var]
                         ['dataset'], ref[var]['cmip3'], varstat[var]/ref[var]['cmip3']]
         global_table.append(out_sequence)
 
@@ -191,14 +229,16 @@ def main(args):
 
     # write the file  with tabulate: cool python feature
     tablefile = TABDIR / f'PI4_RK08_{expname}_{year1}_{year2}.txt'
-    if fverb: print(tablefile)
+    if fverb:
+        print(tablefile)
     with open(tablefile, 'w') as f:
         f.write(tabulate(global_table, headers=head, tablefmt='orgtbl'))
         f.write('\n\nPartial PI (atm only) is   : ' + str(partial_pi))
         f.write('\nTotal Performance Index is : ' + str(total_pi))
 
-    os.unlink(gridfile)
-    cdo.cleanTempDir()
+    # Make sure al temp files have been removed
+    cdop.cdo.cleanTempDir()
+
 
 if __name__ == '__main__':
 
