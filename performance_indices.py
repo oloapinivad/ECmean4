@@ -140,7 +140,14 @@ def main(args):
             # now in functions.py
             #print(var)
             #print(varunit[var] + ' ---> ' + piclim[var]['units'])
-            units_conversion = units_converter(varunit[var], piclim[var]['units'])
+            # adjust integrated quantities
+            new_units = units_are_integrals(varunit[var], piclim[var])
+
+            # unit conversion
+            units_conversion = units_converter(new_units, piclim[var]['units'])
+
+            # sign adjustment (for heat fluxes)
+            units_conversion['factor'] = units_conversion['factor'] * units_are_down(piclim[var])
             #print(units_conversion)
             #print('--------------')
 

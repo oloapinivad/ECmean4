@@ -96,9 +96,8 @@ def main(args):
             cdop.start()
 
             # conversion
-            print(var)
-            print(varunit[var] + ' ---> ' + ref[var]['units'])
-
+            #print(var)
+            #print(varunit[var] + ' ---> ' + ref[var]['units'])
             # adjust integrated quantities
             new_units = units_are_integrals(varunit[var], ref[var])
             
@@ -107,9 +106,8 @@ def main(args):
 
             # sign adjustment (for heat fluxes)
             units_conversion['factor'] = units_conversion['factor'] * units_are_down(ref[var]) 
-
-            print(units_conversion)
-            print('--------------')
+            #print(units_conversion)
+            #print('--------------')
 
             if 'derived' in face[var].keys():
                 cmd = face[var]['derived']

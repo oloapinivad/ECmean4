@@ -60,7 +60,7 @@ def vars_are_there(infile, var_needed, reference):
                 if u : 
                     isunit[v] = u
                 else :
-                    print('WARNING:' + v +  ' is a derived var, assuming unit as the first of its term')
+                    #print('WARNING:' + v +  ' is a derived var, assuming unit as the first of its term')
                     isunit[v] = var_avail[var_req[0]]
 
                 # remove numbers
@@ -123,9 +123,9 @@ def units_converter(org_units, tgt_units):
     units.define('Sv = 1e+9 m^3/s')
 
     units_relation = (units(org_units)/units(tgt_units)).to_base_units()
-    print(units_relation)
+    #print(units_relation)
     if units_relation.magnitude != 1 :
-        print('Unit converson required...')
+        #print('Unit converson required...')
         offset_standard = 0 * units(org_units)
         factor_standard = 1 * units(org_units)
         if units_relation.units == units('dimensionless'):    
@@ -136,8 +136,8 @@ def units_converter(org_units, tgt_units):
                 factor = 1.
 
         elif units_relation.units == units('kg / m^3') :     
-            print("Assuming this as a water flux! Am I correct?")
-            print("Dividing by water density...")
+            #print("Assuming this as a water flux! Am I correct?")
+            #print("Dividing by water density...")
             density_water = units('kg / m^3') * 1000
             offset = 0.
             factor = (factor_standard/density_water).to(tgt_units).magnitude
@@ -155,7 +155,7 @@ def units_are_integrals(org_units, ref_var):
     """Check functions for spatially integrated variables"""
     if 'total' in ref_var.keys() :
         new_units = str((units(org_units) * units('m^2')).units)
-        print(new_units)
+        #print(new_units)
     else :
         new_units = org_units
     return new_units
