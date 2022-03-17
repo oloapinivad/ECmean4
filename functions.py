@@ -54,7 +54,16 @@ def vars_are_there(infile, var_needed, reference):
             # if variable is derived, extract required vars
             if d:
                 var_req = re.split('[*+-]', d)
-                isunit[v] = var_avail[var_req[0]]
+                
+                # check of unit is specified in the interface file
+                u = reference[v].get('units')
+                if u : 
+                    isunit[v] = u
+                else :
+                    print('WARNING:' + v +  ' is a derived var, assuming unit as the first of its term')
+                    isunit[v] = var_avail[var_req[0]]
+
+                # remove numbers
                 for x in var_req:
                     if is_number(x):
                         var_req.remove(x)

@@ -102,7 +102,7 @@ def main(args):
             # temporary function to adjust integrated quantities
             new_units = units_are_integrals(varunit[var], ref[var])
             #print(new_units)
-            units_conversion = units_converter(new_units, face[var]['units'])
+            units_conversion = units_converter(new_units, ref[var]['units'])
             #print(units_conversion)
             #print('--------------')
             # temporary hack to skip if conversion is not digested
@@ -149,13 +149,13 @@ def main(args):
         beta['value'] = varmean[var]
         if ftrend:
             beta['trend'] = vartrend[var]
-            out_sequence = [var, beta['varname'], beta['units'], beta['value'],
+            out_sequence = [var, beta['varname'], gamma['units'], beta['value'],
                         beta['trend'],
                         float(gamma['observations']['val']),
                         gamma['observations'].get('data',''),
                         gamma['observations'].get('years','')]
         else:
-            out_sequence = [var, beta['varname'], beta['units'], beta['value'],
+            out_sequence = [var, beta['varname'], gamma['units'], beta['value'],
                         float(gamma['observations']['val']),
                         gamma['observations'].get('data',''),
                         gamma['observations'].get('years','')]
