@@ -41,10 +41,10 @@ class CdoPipe:
                 print(line, file=f)
 
         # prepare ATM LSM
-        fix = '-setgridtype,regular -setgrid,{self.GRIDFILE}'
+        fix = f'-setgridtype,regular -setgrid,{self.GRIDFILE}'
         self.LMFILE = self.cdo.selname('LSM',
                                        input=f'-gec,0.5 {fix} {atminifile}',
-                                       options='-t ecmwf')
+                                       options='-t ecmwf -f nc')
         self.SMFILE = self.cdo.mulc('-1', input=f'-subc,1 {self.LMFILE}')
         self.GAFILE = self.cdo.gridarea(input=f'{self.LMFILE}')
 
