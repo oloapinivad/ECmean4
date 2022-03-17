@@ -56,7 +56,7 @@ def main(args):
     cdop.make_grids(INIFILE, OCEINIFILE)
 
     # load reference data
-    filename = 'reference.yml'
+    filename = 'gm_reference.yml'
     with open(INDIR / filename, 'r') as file:
         ref = yaml.load(file, Loader=yaml.FullLoader)
  
@@ -96,20 +96,20 @@ def main(args):
             cdop.start()
 
             # conversion
-            #print(var)
-            #print(varunit[var] + ' ---> ' + face[var]['units'])
+            print(var)
+            print(varunit[var] + ' ---> ' + ref[var]['units'])
 
-            # temporary function to adjust integrated quantities
+            # adjust integrated quantities
             new_units = units_are_integrals(varunit[var], ref[var])
-            #print(new_units)
+            
+            # unit conversion
             units_conversion = units_converter(new_units, ref[var]['units'])
-            #print(units_conversion)
-            #print('--------------')
-            # temporary hack to skip if conversion is not digested
-            if (units_conversion == 'error') :
-                #var_atm.remove(var)
-                var_oce.remove(var)
-                continue
+
+            # sign adjustment (for heat fluxes)
+            units_conversion['factor'] = units_conversion['factor'] * units_are_down(ref[var]) 
+
+            print(units_conversion)
+            print('--------------')
 
             if 'derived' in face[var].keys():
                 cmd = face[var]['derived']

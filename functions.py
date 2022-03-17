@@ -135,7 +135,7 @@ def units_converter(org_units, tgt_units):
                 factor = 1.
 
         elif units_relation.units == units('kg / m^3') :     
-            print("Assuming this as a precipitation field! Am I correct?")
+            print("Assuming this as a water flux! Am I correct?")
             print("Dividing by water density...")
             density_water = units('kg / m^3') * 1000
             offset = 0.
@@ -143,9 +143,7 @@ def units_converter(org_units, tgt_units):
 
         else :
             print(units_relation)
-            print("Units mismatch, this cannot be handled!")
-            return('error')
-            #sys.exit("Units mismatch, this cannot be handled!")
+            sys.exit("Units mismatch, this cannot be handled!")
     else:
         offset = 0.
         factor = 1.
@@ -160,6 +158,15 @@ def units_are_integrals(org_units, ref_var):
     else :
         new_units = org_units
     return new_units
+
+def units_are_down(reference):
+    """Check function for fluxes direction: everything should be downward"""
+    direction = reference.get('direction')
+    if direction == 'up' :
+        direction = -1.
+    else :
+        direction = 1.
+    return direction
 
 def write_tuning_table(linefile, varmean, var_table, expname, year1, year2, face, ref):
     """Write results appending one line to a text file.
