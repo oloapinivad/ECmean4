@@ -81,7 +81,16 @@ class CdoPipe:
         elif self.domain=='oifs':
             self.pipe = f'-setgridtype,regular -setgrid,{self.GRIDFILE} ' + self.pipe
 
-    def masked_mean(self, mask_type):
+    def mask(self, mask_type):
+        if not self.LMFILE:
+            sys.exit('Needed grid file not defined, call make_grids method first')
+
+        if mask_type == 'land':
+            self.mul(self.LMFILE)
+        elif mask_type in ['sea', 'ocean']:
+            self.mul(self.SMFILE)
+
+    def masked_meansum(self, mask_type):
         if not self.LMFILE:
             sys.exit('Needed grid file not defined, call make_grids method first')
 

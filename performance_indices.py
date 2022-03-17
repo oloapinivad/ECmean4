@@ -195,15 +195,7 @@ def main(args):
                 cdop.sub(clim)
                 cdop.sqr()
                 cdop.div(vvvv)
-
-                # apply masks when needed
-                # this is a hack for now
-                if ref[var]['mask'] == 'land':
-                    cdop.mul(cdop.LMFILE)
-                elif ref[var]['mask'] == 'ocean':
-                    cdop.mul(cdop.SMFILE)
-
-                cdop.setname(var)
+                cdop.mask(ref[var]['mask'])
 
             x = np.squeeze(cdop.execute('fldmean', input=outfile,
                                         returnCdf=True).variables[var])

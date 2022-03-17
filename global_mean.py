@@ -104,7 +104,7 @@ def main(args):
             cdop.fixgrid()
 
             # land/sea variables
-            cdop.masked_mean(ref[var].get('total','global'))
+            cdop.masked_meansum(ref[var].get('total','global'))
             cdop.timmean()
 
             a = []
