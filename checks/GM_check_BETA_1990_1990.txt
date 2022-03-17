@@ -7,10 +7,10 @@ Average clt 65.8215
 Average cll 37.8462
 Average clm 25.4738
 Average clh 39.6163
-Average pr_oce 13582100000.0
-Average pme_oce -1090300000.0
-Average pr_land 3336300000.0
-Average pme_land 982010000.0
+Average pr_oce 13579600000.0
+Average pme_oce -1116260000.0
+Average pr_land 3338780000.0
+Average pme_land 1007970000.0
 Average net_toa 0.76131
 Average rsnt 240.018
 Average rlnt -239.257
