@@ -8,7 +8,6 @@
  @author Jost von Hardenberg (jost.hardenberg@polito.it), 2022
 '''
 
-
 import sys
 import os
 import re
@@ -18,29 +17,10 @@ import numpy as np
 from tabulate import tabulate
 from cdo import Cdo
 
-from functions import vars_are_there, load_yaml, make_input_filename
+from functions import vars_are_there, load_yaml, make_input_filename, get_levels
 from cdopipe import CdoPipe
 
 cdo = Cdo()
-
-def get_levels(infile):
-    """Extract vertical levels from file,
-       including Pa conversion"""
-
-    # extract the vertical levels from the file
-    vlevels = cdo.showlevel(input=infile)
-
-    # perform multiple string manipulation to produce a Pa list of levels
-    v0 = ''.join(vlevels).split()
-    v1 = [int(x) for x in v0]
-
-    # if the grid is hPa, move to Pa (there might be a better solution)
-    if np.max(v1) < 10000:
-        v1 = [x * 100 for x in v1]
-
-    # format for CDO, converting to string
-    return ' '.join(str(x) for x in v1).replace(' ', ',')
-
 
 def main(args):
     """Main performance indices calculation"""

@@ -6,9 +6,28 @@ import re
 import os.path
 import sys
 import yaml
+import numpy as np
 from cdo import Cdo
 
 cdo = Cdo()
+
+def get_levels(infile):
+    """Extract vertical levels from file,
+       including Pa conversion"""
+
+    # extract the vertical levels from the file
+    vlevels = cdo.showlevel(input=infile)
+
+    # perform multiple string manipulation to produce a Pa list of levels
+    v0 = ''.join(vlevels).split()
+    v1 = [int(x) for x in v0]
+
+    # if the grid is hPa, move to Pa (there might be a better solution)
+    if np.max(v1) < 10000:
+        v1 = [x * 100 for x in v1]
+
+    # format for CDO, converting to string
+    return ' '.join(str(x) for x in v1).replace(' ', ',')
 
 def is_number(s):
     """Check if input is a float type"""
