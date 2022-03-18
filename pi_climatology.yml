@@ -12,31 +12,31 @@ psl:
   cmip3: 11.69
 pr:
   dataset: CMAP
-  units: mm/day
+  units: 'mm/day'
   dataname : tp
   mask: global
   cmip3: 38.87
 tauu:
   dataset: DASILVA
-  units: N/m^2
+  units: 'N/m^2'
   dataname : ewss
   mask: ocean
   cmip3: 4.03
 tauv:
   dataset: DASILVA
-  units: N/m^2
+  units: 'N/m^2'
   dataname : nsss
   mask: ocean
   cmip3: 3.10
 ua: 
   dataset: ERA40
-  units: m/s
+  units: 'm/s'
   dataname : U_zonal
   mask: global
   cmip3: 12.07
 va:
   dataset: ERA40
-  units: m/s
+  units: 'm/s'
   dataname : V_zonal
   mask: global
   cmip3: 8.25

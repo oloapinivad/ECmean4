@@ -1,16 +1,16 @@
 Average tas 287.709
 Average psl 101114.0
-Average pr 3.31692e-05
-Average evspsbl 3.33815e-05
-Average pme -2.1231e-07
-Average clt 65.8215
-Average cll 37.8462
-Average clm 25.4738
-Average clh 39.6163
-Average pr_oce 13582100000.0
-Average pme_oce -1090300000.0
-Average pr_land 3336300000.0
-Average pme_land 982010000.0
+Average pr 2.86581888
+Average evspsbl 2.8841616
+Average pme -0.018343584
+Average clt 0.658215
+Average cll 0.378462
+Average clm 0.254738
+Average clh 0.39616300000000004
+Average pr_oce 13.579600000000001
+Average pme_oce -1.11626
+Average pr_land 3.3387800000000003
+Average pme_land 1.00797
 Average net_toa 0.76131
 Average rsnt 240.018
 Average rlnt -239.257
@@ -29,6 +29,6 @@ Average toamsfc 0.288135
 Average tos 18.9061
 Average sos 34.4368
 Average zos 0.00120878
-Average wfo 4.46369e-07
+Average wfo 1.40863343544
 /ec/res4/scratch/ccpd/ece4/ECmean4/table/global_mean_BETA_1990_1990.txt
 /ec/res4/scratch/ccpd/ece4/ECmean4/table/global_means.txt
