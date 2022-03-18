@@ -16,9 +16,9 @@ import argparse
 from pathlib import Path
 import numpy as np
 from tabulate import tabulate
-from cdo import *
+from cdo import Cdo
 
-from functions import *
+from functions import vars_are_there, load_yaml, make_input_filename
 from cdopipe import CdoPipe
 
 cdo = Cdo()

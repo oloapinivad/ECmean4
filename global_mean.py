@@ -10,13 +10,14 @@
 
 import os
 import sys
+import re
 import argparse
 from statistics import mean
 from pathlib import Path
 from tabulate import tabulate
 import numpy as np
 from cdo import Cdo
-from functions import *
+from functions import vars_are_there, load_yaml, make_input_filename, write_tuning_table
 from cdopipe import CdoPipe
 
 cdo = Cdo()
@@ -142,18 +143,20 @@ def main(args):
 
     # write the file with tabulate: cool python feature
     tablefile = TABDIR / f'global_mean_{expname}_{year1}_{year2}.txt'
-    if fverb: print(tablefile)
-    with open(tablefile, 'w') as f:
+    if fverb:
+        print(tablefile)
+    with open(tablefile, 'w', encoding='utf-8') as f:
         f.write(tabulate(global_table, headers=head, tablefmt='orgtbl'))
 
     # Print appending one line to table (for tuning)
     linefile = TABDIR / 'global_means.txt'
-    if fverb: print(linefile)
+    if fverb:
+        print(linefile)
     if args.output:
         linefile = args.output
         ftable = True
     if ftable:
-        write_tuning_table(linefile, varmean, var_table, expname, year1, year2, ref)
+        write_tuning_table(linefile, varmean, var_table, expname, year1, year2, face, ref)
 
     # clean
     cdop.cdo.cleanTempDir()

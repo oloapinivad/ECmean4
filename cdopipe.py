@@ -23,7 +23,7 @@ class CdoPipe:
         self.GAFILE = ''
         self.OCEGAFILE = ''
         self.TMPDIR = tempdir
-        self.tempStore = CdoTempfileStore(dir = tempdir)
+        self.tempstore = CdoTempfileStore(dir = tempdir)
         self.cdo = Cdo(*args, **kwargs)
         self.domain = ''
         self.infile = ''
@@ -31,12 +31,11 @@ class CdoPipe:
     def make_grids(self, atminifile, oceinifile, extra=''):
         """Initialize some useful helper files"""
 
-        self.GRIDFILE = self.tempStore.newFile()
-        #self.GRIDFILE=str(self.TMPDIR / f'grid.txt')
+        self.GRIDFILE = self.tempstore.newFile()
 
         griddes = self.cdo.griddes(input=str(atminifile))
 
-        with open(self.GRIDFILE, 'w') as f:
+        with open(self.GRIDFILE, 'w', encoding='utf-8') as f:
             for line in griddes:
                 print(line, file=f)
 
@@ -73,8 +72,8 @@ class CdoPipe:
 
         if not self.GRIDFILE:
             sys.exit('Needed grid file not defined, call make_grids method first')
-        if not self.domain : 
-            sys.exit('Needed to define a domain with setdomain() method first') 
+        if not self.domain :
+            sys.exit('Needed to define a domain with setdomain() method first')
 
         if self.domain=='nemo':
             self.pipe = f'-setgridarea,{self.OCEGAFILE} ' + self.pipe

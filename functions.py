@@ -1,4 +1,7 @@
 #!/usr/bin/env python3
+'''
+Shared functions for ECmean4
+'''
 import re
 import os.path
 import sys
@@ -54,7 +57,7 @@ def load_yaml(infile):
     try:
         with open(infile, 'r', encoding='utf-8') as file:
             cfg = yaml.load(file, Loader=yaml.FullLoader)
-    except:
+    except IOError:
         sys.exit(f'{infile} not found: you need to have this configuration file!')
     return cfg
 
@@ -71,7 +74,7 @@ def write_tuning_table(linefile, varmean, var_table, expname, year1, year2, face
        Write a tuning table: need to fix reference to face/ref"""
 
     if not os.path.isfile(linefile):
-        with open(linefile, 'w') as f:
+        with open(linefile, 'w', encoding='utf-8') as f:
             print('%exp from   to ', end='', file=f)
             for var in var_table:
                 print('{:>12s}'.format(var), end=' ', file=f)
@@ -80,7 +83,7 @@ def write_tuning_table(linefile, varmean, var_table, expname, year1, year2, face
                 print('{:>12s}'.format(face[var]['units']), end=' ', file=f)
             print(file=f)
 
-    with open(linefile, 'a') as f:
+    with open(linefile, 'a', encoding='utf-8') as f:
         print(expname,'{:4d} {:4d} '.format(year1, year2), end='', file=f)
         for var in var_table:
             print('{:12.5f}'.format(varmean[var] * ref[var].get('factor',1)), end=' ', file=f)
