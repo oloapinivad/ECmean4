@@ -19,6 +19,7 @@ import numpy as np
 from cdo import Cdo
 from functions import *
 from cdopipe import CdoPipe
+import logging
 
 cdo = Cdo()
 
@@ -72,6 +73,9 @@ def main(args):
     #var_all = list(set(var_atm + var_table + var_oce))
     var_all = list(dict.fromkeys(var_atm + var_table + var_oce)) # python 3.7+, preserver order
 
+    # add missing unit definition
+    units_extra_definition(units)
+
     # check if required variables are there: use interface file
     # check into first file, and load also model variable units
     isavail = {}
@@ -95,9 +99,10 @@ def main(args):
             # Refresh cdo pipe
             cdop.start()
 
-            # conversion
-            #print(var)
-            #print(varunit[var] + ' ---> ' + ref[var]['units'])
+            # conversion debug
+            logging.debug(var)
+            logging.debug(varunit[var] + ' ---> ' + ref[var]['units'])
+
             # adjust integrated quantities
             new_units = units_are_integrals(varunit[var], ref[var])
             
@@ -106,8 +111,9 @@ def main(args):
 
             # sign adjustment (for heat fluxes)
             units_conversion['factor'] = units_conversion['factor'] * units_are_down(ref[var]) 
-            #print(units_conversion)
-            #print('--------------')
+
+            # conversion debug
+            logging.debug(units_conversion)
 
             if 'derived' in face[var].keys():
                 cmd = face[var]['derived']
@@ -200,6 +206,16 @@ if __name__ == "__main__":
                     help='path of output one-line table')
     parser.add_argument('-m', '--model', type=str, default='EC-Earth4',
                     help='model name')
+    parser.add_argument('-v', '--loglevel', type=str, default='ERROR',
+                    help='define the level of logging. default: error')
     args = parser.parse_args()
+
+    # log level with logging
+    # currently basic definition trought the text
+    loglevel = args.loglevel.upper()
+    numeric_level = getattr(logging, loglevel.upper(), None)
+    if not isinstance(numeric_level, int):
+        raise ValueError('Invalid log level: %s' % loglevel)
+    logging.basicConfig(level=numeric_level)
 
     main(args)

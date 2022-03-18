@@ -17,6 +17,7 @@ import yaml
 import numpy as np
 from tabulate import tabulate
 from cdo import *
+import logging
 
 from functions import *
 from cdopipe import CdoPipe
@@ -86,6 +87,9 @@ def main(args):
                                 f'-selcode,172 {INIFILE}', options='-f nc')
     land_mask = cdo.addc(1, input=f'-setctomiss,1 -setmisstoc,0 {ocean_mask}')
 
+    # add missing unit definition
+    units_extra_definition(units)
+
     # trick to avoid the loop on years
     # define required years with a {year1,year2} and then use cdo select feature
     years_list = [str(element) for element in range(year1, year2+1)]
@@ -138,8 +142,8 @@ def main(args):
             # using metpy avoid the definition of operations inside the dataset
             # use offset and factor separately (e.g. will not work with Fahrenait)
             # now in functions.py
-            #print(var)
-            #print(varunit[var] + ' ---> ' + piclim[var]['units'])
+            logging.debug(var)
+            logging.debug(varunit[var] + ' ---> ' + piclim[var]['units'])
             # adjust integrated quantities
             new_units = units_are_integrals(varunit[var], piclim[var])
 
@@ -148,9 +152,7 @@ def main(args):
 
             # sign adjustment (for heat fluxes)
             units_conversion['factor'] = units_conversion['factor'] * units_are_down(piclim[var])
-            #print(units_conversion)
-            #print('--------------')
-
+            logging.debug(units_conversion)
 
             # extract info from pi_climatology.yml
             # reference dataset and reference varname
@@ -273,6 +275,16 @@ if __name__ == '__main__':
     parser.add_argument('year2', metavar='Y2', type=int, help='final year')
     parser.add_argument('-s', '--silent', action='store_true',
                         help='do not print anything to std output')
+    parser.add_argument('-v', '--loglevel', type=str, default='ERROR',
+                    help='define the level of logging. default: error')
     args = parser.parse_args()
+
+    # log level with logging
+    # currently basic definition trought the text
+    loglevel = args.loglevel.upper()
+    numeric_level = getattr(logging, loglevel.upper(), None)
+    if not isinstance(numeric_level, int):
+        raise ValueError('Invalid log level: %s' % loglevel)
+    logging.basicConfig(level=numeric_level)
 
     main(args)

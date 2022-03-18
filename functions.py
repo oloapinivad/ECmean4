@@ -5,6 +5,7 @@ import sys
 import yaml
 from cdo import Cdo
 from metpy.units import units
+import logging
 
 cdo = Cdo()
 
@@ -60,7 +61,7 @@ def vars_are_there(infile, var_needed, reference):
                 if u : 
                     isunit[v] = u
                 else :
-                    #print('WARNING:' + v +  ' is a derived var, assuming unit as the first of its term')
+                    logging.warning(v +  ' is a derived var, assuming unit as the first of its term')
                     isunit[v] = var_avail[var_req[0]]
 
                 # remove numbers
@@ -76,7 +77,7 @@ def vars_are_there(infile, var_needed, reference):
                 if x not in var_avail:
                     isavail[v] = False
                     isunit[v] = None
-                    print(f"Variable {x} needed by {v} is not available in the model output!")
+                    loggin.warning(f"Variable {x} needed by {v} is not available in the model output!")
     else:
         for v in var_needed :
             isavail[v] = False
@@ -108,6 +109,14 @@ def make_input_filename(dr, var, expname, year1, year2, face):
                 f'{expname}_{filetype}_{year1}-{year2}.nc'
     return str(fname)
 
+def units_extra_definition(units) :
+    """Add units to the pint registry required by ECMean4"""
+    
+    # special units definition, need to be moved in another placce
+    units.define('fraction = [] = frac')
+    units.define('psu = 1e-3 frac')
+    units.define('Sv = 1e+9 m^3/s') # Replace Sievert with Sverdrup
+
 # use metpy/pint to provide factors for correction of units
 def units_converter(org_units, tgt_units):
     """Units conversion using metpy and pint"""
@@ -115,17 +124,10 @@ def units_converter(org_units, tgt_units):
     """Some assumptions are done for precipitation field: must be extended to other vars"""
     """It will not work if BOTH factor and offset are required"""
 
-    # special units definition, need to be moved in another placce
-    units.define('fraction = [] = frac')
-    units.define('percent = 1e-2 frac = pct')
-    units.define('psu = 1e-3 frac')
-    units.define('ppm = 1e-6 fraction')
-    units.define('Sv = 1e+9 m^3/s')
-
     units_relation = (units(org_units)/units(tgt_units)).to_base_units()
-    #print(units_relation)
+    logging.debug(units_relation)
     if units_relation.magnitude != 1 :
-        #print('Unit converson required...')
+        logging.info('Unit converson required...')
         offset_standard = 0 * units(org_units)
         factor_standard = 1 * units(org_units)
         if units_relation.units == units('dimensionless'):    
@@ -136,14 +138,14 @@ def units_converter(org_units, tgt_units):
                 factor = 1.
 
         elif units_relation.units == units('kg / m^3') :     
-            #print("Assuming this as a water flux! Am I correct?")
-            #print("Dividing by water density...")
+            logging.debug("Assuming this as a water flux! Am I correct?")
+            logging.debug("Dividing by water density...")
             density_water = units('kg / m^3') * 1000
             offset = 0.
             factor = (factor_standard/density_water).to(tgt_units).magnitude
 
         else :
-            print(units_relation)
+            logging.error(units_relation)
             sys.exit("Units mismatch, this cannot be handled!")
     else:
         offset = 0.
@@ -155,7 +157,6 @@ def units_are_integrals(org_units, ref_var):
     """Check functions for spatially integrated variables"""
     if 'total' in ref_var.keys() :
         new_units = str((units(org_units) * units('m^2')).units)
-        #print(new_units)
     else :
         new_units = org_units
     return new_units
