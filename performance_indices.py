@@ -63,7 +63,7 @@ def main(args):
 
     # folder definition
     ECEDIR = Path(os.path.expandvars(cfg['dirs']['exp']), expname)
-    TABDIR = Path(os.path.expandvars(cfg['dirs']['tab']), 'ECmean4', 'table')
+    TABDIR = Path(os.path.expandvars(cfg['dirs']['tab']))
     CLMDIR = Path(os.path.expandvars(cfg['dirs']['clm']), resolution)
     TMPDIR = Path(os.path.expandvars(cfg['dirs']['tmp']))
     os.makedirs(TABDIR, exist_ok=True)
