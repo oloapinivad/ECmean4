@@ -11,6 +11,7 @@ import sys
 import tempfile
 from cdo import Cdo, CdoTempfileStore
 
+
 class CdoPipe:
     """A class to add commands in sequence to a cdo pipe"""
 
@@ -23,7 +24,7 @@ class CdoPipe:
         self.GAFILE = ''
         self.OCEGAFILE = ''
         self.TMPDIR = tempdir
-        self.tempstore = CdoTempfileStore(dir = tempdir)
+        self.tempstore = CdoTempfileStore(dir=tempdir)
         self.cdo = Cdo(*args, **kwargs)
         self.domain = ''
         self.infile = ''
@@ -72,12 +73,12 @@ class CdoPipe:
 
         if not self.GRIDFILE:
             sys.exit('Needed grid file not defined, call make_grids method first')
-        if not self.domain :
+        if not self.domain:
             sys.exit('Needed to define a domain with setdomain() method first')
 
-        if self.domain=='nemo':
+        if self.domain == 'nemo':
             self.pipe = f'-setgridarea,{self.OCEGAFILE} ' + self.pipe
-        elif self.domain=='oifs':
+        elif self.domain == 'oifs':
             self.pipe = f'-setgridtype,regular -setgrid,{self.GRIDFILE} ' + self.pipe
 
     def mask(self, mask_type):
@@ -149,7 +150,7 @@ class CdoPipe:
         # print("EXE ",self.pipe)
         out = fn(input=self.pipe.format(infile=input), *args, **kwargs)
         if not keep:
-            self.start() # clear pipe
+            self.start()  # clear pipe
         return out
 
     def output(self, infile, **kwargs):

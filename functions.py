@@ -11,6 +11,7 @@ from cdo import Cdo
 
 cdo = Cdo()
 
+
 def get_levels(infile):
     """Extract vertical levels from file,
        including Pa conversion"""
@@ -29,6 +30,7 @@ def get_levels(infile):
     # format for CDO, converting to string
     return ' '.join(str(x) for x in v1).replace(' ', ',')
 
+
 def is_number(s):
     """Check if input is a float type"""
     try:
@@ -36,6 +38,7 @@ def is_number(s):
         return True
     except ValueError:
         return False
+
 
 def vars_are_there(infile, var_needed, reference):
     """Check if a list of variables is available in the input file.
@@ -67,9 +70,10 @@ def vars_are_there(infile, var_needed, reference):
                     isavail[v] = False
                     print(f"Variable {x} needed by {v} is not available in the model output!")
     else:
-        for v in var_needed :
+        for v in var_needed:
             isavail[v] = False
     return isavail
+
 
 def load_yaml(infile):
     """Load generic yaml file"""
@@ -80,13 +84,15 @@ def load_yaml(infile):
         sys.exit(f'{infile} not found: you need to have this configuration file!')
     return cfg
 
+
 def make_input_filename(dr, var, expname, year1, year2, face):
     """Create input filenames for the required variable and a given year"""
 
     filetype = face[var]['filetype']
     fname = dr / 'output' / face[var]['component'] / \
-                f'{expname}_{filetype}_{year1}-{year2}.nc'
+        f'{expname}_{filetype}_{year1}-{year2}.nc'
     return str(fname)
+
 
 def write_tuning_table(linefile, varmean, var_table, expname, year1, year2, face, ref):
     """Write results appending one line to a text file.
@@ -103,7 +109,7 @@ def write_tuning_table(linefile, varmean, var_table, expname, year1, year2, face
             print(file=f)
 
     with open(linefile, 'a', encoding='utf-8') as f:
-        print(expname,'{:4d} {:4d} '.format(year1, year2), end='', file=f)
+        print(expname, '{:4d} {:4d} '.format(year1, year2), end='', file=f)
         for var in var_table:
-            print('{:12.5f}'.format(varmean[var] * ref[var].get('factor',1)), end=' ', file=f)
+            print('{:12.5f}'.format(varmean[var] * ref[var].get('factor', 1)), end=' ', file=f)
         print(file=f)

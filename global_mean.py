@@ -17,10 +17,12 @@ from pathlib import Path
 from tabulate import tabulate
 import numpy as np
 from cdo import Cdo
-from functions import vars_are_there, load_yaml, make_input_filename, write_tuning_table
+from functions import vars_are_there, load_yaml, \
+                      make_input_filename, write_tuning_table
 from cdopipe import CdoPipe
 
 cdo = Cdo()
+
 
 def main(args):
     """The main EC-mean4 code"""
@@ -34,7 +36,7 @@ def main(args):
     ftable = args.line
     ftrend = args.trend
     modelname = args.model
-    if year1 == year2: # Ignore if only one year requested
+    if year1 == year2:  # Ignore if only one year requested
         ftrend = False
 
     # config file (looks for it in the same dir as the .py program file
@@ -47,8 +49,8 @@ def main(args):
     os.makedirs(TABDIR, exist_ok=True)
 
     # prepare grid description file
-    INIFILE=str(ECEDIR / f'ICMGG{expname}INIT')
-    OCEINIFILE=cfg['areas']['oce']
+    INIFILE = str(ECEDIR / f'ICMGG{expname}INIT')
+    OCEINIFILE = cfg['areas']['oce']
 
     # Init CdoPipe object to use in the following, specifying the LM and SM files
     cdop = CdoPipe()
@@ -64,8 +66,8 @@ def main(args):
     var_atm = cfg['global']['atm_vars']
     var_oce = cfg['global']['oce_vars']
     var_table = cfg['global']['tab_vars']
-    #var_all = list(set(var_atm + var_table + var_oce))
-    var_all = list(dict.fromkeys(var_atm + var_table + var_oce)) # python 3.7+, preserver order
+    # var_all = list(set(var_atm + var_table + var_oce))
+    var_all = list(dict.fromkeys(var_atm + var_table + var_oce))  # python 3.7+, preserve order
 
     # make sure all requested vars are available (use first year)
     # first find all needed variables (including those needed for derived ones)
@@ -99,14 +101,14 @@ def main(args):
             cdop.fixgrid()
 
             # land/sea variables
-            cdop.masked_meansum(ref[var].get('total','global'))
+            cdop.masked_meansum(ref[var].get('total', 'global'))
             cdop.timmean()
 
             a = []
             # loop on years: call CDO to perform all the computations
             yrange = range(year1, year2+1)
             for year in yrange:
-                infile =  make_input_filename(ECEDIR, var, expname, year, year, face)
+                infile = make_input_filename(ECEDIR, var, expname, year, year, face)
                 x = cdop.output(infile, keep=True)
                 a.append(x)
 
@@ -125,15 +127,15 @@ def main(args):
         if ftrend:
             beta['trend'] = vartrend[var] * float(gamma.get('factor', 1))
             out_sequence = [var, beta['varname'], beta['units'], beta['value'],
-                        beta['trend'],
-                        float(gamma['observations']['val']),
-                        gamma['observations'].get('data',''),
-                        gamma['observations'].get('years','')]
+                            beta['trend'],
+                            float(gamma['observations']['val']),
+                            gamma['observations'].get('data', ''),
+                            gamma['observations'].get('years', '')]
         else:
             out_sequence = [var, beta['varname'], beta['units'], beta['value'],
-                        float(gamma['observations']['val']),
-                        gamma['observations'].get('data',''),
-                        gamma['observations'].get('years','')]
+                            float(gamma['observations']['val']),
+                            gamma['observations'].get('data', ''),
+                            gamma['observations'].get('years', '')]
         global_table.append(out_sequence)
 
     if ftrend:
@@ -170,15 +172,15 @@ if __name__ == "__main__":
     parser.add_argument('year1', metavar='Y1', type=int, help='starting year')
     parser.add_argument('year2', metavar='Y2', type=int, help='final year')
     parser.add_argument('-s', '--silent', action='store_true',
-                    help='do not print anything to std output')
+                        help='do not print anything to std output')
     parser.add_argument('-t', '--trend', action='store_true',
-                    help='compute trends')
+                        help='compute trends')
     parser.add_argument('-l', '--line', action='store_true',
-                    help='appends also single line to a table')
+                        help='appends also single line to a table')
     parser.add_argument('-o', '--output', metavar='FILE', type=str, default='',
-                    help='path of output one-line table')
+                        help='path of output one-line table')
     parser.add_argument('-m', '--model', type=str, default='EC-Earth4',
-                    help='model name')
+                        help='model name')
     args = parser.parse_args()
 
     main(args)

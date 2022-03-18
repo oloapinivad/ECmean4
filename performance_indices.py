@@ -22,6 +22,7 @@ from cdopipe import CdoPipe
 
 cdo = Cdo()
 
+
 def main(args):
     """Main performance indices calculation"""
 
@@ -47,14 +48,14 @@ def main(args):
     CLMDIR = Path(os.path.expandvars(cfg['dirs']['clm']), resolution)
     os.makedirs(TABDIR, exist_ok=True)
 
-    #cdo.forceOutput = True
+    # cdo.forceOutput = True
 
     # prepare grid description file
     INIFILE = ECEDIR / f'ICMGG{expname}INIT'
-    OCEINIFILE=cfg['areas']['oce']
+    OCEINIFILE = cfg['areas']['oce']
 
     # Init CdoPipe object to use in the following, specifying the LM and SM files
-    #cdop = CdoPipe(debug=True)
+    # cdop = CdoPipe(debug=True)
     cdop = CdoPipe()
     cdop.make_grids(INIFILE, OCEINIFILE, extra=f'-invertlat -remapcon2,{resolution}')
 
@@ -116,7 +117,7 @@ def main(args):
             # cdop.set_infile(infile) or by specifying input=infile cdop.execute
             cdop.start()
 
-             # set domain making use component key from interface file
+            # set domain making use component key from interface file
             cdop.setdomain(face[var]['component'])
 
             # set input file
@@ -140,7 +141,7 @@ def main(args):
 
             oper = ref[var]['oper']
             if oper:
-                cdop.chain(oper[1:]) # Hack to remove leading '-' - to be fixed
+                cdop.chain(oper[1:])  # Hack to remove leading '-' - to be fixed
 
             # temporarily using remapbil instead of remapcon due to NEMO grid missing corner
             outfile = cdop.execute('remapbil', resolution)
