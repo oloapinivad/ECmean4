@@ -77,7 +77,7 @@ def vars_are_there(infile, var_needed, reference):
                 if x not in var_avail:
                     isavail[v] = False
                     isunit[v] = None
-                    loggin.warning(f"Variable {x} needed by {v} is not available in the model output!")
+                    logging.warning(f"Variable {x} needed by {v} is not available in the model output!")
     else:
         for v in var_needed :
             isavail[v] = False
