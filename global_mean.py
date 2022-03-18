@@ -13,7 +13,6 @@ import sys
 import argparse
 from statistics import mean
 from pathlib import Path
-import yaml
 from tabulate import tabulate
 import numpy as np
 from cdo import Cdo
@@ -39,12 +38,11 @@ def main(args):
 
     # config file (looks for it in the same dir as the .py program file
     INDIR = Path(os.path.dirname(os.path.abspath(__file__)))
-    cfg = load_config_file(INDIR)
+    cfg = load_yaml(INDIR / 'config.yml')
 
     # define a few folders and create missing ones
     ECEDIR = Path(os.path.expandvars(cfg['dirs']['exp']), expname)
     TABDIR = Path(os.path.expandvars(cfg['dirs']['tab']))
-    TMPDIR = Path(os.path.expandvars(cfg['dirs']['tmp']))
     os.makedirs(TABDIR, exist_ok=True)
 
     # prepare grid description file
@@ -56,14 +54,10 @@ def main(args):
     cdop.make_grids(INIFILE, OCEINIFILE)
 
     # load reference data
-    filename = 'reference.yml'
-    with open(INDIR / filename, 'r') as file:
-        ref = yaml.load(file, Loader=yaml.FullLoader)
- 
+    ref = load_yaml(INDIR / 'reference.yml')
+
     # loading the var-to-file interface
-    filename = 'interface_ece4.yml'
-    with open(INDIR / filename, 'r') as file:
-        face = yaml.load(file, Loader=yaml.FullLoader)
+    face = load_yaml(INDIR / 'interface_ece4.yml')
 
     # list of vars on which to work
     var_atm = cfg['global']['atm_vars']

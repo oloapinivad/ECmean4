@@ -49,22 +49,14 @@ def vars_are_there(infile, var_needed, reference):
             isavail[v] = False
     return isavail
 
-def load_config_file(indir):
-    """Load configuration file, once you have it!"""
-    CONFIGFILE = str(indir / 'config.yml')
-    if os.path.exists(CONFIGFILE):
-        with open(CONFIGFILE, 'r') as file:
-            cfg = yaml.load(file, Loader=yaml.FullLoader)
-    else:
-        sys.exit('config.yml not found: you need to have a configuration file!')
-
-    return cfg
-
 def load_yaml(infile):
     """Load generic yaml file"""
-    with open(infile, 'r') as file:
-        ref = yaml.load(file, Loader=yaml.FullLoader)
-    return ref
+    try:
+        with open(infile, 'r', encoding='utf-8') as file:
+            cfg = yaml.load(file, Loader=yaml.FullLoader)
+    except:
+        sys.exit(f'{infile} not found: you need to have this configuration file!')
+    return cfg
 
 def make_input_filename(dr, var, expname, year1, year2, face):
     """Create input filenames for the required variable and a given year"""
