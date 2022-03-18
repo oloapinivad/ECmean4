@@ -152,7 +152,7 @@ swcf:
   varname: 'SW CRE'
   derived: 'rsnt-rsntcs'
   component: oifs
-  filetype: atm_cmip6_1m\
+  filetype: atm_cmip6_1m
   direction: down
 lwcf:
   varname: 'LW CRE'
