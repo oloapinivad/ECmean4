@@ -115,7 +115,7 @@ def units_extra_definition(units) :
     # special units definition, need to be moved in another placce
     units.define('fraction = [] = frac')
     units.define('psu = 1e-3 frac')
-    units.define('Sv = 1e+9 m^3/s') # Replace Sievert with Sverdrup
+    units.define('Sv = 1e+6 m^3/s') # Replace Sievert with Sverdrup
 
 # use metpy/pint to provide factors for correction of units
 def units_converter(org_units, tgt_units):
