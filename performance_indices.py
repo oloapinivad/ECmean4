@@ -51,13 +51,20 @@ def main(args):
     # cdo.forceOutput = True
 
     # prepare grid description file
-    INIFILE = ECEDIR / f'ICMGG{expname}INIT'
+    ATMINIFILE = ECEDIR / f'ICMGG{expname}INIT'
     OCEINIFILE = cfg['areas']['oce']
 
     # Init CdoPipe object to use in the following, specifying the LM and SM files
     # cdop = CdoPipe(debug=True)
     cdop = CdoPipe()
-    cdop.make_grids(INIFILE, OCEINIFILE, extra=f'-invertlat -remapcon2,{resolution}')
+    
+    # new bunch of functions to set grids, create correction command, masks and areas
+    cdop.set_grids(ATMINIFILE, OCEINIFILE)
+    cdop.set_fixgrid('oifs', 'nemo')
+    cdop.make_masks(ATMINIFILE, extra=f'-invertlat -remapcon2,{resolution}')
+    cdop.make_grids_areas(ATMINIFILE, OCEINIFILE)
+
+    #cdop.make_grids(ATMINIFILE, OCEINIFILE, extra=f'-invertlat -remapcon2,{resolution}')
 
     # trick to avoid the loop on years
     # define required years with a {year1,year2} and then use cdo select feature

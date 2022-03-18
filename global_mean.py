@@ -49,12 +49,18 @@ def main(args):
     os.makedirs(TABDIR, exist_ok=True)
 
     # prepare grid description file
-    INIFILE = str(ECEDIR / f'ICMGG{expname}INIT')
+    ATMINIFILE = str(ECEDIR / f'ICMGG{expname}INIT')
     OCEINIFILE = cfg['areas']['oce']
 
     # Init CdoPipe object to use in the following, specifying the LM and SM files
     cdop = CdoPipe()
-    cdop.make_grids(INIFILE, OCEINIFILE)
+
+    # new bunch of functions to set grids, create correction command, masks and areas
+    cdop.set_grids(ATMINIFILE, OCEINIFILE)
+    cdop.set_fixgrid('oifs', 'nemo')
+    cdop.make_masks(ATMINIFILE)
+    cdop.make_grids_areas(ATMINIFILE, OCEINIFILE)
+    #cdop.make_grids(ATMINIFILE, OCEINIFILE)
 
     # load reference data
     ref = load_yaml(INDIR / 'reference.yml')
