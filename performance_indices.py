@@ -66,7 +66,6 @@ def main(args):
     ECEDIR = Path(os.path.expandvars(cfg['dirs']['exp']), expname)
     TABDIR = Path(os.path.expandvars(cfg['dirs']['tab']))
     CLMDIR = Path(os.path.expandvars(cfg['dirs']['clm']), resolution)
-    TMPDIR = Path(os.path.expandvars(cfg['dirs']['tmp']))
     os.makedirs(TABDIR, exist_ok=True)
 
     #cdo.forceOutput = True

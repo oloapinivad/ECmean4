@@ -45,7 +45,6 @@ def main(args):
     # define a few folders and create missing ones
     ECEDIR = Path(os.path.expandvars(cfg['dirs']['exp']), expname)
     TABDIR = Path(os.path.expandvars(cfg['dirs']['tab']))
-    TMPDIR = Path(os.path.expandvars(cfg['dirs']['tmp']))
     os.makedirs(TABDIR, exist_ok=True)
 
     # prepare grid description file
