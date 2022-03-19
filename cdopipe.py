@@ -188,12 +188,12 @@ class CdoPipe:
         fn = getattr(self.cdo, cmd)
         if not input:
             input = self.infile
-        # print("EXE ",self.pipe)
+        logging.debug(f'called cdop.execute with: {self.pipe}')
         out = fn(input=self.pipe.format(infile=input), *args, **kwargs)
         if not keep:
             self.start()  # clear pipe
         return out
 
     def output(self, infile, **kwargs):
-        # print("OUT ",self.pipe)
+        logging.debug(f'call cdop.output with: {self.pipe}')
         return float(self.execute('output', input=infile, **kwargs)[0])

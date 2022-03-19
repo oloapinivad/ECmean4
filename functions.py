@@ -188,10 +188,10 @@ def units_are_down(reference):
     """Check function for fluxes direction: everything should be downward"""
     direction = reference.get('direction')
     if direction == 'up' :
-        direction = -1.
+        factor = -1.
     else :
-        direction = 1.
-    return direction
+        factor = 1.
+    return factor
 
 
 def write_tuning_table(linefile, varmean, var_table, expname, year1, year2, face, ref):
