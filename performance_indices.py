@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# -*- coding: utf-8 -*-
 '''
  python3 version of ECmean performance indices tool
  Using a reference file from yaml and cdo bindings
@@ -7,39 +8,19 @@
  @author Jost von Hardenberg (jost.hardenberg@polito.it), 2022
 '''
 
-
 import sys
 import os
 import re
 import argparse
 from pathlib import Path
-import yaml
 import numpy as np
 from tabulate import tabulate
-from cdo import *
+from cdo import Cdo
 
-from functions import *
+from functions import vars_are_there, load_yaml, make_input_filename, get_levels
 from cdopipe import CdoPipe
 
 cdo = Cdo()
-
-def get_levels(infile):
-    """Extract vertical levels from file,
-       including Pa conversion"""
-
-    # extract the vertical levels from the file
-    vlevels = cdo.showlevel(input=infile)
-
-    # perform multiple string manipulation to produce a Pa list of levels
-    v0 = ''.join(vlevels).split()
-    v1 = [int(x) for x in v0]
-
-    # if the grid is hPa, move to Pa (there might be a better solution)
-    if np.max(v1) < 10000:
-        v1 = [x * 100 for x in v1]
-
-    # format for CDO, converting to string
-    return ' '.join(str(x) for x in v1).replace(' ', ',')
 
 
 def main(args):
@@ -56,7 +37,7 @@ def main(args):
     INDIR = Path(os.path.dirname(os.path.abspath(__file__)))
 
     # load - if exists - config file
-    cfg = load_config_file(INDIR)
+    cfg = load_yaml(INDIR / 'config.yml')
 
     # hard-coded resolution (due to climatological dataset)
     resolution = cfg['PI']['resolution']
@@ -65,26 +46,23 @@ def main(args):
     ECEDIR = Path(os.path.expandvars(cfg['dirs']['exp']), expname)
     TABDIR = Path(os.path.expandvars(cfg['dirs']['tab']))
     CLMDIR = Path(os.path.expandvars(cfg['dirs']['clm']), resolution)
-    TMPDIR = Path(os.path.expandvars(cfg['dirs']['tmp']))
     os.makedirs(TABDIR, exist_ok=True)
 
-    #cdo.forceOutput = True
+    # cdo.forceOutput = True
 
     # prepare grid description file
-    INIFILE = ECEDIR / f'ICMGG{expname}INIT'
-    OCEINIFILE=cfg['areas']['oce']
+    ATMINIFILE = ECEDIR / f'ICMGG{expname}INIT'
+    OCEINIFILE = cfg['areas']['oce']
 
     # Init CdoPipe object to use in the following, specifying the LM and SM files
-    #cdop = CdoPipe(debug=True)
+    # cdop = CdoPipe(debug=True)
     cdop = CdoPipe()
-    cdop.make_grids(INIFILE, OCEINIFILE)
+    
+    # new bunch of functions to set grids, create correction command, masks and areas
+    cdop.set_gridfixes(ATMINIFILE, OCEINIFILE, 'oifs', 'nemo')
+    cdop.make_atm_masks(ATMINIFILE, extra=f'-invertlat -remapcon2,{resolution}')
 
-    # land-sea masks on regular 2x2 grid
-    ocean_mask = cdo.setctomiss(0,
-                                input=f'-ltc,0.5 -invertlat -remapcon2,{resolution} '
-                                f'-setgridtype,regular -setgrid,{cdop.GRIDFILE} '
-                                f'-selcode,172 {INIFILE}', options='-f nc')
-    land_mask = cdo.addc(1, input=f'-setctomiss,1 -setmisstoc,0 {ocean_mask}')
+    #cdop.make_grids(ATMINIFILE, OCEINIFILE, extra=f'-invertlat -remapcon2,{resolution}')
 
     # trick to avoid the loop on years
     # define required years with a {year1,year2} and then use cdo select feature
@@ -99,9 +77,7 @@ def main(args):
         print(years_joined)
 
     # loading the var-to-file interface
-    filename = 'interface_ece4.yml'
-    with open(INDIR / filename, 'r') as file:
-        face = yaml.load(file, Loader=yaml.FullLoader)
+    face = load_yaml(INDIR / 'interface_ece4.yml')
 
     # Load reference data
     ref = load_yaml('pi_climatology.yml')
@@ -144,10 +120,7 @@ def main(args):
             # Start fresh pipe
             # This leaves the input file undefined for now. It can be set later with
             # cdop.set_infile(infile) or by specifying input=infile cdop.execute
-            cdop.start() 
-
-             # set domain making use component key from interface file
-            cdop.setdomain(face[var]['component'])
+            cdop.start()
 
             # set input file
             cdop.set_infile(infile)
@@ -165,12 +138,15 @@ def main(args):
             else:
                 cdop.selectname(var)
 
-            cdop.fixgrid()
+            # set domain making use component key from interface file
+            # cdop.setdomain(face[var]['component'])
+
+            cdop.fixgrid(domain=face[var]['component'])
             cdop.timmean()
 
             oper = ref[var]['oper']
             if oper:
-                cdop.chain(oper[1:]) # Hack to remove leading '-' - to be fixed
+                cdop.chain(oper[1:])  # Hack to remove leading '-' - to be fixed
 
             # temporarily using remapbil instead of remapcon due to NEMO grid missing corner
             outfile = cdop.execute('remapbil', resolution)
@@ -195,15 +171,7 @@ def main(args):
                 cdop.sub(clim)
                 cdop.sqr()
                 cdop.div(vvvv)
-
-                # apply masks when needed
-                # this is a hack for now
-                if ref[var]['mask'] == 'land':
-                    cdop.mul(land_mask)
-                elif ref[var]['mask'] == 'ocean':
-                    cdop.mul(ocean_mask)
-
-                cdop.setname(var)
+                cdop.mask(ref[var]['mask'])
 
             x = np.squeeze(cdop.execute('fldmean', input=outfile,
                                         returnCdf=True).variables[var])
@@ -215,7 +183,7 @@ def main(args):
 
     # define options for the output table
     head = ['Var', 'PI', 'Domain', 'Dataset', 'CMIP3', 'Ratio to CMIP3']
-    global_table = list()
+    global_table = []
 
     # loop on the variables
     for var in field_all:
@@ -231,7 +199,7 @@ def main(args):
     tablefile = TABDIR / f'PI4_RK08_{expname}_{year1}_{year2}.txt'
     if fverb:
         print(tablefile)
-    with open(tablefile, 'w') as f:
+    with open(tablefile, 'w', encoding='utf-8') as f:
         f.write(tabulate(global_table, headers=head, tablefmt='orgtbl'))
         f.write('\n\nPartial PI (atm only) is   : ' + str(partial_pi))
         f.write('\nTotal Performance Index is : ' + str(total_pi))
