@@ -14,6 +14,7 @@ import re
 import argparse
 from statistics import mean
 from pathlib import Path
+import logging
 from tabulate import tabulate
 import numpy as np
 from cdo import Cdo
@@ -22,7 +23,6 @@ from functions import vars_are_there, load_yaml, \
                       units_extra_definition, units_are_integrals, \
                       units_converter, units_are_down
 from cdopipe import CdoPipe
-import logging
 
 cdo = Cdo()
 
@@ -89,7 +89,6 @@ def main(args):
         isavail = {**isavail, **retavail}
         varunit = {**varunit, **retunit}
 
-
     # main loop
     varmean = {}
     vartrend = {}
@@ -107,12 +106,12 @@ def main(args):
 
             # adjust integrated quantities
             adjusted_units = units_are_integrals(varunit[var], ref[var])
-            
+
             # unit conversion
             units_conversion = units_converter(adjusted_units, ref[var]['units'])
 
             # sign adjustment (for heat fluxes)
-            units_conversion['factor'] = units_conversion['factor'] * units_are_down(face[var]) 
+            units_conversion['factor'] = units_conversion['factor'] * units_are_down(face[var])
 
             # conversion debug
             logging.debug(units_conversion)
@@ -156,15 +155,15 @@ def main(args):
         if ftrend:
             beta['trend'] = vartrend[var]
             out_sequence = [var, beta['varname'], gamma['units'], beta['value'],
-                        beta['trend'],
-                        float(gamma['observations']['val']),
-                        gamma['observations'].get('data',''),
-                        gamma['observations'].get('years','')]
+                            beta['trend'],
+                            float(gamma['observations']['val']),
+                            gamma['observations'].get('data', ''),
+                            gamma['observations'].get('years', '')]
         else:
             out_sequence = [var, beta['varname'], gamma['units'], beta['value'],
-                        float(gamma['observations']['val']),
-                        gamma['observations'].get('data',''),
-                        gamma['observations'].get('years','')]
+                            float(gamma['observations']['val']),
+                            gamma['observations'].get('data', ''),
+                            gamma['observations'].get('years', '')]
 
         global_table.append(out_sequence)
 
@@ -210,9 +209,9 @@ if __name__ == "__main__":
     parser.add_argument('-o', '--output', metavar='FILE', type=str, default='',
                         help='path of output one-line table')
     parser.add_argument('-m', '--model', type=str, default='EC-Earth4',
-                    help='model name')
+                        help='model name')
     parser.add_argument('-v', '--loglevel', type=str, default='ERROR',
-                    help='define the level of logging. default: error')
+                        help='define the level of logging. default: error')
 
     args = parser.parse_args()
 

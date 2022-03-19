@@ -13,9 +13,9 @@ import os
 import re
 import argparse
 from pathlib import Path
+import logging
 import numpy as np
 from tabulate import tabulate
-import logging
 from cdo import Cdo
 from functions import vars_are_there, load_yaml, make_input_filename, get_levels, \
                       units_extra_definition, units_are_integrals, units_converter, \
@@ -59,12 +59,10 @@ def main(args):
     # Init CdoPipe object to use in the following, specifying the LM and SM files
     # cdop = CdoPipe(debug=True)
     cdop = CdoPipe()
-    
+
     # new bunch of functions to set grids, create correction command, masks and areas
     cdop.set_gridfixes(ATMINIFILE, OCEINIFILE, 'oifs', 'nemo')
     cdop.make_atm_masks(ATMINIFILE, extra=f'-invertlat -remapcon2,{resolution}')
-
-    #cdop.make_grids(ATMINIFILE, OCEINIFILE, extra=f'-invertlat -remapcon2,{resolution}')
 
     # add missing unit definition
     units_extra_definition()
@@ -170,7 +168,7 @@ def main(args):
 
             cdop.fixgrid(domain=face[var]['component'])
             cdop.timmean()
-            
+
             # use convert() of cdopipe class to convert units
             cdop.convert(units_conversion['offset'], units_conversion['factor'])
 
@@ -246,7 +244,7 @@ if __name__ == '__main__':
     parser.add_argument('-s', '--silent', action='store_true',
                         help='do not print anything to std output')
     parser.add_argument('-v', '--loglevel', type=str, default='ERROR',
-                    help='define the level of logging. default: error')
+                        help='define the level of logging. default: error')
     args = parser.parse_args()
 
     # log level with logging
