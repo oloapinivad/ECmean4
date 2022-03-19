@@ -17,7 +17,9 @@ import numpy as np
 from tabulate import tabulate
 import logging
 from cdo import Cdo
-from functions import vars_are_there, load_yaml, make_input_filename, get_levels
+from functions import vars_are_there, load_yaml, make_input_filename, get_levels, \
+                      units_extra_definition, units_are_integrals, units_converter, \
+                      units_are_down
 from cdopipe import CdoPipe
 
 cdo = Cdo()
@@ -65,7 +67,7 @@ def main(args):
     #cdop.make_grids(ATMINIFILE, OCEINIFILE, extra=f'-invertlat -remapcon2,{resolution}')
 
     # add missing unit definition
-    units_extra_definition(units)
+    units_extra_definition()
 
     # trick to avoid the loop on years
     # define required years with a {year1,year2} and then use cdo select feature
@@ -194,7 +196,8 @@ def main(args):
                 cdop.sub(clim)
                 cdop.sqr()
                 cdop.div(vvvv)
-                cdop.mask(ref[var]['mask'])
+                # apply same mask as in climatology
+                cdop.mask(piclim[var]['mask'])
 
             # execute command
             x = np.squeeze(cdop.execute('fldmean', input=outfile,

@@ -129,7 +129,7 @@ def make_input_filename(dr, var, expname, year1, year2, face):
     return str(fname)
 
   
-def units_extra_definition(units) :
+def units_extra_definition() :
     """Add units to the pint registry required by ECMean4"""
     
     # special units definition, need to be moved in another placce

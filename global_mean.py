@@ -18,7 +18,9 @@ from tabulate import tabulate
 import numpy as np
 from cdo import Cdo
 from functions import vars_are_there, load_yaml, \
-                      make_input_filename, write_tuning_table
+                      make_input_filename, write_tuning_table, \
+                      units_extra_definition, units_are_integrals, \
+                      units_converter, units_are_down
 from cdopipe import CdoPipe
 import logging
 
@@ -74,7 +76,7 @@ def main(args):
     var_all = list(dict.fromkeys(var_atm + var_table + var_oce))  # python 3.7+, preserve order
 
     # add missing unit definition
-    units_extra_definition(units)
+    units_extra_definition()
 
     # check if required variables are there: use interface file
     # check into first file, and load also model variable units
