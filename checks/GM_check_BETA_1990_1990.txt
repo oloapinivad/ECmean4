@@ -20,8 +20,8 @@ Average swcf -46.7236
 Average lwcf 24.8721
 Average rsns 159.814
 Average rlns -58.0614
-Average hfss 17.0144
-Average hfls 83.5287
+Average hfss -17.0144
+Average hfls -83.5287
 Average net_sfc_nosn 1.20921
 Average net_sfc 0.473175
 Average toamsfc_nosn -0.447903
@@ -29,6 +29,6 @@ Average toamsfc 0.288135
 Average tos 18.9061
 Average sos 34.4368
 Average zos 0.00120878
-Average wfo 1.40863343544
+Average wfo -1.40863343544
 /ec/res4/scratch/ccpd/ece4/ECmean4/table/global_mean_BETA_1990_1990.txt
 /ec/res4/scratch/ccpd/ece4/ECmean4/table/global_means.txt

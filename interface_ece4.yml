@@ -164,6 +164,7 @@ wfo:
   varname: 'Net Water Flux into ocean'
   component: nemo
   filetype: oce_1m_T
+  direction: up
 pr_land:
   varname: 'Precipitation (land)'
   derived: pr

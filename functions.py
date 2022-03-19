@@ -148,7 +148,7 @@ def units_converter(org_units, tgt_units):
     units_relation = (units(org_units)/units(tgt_units)).to_base_units()
     logging.debug(units_relation)
     if units_relation.magnitude != 1 :
-        logging.info('Unit converson required...')
+        logging.info('Unit conversion required...')
         offset_standard = 0 * units(org_units)
         factor_standard = 1 * units(org_units)
         if units_relation.units == units('dimensionless'):    
@@ -189,7 +189,7 @@ def units_are_down(reference):
     direction = reference.get('direction')
     if direction == 'up' :
         factor = -1.
-    else :
+    else:
         factor = 1.
     return factor
 

@@ -9,6 +9,7 @@
 
 import sys
 import tempfile
+import logging
 from cdo import Cdo, CdoTempfileStore
 
 

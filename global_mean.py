@@ -106,13 +106,13 @@ def main(args):
             logging.debug(varunit[var] + ' ---> ' + ref[var]['units'])
 
             # adjust integrated quantities
-            new_units = units_are_integrals(varunit[var], ref[var])
+            adjusted_units = units_are_integrals(varunit[var], ref[var])
             
             # unit conversion
-            units_conversion = units_converter(new_units, ref[var]['units'])
+            units_conversion = units_converter(adjusted_units, ref[var]['units'])
 
             # sign adjustment (for heat fluxes)
-            units_conversion['factor'] = units_conversion['factor'] * units_are_down(ref[var]) 
+            units_conversion['factor'] = units_conversion['factor'] * units_are_down(face[var]) 
 
             # conversion debug
             logging.debug(units_conversion)
