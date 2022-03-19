@@ -21,7 +21,7 @@ from cdo import Cdo
 from functions import vars_are_there, load_yaml, \
                       make_input_filename, write_tuning_table, \
                       units_extra_definition, units_are_integrals, \
-                      units_converter, units_are_down
+                      units_converter, directions_match
 from cdopipe import CdoPipe
 
 cdo = Cdo()
@@ -111,7 +111,8 @@ def main(args):
             units_conversion = units_converter(adjusted_units, ref[var]['units'])
 
             # sign adjustment (for heat fluxes)
-            units_conversion['factor'] = units_conversion['factor'] * units_are_down(face[var])
+            units_conversion['factor'] = units_conversion['factor'] * \
+                                         directions_match(face[var], ref[var])
 
             # conversion debug
             logging.debug(units_conversion)

@@ -183,10 +183,11 @@ def units_are_integrals(org_units, ref_var):
     return new_units
 
 
-def units_are_down(reference):
-    """Check function for fluxes direction: everything should be downward"""
-    direction = reference.get('direction')
-    if direction == 'up':
+def directions_match(org, dst):
+    """Check function for fluxes direction: they should match. Default is down"""
+    direction_org = org.get('direction', 'down')
+    direction_dst = dst.get('direction', 'down')
+    if direction_org != direction_dst:
         factor = -1.
     else:
         factor = 1.

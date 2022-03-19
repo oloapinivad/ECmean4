@@ -19,7 +19,7 @@ from tabulate import tabulate
 from cdo import Cdo
 from functions import vars_are_there, load_yaml, make_input_filename, \
                       get_levels, units_extra_definition, units_are_integrals, \
-                      units_converter, units_are_down
+                      units_converter, directions_match
 from cdopipe import CdoPipe
 
 cdo = Cdo()
@@ -126,7 +126,8 @@ def main(args):
             units_conversion = units_converter(new_units, piclim[var]['units'])
 
             # sign adjustment (for heat fluxes)
-            units_conversion['factor'] = units_conversion['factor'] * units_are_down(piclim[var])
+            units_conversion['factor'] = units_conversion['factor'] * \
+                                         directions_match(face[var], piclim[var])
             logging.debug(units_conversion)
 
             # extract info from pi_climatology.yml
