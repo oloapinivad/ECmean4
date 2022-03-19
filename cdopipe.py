@@ -9,6 +9,7 @@
 
 import sys
 import tempfile
+import logging
 from cdo import Cdo, CdoTempfileStore
 
 
@@ -32,9 +33,9 @@ class CdoPipe:
         self.domain = ''
         self.infile = ''
 
-    def _set_grids(self, atminifile, oceinifile): 
+    def _set_grids(self, atminifile, oceinifile):
         """Create grid description files for both atmosphere and ocean"""
-       
+
         self.ATMGRIDFILE = self.tempstore.newFile()
         griddes = self.cdo.griddes(input=str(atminifile))
         with open(self.ATMGRIDFILE, 'w', encoding='utf-8') as f:
@@ -49,35 +50,35 @@ class CdoPipe:
 
     def _set_atm_fixgrid(self, atmdomain, atminifile):
         """Define the command require for correcting model grid"""
-        
+
         # this could improved using the modelname variable: if EC-Earth, do this...
-        if atmdomain == 'oifs' :
+        if atmdomain == 'oifs':
             self.atmfix = f'-setgridtype,regular -setgrid,{self.ATMGRIDFILE}'
-        else :
+        else:
             sys.exit('Atmospheric component not supported')
 
         self.ATMGAFILE = self.cdo.gridarea(input=f'{self.atmfix} {atminifile}')
 
     def _set_oce_fixgrid(self, ocedomain, oceinifile):
         """Define the command require for correcting model grid"""
-        
+
         self.OCEGAFILE = self.cdo.expr('area=e1t*e2t', input=oceinifile)
 
         # this could improved using the modelname variable: if EC-Earth, do this...
-        if ocedomain == 'nemo' :
+        if ocedomain == 'nemo':
             self.ocefix = f'-setgridarea,{self.OCEGAFILE}'
-        else :
+        else:
             sys.exit('Oceanic component not supported')
-            
+
     def set_gridfixes(self, atminifile, oceinifile, atmdomain, ocedomain):
         """Create all internal grid files and set fixes for atm and oce grids"""
         self._set_grids(atminifile, oceinifile)
         self._set_atm_fixgrid(atmdomain, atminifile)
         self._set_oce_fixgrid(ocedomain, oceinifile)
 
-    def make_atm_masks(self, atminifile, extra = ''): 
+    def make_atm_masks(self, atminifile, extra=''):
         """Create land-sea masks for atmosphere model"""
-    
+
         # prepare ATM LSM: this need to be improved, since it is clearly model dependent
         self.LMFILE = self.cdo.selname('LSM',
                                        input=f'-setctomiss,0 -gec,0.5 {extra} {self.atmfix} {atminifile}',
@@ -92,10 +93,8 @@ class CdoPipe:
         """Specify variable domain: used to set needed grid manipulations"""
         self.domain = domain
 
-    def start(self, nofix=False):
+    def start(self):
         """Cleans pipe for a new application"""
-        # ocean variables require specifying grid areas
-        # atm variables require fixing the grid
         self.pipe = '{infile}'
 
     def fixgrid(self, domain=''):
@@ -105,14 +104,13 @@ class CdoPipe:
 
         if not domain:
             domain = self.domain
-            
+
         if not domain:
             sys.exit('Needed to define a domain with setdomain() method first')
 
-       
         # this should be replaced for a more general "ocean" or "atmosphere"
         if domain == 'nemo':
-            self.pipe = self.ocefix +  ' ' + self.pipe
+            self.pipe = self.ocefix + ' ' + self.pipe
         elif domain == 'oifs':
             self.pipe = self.atmfix + ' ' + self.pipe
 
@@ -135,6 +133,12 @@ class CdoPipe:
             self.chain(f'fldsum -mul {self.ATMGAFILE} -mul {self.SMFILE}')
         else:
             self.chain('fldmean')
+
+    def convert(self, offset, factor):
+        if offset != 0:
+            self.chain(f'addc,{offset}')
+        if factor != 1:
+            self.chain(f'mulc,{factor}')
 
     def setname(self, var):
         self.chain(f'setname,{var}')
@@ -182,12 +186,12 @@ class CdoPipe:
         fn = getattr(self.cdo, cmd)
         if not input:
             input = self.infile
-        # print("EXE ",self.pipe)
+        logging.debug('called cdop.execute with: %s', self.pipe)
         out = fn(input=self.pipe.format(infile=input), *args, **kwargs)
         if not keep:
             self.start()  # clear pipe
         return out
 
     def output(self, infile, **kwargs):
-        # print("OUT ",self.pipe)
+        logging.debug('call cdop.output with: %s', self.pipe)
         return float(self.execute('output', input=infile, **kwargs)[0])

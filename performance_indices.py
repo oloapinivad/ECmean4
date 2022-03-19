@@ -13,11 +13,13 @@ import os
 import re
 import argparse
 from pathlib import Path
+import logging
 import numpy as np
 from tabulate import tabulate
 from cdo import Cdo
-
-from functions import vars_are_there, load_yaml, make_input_filename, get_levels
+from functions import vars_are_there, load_yaml, make_input_filename, \
+                      get_levels, units_extra_definition, units_are_integrals, \
+                      units_converter, directions_match
 from cdopipe import CdoPipe
 
 cdo = Cdo()
@@ -54,15 +56,16 @@ def main(args):
     ATMINIFILE = ECEDIR / f'ICMGG{expname}INIT'
     OCEINIFILE = cfg['areas']['oce']
 
-    # Init CdoPipe object to use in the following, specifying the LM and SM files
+    # Init CdoPipe object to use in the following
     # cdop = CdoPipe(debug=True)
     cdop = CdoPipe()
-    
+
     # new bunch of functions to set grids, create correction command, masks and areas
     cdop.set_gridfixes(ATMINIFILE, OCEINIFILE, 'oifs', 'nemo')
     cdop.make_atm_masks(ATMINIFILE, extra=f'-invertlat -remapcon2,{resolution}')
 
-    #cdop.make_grids(ATMINIFILE, OCEINIFILE, extra=f'-invertlat -remapcon2,{resolution}')
+    # add missing unit definitions
+    units_extra_definition()
 
     # trick to avoid the loop on years
     # define required years with a {year1,year2} and then use cdo select feature
@@ -79,8 +82,9 @@ def main(args):
     # loading the var-to-file interface
     face = load_yaml(INDIR / 'interface_ece4.yml')
 
-    # Load reference data
-    ref = load_yaml('pi_climatology.yml')
+    # reference data: it is badly written but it can be implemented in a much more intelligent
+    # and modular way
+    piclim = load_yaml('pi_climatology.yml')
 
     # defines the two varlist
     field_2d = cfg['PI']['2d_vars']['field']
@@ -90,24 +94,46 @@ def main(args):
     field_all = field_2d + field_3d + field_oce + field_ice
 
     # check if required variables are there: use interface file
-    # check into first file
+    # check into first file, and load also model variable units
     isavail = {}
+    varunit = {}
     for field in field_all:
         infile = make_input_filename(
             ECEDIR, field, expname, year1, year1, face)
-        isavail = {**isavail, **vars_are_there(infile, [field], face)}
+        retavail, retunit = vars_are_there(infile, [field], face)
+        isavail = {**isavail, **retavail}
+        varunit = {**varunit, **retunit}
 
     # main loop
     varstat = {}
     for var in field_all:
 
+        # if var is not available, store a NaN for the table
         if not isavail[var]:
             varstat[var] = float('NaN')
         else:
 
-            # extract info from reference.yml
-            dataref = ref[var]['dataset']
-            dataname = ref[var]['dataname']
+            # unit conversion: from original data to data required by PI
+            # using metpy avoid the definition of operations inside the dataset
+            # use offset and factor separately (e.g. will not work with Fahrenait)
+            # now in functions.py
+            logging.debug(var)
+            logging.debug(varunit[var] + ' ---> ' + piclim[var]['units'])
+            # adjust integrated quantities
+            new_units = units_are_integrals(varunit[var], piclim[var])
+
+            # unit conversion
+            units_conversion = units_converter(new_units, piclim[var]['units'])
+
+            # sign adjustment (for heat fluxes)
+            units_conversion['factor'] = units_conversion['factor'] * \
+                                         directions_match(face[var], piclim[var])
+            logging.debug(units_conversion)
+
+            # extract info from pi_climatology.yml
+            # reference dataset and reference varname
+            dataref = piclim[var]['dataset']
+            dataname = piclim[var]['dataname']
 
             # get files for climatology
             clim = str(CLMDIR / f'climate_{dataref}_{dataname}.nc')
@@ -138,22 +164,18 @@ def main(args):
             else:
                 cdop.selectname(var)
 
-            # set domain making use component key from interface file
-            # cdop.setdomain(face[var]['component'])
-
+            # fix grids and set domain making use component key from interface file
             cdop.fixgrid(domain=face[var]['component'])
             cdop.timmean()
 
-            oper = ref[var]['oper']
-            if oper:
-                cdop.chain(oper[1:])  # Hack to remove leading '-' - to be fixed
+            # use convert() of cdopipe class to convert units
+            cdop.convert(units_conversion['offset'], units_conversion['factor'])
 
             # temporarily using remapbil instead of remapcon due to NEMO grid missing corner
             outfile = cdop.execute('remapbil', resolution)
 
+            # special treatment which includes vertical interpolation
             if var in field_3d:
-
-                # special treatment which includes vertical interpolation
 
                 # extract the vertical levels from the file
                 format_vlevels = get_levels(clim)
@@ -171,8 +193,10 @@ def main(args):
                 cdop.sub(clim)
                 cdop.sqr()
                 cdop.div(vvvv)
-                cdop.mask(ref[var]['mask'])
+                # apply same mask as in climatology
+                cdop.mask(piclim[var]['mask'])
 
+            # execute command
             x = np.squeeze(cdop.execute('fldmean', input=outfile,
                                         returnCdf=True).variables[var])
 
@@ -187,13 +211,13 @@ def main(args):
 
     # loop on the variables
     for var in field_all:
-        out_sequence = [var, varstat[var], ref[var]['mask'], ref[var]
-                        ['dataset'], ref[var]['cmip3'], varstat[var]/ref[var]['cmip3']]
+        out_sequence = [var, varstat[var], piclim[var]['mask'], piclim[var]
+                        ['dataset'], piclim[var]['cmip3'], varstat[var]/piclim[var]['cmip3']]
         global_table.append(out_sequence)
 
     # nice loop on dictionary to get the partial and total pi
     partial_pi = np.mean([varstat[k] for k in field_2d + field_3d])
-    total_pi = np.mean([varstat[k] for k in field_2d + field_3d + field_oce])
+    total_pi = np.mean([varstat[k] for k in field_2d + field_3d + field_oce + field_ice])
 
     # write the file  with tabulate: cool python feature
     tablefile = TABDIR / f'PI4_RK08_{expname}_{year1}_{year2}.txt'
@@ -218,6 +242,16 @@ if __name__ == '__main__':
     parser.add_argument('year2', metavar='Y2', type=int, help='final year')
     parser.add_argument('-s', '--silent', action='store_true',
                         help='do not print anything to std output')
+    parser.add_argument('-v', '--loglevel', type=str, default='ERROR',
+                        help='define the level of logging. default: error')
     args = parser.parse_args()
+
+    # log level with logging
+    # currently basic definition trought the text
+    loglevel = args.loglevel.upper()
+    numeric_level = getattr(logging, loglevel.upper(), None)
+    if not isinstance(numeric_level, int):
+        raise ValueError('Invalid log level: %s' % loglevel)
+    logging.basicConfig(level=numeric_level)
 
     main(args)

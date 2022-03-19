@@ -14,11 +14,14 @@ import re
 import argparse
 from statistics import mean
 from pathlib import Path
+import logging
 from tabulate import tabulate
 import numpy as np
 from cdo import Cdo
 from functions import vars_are_there, load_yaml, \
-                      make_input_filename, write_tuning_table
+                      make_input_filename, write_tuning_table, \
+                      units_extra_definition, units_are_integrals, \
+                      units_converter, directions_match
 from cdopipe import CdoPipe
 
 cdo = Cdo()
@@ -60,7 +63,7 @@ def main(args):
     cdop.make_atm_masks(ATMINIFILE)
 
     # load reference data
-    ref = load_yaml(INDIR / 'reference.yml')
+    ref = load_yaml(INDIR / 'gm_reference.yml')
 
     # loading the var-to-file interface
     face = load_yaml(INDIR / 'interface_ece4.yml')
@@ -72,13 +75,19 @@ def main(args):
     # var_all = list(set(var_atm + var_table + var_oce))
     var_all = list(dict.fromkeys(var_atm + var_table + var_oce))  # python 3.7+, preserve order
 
-    # make sure all requested vars are available (use first year)
-    # first find all needed variables (including those needed for derived ones)
+    # add missing unit definition
+    units_extra_definition()
+
+    # check if required variables are there: use interface file
+    # check into first file, and load also model variable units
     isavail = {}
+    varunit = {}
     for var in var_all:
         infile = make_input_filename(
             ECEDIR, var, expname, year1, year1, face)
-        isavail = {**isavail, **vars_are_there(infile, [var], face)}
+        retavail, retunit = vars_are_there(infile, [var], face)
+        isavail = {**isavail, **retavail}
+        varunit = {**varunit, **retunit}
 
     # main loop
     varmean = {}
@@ -91,6 +100,23 @@ def main(args):
             # Refresh cdo pipe
             cdop.start()
 
+            # conversion debug
+            logging.debug(var)
+            logging.debug(varunit[var] + ' ---> ' + ref[var]['units'])
+
+            # adjust integrated quantities
+            adjusted_units = units_are_integrals(varunit[var], ref[var])
+
+            # unit conversion
+            units_conversion = units_converter(adjusted_units, ref[var]['units'])
+
+            # sign adjustment (for heat fluxes)
+            units_conversion['factor'] = units_conversion['factor'] * \
+                                         directions_match(face[var], ref[var])
+
+            # conversion debug
+            logging.debug(units_conversion)
+
             if 'derived' in face[var].keys():
                 cmd = face[var]['derived']
                 dervars = (",".join(re.findall("[a-zA-Z]+", cmd)))
@@ -100,7 +126,6 @@ def main(args):
                 cdop.selectname(var)
 
             # Introduce grid fixes specifying type of file (atm or oce)
-            # cdop.setdomain(domain=face[var]['component'])
             cdop.fixgrid(domain=face[var]['component'])
 
             # land/sea variables
@@ -115,7 +140,7 @@ def main(args):
                 x = cdop.output(infile, keep=True)
                 a.append(x)
 
-            varmean[var] = mean(a)
+            varmean[var] = (mean(a) + units_conversion['offset']) * units_conversion['factor']
             if ftrend:
                 vartrend[var] = np.polyfit(yrange, a, 1)[0]
             if fverb:
@@ -126,19 +151,20 @@ def main(args):
     for var in var_atm + var_oce:
         beta = face[var]
         gamma = ref[var]
-        beta['value'] = varmean[var] * float(gamma.get('factor', 1))
+        beta['value'] = varmean[var]
         if ftrend:
-            beta['trend'] = vartrend[var] * float(gamma.get('factor', 1))
-            out_sequence = [var, beta['varname'], beta['units'], beta['value'],
+            beta['trend'] = vartrend[var]
+            out_sequence = [var, beta['varname'], gamma['units'], beta['value'],
                             beta['trend'],
                             float(gamma['observations']['val']),
                             gamma['observations'].get('data', ''),
                             gamma['observations'].get('years', '')]
         else:
-            out_sequence = [var, beta['varname'], beta['units'], beta['value'],
+            out_sequence = [var, beta['varname'], gamma['units'], beta['value'],
                             float(gamma['observations']['val']),
                             gamma['observations'].get('data', ''),
                             gamma['observations'].get('years', '')]
+
         global_table.append(out_sequence)
 
     if ftrend:
@@ -184,6 +210,17 @@ if __name__ == "__main__":
                         help='path of output one-line table')
     parser.add_argument('-m', '--model', type=str, default='EC-Earth4',
                         help='model name')
+    parser.add_argument('-v', '--loglevel', type=str, default='ERROR',
+                        help='define the level of logging. default: error')
+
     args = parser.parse_args()
+
+    # log level with logging
+    # currently basic definition trought the text
+    loglevel = args.loglevel.upper()
+    numeric_level = getattr(logging, loglevel.upper(), None)
+    if not isinstance(numeric_level, int):
+        raise ValueError('Invalid log level: %s' % loglevel)
+    logging.basicConfig(level=numeric_level)
 
     main(args)
