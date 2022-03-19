@@ -125,7 +125,6 @@ def main(args):
                 cdop.selectname(var)
 
             # Introduce grid fixes specifying type of file (atm or oce)
-            # cdop.setdomain(domain=face[var]['component'])
             cdop.fixgrid(domain=face[var]['component'])
 
             # land/sea variables

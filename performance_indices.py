@@ -17,9 +17,9 @@ import logging
 import numpy as np
 from tabulate import tabulate
 from cdo import Cdo
-from functions import vars_are_there, load_yaml, make_input_filename, get_levels, \
-                      units_extra_definition, units_are_integrals, units_converter, \
-                      units_are_down
+from functions import vars_are_there, load_yaml, make_input_filename, \
+                      get_levels, units_extra_definition, units_are_integrals, \
+                      units_converter, units_are_down
 from cdopipe import CdoPipe
 
 cdo = Cdo()
@@ -56,7 +56,7 @@ def main(args):
     ATMINIFILE = ECEDIR / f'ICMGG{expname}INIT'
     OCEINIFILE = cfg['areas']['oce']
 
-    # Init CdoPipe object to use in the following, specifying the LM and SM files
+    # Init CdoPipe object to use in the following
     # cdop = CdoPipe(debug=True)
     cdop = CdoPipe()
 
@@ -64,7 +64,7 @@ def main(args):
     cdop.set_gridfixes(ATMINIFILE, OCEINIFILE, 'oifs', 'nemo')
     cdop.make_atm_masks(ATMINIFILE, extra=f'-invertlat -remapcon2,{resolution}')
 
-    # add missing unit definition
+    # add missing unit definitions
     units_extra_definition()
 
     # trick to avoid the loop on years
@@ -163,9 +163,7 @@ def main(args):
             else:
                 cdop.selectname(var)
 
-            # set domain making use component key from interface file
-            # cdop.setdomain(face[var]['component'])
-
+            # fix grids and set domain making use component key from interface file
             cdop.fixgrid(domain=face[var]['component'])
             cdop.timmean()
 
