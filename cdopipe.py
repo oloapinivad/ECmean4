@@ -69,7 +69,8 @@ class CdoPipe:
         else :
             sys.exit('Oceanic component not supported')
             
-    def make_grids(self, atminifile, oceinifile, atmdomain, ocedomain):
+    def set_gridfixes(self, atminifile, oceinifile, atmdomain, ocedomain):
+        """Create all internal grid files and set fixes for atm and oce grids"""
         self._set_grids(atminifile, oceinifile)
         self._set_atm_fixgrid(atmdomain, atminifile)
         self._set_oce_fixgrid(ocedomain, oceinifile)

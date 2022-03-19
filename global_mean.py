@@ -56,7 +56,7 @@ def main(args):
     cdop = CdoPipe()
 
     # new bunch of functions to set grids, create correction command, masks and areas
-    cdop.make_grids(ATMINIFILE, OCEINIFILE, 'oifs', 'nemo')
+    cdop.set_gridfixes(ATMINIFILE, OCEINIFILE, 'oifs', 'nemo')
     cdop.make_atm_masks(ATMINIFILE)
 
     # load reference data
