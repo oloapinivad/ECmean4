@@ -59,10 +59,8 @@ def main(args):
     cdop = CdoPipe()
     
     # new bunch of functions to set grids, create correction command, masks and areas
-    cdop.set_grids(ATMINIFILE, OCEINIFILE)
-    cdop.set_fixgrid('oifs', 'nemo')
-    cdop.make_masks(ATMINIFILE, extra=f'-invertlat -remapcon2,{resolution}')
-    cdop.make_grids_areas(ATMINIFILE, OCEINIFILE)
+    cdop.make_grids(ATMINIFILE, OCEINIFILE, 'oifs', 'nemo')
+    cdop.make_atm_masks(ATMINIFILE, extra=f'-invertlat -remapcon2,{resolution}')
 
     #cdop.make_grids(ATMINIFILE, OCEINIFILE, extra=f'-invertlat -remapcon2,{resolution}')
 
@@ -124,9 +122,6 @@ def main(args):
             # cdop.set_infile(infile) or by specifying input=infile cdop.execute
             cdop.start()
 
-            # set domain making use component key from interface file
-            cdop.setdomain(face[var]['component'])
-
             # set input file
             cdop.set_infile(infile)
 
@@ -143,7 +138,10 @@ def main(args):
             else:
                 cdop.selectname(var)
 
-            cdop.fixgrid()
+            # set domain making use component key from interface file
+            # cdop.setdomain(face[var]['component'])
+
+            cdop.fixgrid(domain=face[var]['component'])
             cdop.timmean()
 
             oper = ref[var]['oper']

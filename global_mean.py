@@ -56,11 +56,8 @@ def main(args):
     cdop = CdoPipe()
 
     # new bunch of functions to set grids, create correction command, masks and areas
-    cdop.set_grids(ATMINIFILE, OCEINIFILE)
-    cdop.set_fixgrid('oifs', 'nemo')
-    cdop.make_masks(ATMINIFILE)
-    cdop.make_grids_areas(ATMINIFILE, OCEINIFILE)
-    #cdop.make_grids(ATMINIFILE, OCEINIFILE)
+    cdop.make_grids(ATMINIFILE, OCEINIFILE, 'oifs', 'nemo')
+    cdop.make_atm_masks(ATMINIFILE)
 
     # load reference data
     ref = load_yaml(INDIR / 'reference.yml')
@@ -103,8 +100,8 @@ def main(args):
                 cdop.selectname(var)
 
             # Introduce grid fixes specifying type of file (atm or oce)
-            cdop.setdomain(domain=face[var]['component'])
-            cdop.fixgrid()
+            # cdop.setdomain(domain=face[var]['component'])
+            cdop.fixgrid(domain=face[var]['component'])
 
             # land/sea variables
             cdop.masked_meansum(ref[var].get('total', 'global'))
