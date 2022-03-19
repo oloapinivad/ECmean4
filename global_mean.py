@@ -18,81 +18,28 @@ import logging
 from tabulate import tabulate
 import numpy as np
 from cdo import Cdo
+from time import time
 from functions import vars_are_there, load_yaml, \
                       make_input_filename, write_tuning_table, \
                       units_extra_definition, units_are_integrals, \
                       units_converter, directions_match
 from cdopipe import CdoPipe
+from multiprocessing import Process, Pool, Manager
+import copy
+from functools import partial
 
-cdo = Cdo()
+#cdo = Cdo()
 
+def worker(cdopin, ref, face, ECEDIR, year1, year2, expname, ftrend, fverb, varmean, vartrend, var):
 
-def main(args):
-    """The main EC-mean4 code"""
+        cdop = copy.copy(cdopin)  # Create a new local instance
 
-    assert sys.version_info >= (3, 7)
+        # check if required variables are there: use interface file
+        # check into first file, and load also model variable units
+        infile = make_input_filename(ECEDIR, var, expname, year1, year1, face)
+        isavail, varunit = vars_are_there(infile, [var], face)
+        #varunit = {**varunit, **retunit}
 
-    expname = args.exp
-    year1 = args.year1
-    year2 = args.year2
-    fverb = not args.silent
-    ftable = args.line
-    ftrend = args.trend
-    modelname = args.model
-    if year1 == year2:  # Ignore if only one year requested
-        ftrend = False
-
-    # config file (looks for it in the same dir as the .py program file
-    INDIR = Path(os.path.dirname(os.path.abspath(__file__)))
-    cfg = load_yaml(INDIR / 'config.yml')
-
-    # define a few folders and create missing ones
-    ECEDIR = Path(os.path.expandvars(cfg['dirs']['exp']), expname)
-    TABDIR = Path(os.path.expandvars(cfg['dirs']['tab']))
-    os.makedirs(TABDIR, exist_ok=True)
-
-    # prepare grid description file
-    ATMINIFILE = str(ECEDIR / f'ICMGG{expname}INIT')
-    OCEINIFILE = cfg['areas']['oce']
-
-    # Init CdoPipe object to use in the following, specifying the LM and SM files
-    cdop = CdoPipe()
-
-    # new bunch of functions to set grids, create correction command, masks and areas
-    cdop.set_gridfixes(ATMINIFILE, OCEINIFILE, 'oifs', 'nemo')
-    cdop.make_atm_masks(ATMINIFILE)
-
-    # load reference data
-    ref = load_yaml(INDIR / 'gm_reference.yml')
-
-    # loading the var-to-file interface
-    face = load_yaml(INDIR / 'interface_ece4.yml')
-
-    # list of vars on which to work
-    var_atm = cfg['global']['atm_vars']
-    var_oce = cfg['global']['oce_vars']
-    var_table = cfg['global']['tab_vars']
-    # var_all = list(set(var_atm + var_table + var_oce))
-    var_all = list(dict.fromkeys(var_atm + var_table + var_oce))  # python 3.7+, preserve order
-
-    # add missing unit definition
-    units_extra_definition()
-
-    # check if required variables are there: use interface file
-    # check into first file, and load also model variable units
-    isavail = {}
-    varunit = {}
-    for var in var_all:
-        infile = make_input_filename(
-            ECEDIR, var, expname, year1, year1, face)
-        retavail, retunit = vars_are_there(infile, [var], face)
-        isavail = {**isavail, **retavail}
-        varunit = {**varunit, **retunit}
-
-    # main loop
-    varmean = {}
-    vartrend = {}
-    for var in var_all:
         if not isavail[var]:
             varmean[var] = float("NaN")
             vartrend[var] = float("NaN")
@@ -145,6 +92,78 @@ def main(args):
                 vartrend[var] = np.polyfit(yrange, a, 1)[0]
             if fverb:
                 print('Average', var, varmean[var])
+
+def main(args):
+    """The main EC-mean4 code"""
+
+    assert sys.version_info >= (3, 7)
+
+    expname = args.exp
+    year1 = args.year1
+    year2 = args.year2
+    fverb = not args.silent
+    ftable = args.line
+    ftrend = args.trend
+    modelname = args.model
+    if year1 == year2:  # Ignore if only one year requested
+        ftrend = False
+
+    # config file (looks for it in the same dir as the .py program file
+    INDIR = Path(os.path.dirname(os.path.abspath(__file__)))
+    cfg = load_yaml(INDIR / 'config.yml')
+
+    # define a few folders and create missing ones
+    ECEDIR = Path(os.path.expandvars(cfg['dirs']['exp']), expname)
+    TABDIR = Path(os.path.expandvars(cfg['dirs']['tab']))
+    os.makedirs(TABDIR, exist_ok=True)
+
+    # prepare grid description file
+    ATMINIFILE = str(ECEDIR / f'ICMGG{expname}INIT')
+    OCEINIFILE = cfg['areas']['oce']
+
+    # Init CdoPipe object to use in the following, specifying the LM and SM files
+    cdop = CdoPipe()
+
+    # new bunch of functions to set grids, create correction command, masks and areas
+    cdop.set_gridfixes(ATMINIFILE, OCEINIFILE, 'oifs', 'nemo')
+    cdop.make_atm_masks(ATMINIFILE)
+
+    # load reference data
+    ref = load_yaml(INDIR / 'gm_reference.yml')
+
+    # loading the var-to-file interface
+    face = load_yaml(INDIR / 'interface_ece4.yml')
+
+    # list of vars on which to work
+    var_atm = cfg['global']['atm_vars']
+    var_oce = cfg['global']['oce_vars']
+    var_table = cfg['global']['tab_vars']
+    # var_all = list(set(var_atm + var_table + var_oce))
+    var_all = list(dict.fromkeys(var_atm + var_table + var_oce))  # python 3.7+, preserve order
+
+    # add missing unit definition
+    units_extra_definition()
+
+    # main loop
+    mgr = Manager()
+    varmean = mgr.dict()
+    vartrend = mgr.dict()
+    varunit = mgr.dict()
+    processes = []
+    tic = time()
+
+    for var in var_all:
+        p = Process(target = worker, args=(cdop, ref, face, ECEDIR, year1,
+                                             year2, expname, ftrend, fverb,
+                                             varmean, vartrend, var)) 
+        p.start()
+        processes.append(p)
+
+    for proc in processes:
+        proc.join()
+
+    toc = time()
+    print('Done in {:.4f} seconds'.format(toc-tic))
 
     # loop on the variables to create the output table
     global_table = []
