@@ -18,33 +18,15 @@ import logging
 from tabulate import tabulate
 import numpy as np
 from time import time
-from functions import vars_are_there, load_yaml, \
+from ecmean import vars_are_there, load_yaml, \
                       make_input_filename, write_tuning_table, \
                       units_extra_definition, units_are_integrals, \
-                      units_converter, directions_match, chunks
+                      units_converter, directions_match, chunks, \
+                      Diagnostic
 from cdopipe import CdoPipe
 from multiprocessing import Process, Pool, Manager
 import copy
 from functools import partial
-
-
-class Diagnostic():
-    def __init__(self, args, cfg) :
-        self.expname = args.exp
-        self.year1 = args.year1
-        self.year2 = args.year2
-        self.fverb = not args.silent
-        self.ftable = args.line
-        self.ftrend = args.trend
-        self.numproc = args.numproc
-        self.modelname = args.model
-        if self.year1 == self.year2:  # Ignore if only one year requested
-            self.ftrend = False
-        pass
-        self.ECEDIR = Path(os.path.expandvars(cfg['dirs']['exp']), self.expname)
-        self.TABDIR = Path(os.path.expandvars(cfg['dirs']['tab']))
-        self.OCEINIFILE = cfg['areas']['oce']
-        self.ATMINIFILE = str(self.ECEDIR / f'ICMGG{self.expname}INIT')
 
 
 def worker(cdopin, ref, face, exp, varmean, vartrend, varlist):

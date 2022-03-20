@@ -9,10 +9,36 @@ import logging
 import yaml
 import numpy as np
 import itertools
+from pathlib import Path
 from cdo import Cdo
 from metpy.units import units
 
 cdo = Cdo()
+
+
+class Diagnostic():
+    def __init__(self, args, cfg) :
+        self.expname = args.exp
+        self.year1 = args.year1
+        self.year2 = args.year2
+        self.fverb = not args.silent
+        self.ftable = getattr(args, 'line', False)
+        self.ftrend = getattr(args, 'trend', False)
+        self.numproc = args.numproc
+        self.modelname = getattr(args, 'model', 'EC-Earth4')
+        if self.year1 == self.year2:  # Ignore if only one year requested
+            self.ftrend = False
+
+        # hard-coded resolution (due to climatological dataset)
+        self.resolution = cfg['PI']['resolution']
+
+        # Various input and output directories
+        self.ECEDIR = Path(os.path.expandvars(cfg['dirs']['exp']), self.expname)
+        self.TABDIR = Path(os.path.expandvars(cfg['dirs']['tab']))
+        self.CLMDIR = Path(os.path.expandvars(cfg['dirs']['clm']), self.resolution)
+        self.OCEINIFILE = cfg['areas']['oce']
+        self.ATMINIFILE = str(self.ECEDIR / f'ICMGG{self.expname}INIT')
+        self.years_joined = ''
 
 
 def chunks(iterable, num):
