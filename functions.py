@@ -8,11 +8,18 @@ import sys
 import logging
 import yaml
 import numpy as np
+import itertools
 from cdo import Cdo
 from metpy.units import units
 
 cdo = Cdo()
 
+
+def chunks(iterable, num):
+    """Generate num adjacent chunks of data"""
+    size = int(np.ceil(len(iterable) / num))
+    it = iter(iterable)
+    return iter(lambda: tuple(itertools.islice(it, size)), ())
 
 def get_levels(infile):
     """Extract vertical levels from file,

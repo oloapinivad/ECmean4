@@ -17,21 +17,20 @@ from pathlib import Path
 import logging
 from tabulate import tabulate
 import numpy as np
-from cdo import Cdo
 from time import time
 from functions import vars_are_there, load_yaml, \
                       make_input_filename, write_tuning_table, \
                       units_extra_definition, units_are_integrals, \
-                      units_converter, directions_match
+                      units_converter, directions_match, chunks
 from cdopipe import CdoPipe
 from multiprocessing import Process, Pool, Manager
 import copy
 from functools import partial
 
-#cdo = Cdo()
 
-def worker(cdopin, ref, face, ECEDIR, year1, year2, expname, ftrend, fverb, varmean, vartrend, var):
+def worker(cdopin, ref, face, ECEDIR, year1, year2, expname, ftrend, fverb, varmean, vartrend, varlist):
 
+    for var in varlist:
         cdop = copy.copy(cdopin)  # Create a new local instance
 
         # check if required variables are there: use interface file
@@ -104,6 +103,7 @@ def main(args):
     fverb = not args.silent
     ftable = args.line
     ftrend = args.trend
+    numproc = args.numproc
     modelname = args.model
     if year1 == year2:  # Ignore if only one year requested
         ftrend = False
@@ -152,10 +152,10 @@ def main(args):
     processes = []
     tic = time()
 
-    for var in var_all:
+    for varlist in chunks(var_all, numproc):
         p = Process(target = worker, args=(cdop, ref, face, ECEDIR, year1,
-                                             year2, expname, ftrend, fverb,
-                                             varmean, vartrend, var)) 
+                                           year2, expname, ftrend, fverb,
+                                           varmean, vartrend, varlist)) 
         p.start()
         processes.append(p)
 
@@ -163,7 +163,8 @@ def main(args):
         proc.join()
 
     toc = time()
-    print('Done in {:.4f} seconds'.format(toc-tic))
+    if fverb:
+        print('Done in {:.4f} seconds'.format(toc-tic))
 
     # loop on the variables to create the output table
     global_table = []
@@ -230,7 +231,9 @@ if __name__ == "__main__":
     parser.add_argument('-m', '--model', type=str, default='EC-Earth4',
                         help='model name')
     parser.add_argument('-v', '--loglevel', type=str, default='ERROR',
-                        help='define the level of logging. default: error')
+                        help='define the level of logging.')
+    parser.add_argument('-j', dest="numproc", type=int, default=1,
+                        help='number of processors to use')
 
     args = parser.parse_args()
 
