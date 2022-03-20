@@ -14,19 +14,20 @@ import re
 import argparse
 from pathlib import Path
 import logging
-import numpy as np
+import copy
 from time import time
+from multiprocessing import Process, Manager
+import numpy as np
 from tabulate import tabulate
 from ecmean import vars_are_there, load_yaml, make_input_filename, \
                       get_levels, units_extra_definition, units_are_integrals, \
                       units_converter, directions_match, chunks, \
                       Diagnostic
 from cdopipe import CdoPipe
-import copy
-from multiprocessing import Process, Manager
 
 
 def worker(cdopin, piclim, face, diag, field_3d, varstat, varlist):
+    """Main parallel diagnostic worker"""
 
     cdop = copy.copy(cdopin)  # Create a new local instance
 
@@ -36,7 +37,7 @@ def worker(cdopin, piclim, face, diag, field_3d, varstat, varlist):
         infile = make_input_filename(diag.ECEDIR, var, diag.expname,
                                      diag.year1, diag.year1, face)
         isavail, varunit = vars_are_there(infile, [var], face)
-        #varunit = {**varunit, **retunit}
+        # varunit = {**varunit, **retunit}
 
         # if var is not available, store a NaN for the table
         if not isavail[var]:
@@ -56,7 +57,7 @@ def worker(cdopin, piclim, face, diag, field_3d, varstat, varlist):
 
             # sign adjustment (for heat fluxes)
             units_conversion['factor'] = units_conversion['factor'] * \
-                                         directions_match(face[var], piclim[var])
+                directions_match(face[var], piclim[var])
             logging.debug(units_conversion)
 
             # extract info from pi_climatology.yml
@@ -155,8 +156,8 @@ def main(args):
     cdop = CdoPipe()
 
     # new bunch of functions to set grids, create correction command, masks and areas
-    cdop.set_gridfixes(diag.ATMINIFILE, diag.OCEINIFILE, 'oifs', 'nemo')
-    cdop.make_atm_masks(diag.ATMINIFILE, extra=f'-invertlat -remapcon2,{diag.resolution}')
+    cdop.set_gridfixes(diag.atminifile, diag.oceinifile, 'oifs', 'nemo')
+    cdop.make_atm_masks(diag.atminifile, extra=f'-invertlat -remapcon2,{diag.resolution}')
 
     # add missing unit definitions
     units_extra_definition()
@@ -192,7 +193,7 @@ def main(args):
     tic = time()
 
     for varlist in chunks(field_all, diag.numproc):
-        p = Process(target = worker,
+        p = Process(target=worker,
                     args=(cdop, piclim, face, diag, field_3d, varstat, varlist))
         p.start()
         processes.append(p)

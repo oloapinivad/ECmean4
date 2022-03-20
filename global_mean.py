@@ -15,21 +15,21 @@ import argparse
 from statistics import mean
 from pathlib import Path
 import logging
+from multiprocessing import Process, Manager
+import copy
+from time import time
 from tabulate import tabulate
 import numpy as np
-from time import time
 from ecmean import vars_are_there, load_yaml, \
                       make_input_filename, write_tuning_table, \
                       units_extra_definition, units_are_integrals, \
                       units_converter, directions_match, chunks, \
                       Diagnostic
 from cdopipe import CdoPipe
-from multiprocessing import Process, Pool, Manager
-import copy
-from functools import partial
 
 
 def worker(cdopin, ref, face, exp, varmean, vartrend, varlist):
+    """Main parallel diagnostic worker"""
 
     cdop = copy.copy(cdopin)  # Create a new local instance
     for var in varlist:
@@ -38,7 +38,7 @@ def worker(cdopin, ref, face, exp, varmean, vartrend, varlist):
         # check into first file, and load also model variable units
         infile = make_input_filename(exp.ECEDIR, var, exp.expname, exp.year1, exp.year1, face)
         isavail, varunit = vars_are_there(infile, [var], face)
-        #varunit = {**varunit, **retunit}
+        # varunit = {**varunit, **retunit}
 
         if not isavail[var]:
             varmean[var] = float("NaN")
@@ -59,7 +59,7 @@ def worker(cdopin, ref, face, exp, varmean, vartrend, varlist):
 
             # sign adjustment (for heat fluxes)
             units_conversion['factor'] = units_conversion['factor'] * \
-                                         directions_match(face[var], ref[var])
+                directions_match(face[var], ref[var])
 
             # conversion debug
             logging.debug(units_conversion)
@@ -104,7 +104,7 @@ def main(args):
     cfg = load_yaml(INDIR / 'config.yml')
 
     # Setup all common variables, directories from arguments and config files
-    diag = Diagnostic(args, cfg) 
+    diag = Diagnostic(args, cfg)
 
     # Create missing folders
     os.makedirs(diag.TABDIR, exist_ok=True)
@@ -113,8 +113,8 @@ def main(args):
     cdop = CdoPipe()
 
     # New bunch of functions to set grids, create correction command, masks and areas
-    cdop.set_gridfixes(diag.ATMINIFILE, diag.OCEINIFILE, 'oifs', 'nemo')
-    cdop.make_atm_masks(diag.ATMINIFILE)
+    cdop.set_gridfixes(diag.atminifile, diag.oceinifile, 'oifs', 'nemo')
+    cdop.make_atm_masks(diag.atminifile)
 
     # load reference data
     ref = load_yaml(INDIR / 'gm_reference.yml')
@@ -140,8 +140,8 @@ def main(args):
     tic = time()
 
     for varlist in chunks(var_all, diag.numproc):
-        p = Process(target = worker, args=(cdop, ref, face, diag,
-                                           varmean, vartrend, varlist)) 
+        p = Process(target=worker, args=(cdop, ref, face, diag,
+                                         varmean, vartrend, varlist))
         p.start()
         processes.append(p)
 
@@ -174,7 +174,8 @@ def main(args):
         global_table.append(out_sequence)
 
     if diag.ftrend:
-        head = ['Variable', 'Longname', 'Units', diag.modelname, 'Trend', 'Obs.', 'Dataset', 'Years']
+        head = ['Variable', 'Longname', 'Units', diag.modelname,
+                'Trend', 'Obs.', 'Dataset', 'Years']
     else:
         head = ['Variable', 'Longname', 'Units', diag.modelname, 'Obs.', 'Dataset', 'Years']
 
@@ -191,7 +192,7 @@ def main(args):
         print(linefile)
     if args.output:
         linefile = args.output
-        ftable = True
+        diag.ftable = True
     if diag.ftable:
         write_tuning_table(linefile, varmean, var_table, diag.expname,
                            diag.year1, diag.year2, face, ref)
