@@ -15,104 +15,32 @@ import argparse
 from pathlib import Path
 import logging
 import numpy as np
+from time import time
 from tabulate import tabulate
-from cdo import Cdo
 from functions import vars_are_there, load_yaml, make_input_filename, \
                       get_levels, units_extra_definition, units_are_integrals, \
-                      units_converter, directions_match
+                      units_converter, directions_match, chunks
 from cdopipe import CdoPipe
+import copy
+from multiprocessing import Process, Manager
 
-cdo = Cdo()
 
+def worker(cdopin, piclim, face, ECEDIR, CLMDIR, resolution, field_3d, year1, years_joined,
+           expname, fverb, varstat, varlist):
 
-def main(args):
-    """Main performance indices calculation"""
+    cdop = copy.copy(cdopin)  # Create a new local instance
+    for var in varlist:
 
-    assert sys.version_info >= (3, 7)
-
-    expname = args.exp
-    year1 = args.year1
-    year2 = args.year2
-    fverb = not args.silent
-
-    # config file (looks for it in the same dir as the .py program file
-    INDIR = Path(os.path.dirname(os.path.abspath(__file__)))
-
-    # load - if exists - config file
-    cfg = load_yaml(INDIR / 'config.yml')
-
-    # hard-coded resolution (due to climatological dataset)
-    resolution = cfg['PI']['resolution']
-
-    # folder definition
-    ECEDIR = Path(os.path.expandvars(cfg['dirs']['exp']), expname)
-    TABDIR = Path(os.path.expandvars(cfg['dirs']['tab']))
-    CLMDIR = Path(os.path.expandvars(cfg['dirs']['clm']), resolution)
-    os.makedirs(TABDIR, exist_ok=True)
-
-    # cdo.forceOutput = True
-
-    # prepare grid description file
-    ATMINIFILE = ECEDIR / f'ICMGG{expname}INIT'
-    OCEINIFILE = cfg['areas']['oce']
-
-    # Init CdoPipe object to use in the following
-    # cdop = CdoPipe(debug=True)
-    cdop = CdoPipe()
-
-    # new bunch of functions to set grids, create correction command, masks and areas
-    cdop.set_gridfixes(ATMINIFILE, OCEINIFILE, 'oifs', 'nemo')
-    cdop.make_atm_masks(ATMINIFILE, extra=f'-invertlat -remapcon2,{resolution}')
-
-    # add missing unit definitions
-    units_extra_definition()
-
-    # trick to avoid the loop on years
-    # define required years with a {year1,year2} and then use cdo select feature
-    years_list = [str(element) for element in range(year1, year2+1)]
-    years_joined = ','.join(years_list)
-
-    # special treatment to exploit bash wild cards on multiple years
-    if len(years_list) > 1:
-        years_joined = '{' + years_joined + '}'
-
-    if fverb:
-        print(years_joined)
-
-    # loading the var-to-file interface
-    face = load_yaml(INDIR / 'interface_ece4.yml')
-
-    # reference data: it is badly written but it can be implemented in a much more intelligent
-    # and modular way
-    piclim = load_yaml('pi_climatology.yml')
-
-    # defines the two varlist
-    field_2d = cfg['PI']['2d_vars']['field']
-    field_3d = cfg['PI']['3d_vars']['field']
-    field_oce = cfg['PI']['oce_vars']['field']
-    field_ice = cfg['PI']['ice_vars']['field']
-    field_all = field_2d + field_3d + field_oce + field_ice
-
-    # check if required variables are there: use interface file
-    # check into first file, and load also model variable units
-    isavail = {}
-    varunit = {}
-    for field in field_all:
-        infile = make_input_filename(
-            ECEDIR, field, expname, year1, year1, face)
-        retavail, retunit = vars_are_there(infile, [field], face)
-        isavail = {**isavail, **retavail}
-        varunit = {**varunit, **retunit}
-
-    # main loop
-    varstat = {}
-    for var in field_all:
+        # check if required variables are there: use interface file
+        # check into first file, and load also model variable units
+        infile = make_input_filename(ECEDIR, var, expname, year1, year1, face)
+        isavail, varunit = vars_are_there(infile, [var], face)
+        #varunit = {**varunit, **retunit}
 
         # if var is not available, store a NaN for the table
         if not isavail[var]:
             varstat[var] = float('NaN')
         else:
-
             # unit conversion: from original data to data required by PI
             # using metpy avoid the definition of operations inside the dataset
             # use offset and factor separately (e.g. will not work with Fahrenait)
@@ -205,6 +133,94 @@ def main(args):
             if fverb:
                 print('PI for ', var, varstat[var])
 
+
+def main(args):
+    """Main performance indices calculation"""
+
+    assert sys.version_info >= (3, 7)
+
+    expname = args.exp
+    year1 = args.year1
+    year2 = args.year2
+    fverb = not args.silent
+    numproc = args.numproc
+
+    # config file (looks for it in the same dir as the .py program file
+    INDIR = Path(os.path.dirname(os.path.abspath(__file__)))
+
+    # load - if exists - config file
+    cfg = load_yaml(INDIR / 'config.yml')
+
+    # hard-coded resolution (due to climatological dataset)
+    resolution = cfg['PI']['resolution']
+
+    # folder definition
+    ECEDIR = Path(os.path.expandvars(cfg['dirs']['exp']), expname)
+    TABDIR = Path(os.path.expandvars(cfg['dirs']['tab']))
+    CLMDIR = Path(os.path.expandvars(cfg['dirs']['clm']), resolution)
+    os.makedirs(TABDIR, exist_ok=True)
+
+    # prepare grid description file
+    ATMINIFILE = ECEDIR / f'ICMGG{expname}INIT'
+    OCEINIFILE = cfg['areas']['oce']
+
+    # Init CdoPipe object to use in the following
+    # cdop = CdoPipe(debug=True)
+    cdop = CdoPipe()
+
+    # new bunch of functions to set grids, create correction command, masks and areas
+    cdop.set_gridfixes(ATMINIFILE, OCEINIFILE, 'oifs', 'nemo')
+    cdop.make_atm_masks(ATMINIFILE, extra=f'-invertlat -remapcon2,{resolution}')
+
+    # add missing unit definitions
+    units_extra_definition()
+
+    # trick to avoid the loop on years
+    # define required years with a {year1,year2} and then use cdo select feature
+    years_list = [str(element) for element in range(year1, year2+1)]
+    years_joined = ','.join(years_list)
+
+    # special treatment to exploit bash wild cards on multiple years
+    if len(years_list) > 1:
+        years_joined = '{' + years_joined + '}'
+
+    if fverb:
+        print(years_joined)
+
+    # loading the var-to-file interface
+    face = load_yaml(INDIR / 'interface_ece4.yml')
+
+    # reference data: it is badly written but it can be implemented in a much more intelligent
+    # and modular way
+    piclim = load_yaml('pi_climatology.yml')
+
+    # defines the two varlist
+    field_2d = cfg['PI']['2d_vars']['field']
+    field_3d = cfg['PI']['3d_vars']['field']
+    field_oce = cfg['PI']['oce_vars']['field']
+    field_ice = cfg['PI']['ice_vars']['field']
+    field_all = field_2d + field_3d + field_oce + field_ice
+
+    # main loop
+    mgr = Manager()
+    varstat = mgr.dict()
+    processes = []
+    tic = time()
+
+    for varlist in chunks(field_all, numproc):
+        p = Process(target = worker, args=(cdop, piclim, face, ECEDIR, CLMDIR, resolution, field_3d,
+                                           year1, years_joined, expname, fverb,
+                                           varstat, varlist))
+        p.start()
+        processes.append(p)
+
+    for proc in processes:
+        proc.join()
+
+    toc = time()
+    if fverb:
+        print('Done in {:.4f} seconds'.format(toc-tic))
+
     # define options for the output table
     head = ['Var', 'PI', 'Domain', 'Dataset', 'CMIP3', 'Ratio to CMIP3']
     global_table = []
@@ -244,6 +260,8 @@ if __name__ == '__main__':
                         help='do not print anything to std output')
     parser.add_argument('-v', '--loglevel', type=str, default='ERROR',
                         help='define the level of logging. default: error')
+    parser.add_argument('-j', dest="numproc", type=int, default=1,
+                        help='number of processors to use')
     args = parser.parse_args()
 
     # log level with logging

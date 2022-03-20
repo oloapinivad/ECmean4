@@ -30,8 +30,8 @@ from functools import partial
 
 def worker(cdopin, ref, face, ECEDIR, year1, year2, expname, ftrend, fverb, varmean, vartrend, varlist):
 
+    cdop = copy.copy(cdopin)  # Create a new local instance
     for var in varlist:
-        cdop = copy.copy(cdopin)  # Create a new local instance
 
         # check if required variables are there: use interface file
         # check into first file, and load also model variable units
