@@ -148,7 +148,6 @@ def main(args):
     mgr = Manager()
     varmean = mgr.dict()
     vartrend = mgr.dict()
-    varunit = mgr.dict()
     processes = []
     tic = time()
 
