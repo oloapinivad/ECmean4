@@ -28,14 +28,33 @@ import copy
 from functools import partial
 
 
-def worker(cdopin, ref, face, ECEDIR, year1, year2, expname, ftrend, fverb, varmean, vartrend, varlist):
+class Diagnostic():
+    def __init__(self, args, cfg) :
+        self.expname = args.exp
+        self.year1 = args.year1
+        self.year2 = args.year2
+        self.fverb = not args.silent
+        self.ftable = args.line
+        self.ftrend = args.trend
+        self.numproc = args.numproc
+        self.modelname = args.model
+        if self.year1 == self.year2:  # Ignore if only one year requested
+            self.ftrend = False
+        pass
+        self.ECEDIR = Path(os.path.expandvars(cfg['dirs']['exp']), self.expname)
+        self.TABDIR = Path(os.path.expandvars(cfg['dirs']['tab']))
+        self.OCEINIFILE = cfg['areas']['oce']
+        self.ATMINIFILE = str(self.ECEDIR / f'ICMGG{self.expname}INIT')
+
+
+def worker(cdopin, ref, face, exp, varmean, vartrend, varlist):
 
     cdop = copy.copy(cdopin)  # Create a new local instance
     for var in varlist:
 
         # check if required variables are there: use interface file
         # check into first file, and load also model variable units
-        infile = make_input_filename(ECEDIR, var, expname, year1, year1, face)
+        infile = make_input_filename(exp.ECEDIR, var, exp.expname, exp.year1, exp.year1, face)
         isavail, varunit = vars_are_there(infile, [var], face)
         #varunit = {**varunit, **retunit}
 
@@ -80,53 +99,40 @@ def worker(cdopin, ref, face, ECEDIR, year1, year2, expname, ftrend, fverb, varm
 
             a = []
             # loop on years: call CDO to perform all the computations
-            yrange = range(year1, year2+1)
+            yrange = range(exp.year1, exp.year2+1)
             for year in yrange:
-                infile = make_input_filename(ECEDIR, var, expname, year, year, face)
+                infile = make_input_filename(exp.ECEDIR, var, exp.expname, year, year, face)
                 x = cdop.output(infile, keep=True)
                 a.append(x)
 
             varmean[var] = (mean(a) + units_conversion['offset']) * units_conversion['factor']
-            if ftrend:
+            if exp.ftrend:
                 vartrend[var] = np.polyfit(yrange, a, 1)[0]
-            if fverb:
+            if exp.fverb:
                 print('Average', var, varmean[var])
+
 
 def main(args):
     """The main EC-mean4 code"""
 
     assert sys.version_info >= (3, 7)
 
-    expname = args.exp
-    year1 = args.year1
-    year2 = args.year2
-    fverb = not args.silent
-    ftable = args.line
-    ftrend = args.trend
-    numproc = args.numproc
-    modelname = args.model
-    if year1 == year2:  # Ignore if only one year requested
-        ftrend = False
-
     # config file (looks for it in the same dir as the .py program file
     INDIR = Path(os.path.dirname(os.path.abspath(__file__)))
     cfg = load_yaml(INDIR / 'config.yml')
 
-    # define a few folders and create missing ones
-    ECEDIR = Path(os.path.expandvars(cfg['dirs']['exp']), expname)
-    TABDIR = Path(os.path.expandvars(cfg['dirs']['tab']))
-    os.makedirs(TABDIR, exist_ok=True)
+    # Setup all common variables, directories from arguments and config files
+    diag = Diagnostic(args, cfg) 
 
-    # prepare grid description file
-    ATMINIFILE = str(ECEDIR / f'ICMGG{expname}INIT')
-    OCEINIFILE = cfg['areas']['oce']
+    # Create missing folders
+    os.makedirs(diag.TABDIR, exist_ok=True)
 
-    # Init CdoPipe object to use in the following, specifying the LM and SM files
+    # Init CdoPipe object to use in the following
     cdop = CdoPipe()
 
-    # new bunch of functions to set grids, create correction command, masks and areas
-    cdop.set_gridfixes(ATMINIFILE, OCEINIFILE, 'oifs', 'nemo')
-    cdop.make_atm_masks(ATMINIFILE)
+    # New bunch of functions to set grids, create correction command, masks and areas
+    cdop.set_gridfixes(diag.ATMINIFILE, diag.OCEINIFILE, 'oifs', 'nemo')
+    cdop.make_atm_masks(diag.ATMINIFILE)
 
     # load reference data
     ref = load_yaml(INDIR / 'gm_reference.yml')
@@ -151,9 +157,8 @@ def main(args):
     processes = []
     tic = time()
 
-    for varlist in chunks(var_all, numproc):
-        p = Process(target = worker, args=(cdop, ref, face, ECEDIR, year1,
-                                           year2, expname, ftrend, fverb,
+    for varlist in chunks(var_all, diag.numproc):
+        p = Process(target = worker, args=(cdop, ref, face, diag,
                                            varmean, vartrend, varlist)) 
         p.start()
         processes.append(p)
@@ -162,7 +167,7 @@ def main(args):
         proc.join()
 
     toc = time()
-    if fverb:
+    if diag.fverb:
         print('Done in {:.4f} seconds'.format(toc-tic))
 
     # loop on the variables to create the output table
@@ -171,7 +176,7 @@ def main(args):
         beta = face[var]
         gamma = ref[var]
         beta['value'] = varmean[var]
-        if ftrend:
+        if diag.ftrend:
             beta['trend'] = vartrend[var]
             out_sequence = [var, beta['varname'], gamma['units'], beta['value'],
                             beta['trend'],
@@ -186,27 +191,28 @@ def main(args):
 
         global_table.append(out_sequence)
 
-    if ftrend:
-        head = ['Variable', 'Longname', 'Units', modelname, 'Trend', 'Obs.', 'Dataset', 'Years']
+    if diag.ftrend:
+        head = ['Variable', 'Longname', 'Units', diag.modelname, 'Trend', 'Obs.', 'Dataset', 'Years']
     else:
-        head = ['Variable', 'Longname', 'Units', modelname, 'Obs.', 'Dataset', 'Years']
+        head = ['Variable', 'Longname', 'Units', diag.modelname, 'Obs.', 'Dataset', 'Years']
 
     # write the file with tabulate: cool python feature
-    tablefile = TABDIR / f'global_mean_{expname}_{year1}_{year2}.txt'
-    if fverb:
+    tablefile = diag.TABDIR / f'global_mean_{diag.expname}_{diag.year1}_{diag.year2}.txt'
+    if diag.fverb:
         print(tablefile)
     with open(tablefile, 'w', encoding='utf-8') as f:
         f.write(tabulate(global_table, headers=head, tablefmt='orgtbl'))
 
     # Print appending one line to table (for tuning)
-    linefile = TABDIR / 'global_means.txt'
-    if fverb:
+    linefile = diag.TABDIR / 'global_means.txt'
+    if diag.fverb:
         print(linefile)
     if args.output:
         linefile = args.output
         ftable = True
-    if ftable:
-        write_tuning_table(linefile, varmean, var_table, expname, year1, year2, face, ref)
+    if diag.ftable:
+        write_tuning_table(linefile, varmean, var_table, diag.expname,
+                           diag.year1, diag.year2, face, ref)
 
     # clean
     cdop.cdo.cleanTempDir()
