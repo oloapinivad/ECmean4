@@ -94,7 +94,7 @@ def worker(cdopin, ref, face, exp, varmean, vartrend, varlist):
                 print('Average', var, varmean[var])
 
 
-def main(args):
+def global_mean(args):
     """The main EC-mean4 code"""
 
     assert sys.version_info >= (3, 7)
@@ -157,27 +157,19 @@ def main(args):
     for var in var_atm + var_oce:
         beta = face[var]
         gamma = ref[var]
-        beta['value'] = varmean[var]
-        if diag.ftrend:
-            beta['trend'] = vartrend[var]
-            out_sequence = [var, beta['varname'], gamma['units'], beta['value'],
-                            beta['trend'],
-                            float(gamma['observations']['val']),
-                            gamma['observations'].get('data', ''),
-                            gamma['observations'].get('years', '')]
-        else:
-            out_sequence = [var, beta['varname'], gamma['units'], beta['value'],
-                            float(gamma['observations']['val']),
-                            gamma['observations'].get('data', ''),
-                            gamma['observations'].get('years', '')]
 
+        out_sequence = [var, beta['varname'], gamma['units'], varmean[var]]
+        if diag.ftrend:
+            out_sequence = out_sequence + [vartrend[var]]
+        out_sequence = out_sequence + [float(gamma['observations']['val']),
+                                       gamma['observations'].get('data', ''),
+                                       gamma['observations'].get('years', '')]
         global_table.append(out_sequence)
 
+    head = ['Variable', 'Longname', 'Units', diag.modelname]
     if diag.ftrend:
-        head = ['Variable', 'Longname', 'Units', diag.modelname,
-                'Trend', 'Obs.', 'Dataset', 'Years']
-    else:
-        head = ['Variable', 'Longname', 'Units', diag.modelname, 'Obs.', 'Dataset', 'Years']
+        head = head + ['Trend']
+    head = head + ['Obs.', 'Dataset', 'Years']
 
     # write the file with tabulate: cool python feature
     tablefile = diag.TABDIR / f'global_mean_{diag.expname}_{diag.year1}_{diag.year2}.txt'
@@ -187,14 +179,10 @@ def main(args):
         f.write(tabulate(global_table, headers=head, tablefmt='orgtbl'))
 
     # Print appending one line to table (for tuning)
-    linefile = diag.TABDIR / 'global_means.txt'
     if diag.fverb:
-        print(linefile)
-    if args.output:
-        linefile = args.output
-        diag.ftable = True
+        print(diag.linefile)
     if diag.ftable:
-        write_tuning_table(linefile, varmean, var_table, diag.expname,
+        write_tuning_table(diag.linefile, varmean, var_table, diag.expname,
                            diag.year1, diag.year2, face, ref)
 
     # clean
@@ -233,4 +221,4 @@ if __name__ == "__main__":
         raise ValueError('Invalid log level: %s' % loglevel)
     logging.basicConfig(level=numeric_level)
 
-    main(args)
+    global_mean(args)

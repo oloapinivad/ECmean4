@@ -41,6 +41,10 @@ class Diagnostic():
         self.atminifile = str(self.ECEDIR / f'ICMGG{self.expname}INIT')
         self.years_joined = ''
 
+        self.linefile = self.TABDIR / 'global_means.txt'
+        if args.output:
+           self.linefile = args.output
+           self.ftable = True
 
 def chunks(iterable, num):
     """Generate num adjacent chunks of data"""
