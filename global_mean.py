@@ -94,7 +94,7 @@ def worker(cdopin, ref, face, exp, varmean, vartrend, varlist):
                 print('Average', var, varmean[var])
 
 
-def global_mean(args):
+def main(args):
     """The main EC-mean4 code"""
 
     assert sys.version_info >= (3, 7)
@@ -221,4 +221,4 @@ if __name__ == "__main__":
         raise ValueError('Invalid log level: %s' % loglevel)
     logging.basicConfig(level=numeric_level)
 
-    global_mean(args)
+    main(args)
