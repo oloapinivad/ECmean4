@@ -146,8 +146,7 @@ def vars_are_there(infile, var_needed, reference):
         for v in var_needed:
             isavail[v] = False
             isunit[v] = None
-        print("Not available:", v)
-        print(infile)
+        print(f'Not available: {v} File: {infile}')
     return isavail, isunit
 
 

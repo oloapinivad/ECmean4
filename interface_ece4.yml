@@ -15,7 +15,7 @@
 
 # Definition of model output properties
 model:
-  basedir: '$SCRATCH/../ccpd/ece4/{expname}/output'
+  basedir: '{expname}/output'
   filetype: 
     atm2d:
       filename: '{expname}_atm_cmip6_1m_{year1}-{year2}.nc'
