@@ -34,7 +34,7 @@ def worker(cdopin, piclim, face, diag, field_3d, varstat, varlist):
     for var in varlist:
         # check if required variables are there: use interface file
         # check into first file, and load also model variable units
-        infile = make_input_filename(diag.ECEDIR, var, diag.expname,
+        infile = make_input_filename(var, diag.expname,
                                      diag.year1, diag.year1, face)
         isavail, varunit = vars_are_there(infile, [var], face)
         # varunit = {**varunit, **retunit}
@@ -70,8 +70,8 @@ def worker(cdopin, piclim, face, diag, field_3d, varstat, varlist):
             vvvv = str(diag.CLMDIR / f'variance_{dataref}_{dataname}.nc')
 
             # create a file list using bash wildcards
-            infile = make_input_filename(
-                diag.ECEDIR, var, diag.expname, diag.years_joined, '????', face)
+            infile = make_input_filename(var, diag.expname,
+                                         diag.years_joined, '????', face)
 
             # Start fresh pipe
             # This leaves the input file undefined for now. It can be set later with
@@ -95,7 +95,8 @@ def worker(cdopin, piclim, face, diag, field_3d, varstat, varlist):
                 cdop.selectname(var)
 
             # fix grids and set domain making use component key from interface file
-            cdop.fixgrid(domain=face[var]['component'])
+            component = face['model']['filetype'][face[var]['filetype']]['component']
+            cdop.fixgrid(domain=component)
             cdop.timmean()
 
             # use convert() of cdopipe class to convert units
