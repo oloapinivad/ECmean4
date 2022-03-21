@@ -52,12 +52,11 @@ def worker(cdopin, piclim, face, diag, field_3d, varstat, varlist):
             new_units = units_are_integrals(varunit[var], piclim[var])
 
             # unit conversion
-            units_conversion = units_converter(new_units, piclim[var]['units'])
+            offset, factor = units_converter(new_units, piclim[var]['units'])
 
             # sign adjustment (for heat fluxes)
-            units_conversion['factor'] = units_conversion['factor'] * \
-                directions_match(face[var], piclim[var])
-            logging.debug(units_conversion)
+            factor = factor * directions_match(face[var], piclim[var])
+            logging.debug(offset, factor)
 
             # extract info from pi_climatology.yml
             # reference dataset and reference varname
@@ -98,7 +97,7 @@ def worker(cdopin, piclim, face, diag, field_3d, varstat, varlist):
             cdop.timmean()
 
             # use convert() of cdopipe class to convert units
-            cdop.convert(units_conversion['offset'], units_conversion['factor'])
+            cdop.convert(offset, factor)
 
             # temporarily using remapbil instead of remapcon due to NEMO grid missing corner
             outfile = cdop.execute('remapbil', diag.resolution)

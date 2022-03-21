@@ -215,7 +215,7 @@ def units_converter(org_units, tgt_units):
         offset = 0.
         factor = 1.
 
-    return {'offset': offset, 'factor': factor}
+    return offset, factor
 
 
 def units_are_integrals(org_units, ref_var):

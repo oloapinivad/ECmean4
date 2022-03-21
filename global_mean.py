@@ -55,14 +55,13 @@ def worker(cdopin, ref, face, diag, varmean, vartrend, varlist):
             adjusted_units = units_are_integrals(varunit[var], ref[var])
 
             # unit conversion
-            units_conversion = units_converter(adjusted_units, ref[var]['units'])
+            offset, factor = units_converter(adjusted_units, ref[var]['units'])
 
             # sign adjustment (for heat fluxes)
-            units_conversion['factor'] = units_conversion['factor'] * \
-                directions_match(face[var], ref[var])
+            factor = factor * directions_match(face[var], ref[var])
 
             # conversion debug
-            logging.debug(units_conversion)
+            logging.debug(offset, factor)
 
             if 'derived' in face[var].keys():
                 cmd = face[var]['derived']
@@ -88,7 +87,7 @@ def worker(cdopin, ref, face, diag, varmean, vartrend, varlist):
                 x = cdop.output(infile, keep=True)
                 a.append(x)
 
-            varmean[var] = (mean(a) + units_conversion['offset']) * units_conversion['factor']
+            varmean[var] = (mean(a) + offset) * factor
             if diag.ftrend:
                 vartrend[var] = np.polyfit(yrange, a, 1)[0]
             if diag.fverb:
