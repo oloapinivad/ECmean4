@@ -34,7 +34,7 @@ class Diagnostic():
         self.resolution = cfg['PI']['resolution']
 
         # Various input and output directories
-        self.ECEDIR = Path(os.path.expandvars(cfg['dirs']['exp']), self.expname)
+        self.ECEDIR = Path(os.path.expandvars(cfg['dirs']['exp']))
         self.TABDIR = Path(os.path.expandvars(cfg['dirs']['tab']))
         self.CLMDIR = Path(os.path.expandvars(cfg['dirs']['clm']), self.resolution)
         self.years_joined = ''
@@ -161,15 +161,15 @@ def load_yaml(infile):
     return cfg
 
 
-def make_input_filename(var, expname, year1, year2, face):
+def make_input_filename(var, year1, year2, face, diag):
     """Create input filenames for the required variable and a given year"""
 
     filetype = face[var]['filetype']
     filemask = face['model']['filetype'][filetype]['filename']
-    filename = Path(os.path.expandvars(filemask.format(expname=expname, year1=year1, year2=year2)))
-    filedir = Path(os.path.expandvars(face['model']['basedir'].format(expname=expname)),
-                   os.path.expandvars(face['model']['filetype'][filetype]['dir'].format(expname=expname)))
-    return str(filedir / filename)
+    filename = Path(os.path.expandvars(filemask.format(expname=diag.expname, year1=year1, year2=year2)))
+    filedir = Path(os.path.expandvars(face['model']['basedir'].format(expname=diag.expname)),
+                   os.path.expandvars(face['model']['filetype'][filetype]['dir'].format(expname=diag.expname)))
+    return str(diag.ECEDIR / filedir / filename)
 
 
 def units_extra_definition():

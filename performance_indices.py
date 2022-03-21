@@ -34,8 +34,7 @@ def worker(cdopin, piclim, face, diag, field_3d, varstat, varlist):
     for var in varlist:
         # check if required variables are there: use interface file
         # check into first file, and load also model variable units
-        infile = make_input_filename(var, diag.expname,
-                                     diag.year1, diag.year1, face)
+        infile = make_input_filename(var, diag.year1, diag.year1, face, diag)
         isavail, varunit = vars_are_there(infile, [var], face)
         # varunit = {**varunit, **retunit}
 
@@ -70,8 +69,7 @@ def worker(cdopin, piclim, face, diag, field_3d, varstat, varlist):
             vvvv = str(diag.CLMDIR / f'variance_{dataref}_{dataname}.nc')
 
             # create a file list using bash wildcards
-            infile = make_input_filename(var, diag.expname,
-                                         diag.years_joined, '????', face)
+            infile = make_input_filename(var, diag.years_joined, '????', face, diag)
 
             # Start fresh pipe
             # This leaves the input file undefined for now. It can be set later with

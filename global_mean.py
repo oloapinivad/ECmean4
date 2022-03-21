@@ -28,7 +28,7 @@ from ecmean import vars_are_there, load_yaml, \
 from cdopipe import CdoPipe
 
 
-def worker(cdopin, ref, face, exp, varmean, vartrend, varlist):
+def worker(cdopin, ref, face, diag, varmean, vartrend, varlist):
     """Main parallel diagnostic worker"""
 
     cdop = copy.copy(cdopin)  # Create a new local instance
@@ -36,7 +36,7 @@ def worker(cdopin, ref, face, exp, varmean, vartrend, varlist):
 
         # check if required variables are there: use interface file
         # check into first file, and load also model variable units
-        infile = make_input_filename(var, exp.expname, exp.year1, exp.year1, face)
+        infile = make_input_filename(var, diag.year1, diag.year1, face, diag)
         isavail, varunit = vars_are_there(infile, [var], face)
         # varunit = {**varunit, **retunit}
 
@@ -82,16 +82,16 @@ def worker(cdopin, ref, face, exp, varmean, vartrend, varlist):
 
             a = []
             # loop on years: call CDO to perform all the computations
-            yrange = range(exp.year1, exp.year2+1)
+            yrange = range(diag.year1, diag.year2+1)
             for year in yrange:
-                infile = make_input_filename(var, exp.expname, year, year, face)
+                infile = make_input_filename(var, year, year, face, diag)
                 x = cdop.output(infile, keep=True)
                 a.append(x)
 
             varmean[var] = (mean(a) + units_conversion['offset']) * units_conversion['factor']
-            if exp.ftrend:
+            if diag.ftrend:
                 vartrend[var] = np.polyfit(yrange, a, 1)[0]
-            if exp.fverb:
+            if diag.fverb:
                 print('Average', var, varmean[var])
 
 
