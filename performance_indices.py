@@ -155,7 +155,7 @@ def main(args):
     cdop = CdoPipe()
 
     # loading the var-to-file interface
-    face = load_yaml(INDIR / 'interface_ece4.yml')
+    face = load_yaml(INDIR / Path('interfaces', f'interface_{diag.modelname}.yml'))
 
     # load the climatology reference data
     piclim = load_yaml('pi_climatology.yml')
@@ -246,6 +246,8 @@ if __name__ == '__main__':
                         help='define the level of logging. default: error')
     parser.add_argument('-j', dest="numproc", type=int, default=1,
                         help='number of processors to use')
+    parser.add_argument('-m', '--model', type=str, default='EC-Earth4',
+                        help='model name')
     args = parser.parse_args()
 
     # log level with logging

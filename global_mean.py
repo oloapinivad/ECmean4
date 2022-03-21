@@ -117,7 +117,7 @@ def main(args):
     ref = load_yaml(INDIR / 'gm_reference.yml')
 
     # loading the var-to-file interface
-    face = load_yaml(INDIR / 'interface_ece4.yml')
+    face = load_yaml(INDIR / Path('interfaces', f'interface_{diag.modelname}.yml'))
 
     # New bunch of functions to set grids, create correction command, masks and areas
     # Can probably be cleaned up further
