@@ -22,7 +22,7 @@ from tabulate import tabulate
 from ecmean import vars_are_there, load_yaml, make_input_filename, \
                       get_levels, units_extra_definition, units_are_integrals, \
                       units_converter, directions_match, chunks, \
-                      Diagnostic
+                      Diagnostic, getcomponent, getinifiles, getdomain
 from cdopipe import CdoPipe
 
 
@@ -95,8 +95,8 @@ def worker(cdopin, piclim, face, diag, field_3d, varstat, varlist):
                 cdop.selectname(var)
 
             # fix grids and set domain making use component key from interface file
-            component = face['model']['filetype'][face[var]['filetype']]['component']
-            cdop.fixgrid(domain=component)
+            domain = getdomain(var, face)
+            cdop.fixgrid(domain=domain)
             cdop.timmean()
 
             # use convert() of cdopipe class to convert units
@@ -156,19 +156,20 @@ def main(args):
     # cdop = CdoPipe(debug=True)
     cdop = CdoPipe()
 
-    # new bunch of functions to set grids, create correction command, masks and areas
-    cdop.set_gridfixes(diag.atminifile, diag.oceinifile, 'oifs', 'nemo')
-    cdop.make_atm_masks(diag.atminifile, extra=f'-invertlat -remapcon2,{diag.resolution}')
-
-    # add missing unit definitions
-    units_extra_definition()
-
     # loading the var-to-file interface
     face = load_yaml(INDIR / 'interface_ece4.yml')
 
-    # reference data: it is badly written but it can be implemented in a much more intelligent
-    # and modular way
+    # load the climatology reference data
     piclim = load_yaml('pi_climatology.yml')
+
+    # new bunch of functions to set grids, create correction command, masks and areas
+    comp = getcomponent(face)  # Get component for each domain
+    atminifile, oceinifile = getinifiles(face, comp, diag.expname)
+    cdop.set_gridfixes(atminifile, oceinifile, comp['atm'], comp['oce'])
+    cdop.make_atm_masks(atminifile, extra=f'-invertlat -remapcon2,{diag.resolution}')
+
+    # add missing unit definitions
+    units_extra_definition()
 
     # defines the two varlist
     field_2d = cfg['PI']['2d_vars']['field']

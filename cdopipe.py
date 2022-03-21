@@ -48,33 +48,33 @@ class CdoPipe:
             for line in griddes:
                 print(line, file=f)
 
-    def _set_atm_fixgrid(self, atmdomain, atminifile):
+    def _set_atm_fixgrid(self, component, atminifile):
         """Define the command require for correcting model grid"""
 
         # this could improved using the modelname variable: if EC-Earth, do this...
-        if atmdomain == 'oifs':
+        if component == 'oifs':
             self.atmfix = f'-setgridtype,regular -setgrid,{self.ATMGRIDFILE}'
         else:
             sys.exit('Atmospheric component not supported')
 
         self.ATMGAFILE = self.cdo.gridarea(input=f'{self.atmfix} {atminifile}')
 
-    def _set_oce_fixgrid(self, ocedomain, oceinifile):
+    def _set_oce_fixgrid(self, component, oceinifile):
         """Define the command require for correcting model grid"""
 
         self.OCEGAFILE = self.cdo.expr('area=e1t*e2t', input=oceinifile)
 
         # this could improved using the modelname variable: if EC-Earth, do this...
-        if ocedomain == 'nemo':
+        if component == 'nemo':
             self.ocefix = f'-setgridarea,{self.OCEGAFILE}'
         else:
             sys.exit('Oceanic component not supported')
 
-    def set_gridfixes(self, atminifile, oceinifile, atmdomain, ocedomain):
+    def set_gridfixes(self, atminifile, oceinifile, atmcomp, ocecomp):
         """Create all internal grid files and set fixes for atm and oce grids"""
         self._set_grids(atminifile, oceinifile)
-        self._set_atm_fixgrid(atmdomain, atminifile)
-        self._set_oce_fixgrid(ocedomain, oceinifile)
+        self._set_atm_fixgrid(atmcomp, atminifile)
+        self._set_oce_fixgrid(ocecomp, oceinifile)
 
     def make_atm_masks(self, atminifile, extra=''):
         """Create land-sea masks for atmosphere model"""
@@ -98,7 +98,7 @@ class CdoPipe:
         self.pipe = '{infile}'
 
     def fixgrid(self, domain=''):
-        """Applies grid fixes, requires specifying the domain"""
+        """Applies grid fixes, requires specifying the domain (atm or oce)"""
         # ocean variables require specifying grid areas
         # atm variables require fixing the grid
 
@@ -106,12 +106,12 @@ class CdoPipe:
             domain = self.domain
 
         if not domain:
-            sys.exit('Needed to define a domain with setdomain() method first')
+            sys.exit('You have to define a domain with the setdomain() method first')
 
         # this should be replaced for a more general "ocean" or "atmosphere"
-        if domain == 'nemo':
+        if domain == 'oce':
             self.pipe = self.ocefix + ' ' + self.pipe
-        elif domain == 'oifs':
+        elif domain == 'atm':
             self.pipe = self.atmfix + ' ' + self.pipe
 
     def mask(self, mask_type):

@@ -24,7 +24,7 @@ from ecmean import vars_are_there, load_yaml, \
                       make_input_filename, write_tuning_table, \
                       units_extra_definition, units_are_integrals, \
                       units_converter, directions_match, chunks, \
-                      Diagnostic
+                      Diagnostic, getcomponent, getinifiles, getdomain
 from cdopipe import CdoPipe
 
 
@@ -73,8 +73,8 @@ def worker(cdopin, ref, face, exp, varmean, vartrend, varlist):
                 cdop.selectname(var)
 
             # Introduce grid fixes specifying type of file (atm or oce)
-            component = face['model']['filetype'][face[var]['filetype']]['component']
-            cdop.fixgrid(domain=component)
+            domain = getdomain(var, face)
+            cdop.fixgrid(domain=domain)
 
             # land/sea variables
             cdop.masked_meansum(ref[var].get('total', 'global'))
@@ -113,15 +113,18 @@ def main(args):
     # Init CdoPipe object to use in the following
     cdop = CdoPipe()
 
-    # New bunch of functions to set grids, create correction command, masks and areas
-    cdop.set_gridfixes(diag.atminifile, diag.oceinifile, 'oifs', 'nemo')
-    cdop.make_atm_masks(diag.atminifile)
-
     # load reference data
     ref = load_yaml(INDIR / 'gm_reference.yml')
 
     # loading the var-to-file interface
     face = load_yaml(INDIR / 'interface_ece4.yml')
+
+    # New bunch of functions to set grids, create correction command, masks and areas
+    # Can probably be cleaned up further
+    comp = getcomponent(face)  # Get component for each domain
+    atminifile, oceinifile = getinifiles(face, comp, diag.expname)
+    cdop.set_gridfixes(atminifile, oceinifile, comp['atm'], comp['oce'])
+    cdop.make_atm_masks(atminifile)
 
     # list of vars on which to work
     var_atm = cfg['global']['atm_vars']

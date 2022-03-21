@@ -1,31 +1,52 @@
 # Configuration yaml file for EC-Earth4 model and variables
 # 
 # Possible filetype attributes for variables are defined in the model section
+# The full path is $basedir/$dir/$filename
 # 
 # basedir can be formatted with: expname
 # dir can be formatted with: expname
 # filename can be formatted with: expname, year1, year2
+#
+# The key 'component' is used to determine the specific type of grid fixes to apply
+# (defined in cdopipe for now)
+# 
+# We also have the concept of 'domain' (atm or oce) later used to choose which fix to apply
+# Each component belongs to one and only one domain
 
 # Definition of model output properties
 model:
-  basedir: '$SCRATCH/../ccpd/ece4/{expname}'
+  basedir: '$SCRATCH/../ccpd/ece4/{expname}/output'
   filetype: 
     atm2d:
       filename: '{expname}_atm_cmip6_1m_{year1}-{year2}.nc'
-      dir: output/oifs
+      dir: oifs
       component: oifs
     atm3d:
       filename: '{expname}_atm_cmip6_pl_1m_{year1}-{year2}.nc'
-      dir: output/oifs
+      dir: oifs
       component: oifs
     oceT:
       filename: '{expname}_oce_1m_T_{year1}-{year2}.nc'
-      dir: output/nemo
+      dir: nemo
       component: nemo
     ice:
-      filename: '{expname}_ice_1m{year1}-{year2}.nc'
-      dir: output/nemo
+      filename: '{expname}_ice_1m_{year1}-{year2}.nc'
+      dir: nemo
       component: nemo
+
+  # This specifies what is the domain for each component (oce or atm)
+  # This is needed to select the correct fix in ecmean.py
+  # Specify also inifiles for components (an extra help file),
+  # containing extra info such as areas, used in set_gridfixes
+  # inifile can be formatted with: expname
+  # for now absolute paths have to be specified here (tbd)
+  component:
+    oifs:
+      domain: atm 
+      inifile: '$SCRATCH/../ccpd/ece4/{expname}/ICMGG{expname}INIT'
+    nemo:
+      domain: oce 
+      inifile: /ec/res4/hpcperm/ccpd/ECE4-DATA/nemo/ORCA1L75/domain_cfg.nc
 
 # Definition of individual variables
 tas:

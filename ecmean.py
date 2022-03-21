@@ -37,14 +37,13 @@ class Diagnostic():
         self.ECEDIR = Path(os.path.expandvars(cfg['dirs']['exp']), self.expname)
         self.TABDIR = Path(os.path.expandvars(cfg['dirs']['tab']))
         self.CLMDIR = Path(os.path.expandvars(cfg['dirs']['clm']), self.resolution)
-        self.oceinifile = cfg['areas']['oce']
-        self.atminifile = str(self.ECEDIR / f'ICMGG{self.expname}INIT')
         self.years_joined = ''
 
         self.linefile = self.TABDIR / 'global_means.txt'
-        if args.output:
+        if getattr(args, 'output', ''):
            self.linefile = args.output
            self.ftable = True
+
 
 def chunks(iterable, num):
     """Generate num adjacent chunks of data"""
@@ -162,15 +161,6 @@ def load_yaml(infile):
     return cfg
 
 
-#def make_input_filename(dr, var, expname, year1, year2, face):
-#   """Create input filenames for the required variable and a given year"""
-#
-#    filetype = face[var]['filetype']
-#    fname = dr / 'output' / face[var]['component'] / \
-#        f'{expname}_{filetype}_{year1}-{year2}.nc'
-#    return str(fname)
-
-
 def make_input_filename(var, expname, year1, year2, face):
     """Create input filenames for the required variable and a given year"""
 
@@ -191,7 +181,6 @@ def units_extra_definition():
     units.define('Sv = 1e+6 m^3/s')  # Replace Sievert with Sverdrup
 
 
-# use metpy/pint to provide factors for correction of units
 def units_converter(org_units, tgt_units):
     """Units conversion using metpy and pint.
     From a org_units convert to tgt_units providing offset and factor.
@@ -267,3 +256,25 @@ def write_tuning_table(linefile, varmean, var_table, expname, year1, year2, face
         for var in var_table:
             print('{:12.5f}'.format(varmean[var] * ref[var].get('factor', 1)), end=' ', file=f)
         print(file=f)
+
+
+def getdomain(var, face):
+    """Given a variable var extract its domain (ace or atm) from the interface"""
+    component = face['model']['filetype'][face[var]['filetype']]['component']
+    domain = face['model']['component'][component]['domain']
+    return domain
+
+
+def getcomponent(face):
+    """Return a dictionary providing the component associated with each domain
+       (the interface file specifies the domain for each component instead)"""
+    d = face['model']['component']
+    p = dict(zip([list(d.values())[x]['domain'] for x in range(len(d.values()))], d.keys()))
+    return p
+
+
+def getinifiles(face, comp, expname):
+    """Return the inifiles from the interface, needs the component dictionary"""
+    atminifile = os.path.expandvars(face['model']['component'][comp['atm']]['inifile'].format(expname=expname))
+    oceinifile = os.path.expandvars(face['model']['component'][comp['oce']]['inifile'].format(expname=expname))
+    return atminifile, oceinifile
