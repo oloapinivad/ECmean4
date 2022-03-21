@@ -147,6 +147,8 @@ def vars_are_there(infile, var_needed, reference):
         for v in var_needed:
             isavail[v] = False
             isunit[v] = None
+        print("Not available:", v)
+        print(infile)
     return isavail, isunit
 
 
@@ -174,10 +176,9 @@ def make_input_filename(var, expname, year1, year2, face):
 
     filetype = face[var]['filetype']
     filemask = face['model']['filetype'][filetype]['filename']
-    filename = Path(filemask.format(expname=expname, year1=year1, year2=year2))
-    filedir = Path(face['model']['basedir'].format(expname=expname),
-                   face['model']['filetype'][filetype]['dir'].format(expname=expname))
-    print(f"VAR: {var} FILENAME: ", str(filedir / filename))
+    filename = Path(os.path.expandvars(filemask.format(expname=expname, year1=year1, year2=year2)))
+    filedir = Path(os.path.expandvars(face['model']['basedir'].format(expname=expname)),
+                   os.path.expandvars(face['model']['filetype'][filetype]['dir'].format(expname=expname)))
     return str(filedir / filename)
 
 
