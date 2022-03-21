@@ -272,8 +272,16 @@ def getcomponent(face):
     return p
 
 
-def getinifiles(face, comp, expname):
+def getinifiles(face, comp, diag):
     """Return the inifiles from the interface, needs the component dictionary"""
-    atminifile = os.path.expandvars(face['model']['component'][comp['atm']]['inifile'].format(expname=expname))
-    oceinifile = os.path.expandvars(face['model']['component'][comp['oce']]['inifile'].format(expname=expname))
+    atminifile = os.path.expandvars(face['model']['component'][comp['atm']]['inifile'].format(expname=diag.expname))
+    oceinifile = os.path.expandvars(face['model']['component'][comp['oce']]['inifile'].format(expname=diag.expname))
+    if not atminifile[0] == '/':
+        atminifile = str(diag.ECEDIR /
+                         Path(os.path.expandvars(face['model']['basedir'].format(expname=diag.expname))) /
+                         Path(atminifile))
+    if not oceinifile[0] == '/':
+        oceinifile = str(diag.ECEDIR / 
+                         Path(os.path.expandvars(face['model']['basedir'].format(expname=diag.expname))) /
+                         Path(oceinifile))
     return atminifile, oceinifile

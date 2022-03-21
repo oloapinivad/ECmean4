@@ -162,7 +162,7 @@ def main(args):
 
     # new bunch of functions to set grids, create correction command, masks and areas
     comp = getcomponent(face)  # Get component for each domain
-    atminifile, oceinifile = getinifiles(face, comp, diag.expname)
+    atminifile, oceinifile = getinifiles(face, comp, diag)
     cdop.set_gridfixes(atminifile, oceinifile, comp['atm'], comp['oce'])
     cdop.make_atm_masks(atminifile, extra=f'-invertlat -remapcon2,{diag.resolution}')
 

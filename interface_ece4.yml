@@ -15,23 +15,23 @@
 
 # Definition of model output properties
 model:
-  basedir: '{expname}/output'
+  basedir: '{expname}'
   filetype: 
     atm2d:
       filename: '{expname}_atm_cmip6_1m_{year1}-{year2}.nc'
-      dir: oifs
+      dir: output/oifs
       component: oifs
     atm3d:
       filename: '{expname}_atm_cmip6_pl_1m_{year1}-{year2}.nc'
-      dir: oifs
+      dir: output/oifs
       component: oifs
     oceT:
       filename: '{expname}_oce_1m_T_{year1}-{year2}.nc'
-      dir: nemo
+      dir: output/nemo
       component: nemo
     ice:
       filename: '{expname}_ice_1m_{year1}-{year2}.nc'
-      dir: nemo
+      dir: output/nemo
       component: nemo
 
   # This specifies what is the domain for each component (oce or atm)
@@ -39,11 +39,11 @@ model:
   # Specify also inifiles for components (an extra help file),
   # containing extra info such as areas, used in set_gridfixes
   # inifile can be formatted with: expname
-  # for now absolute paths have to be specified here (tbd)
+  # If a relative path is used this is attached to $ECEDIR/$basedir
   component:
     oifs:
       domain: atm 
-      inifile: '$SCRATCH/../ccpd/ece4/{expname}/ICMGG{expname}INIT'
+      inifile: 'ICMGG{expname}INIT'
     nemo:
       domain: oce 
       inifile: /ec/res4/hpcperm/ccpd/ECE4-DATA/nemo/ORCA1L75/domain_cfg.nc
