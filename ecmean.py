@@ -160,13 +160,25 @@ def load_yaml(infile):
     return cfg
 
 
-def make_input_filename(dr, var, expname, year1, year2, face):
+#def make_input_filename(dr, var, expname, year1, year2, face):
+#   """Create input filenames for the required variable and a given year"""
+#
+#    filetype = face[var]['filetype']
+#    fname = dr / 'output' / face[var]['component'] / \
+#        f'{expname}_{filetype}_{year1}-{year2}.nc'
+#    return str(fname)
+
+
+def make_input_filename(var, expname, year1, year2, face):
     """Create input filenames for the required variable and a given year"""
 
     filetype = face[var]['filetype']
-    fname = dr / 'output' / face[var]['component'] / \
-        f'{expname}_{filetype}_{year1}-{year2}.nc'
-    return str(fname)
+    filemask = face['model']['filetype'][filetype]['filename']
+    filename = Path(filemask.format(expname=expname, year1=year1, year2=year2))
+    filedir = Path(face['model']['basedir'].format(expname=expname),
+                   face['model']['filetype'][filetype]['dir'].format(expname=expname))
+    print(f"VAR: {var} FILENAME: ", str(filedir / filename))
+    return str(filedir / filename)
 
 
 def units_extra_definition():

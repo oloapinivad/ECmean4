@@ -36,7 +36,8 @@ def worker(cdopin, ref, face, exp, varmean, vartrend, varlist):
 
         # check if required variables are there: use interface file
         # check into first file, and load also model variable units
-        infile = make_input_filename(exp.ECEDIR, var, exp.expname, exp.year1, exp.year1, face)
+        #infile = make_input_filename(exp.ECEDIR, var, exp.expname, exp.year1, exp.year1, face)
+        infile = make_input_filename(var, exp.expname, exp.year1, exp.year1, face)
         isavail, varunit = vars_are_there(infile, [var], face)
         # varunit = {**varunit, **retunit}
 
@@ -73,7 +74,9 @@ def worker(cdopin, ref, face, exp, varmean, vartrend, varlist):
                 cdop.selectname(var)
 
             # Introduce grid fixes specifying type of file (atm or oce)
-            cdop.fixgrid(domain=face[var]['component'])
+            component = face['model']['filetype'][face[var][filetype]][component]
+            print(f"Var: {var} Component: {component}")
+            cdop.fixgrid(domain=component)
 
             # land/sea variables
             cdop.masked_meansum(ref[var].get('total', 'global'))
@@ -83,7 +86,8 @@ def worker(cdopin, ref, face, exp, varmean, vartrend, varlist):
             # loop on years: call CDO to perform all the computations
             yrange = range(exp.year1, exp.year2+1)
             for year in yrange:
-                infile = make_input_filename(exp.ECEDIR, var, exp.expname, year, year, face)
+                #infile = make_input_filename(exp.ECEDIR, var, exp.expname, year, year, face)
+                infile = make_input_filename(var, exp.expname, year, year, face)
                 x = cdop.output(infile, keep=True)
                 a.append(x)
 
