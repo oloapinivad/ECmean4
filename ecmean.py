@@ -43,8 +43,8 @@ class Diagnostic():
 
         self.linefile = self.TABDIR / 'global_means.txt'
         if getattr(args, 'output', ''):
-           self.linefile = args.output
-           self.ftable = True
+            self.linefile = args.output
+            self.ftable = True
 
 
 def chunks(iterable, num):
@@ -148,7 +148,7 @@ def vars_are_there(infile, var_needed, reference):
         for v in var_needed:
             isavail[v] = False
             isunit[v] = None
-        print(f'Not available: {v} File: {infile}')
+        print(f'Not available: {var_needed} File: {infile}')
     return isavail, isunit
 
 
@@ -276,14 +276,18 @@ def getcomponent(face):
 
 def getinifiles(face, comp, diag):
     """Return the inifiles from the interface, needs the component dictionary"""
-    atminifile = os.path.expandvars(face['model']['component'][comp['atm']]['inifile'].format(expname=diag.expname))
-    oceinifile = os.path.expandvars(face['model']['component'][comp['oce']]['inifile'].format(expname=diag.expname))
+    atminifile = os.path.expandvars(face['model']['component']
+                                        [comp['atm']]['inifile'].format(expname=diag.expname))
+    oceinifile = os.path.expandvars(face['model']['component']
+                                        [comp['oce']]['inifile'].format(expname=diag.expname))
     if not atminifile[0] == '/':
         atminifile = str(diag.ECEDIR /
                          Path(os.path.expandvars(face['model']['basedir'].format(expname=diag.expname))) /
                          Path(atminifile))
     if not oceinifile[0] == '/':
-        oceinifile = str(diag.ECEDIR / 
+        oceinifile = str(diag.ECEDIR /
                          Path(os.path.expandvars(face['model']['basedir'].format(expname=diag.expname))) /
                          Path(oceinifile))
+    if not os.path.exists(oceinifile):
+        oceinifile = ''
     return atminifile, oceinifile

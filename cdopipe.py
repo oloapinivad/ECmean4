@@ -41,12 +41,13 @@ class CdoPipe:
         with open(self.ATMGRIDFILE, 'w', encoding='utf-8') as f:
             for line in griddes:
                 print(line, file=f)
-
-        self.OCEGRIDFILE = self.tempstore.newFile()
-        griddes = self.cdo.griddes(input=str(oceinifile))
-        with open(self.OCEGRIDFILE, 'w', encoding='utf-8') as f:
-            for line in griddes:
-                print(line, file=f)
+        
+        if oceinifile:
+            self.OCEGRIDFILE = self.tempstore.newFile()
+            griddes = self.cdo.griddes(input=str(oceinifile))
+            with open(self.OCEGRIDFILE, 'w', encoding='utf-8') as f:
+                for line in griddes:
+                    print(line, file=f)
 
     def _set_atm_fixgrid(self, component, atminifile):
         """Define the command require for correcting model grid"""
@@ -61,14 +62,15 @@ class CdoPipe:
 
     def _set_oce_fixgrid(self, component, oceinifile):
         """Define the command require for correcting model grid"""
+        
+        if oceinifile:
+            self.OCEGAFILE = self.cdo.expr('area=e1t*e2t', input=oceinifile)
 
-        self.OCEGAFILE = self.cdo.expr('area=e1t*e2t', input=oceinifile)
-
-        # this could improved using the modelname variable: if EC-Earth, do this...
-        if component == 'nemo':
-            self.ocefix = f'-setgridarea,{self.OCEGAFILE}'
-        else:
-            sys.exit('Oceanic component not supported')
+            # this could improved using the modelname variable: if EC-Earth, do this...
+            if component == 'nemo':
+                self.ocefix = f'-setgridarea,{self.OCEGAFILE}'
+            else:
+                sys.exit('Oceanic component not supported')
 
     def set_gridfixes(self, atminifile, oceinifile, atmcomp, ocecomp):
         """Create all internal grid files and set fixes for atm and oce grids"""

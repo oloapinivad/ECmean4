@@ -46,7 +46,7 @@ model:
       inifile: 'ICMGG{expname}INIT'
     nemo:
       domain: oce 
-      inifile: /ec/res4/hpcperm/ccpd/ECE4-DATA/nemo/ORCA1L75/domain_cfg.nc
+      inifile: domain_cfg.nc
 
 # Definition of individual variables
 tas:
