@@ -164,9 +164,9 @@ def main(args):
         out_sequence = [var, beta['varname'], gamma['units'], varmean[var]]
         if diag.ftrend:
             out_sequence = out_sequence + [vartrend[var]]
-        out_sequence = out_sequence + [float(gamma['observations']['val']),
-                                       gamma['observations'].get('data', ''),
-                                       gamma['observations'].get('years', '')]
+        out_sequence = out_sequence + [float(gamma['val']),
+                                       gamma.get('data', ''),
+                                       gamma.get('years', '')]
         global_table.append(out_sequence)
 
     head = ['Variable', 'Longname', 'Units', diag.modelname]
