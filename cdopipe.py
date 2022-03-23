@@ -149,7 +149,10 @@ class CdoPipe:
         self.chain(f'selname,{var}')
 
     def selectname(self, var):
-        self.chain(f'select,name={var}')
+        self.pipe = f'-select,name={var} [ ' + self.pipe + ' ] '
+
+    def cat(self, var):
+        self.pipe = f'-cat [ ' + self.pipe + ' ] '
 
     def expr(self, var, expr):
         self.chain(f'expr,{var}={expr}')
