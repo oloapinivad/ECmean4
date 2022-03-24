@@ -42,13 +42,16 @@ class Diagnostic():
         self.years_joined = ''
 
         self.linefile = self.TABDIR / 'global_means.txt'
-        if getattr(args, 'output', ''):
-            self.linefile = args.output
-            self.ftable = True
 
+        # check if output attribute exists
+        if hasattr(self, 'output') : 
+           self.linefile = args.output
+           self.ftable = True
+          
 
 def chunks(iterable, num):
-    """Generate num adjacent chunks of data"""
+    """Generate num adjacent chunks of data from a list iterable"""
+    """Split lists in a convienet way for a parallel process"""
     size = int(np.ceil(len(iterable) / num))
     it = iter(iterable)
     return iter(lambda: tuple(itertools.islice(it, size)), ())
