@@ -186,22 +186,27 @@ def main(args):
     if diag.fverb:
         print(diag.years_joined)
 
-    # main loop
+    # main loop: manager is required for shared variables
     mgr = Manager()
+
+    # dictionaries are shared, so they have to be passed as functions
     varstat = mgr.dict()
     processes = []
     tic = time()
 
+    # loop on the variables, create the parallel process
     for varlist in chunks(field_all, diag.numproc):
         p = Process(target=worker,
                     args=(cdop, piclim, face, diag, field_3d, varstat, varlist))
         p.start()
         processes.append(p)
 
+     # wait for the processes to finish
     for proc in processes:
         proc.join()
 
     toc = time()
+    # evaluate tic-toc time  of execution
     if diag.fverb:
         print('Done in {:.4f} seconds'.format(toc-tic))
 
