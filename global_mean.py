@@ -15,84 +15,32 @@ import argparse
 from statistics import mean
 from pathlib import Path
 import logging
+from multiprocessing import Process, Manager
+import copy
+from time import time
 from tabulate import tabulate
 import numpy as np
-from cdo import Cdo
-from functions import vars_are_there, load_yaml, \
+from ecmean import vars_are_there, load_yaml, \
                       make_input_filename, write_tuning_table, \
                       units_extra_definition, units_are_integrals, \
-                      units_converter, directions_match
+                      units_converter, directions_match, chunks, \
+                      Diagnostic
 from cdopipe import CdoPipe
 
-cdo = Cdo()
 
+def worker(cdopin, ref, face, exp, varmean, vartrend, varlist):
+    """Main parallel diagnostic worker"""
 
-def main(args):
-    """The main EC-mean4 code"""
+    cdop = copy.copy(cdopin)  # Create a new local instance to avoid overlap of the cdo pipe
+    for var in varlist:
 
-    assert sys.version_info >= (3, 7)
+        # check if required variables are there: use interface file
+        # check into first file, and load also model variable units
+        # with this implementation, files are accessed multiple times for each variables 
+        # this is simpler but might slow down the code
+        infile = make_input_filename(exp.ECEDIR, var, exp.expname, exp.year1, exp.year1, face)
+        isavail, varunit = vars_are_there(infile, [var], face)
 
-    expname = args.exp
-    year1 = args.year1
-    year2 = args.year2
-    fverb = not args.silent
-    ftable = args.line
-    ftrend = args.trend
-    modelname = args.model
-    if year1 == year2:  # Ignore if only one year requested
-        ftrend = False
-
-    # config file (looks for it in the same dir as the .py program file
-    INDIR = Path(os.path.dirname(os.path.abspath(__file__)))
-    cfg = load_yaml(INDIR / 'config.yml')
-
-    # define a few folders and create missing ones
-    ECEDIR = Path(os.path.expandvars(cfg['dirs']['exp']), expname)
-    TABDIR = Path(os.path.expandvars(cfg['dirs']['tab']))
-    os.makedirs(TABDIR, exist_ok=True)
-
-    # prepare grid description file
-    ATMINIFILE = str(ECEDIR / f'ICMGG{expname}INIT')
-    OCEINIFILE = cfg['areas']['oce']
-
-    # Init CdoPipe object to use in the following, specifying the LM and SM files
-    cdop = CdoPipe()
-
-    # new bunch of functions to set grids, create correction command, masks and areas
-    cdop.set_gridfixes(ATMINIFILE, OCEINIFILE, 'oifs', 'nemo')
-    cdop.make_atm_masks(ATMINIFILE)
-
-    # load reference data
-    ref = load_yaml(INDIR / 'gm_reference.yml')
-
-    # loading the var-to-file interface
-    face = load_yaml(INDIR / 'interface_ece4.yml')
-
-    # list of vars on which to work
-    var_atm = cfg['global']['atm_vars']
-    var_oce = cfg['global']['oce_vars']
-    var_table = cfg['global']['tab_vars']
-    # var_all = list(set(var_atm + var_table + var_oce))
-    var_all = list(dict.fromkeys(var_atm + var_table + var_oce))  # python 3.7+, preserve order
-
-    # add missing unit definition
-    units_extra_definition()
-
-    # check if required variables are there: use interface file
-    # check into first file, and load also model variable units
-    isavail = {}
-    varunit = {}
-    for var in var_all:
-        infile = make_input_filename(
-            ECEDIR, var, expname, year1, year1, face)
-        retavail, retunit = vars_are_there(infile, [var], face)
-        isavail = {**isavail, **retavail}
-        varunit = {**varunit, **retunit}
-
-    # main loop
-    varmean = {}
-    vartrend = {}
-    for var in var_all:
         if not isavail[var]:
             varmean[var] = float("NaN")
             vartrend[var] = float("NaN")
@@ -112,7 +60,7 @@ def main(args):
 
             # sign adjustment (for heat fluxes)
             units_conversion['factor'] = units_conversion['factor'] * \
-                                         directions_match(face[var], ref[var])
+                directions_match(face[var], ref[var])
 
             # conversion debug
             logging.debug(units_conversion)
@@ -134,60 +82,119 @@ def main(args):
 
             a = []
             # loop on years: call CDO to perform all the computations
-            yrange = range(year1, year2+1)
+            yrange = range(exp.year1, exp.year2+1)
             for year in yrange:
-                infile = make_input_filename(ECEDIR, var, expname, year, year, face)
+                infile = make_input_filename(exp.ECEDIR, var, exp.expname, year, year, face)
                 x = cdop.output(infile, keep=True)
                 a.append(x)
 
             varmean[var] = (mean(a) + units_conversion['offset']) * units_conversion['factor']
-            if ftrend:
+            if exp.ftrend:
                 vartrend[var] = np.polyfit(yrange, a, 1)[0]
-            if fverb:
+            if exp.fverb:
                 print('Average', var, varmean[var])
+
+
+def main(args):
+    """The main EC-mean4 code"""
+
+    assert sys.version_info >= (3, 7)
+
+    # config file (looks for it in the same dir as the .py program file
+    INDIR = Path(os.path.dirname(os.path.abspath(__file__)))
+    cfg = load_yaml(INDIR / 'config.yml')
+
+    # Setup all common variables, directories from arguments and config files
+    diag = Diagnostic(args, cfg)
+
+    # Create missing folders
+    os.makedirs(diag.TABDIR, exist_ok=True)
+
+    # Init CdoPipe object to use in the following
+    cdop = CdoPipe()
+
+    # New bunch of functions to set grids, create correction command, masks and areas
+    cdop.set_gridfixes(diag.atminifile, diag.oceinifile, 'oifs', 'nemo')
+    cdop.make_atm_masks(diag.atminifile)
+
+    # load reference data
+    ref = load_yaml(INDIR / 'gm_reference.yml')
+
+    # loading the var-to-file interface
+    face = load_yaml(INDIR / 'interface_ece4.yml')
+
+    # list of vars on which to work
+    var_atm = cfg['global']['atm_vars']
+    var_oce = cfg['global']['oce_vars']
+    var_table = cfg['global']['tab_vars']
+    # var_all = list(set(var_atm + var_table + var_oce))
+    var_all = list(dict.fromkeys(var_atm + var_table + var_oce))  # python 3.7+, preserve order
+
+    # add missing unit definition
+    units_extra_definition()
+
+    # main loop: manager is required for shared variables
+    mgr = Manager()
+
+    # dictionaries are shared, so they have to be passed as functions
+    varmean = mgr.dict()
+    vartrend = mgr.dict()
+    processes = []
+    tic = time()
+
+    # loop on the variables, create the parallel process
+    for varlist in chunks(var_all, diag.numproc):
+        p = Process(target=worker, args=(cdop, ref, face, diag,
+                                         varmean, vartrend, varlist))
+        p.start()
+        processes.append(p)
+
+    # simpler option, to be checked
+    #p.join()
+
+    # wait for the processes to finish
+    for proc in processes:
+        proc.join()
+
+    toc = time()
+
+    # evaluate tic-toc time  of execution
+    if diag.fverb:
+        print('Done in {:.4f} seconds'.format(toc-tic))
 
     # loop on the variables to create the output table
     global_table = []
     for var in var_atm + var_oce:
         beta = face[var]
         gamma = ref[var]
-        beta['value'] = varmean[var]
-        if ftrend:
-            beta['trend'] = vartrend[var]
-            out_sequence = [var, beta['varname'], gamma['units'], beta['value'],
-                            beta['trend'],
-                            float(gamma['observations']['val']),
-                            gamma['observations'].get('data', ''),
-                            gamma['observations'].get('years', '')]
-        else:
-            out_sequence = [var, beta['varname'], gamma['units'], beta['value'],
-                            float(gamma['observations']['val']),
-                            gamma['observations'].get('data', ''),
-                            gamma['observations'].get('years', '')]
 
+        out_sequence = [var, beta['varname'], gamma['units'], varmean[var]]
+        if diag.ftrend:
+            out_sequence = out_sequence + [vartrend[var]]
+        out_sequence = out_sequence + [float(gamma['observations']['val']),
+                                       gamma['observations'].get('data', ''),
+                                       gamma['observations'].get('years', '')]
         global_table.append(out_sequence)
 
-    if ftrend:
-        head = ['Variable', 'Longname', 'Units', modelname, 'Trend', 'Obs.', 'Dataset', 'Years']
-    else:
-        head = ['Variable', 'Longname', 'Units', modelname, 'Obs.', 'Dataset', 'Years']
+    # prepare the header for the table
+    head = ['Variable', 'Longname', 'Units', diag.modelname]
+    if diag.ftrend:
+        head = head + ['Trend']
+    head = head + ['Obs.', 'Dataset', 'Years']
 
     # write the file with tabulate: cool python feature
-    tablefile = TABDIR / f'global_mean_{expname}_{year1}_{year2}.txt'
-    if fverb:
+    tablefile = diag.TABDIR / f'global_mean_{diag.expname}_{diag.year1}_{diag.year2}.txt'
+    if diag.fverb:
         print(tablefile)
     with open(tablefile, 'w', encoding='utf-8') as f:
         f.write(tabulate(global_table, headers=head, tablefmt='orgtbl'))
 
     # Print appending one line to table (for tuning)
-    linefile = TABDIR / 'global_means.txt'
-    if fverb:
-        print(linefile)
-    if args.output:
-        linefile = args.output
-        ftable = True
-    if ftable:
-        write_tuning_table(linefile, varmean, var_table, expname, year1, year2, face, ref)
+    if diag.fverb:
+        print(diag.linefile)
+    if diag.ftable:
+        write_tuning_table(diag.linefile, varmean, var_table, diag.expname,
+                           diag.year1, diag.year2, face, ref)
 
     # clean
     cdop.cdo.cleanTempDir()
@@ -211,7 +218,9 @@ if __name__ == "__main__":
     parser.add_argument('-m', '--model', type=str, default='EC-Earth4',
                         help='model name')
     parser.add_argument('-v', '--loglevel', type=str, default='ERROR',
-                        help='define the level of logging. default: error')
+                        help='define the level of logging.')
+    parser.add_argument('-j', dest="numproc", type=int, default=1,
+                        help='number of processors to use')
 
     args = parser.parse_args()
 

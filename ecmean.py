@@ -1,17 +1,59 @@
 #!/usr/bin/env python3
 '''
-Shared functions for ECmean4
+Shared functions and classes for ECmean4
 '''
 import re
 import os.path
 import sys
 import logging
+import itertools
+from pathlib import Path
 import yaml
 import numpy as np
 from cdo import Cdo
 from metpy.units import units
 
 cdo = Cdo()
+
+
+class Diagnostic():
+    """General container class for common variables"""
+    def __init__(self, args, cfg):
+        self.expname = args.exp
+        self.year1 = args.year1
+        self.year2 = args.year2
+        self.fverb = not args.silent
+        self.ftable = getattr(args, 'line', False)
+        self.ftrend = getattr(args, 'trend', False)
+        self.numproc = args.numproc
+        self.modelname = getattr(args, 'model', 'EC-Earth4')
+        if self.year1 == self.year2:  # Ignore if only one year requested
+            self.ftrend = False
+
+        # hard-coded resolution (due to climatological dataset)
+        self.resolution = cfg['PI']['resolution']
+
+        # Various input and output directories
+        self.ECEDIR = Path(os.path.expandvars(cfg['dirs']['exp']), self.expname)
+        self.TABDIR = Path(os.path.expandvars(cfg['dirs']['tab']))
+        self.CLMDIR = Path(os.path.expandvars(cfg['dirs']['clm']), self.resolution)
+        self.oceinifile = cfg['areas']['oce']
+        self.atminifile = str(self.ECEDIR / f'ICMGG{self.expname}INIT')
+        self.years_joined = ''
+
+        self.linefile = self.TABDIR / 'global_means.txt'
+
+        # check if output attribute exists
+        if hasattr(self, 'output') : 
+           self.linefile = args.output
+           self.ftable = True
+
+def chunks(iterable, num):
+    """Generate num adjacent chunks of data from a list iterable"""
+    """Split lists in a convienet way for a parallel process"""
+    size = int(np.ceil(len(iterable) / num))
+    it = iter(iterable)
+    return iter(lambda: tuple(itertools.islice(it, size)), ())
 
 
 def get_levels(infile):
@@ -85,7 +127,8 @@ def vars_are_there(infile, var_needed, reference):
                 if u:
                     isunit[v] = u
                 else:
-                    logging.warning('%s is a derived var, assuming unit as the first of its term', v)
+                    logging.warning('%s is a derived var, assuming unit '
+                                    'as the first of its term', v)
                     isunit[v] = var_avail[var_req[0]]
 
                 # remove numbers
@@ -101,7 +144,8 @@ def vars_are_there(infile, var_needed, reference):
                 if x not in var_avail:
                     isavail[v] = False
                     isunit[v] = None
-                    logging.warning("Variable %s needed by %s is not available in the model output!", x, v)
+                    logging.warning("Variable %s needed by %s is not "
+                                    "available in the model output!", x, v)
     else:
         for v in var_needed:
             isavail[v] = False
