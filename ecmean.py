@@ -44,14 +44,14 @@ class Diagnostic():
         self.linefile = self.TABDIR / 'global_means.txt'
 
         # check if output attribute exists
-        if hasattr(self, 'output') : 
-           self.linefile = args.output
-           self.ftable = True
-          
+        if hasattr(self, 'output'):
+            self.linefile = args.output
+            self.ftable = True
+
 
 def chunks(iterable, num):
-    """Generate num adjacent chunks of data from a list iterable"""
-    """Split lists in a convienet way for a parallel process"""
+    """Generate num adjacent chunks of data from a list iterable
+       Split lists in a convenient way for a parallel process"""
     size = int(np.ceil(len(iterable) / num))
     it = iter(iterable)
     return iter(lambda: tuple(itertools.islice(it, size)), ())
@@ -164,12 +164,13 @@ def load_yaml(infile):
         sys.exit(f'{infile} not found: you need to have this configuration file!')
     return cfg
 
+
 def make_input_filename(var, year1, year2, face, diag):
     """Create input filenames for the required variable and a given year"""
 
     filetype = face[var]['filetype']
     filemask = face['filetype'][filetype]['filename']
-    filename = Path(os.path.expandvars(filemask.format(expname=diag.expname, 
+    filename = Path(os.path.expandvars(filemask.format(expname=diag.expname,
                                                        year1=year1,
                                                        year2=year2,
                                                        var=var)))
@@ -275,7 +276,7 @@ def getdomain(var, face):
 
 
 def getcomponent(face):  # unused function
-    """Return a dictionary providing the domain associated with a va 
+    """Return a dictionary providing the domain associated with a variable
        (the interface file specifies the domain for each component instead)"""
     d = face['component']
     p = dict(zip([list(d.values())[x]['domain'] for x in range(len(d.values()))], d.keys()))
@@ -284,7 +285,7 @@ def getcomponent(face):  # unused function
 
 def getinifiles(face, diag):
     """Return the inifiles from the interface, needs the component dictionary"""
-    comp=face['model']['component']
+    comp = face['model']['component']
     atminifile = os.path.expandvars(face['component'][comp['atm']]
                                         ['inifile'].format(expname=diag.expname))
     oceinifile = os.path.expandvars(face['component'][comp['oce']]

@@ -41,7 +41,7 @@ class CdoPipe:
         with open(self.ATMGRIDFILE, 'w', encoding='utf-8') as f:
             for line in griddes:
                 print(line, file=f)
-        
+
         if oceinifile:
             self.OCEGRIDFILE = self.tempstore.newFile()
             griddes = self.cdo.griddes(input=str(oceinifile))
@@ -62,7 +62,7 @@ class CdoPipe:
 
     def _set_oce_fixgrid(self, component, oceinifile):
         """Define the command require for correcting model grid"""
-        
+
         if oceinifile:
             self.OCEGAFILE = self.cdo.expr('area=e1t*e2t', input=oceinifile)
 
@@ -151,8 +151,8 @@ class CdoPipe:
     def selectname(self, var):
         self.pipe = f'-select,name={var} [ ' + self.pipe + ' ] '
 
-    def cat(self, var):
-        self.pipe = f'-cat [ ' + self.pipe + ' ] '
+    def cat(self):
+        self.pipe = '-cat [ ' + self.pipe + ' ] '
 
     def expr(self, var, expr):
         self.chain(f'expr,{var}={expr}')

@@ -36,7 +36,7 @@ def worker(cdopin, ref, face, diag, varmean, vartrend, varlist):
 
         # check if required variables are there: use interface file
         # check into first file, and load also model variable units
-        # with this implementation, files are accessed multiple times for each variables 
+        # with this implementation, files are accessed multiple times for each variables
         # this is simpler but might slow down the code
         infile = make_input_filename(var, diag.year1, diag.year1, face, diag)
         isavail, varunit = vars_are_there(infile, [var], face)
@@ -151,9 +151,6 @@ def main(args):
                                          varmean, vartrend, varlist))
         p.start()
         processes.append(p)
-
-    # simpler option, to be checked
-    #p.join()
 
     # wait for the processes to finish
     for proc in processes:

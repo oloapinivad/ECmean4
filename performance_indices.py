@@ -22,7 +22,7 @@ from tabulate import tabulate
 from ecmean import vars_are_there, load_yaml, make_input_filename, \
                       get_levels, units_extra_definition, units_are_integrals, \
                       units_converter, directions_match, chunks, \
-                      Diagnostic, getcomponent, getinifiles, getdomain
+                      Diagnostic, getinifiles, getdomain
 from cdopipe import CdoPipe
 
 
@@ -182,8 +182,6 @@ def main(args):
     # special treatment to exploit bash wild cards on multiple years
     if len(years_list) > 1:
         diag.years_joined = '{' + diag.years_joined + '}'
-    if diag.fverb:
-        print(diag.years_joined)
 
     # main loop: manager is required for shared variables
     mgr = Manager()
@@ -200,7 +198,7 @@ def main(args):
         p.start()
         processes.append(p)
 
-     # wait for the processes to finish
+    # wait for the processes to finish
     for proc in processes:
         proc.join()
 
