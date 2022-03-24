@@ -167,7 +167,10 @@ def make_input_filename(var, year1, year2, face, diag):
 
     filetype = face[var]['filetype']
     filemask = face['model']['filetype'][filetype]['filename']
-    filename = Path(os.path.expandvars(filemask.format(expname=diag.expname, year1=year1, year2=year2)))
+    filename = Path(os.path.expandvars(filemask.format(expname=diag.expname, 
+                                                       year1=year1,
+                                                       year2=year2,
+                                                       var=var)))
     filedir = Path(os.path.expandvars(face['model']['basedir'].format(expname=diag.expname)),
                    os.path.expandvars(face['model']['filetype'][filetype]['dir'].format(expname=diag.expname)))
     return str(diag.ECEDIR / filedir / filename)

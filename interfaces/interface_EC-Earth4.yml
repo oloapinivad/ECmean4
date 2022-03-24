@@ -5,7 +5,7 @@
 # 
 # basedir can be formatted with: expname
 # dir can be formatted with: expname
-# filename can be formatted with: expname, year1, year2
+# filename can be formatted with: expname, year1, year2, var
 #
 # The key 'component' is used to determine the specific type of grid fixes to apply
 # (defined in cdopipe for now)
