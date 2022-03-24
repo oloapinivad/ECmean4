@@ -42,7 +42,9 @@ class Diagnostic():
         self.years_joined = ''
 
         self.linefile = self.TABDIR / 'global_means.txt'
-        if args.output:
+
+        # check if output attribute exists
+        if hasattr(self, 'output') : 
            self.linefile = args.output
            self.ftable = True
 
