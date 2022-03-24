@@ -47,7 +47,8 @@ class Diagnostic():
            self.ftable = True
 
 def chunks(iterable, num):
-    """Generate num adjacent chunks of data"""
+    """Generate num adjacent chunks of data from a list iterable"""
+    """Split lists in a convienet way for a parallel process"""
     size = int(np.ceil(len(iterable) / num))
     it = iter(iterable)
     return iter(lambda: tuple(itertools.islice(it, size)), ())

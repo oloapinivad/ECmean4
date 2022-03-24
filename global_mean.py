@@ -31,14 +31,15 @@ from cdopipe import CdoPipe
 def worker(cdopin, ref, face, exp, varmean, vartrend, varlist):
     """Main parallel diagnostic worker"""
 
-    cdop = copy.copy(cdopin)  # Create a new local instance
+    cdop = copy.copy(cdopin)  # Create a new local instance to avoid overlap of the cdo pipe
     for var in varlist:
 
         # check if required variables are there: use interface file
         # check into first file, and load also model variable units
+        # with this implementation, files are accessed multiple times for each variables 
+        # this is simpler but might slow down the code
         infile = make_input_filename(exp.ECEDIR, var, exp.expname, exp.year1, exp.year1, face)
         isavail, varunit = vars_are_there(infile, [var], face)
-        # varunit = {**varunit, **retunit}
 
         if not isavail[var]:
             varmean[var] = float("NaN")
@@ -132,23 +133,32 @@ def main(args):
     # add missing unit definition
     units_extra_definition()
 
-    # main loop
+    # main loop: manager is required for shared variables
     mgr = Manager()
+
+    # dictionaries are shared, so they have to be passed as functions
     varmean = mgr.dict()
     vartrend = mgr.dict()
     processes = []
     tic = time()
 
+    # loop on the variables, create the parallel process
     for varlist in chunks(var_all, diag.numproc):
         p = Process(target=worker, args=(cdop, ref, face, diag,
                                          varmean, vartrend, varlist))
         p.start()
         processes.append(p)
 
+    # simpler option, to be checked
+    #p.join()
+
+    # wait for the processes to finish
     for proc in processes:
         proc.join()
 
     toc = time()
+
+    # evaluate tic-toc time  of execution
     if diag.fverb:
         print('Done in {:.4f} seconds'.format(toc-tic))
 
@@ -166,6 +176,7 @@ def main(args):
                                        gamma['observations'].get('years', '')]
         global_table.append(out_sequence)
 
+    # prepare the header for the table
     head = ['Variable', 'Longname', 'Units', diag.modelname]
     if diag.ftrend:
         head = head + ['Trend']
