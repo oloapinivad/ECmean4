@@ -13,40 +13,43 @@
 # We also have the concept of 'domain' (atm or oce) later used to choose which fix to apply
 # Each component belongs to one and only one domain
 
-# Definition of model output properties
+# Definition of model name and components belonging to it
 model:
   basedir: '{expname}'
-  filetype: 
-    atm2d:
-      filename: '{expname}_atm_cmip6_1m_{year1}-{year2}.nc'
-      dir: output/oifs
-      component: oifs
-    atm3d:
-      filename: '{expname}_atm_cmip6_pl_1m_{year1}-{year2}.nc'
-      dir: output/oifs
-      component: oifs
-    oceT:
-      filename: '{expname}_oce_1m_T_{year1}-{year2}.nc'
-      dir: output/nemo
-      component: nemo
-    ice:
-      filename: '{expname}_ice_1m_{year1}-{year2}.nc'
-      dir: output/nemo
-      component: nemo
-
-  # This specifies what is the domain for each component (oce or atm)
-  # This is needed to select the correct fix in ecmean.py
-  # Specify also inifiles for components (an extra help file),
-  # containing extra info such as areas, used in set_gridfixes
-  # inifile can be formatted with: expname
-  # If a relative path is used this is attached to $ECEDIR/$basedir
   component:
-    oifs:
-      domain: atm 
-      inifile: 'ICMGG{expname}INIT'
-    nemo:
-      domain: oce 
-      inifile: domain_cfg.nc
+    atm: oifs
+    oce: nemo
+
+# Definition of filetypes (specific for each component)
+# Each variable belongs to a filetype
+filetype: 
+  atm2d:
+    filename: '{expname}_atm_cmip6_1m_{year1}-{year2}.nc'
+    dir: output/oifs
+    component: oifs
+  atm3d:
+    filename: '{expname}_atm_cmip6_pl_1m_{year1}-{year2}.nc'
+    dir: output/oifs
+    component: oifs
+  oceT:
+    filename: '{expname}_oce_1m_T_{year1}-{year2}.nc'
+    dir: output/nemo
+    component: nemo
+  ice:
+    filename: '{expname}_ice_1m_{year1}-{year2}.nc'
+    dir: output/nemo
+    component: nemo
+
+# Specify additional properties of each component
+# such as inifiles, an extra help file containing 
+# info such as areas, used in set_gridfixes
+# inifile can be formatted with: expname
+# If a relative path is used this is attached to $ECEDIR/$basedir
+component:
+  oifs:
+    inifile: 'ICMGG{expname}INIT'
+  nemo:
+    inifile: domain_cfg.nc
 
 # Definition of individual variables
 tas:

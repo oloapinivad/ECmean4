@@ -160,8 +160,8 @@ def main(args):
     piclim = load_yaml('pi_climatology.yml')
 
     # new bunch of functions to set grids, create correction command, masks and areas
-    comp = getcomponent(face)  # Get component for each domain
-    atminifile, oceinifile = getinifiles(face, comp, diag)
+    comp = face['model']['component']  # Get component for each domain
+    atminifile, oceinifile = getinifiles(face, diag)
     cdop.set_gridfixes(atminifile, oceinifile, comp['atm'], comp['oce'])
     cdop.make_atm_masks(atminifile, extra=f'-invertlat -remapcon2,{diag.resolution}')
 

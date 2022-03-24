@@ -164,18 +164,17 @@ def load_yaml(infile):
         sys.exit(f'{infile} not found: you need to have this configuration file!')
     return cfg
 
-
 def make_input_filename(var, year1, year2, face, diag):
     """Create input filenames for the required variable and a given year"""
 
     filetype = face[var]['filetype']
-    filemask = face['model']['filetype'][filetype]['filename']
+    filemask = face['filetype'][filetype]['filename']
     filename = Path(os.path.expandvars(filemask.format(expname=diag.expname, 
                                                        year1=year1,
                                                        year2=year2,
                                                        var=var)))
     filedir = Path(os.path.expandvars(face['model']['basedir'].format(expname=diag.expname)),
-                   os.path.expandvars(face['model']['filetype'][filetype]['dir'].format(expname=diag.expname)))
+                   os.path.expandvars(face['filetype'][filetype]['dir'].format(expname=diag.expname)))
     return str(diag.ECEDIR / filedir / filename)
 
 
@@ -266,26 +265,30 @@ def write_tuning_table(linefile, varmean, var_table, expname, year1, year2, face
 
 
 def getdomain(var, face):
-    """Given a variable var extract its domain (ace or atm) from the interface"""
-    component = face['model']['filetype'][face[var]['filetype']]['component']
-    domain = face['model']['component'][component]['domain']
-    return domain
-
-
-def getcomponent(face):
-    """Return a dictionary providing the component associated with each domain
-       (the interface file specifies the domain for each component instead)"""
+    """Given a variable var extract its domain (ace or atm) from the interface.
+       To do so it creates a dictionary providing the domain associated with a component.
+       (the interface file specifies the component for each domain instead)"""
+    comp = face['filetype'][face[var]['filetype']]['component']
     d = face['model']['component']
+    domain = dict(zip([list(d.values())[x] for x in range(len(d.values()))], d.keys()))
+    return domain[comp]
+
+
+def getcomponent(face):  # unused function
+    """Return a dictionary providing the domain associated with a va 
+       (the interface file specifies the domain for each component instead)"""
+    d = face['component']
     p = dict(zip([list(d.values())[x]['domain'] for x in range(len(d.values()))], d.keys()))
     return p
 
 
-def getinifiles(face, comp, diag):
+def getinifiles(face, diag):
     """Return the inifiles from the interface, needs the component dictionary"""
-    atminifile = os.path.expandvars(face['model']['component']
-                                        [comp['atm']]['inifile'].format(expname=diag.expname))
-    oceinifile = os.path.expandvars(face['model']['component']
-                                        [comp['oce']]['inifile'].format(expname=diag.expname))
+    comp=face['model']['component']
+    atminifile = os.path.expandvars(face['component'][comp['atm']]
+                                        ['inifile'].format(expname=diag.expname))
+    oceinifile = os.path.expandvars(face['component'][comp['oce']]
+                                        ['inifile'].format(expname=diag.expname))
     if not atminifile[0] == '/':
         atminifile = str(diag.ECEDIR /
                          Path(os.path.expandvars(face['model']['basedir'].format(expname=diag.expname))) /
