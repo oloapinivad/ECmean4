@@ -191,6 +191,9 @@ class CdoPipe:
         fn = getattr(self.cdo, cmd)
         if not input:
             input = self.infile
+        if isinstance(input, list):
+            logging.debug('Applying cat: ', input)
+            input = '-cat [ ' + ' '.join(input) + ' ]'
         logging.debug('called cdop.execute with: %s', self.pipe)
         out = fn(input=self.pipe.format(infile=input), *args, **kwargs)
         if not keep:

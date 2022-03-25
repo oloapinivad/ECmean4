@@ -12,6 +12,7 @@ import yaml
 import numpy as np
 from cdo import Cdo
 from metpy.units import units
+from glob import glob
 
 cdo = Cdo()
 
@@ -94,13 +95,20 @@ def vars_are_there(infile, var_needed, reference):
     # if file exists, check which variables are inside
     isavail = {}
     isunit = {}
-    if os.path.isfile(infile):
+
+    # Use only first file if list is passed
+    if isinstance(infile, list):
+        ffile = infile[0]
+    else:
+        ffile = infile
+    
+    if os.path.isfile(ffile):
 
         # extract units from attributes: messy string manipulation to get it
-        units_avail_list = cdo.showattribute('*@units', input=infile)
+        units_avail_list = cdo.showattribute('*@units', input=ffile)
 
         # extract variables
-        var_avail_list = [v.split()[1] for v in cdo.pardes(input=infile)]
+        var_avail_list = [v.split()[1] for v in cdo.pardes(input=ffile)]
 
         # create a dictionary, taking care when units are missing
         # not really pythonic, need to be improved
@@ -176,7 +184,10 @@ def make_input_filename(var, year1, year2, face, diag):
                                                        var=var)))
     filedir = Path(os.path.expandvars(face['model']['basedir'].format(expname=diag.expname)),
                    os.path.expandvars(face['filetype'][filetype]['dir'].format(expname=diag.expname)))
-    return str(diag.ECEDIR / filedir / filename)
+    filename = sorted(glob(str(diag.ECEDIR / filedir / filename)))
+    if len(filename) == 1:  # glob always returns a list
+        filename = filename[0]
+    return filename
 
 
 def units_extra_definition():

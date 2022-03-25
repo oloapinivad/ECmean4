@@ -215,7 +215,7 @@ if __name__ == "__main__":
                         help='appends also single line to a table')
     parser.add_argument('-o', '--output', metavar='FILE', type=str, default='',
                         help='path of output one-line table')
-    parser.add_argument('-m', '--model', type=str, default='EC-Earth4',
+    parser.add_argument('-m', '--model', type=str, default='',
                         help='model name')
     parser.add_argument('-v', '--loglevel', type=str, default='ERROR',
                         help='define the level of logging.')
