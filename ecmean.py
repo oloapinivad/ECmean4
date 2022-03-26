@@ -130,7 +130,6 @@ def vars_are_there(infile, var_needed, reference):
         # loop on vars
         for v in var_needed:
             isavail[v] = True
-
             d = reference[v].get('derived')
             # if variable is derived, extract required vars
             if d:
@@ -197,7 +196,7 @@ def _expand_filename(fn, var, year1, year2, diag):
 def make_input_filename(var, year1, year2, face, diag):
     """Create full input filepaths for the required variable and a given year"""
 
-    filetype = face[var]['filetype']
+    filetype = face['variables'][var]['filetype']
     filepath = Path(diag.ECEDIR) / \
                Path(face['model']['basedir']) / \
                Path(face['filetype'][filetype]['dir']) / \
@@ -292,7 +291,7 @@ def write_tuning_table(linefile, varmean, var_table, expname, year1, year2, face
                 print('{:>12s}'.format(var), end=' ', file=f)
             print('\n%             ', end=' ', file=f)
             for var in var_table:
-                print('{:>12s}'.format(face[var]['units']), end=' ', file=f)
+                print('{:>12s}'.format(face['variables'][var]['units']), end=' ', file=f)
             print(file=f)
 
     with open(linefile, 'a', encoding='utf-8') as f:
@@ -306,7 +305,7 @@ def getdomain(var, face):
     """Given a variable var extract its domain (ace or atm) from the interface.
        To do so it creates a dictionary providing the domain associated with a component.
        (the interface file specifies the component for each domain instead)"""
-    comp = face['filetype'][face[var]['filetype']]['component']
+    comp = face['filetype'][face['variables'][var]['filetype']]['component']
     d = face['model']['component']
     domain = dict(zip([list(d.values())[x] for x in range(len(d.values()))], d.keys()))
     return domain[comp]

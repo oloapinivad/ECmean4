@@ -54,144 +54,145 @@ component:
     inifile: domain_cfg.nc
 
 # Definition of individual variables
-tas:
-  varname: '2m Air Temperature'
-  filetype: atm2d 
-cll:
-  varname: 'Low cloud cover'
-  filetype: atm2d
-clm:
-  varname: 'Medium cloud cover'
-  filetype: atm2d
-clh:
-  varname: 'High cloud cover'
-  filetype: atm2d
-clt:
-  varname: 'Total cloud cover'
-  filetype: atm2d
-ta: 
-  varname: 'Air Temperature'
-  filetype: atm3d
-ua:
-  varname: 'Zonal Wind'
-  filetype: atm3d
-va:
-  varname: 'Meridional Wind'
-  filetype: atm3d
-hus:
-  varname: 'Specific Humidity'
-  filetype: atm3d
-psl: 
-  varname: MSLP
-  filetype: atm2d
-pr: 
-  varname: Precipitation
-  filetype: atm2d
-evspsbl:
-  varname: Evaporation
-  filetype: atm2d
-tauu: 
-  varname: 'Zonal Wind Stress'
-  filetype: atm2d
-tauv:
-  varname: 'Meridional Wind Stress'
-  filetype: atm2d
-sos:
-  varname: SSS
-  filetype: oceT
-zos:
-  varname: SSH
-  filetype: oceT
-tos:
-  varname: SST
-  filetype: oceT
-siconc:
-  varname: 'Sea-ice Concentration'
-  filetype: ice
-rsnt:
-  varname: 'TOA net SW'
-  filetype: atm2d
-  direction: down
-rlnt:
-  varname: 'TOA net LW'
-  filetype: atm2d
-  direction: down
-net_toa:
-  varname: 'Net TOA'
-  units: W/m2
-  derived: 'rsnt+rlnt'
-  filetype: atm2d
-  direction: down
-rlns:
-  varname: 'Surface net LW'
-  filetype: atm2d
-  direction: down
-rsns:
-  varname: 'Surface net SW'
-  filetype: atm2d
-  direction: down
-hfss:
-  varname: 'Surface SH'
-  filetype: atm2d
-  direction: up
-hfls:
-  varname: 'Surface LH'
-  filetype: atm2d
-  direction: up
-net_sfc_nosn:
-  varname: 'Net Surface (no snowfall)'
-  filetype: atm2d
-  derived: 'rsns+rlns-hfls-hfss'
-net_sfc:
-  varname: 'Net Surface'
-  units: W/m2
-  filetype: atm2d
-  derived: 'rsns+rlns-hfls-hfss-prsn*334000'
-toamsfc:
-  varname: 'TOA-Sfc net radiation'
-  units: W/m2
-  filetype: atm2d
-  derived: 'rsnt+rlnt-rsns-rlns+hfls+hfss+prsn*334000'
-toamsfc_nosn:
-  varname: 'TOA-Sfc net rad. (no snowfall)'
-  filetype: atm2d
-  derived: 'rsnt+rlnt-rsns-rlns+hfls+hfss'
-rsntcs:
-  varname: 'TOA net SW, CS'
-  filetype: atm2d
-rlntcs:
-  varname: 'TOA net LW, CS'
-  filetype: atm2d
-pme:
-  varname: 'Precip. minus evap.'
-  derived: 'pr-evspsbl'
-  filetype: atm2d
-swcf:
-  varname: 'SW CRE'
-  derived: 'rsnt-rsntcs'
-  filetype: atm2d
-lwcf:
-  varname: 'LW CRE'
-  derived: 'rlnt-rlntcs'
-  filetype: atm2d
-wfo:
-  varname: 'Net Water Flux into ocean'
-  component: nemo
-  filetype: oceT
-  direction: up
-pr_land:
-  varname: 'Precipitation (land)'
-  derived: pr
-  filetype: atm2d
-pr_oce:
-  varname: 'Precipitation (ocean)'
-  derived: pr
-  filetype: atm2d
-pme_land:
-  varname: 'Precip. minus evap. (land)'
-  derived: 'pr-evspsbl'
-  filetype: atm2d
-pme_oce:
-  varname: 'Precip. minus evap. (ocean)'
-  derived: 'pr-evspsbl'
-  filetype: atm2d
+variables:
+  tas:
+    varname: '2m Air Temperature'
+    filetype: atm2d 
+  cll:
+    varname: 'Low cloud cover'
+    filetype: atm2d
+  clm:
+    varname: 'Medium cloud cover'
+    filetype: atm2d
+  clh:
+    varname: 'High cloud cover'
+    filetype: atm2d
+  clt:
+    varname: 'Total cloud cover'
+    filetype: atm2d
+  ta: 
+    varname: 'Air Temperature'
+    filetype: atm3d
+  ua:
+    varname: 'Zonal Wind'
+    filetype: atm3d
+  va:
+    varname: 'Meridional Wind'
+    filetype: atm3d
+  hus:
+    varname: 'Specific Humidity'
+    filetype: atm3d
+  psl: 
+    varname: MSLP
+    filetype: atm2d
+  pr: 
+    varname: Precipitation
+    filetype: atm2d
+  evspsbl:
+    varname: Evaporation
+    filetype: atm2d
+  tauu: 
+    varname: 'Zonal Wind Stress'
+    filetype: atm2d
+  tauv:
+    varname: 'Meridional Wind Stress'
+    filetype: atm2d
+  sos:
+    varname: SSS
+    filetype: oceT
+  zos:
+    varname: SSH
+    filetype: oceT
+  tos:
+    varname: SST
+    filetype: oceT
+  siconc:
+    varname: 'Sea-ice Concentration'
+    filetype: ice
+  rsnt:
+    varname: 'TOA net SW'
+    filetype: atm2d
+    direction: down
+  rlnt:
+    varname: 'TOA net LW'
+    filetype: atm2d
+    direction: down
+  net_toa:
+    varname: 'Net TOA'
+    units: W/m2
+    derived: 'rsnt+rlnt'
+    filetype: atm2d
+    direction: down
+  rlns:
+    varname: 'Surface net LW'
+    filetype: atm2d
+    direction: down
+  rsns:
+    varname: 'Surface net SW'
+    filetype: atm2d
+    direction: down
+  hfss:
+    varname: 'Surface SH'
+    filetype: atm2d
+    direction: up
+  hfls:
+    varname: 'Surface LH'
+    filetype: atm2d
+    direction: up
+  net_sfc_nosn:
+    varname: 'Net Surface (no snowfall)'
+    filetype: atm2d
+    derived: 'rsns+rlns-hfls-hfss'
+  net_sfc:
+    varname: 'Net Surface'
+    units: W/m2
+    filetype: atm2d
+    derived: 'rsns+rlns-hfls-hfss-prsn*334000'
+  toamsfc:
+    varname: 'TOA-Sfc net radiation'
+    units: W/m2
+    filetype: atm2d
+    derived: 'rsnt+rlnt-rsns-rlns+hfls+hfss+prsn*334000'
+  toamsfc_nosn:
+    varname: 'TOA-Sfc net rad. (no snowfall)'
+    filetype: atm2d
+    derived: 'rsnt+rlnt-rsns-rlns+hfls+hfss'
+  rsntcs:
+    varname: 'TOA net SW, CS'
+    filetype: atm2d
+  rlntcs:
+    varname: 'TOA net LW, CS'
+    filetype: atm2d
+  pme:
+    varname: 'Precip. minus evap.'
+    derived: 'pr-evspsbl'
+    filetype: atm2d
+  swcf:
+    varname: 'SW CRE'
+    derived: 'rsnt-rsntcs'
+    filetype: atm2d
+  lwcf:
+    varname: 'LW CRE'
+    derived: 'rlnt-rlntcs'
+    filetype: atm2d
+  wfo:
+    varname: 'Net Water Flux into ocean'
+    component: nemo
+    filetype: oceT
+    direction: up
+  pr_land:
+    varname: 'Precipitation (land)'
+    derived: pr
+    filetype: atm2d
+  pr_oce:
+    varname: 'Precipitation (ocean)'
+    derived: pr
+    filetype: atm2d
+  pme_land:
+    varname: 'Precip. minus evap. (land)'
+    derived: 'pr-evspsbl'
+    filetype: atm2d
+  pme_oce:
+    varname: 'Precip. minus evap. (ocean)'
+    derived: 'pr-evspsbl'
+    filetype: atm2d
