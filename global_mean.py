@@ -39,7 +39,7 @@ def worker(cdopin, ref, face, diag, varmean, vartrend, varlist):
         # with this implementation, files are accessed multiple times for each variables
         # this is simpler but might slow down the code
         infile = make_input_filename(var, diag.year1, diag.year1, face, diag)
-        isavail, varunit = vars_are_there(infile, [var], face)
+        isavail, varunit = vars_are_there(infile, [var], face['variables'])
 
         if not isavail[var]:
             varmean[var] = float("NaN")
@@ -59,13 +59,13 @@ def worker(cdopin, ref, face, diag, varmean, vartrend, varlist):
             offset, factor = units_converter(adjusted_units, ref[var]['units'])
 
             # sign adjustment (for heat fluxes)
-            factor = factor * directions_match(face[var], ref[var])
+            factor = factor * directions_match(face['variables'][var], ref[var])
 
             # conversion debug
             logging.debug(offset, factor)
 
-            if 'derived' in face[var].keys():
-                cmd = face[var]['derived']
+            if 'derived' in face['variables'][var].keys():
+                cmd = face['variables'][var]['derived']
                 dervars = (",".join(re.findall("[a-zA-Z]+", cmd)))
                 cdop.selectname(dervars)
                 cdop.expr(var, cmd)
@@ -165,7 +165,7 @@ def main(args):
     # loop on the variables to create the output table
     global_table = []
     for var in var_atm + var_oce:
-        beta = face[var]
+        beta = face['variables'][var]
         gamma = ref[var]
 
         out_sequence = [var, beta['varname'], gamma['units'], varmean[var]]

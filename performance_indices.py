@@ -35,7 +35,7 @@ def worker(cdopin, piclim, face, diag, field_3d, varstat, varlist):
         # check if required variables are there: use interface file
         # check into first file, and load also model variable units
         infile = make_input_filename(var, diag.year1, diag.year1, face, diag)
-        isavail, varunit = vars_are_there(infile, [var], face)
+        isavail, varunit = vars_are_there(infile, [var], face['variables'])
         # varunit = {**varunit, **retunit}
 
         # if var is not available, store a NaN for the table
@@ -55,7 +55,7 @@ def worker(cdopin, piclim, face, diag, field_3d, varstat, varlist):
             offset, factor = units_converter(new_units, piclim[var]['units'])
 
             # sign adjustment (for heat fluxes)
-            factor = factor * directions_match(face[var], piclim[var])
+            factor = factor * directions_match(face['variables'][var], piclim[var])
             logging.debug(offset, factor)
 
             # extract info from pi_climatology.yml
@@ -83,8 +83,8 @@ def worker(cdopin, piclim, face, diag, field_3d, varstat, varlist):
             # the set of variables you need
             # otherwise, use only select (this avoid loop)
             # WARNING: it may scale badly with high-resolution centennial runs
-            if 'derived' in face[var].keys():
-                cmd = face[var]['derived']
+            if 'derived' in face['variables'][var].keys():
+                cmd = face['variables'][var]['derived']
                 dervars = (",".join(re.findall("[a-zA-Z]+", cmd)))
                 cdop.selectname(dervars)
                 cdop.expr(var, cmd)

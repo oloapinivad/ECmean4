@@ -8,11 +8,11 @@ import sys
 import logging
 import itertools
 from pathlib import Path
+from glob import glob
 import yaml
 import numpy as np
 from cdo import Cdo
 from metpy.units import units
-from glob import glob
 
 cdo = Cdo()
 
@@ -32,6 +32,7 @@ class Diagnostic():
             self.modelname = cfg['model']['name']
         if self.year1 == self.year2:  # Ignore if only one year requested
             self.ftrend = False
+        #  These are here in prevision of future expansion to CMOR
         self.frequency = '*'
         self.ensemble = '*'
         self.grid = '*'
@@ -105,7 +106,7 @@ def vars_are_there(infile, var_needed, reference):
         ffile = infile[0]
     else:
         ffile = infile
-    
+
     if os.path.isfile(ffile):
 
         # extract units from attributes: messy string manipulation to get it
@@ -129,7 +130,6 @@ def vars_are_there(infile, var_needed, reference):
         # loop on vars
         for v in var_needed:
             isavail[v] = True
-
             d = reference[v].get('derived')
             # if variable is derived, extract required vars
             if d:
@@ -177,41 +177,39 @@ def load_yaml(infile):
     return cfg
 
 
-def _expand_filename(fn, var, year1, year2, face, diag):
+def _expand_filename(fn, var, year1, year2, diag):
     """Expands a path (filename or dir) for var, expname, frequency, ensemble etc. and
        environment variables."""
     return Path(str(os.path.expandvars(fn)).format(
                              expname=diag.expname,
-                             year1=year,
+                             year1=year1,
                              year2=year2,
                              var=var,
                              frequency=diag.frequency,
                              ensemble=diag.ensemble,
                              grid=diag.grid,
-                             model=diag.model,
+                             model=diag.modelname,
                              version=diag.version
                             ))
-    
+
 
 def make_input_filename(var, year1, year2, face, diag):
-    """Create input filenames for the required variable and a given year"""
+    """Create full input filepaths for the required variable and a given year"""
 
-    filetype = face[var]['filetype']
+    filetype = face['variables'][var]['filetype']
     filepath = Path(diag.ECEDIR) / \
                Path(face['model']['basedir']) / \
                Path(face['filetype'][filetype]['dir']) / \
                Path(face['filetype'][filetype]['filename'])
-    print("FILEPATH: ", filepath)
     # if year1 is a list, loop over it (we cannot use curly brackets anymore, now we pass a list)
     filename = []
-    if isinstance(year1, list):
-        yy = year1
-    else:
-        yy = [ year1 ]
+    # Make an iterable even if year1 is not a list
+    yy = year1
+    if not isinstance(year1, list):
+        yy = [year1]
     for year in yy:
-        fname = _expand_filename(filepath, var, year1, year2, face, diag)
+        fname = _expand_filename(filepath, var, year, year2, diag)
         filename = filename + sorted(glob(str(fname)))
-        print('FILENAME in make input fname: ', filename)
     if len(filename) == 1:  # glob always returns a list, return str if only one
         filename = filename[0]
     return filename
@@ -293,7 +291,7 @@ def write_tuning_table(linefile, varmean, var_table, expname, year1, year2, face
                 print('{:>12s}'.format(var), end=' ', file=f)
             print('\n%             ', end=' ', file=f)
             for var in var_table:
-                print('{:>12s}'.format(face[var]['units']), end=' ', file=f)
+                print('{:>12s}'.format(face['variables'][var]['units']), end=' ', file=f)
             print(file=f)
 
     with open(linefile, 'a', encoding='utf-8') as f:
@@ -307,7 +305,7 @@ def getdomain(var, face):
     """Given a variable var extract its domain (ace or atm) from the interface.
        To do so it creates a dictionary providing the domain associated with a component.
        (the interface file specifies the component for each domain instead)"""
-    comp = face['filetype'][face[var]['filetype']]['component']
+    comp = face['filetype'][face['variables'][var]['filetype']]['component']
     d = face['model']['component']
     domain = dict(zip([list(d.values())[x] for x in range(len(d.values()))], d.keys()))
     return domain[comp]
