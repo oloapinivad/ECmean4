@@ -23,8 +23,8 @@ class CdoPipe:
         self.OCEGRIDFILE = ''
         self.LMFILE = ''
         self.SMFILE = ''
-        self.ATMGAFILE = 'dummy'
-        self.OCEGAFILE = 'dummy'
+        self.ATMGAFILE = ''
+        self.OCEGAFILE = ''
         self.atmfix = ''
         self.ocefix = ''
         self.TMPDIR = tempdir
@@ -36,11 +36,12 @@ class CdoPipe:
     def _set_grids(self, atminifile, oceinifile):
         """Create grid description files for both atmosphere and ocean"""
 
-        self.ATMGRIDFILE = self.tempstore.newFile()
-        griddes = self.cdo.griddes(input=str(atminifile))
-        with open(self.ATMGRIDFILE, 'w', encoding='utf-8') as f:
-            for line in griddes:
-                print(line, file=f)
+        if atminifile:
+            self.ATMGRIDFILE = self.tempstore.newFile()
+            griddes = self.cdo.griddes(input=str(atminifile))
+            with open(self.ATMGRIDFILE, 'w', encoding='utf-8') as f:
+                for line in griddes:
+                    print(line, file=f)
 
         if oceinifile:
             self.OCEGRIDFILE = self.tempstore.newFile()
@@ -55,20 +56,22 @@ class CdoPipe:
         # this could improved using the modelname variable: if EC-Earth, do this...
         if component == 'oifs':
             self.atmfix = f'-setgridtype,regular -setgrid,{self.ATMGRIDFILE}'
+            self.ATMGAFILE = self.cdo.gridarea(input=f'{self.atmfix} {atminifile}')
+        if component == 'cmor':
+            self.atmfix = ''
         else:
             sys.exit('Atmospheric component not supported')
-
-        self.ATMGAFILE = self.cdo.gridarea(input=f'{self.atmfix} {atminifile}')
 
     def _set_oce_fixgrid(self, component, oceinifile):
         """Define the command require for correcting model grid"""
 
         if oceinifile:
-            self.OCEGAFILE = self.cdo.expr('area=e1t*e2t', input=oceinifile)
-
             # this could improved using the modelname variable: if EC-Earth, do this...
             if component == 'nemo':
+                self.OCEGAFILE = self.cdo.expr('area=e1t*e2t', input=oceinifile)
                 self.ocefix = f'-setgridarea,{self.OCEGAFILE}'
+            if component == 'cmor':
+                self.ocefix = ''
             else:
                 sys.exit('Oceanic component not supported')
 
@@ -82,10 +85,11 @@ class CdoPipe:
         """Create land-sea masks for atmosphere model"""
 
         # prepare ATM LSM: this need to be improved, since it is clearly model dependent
-        self.LMFILE = self.cdo.selname('LSM',
+        if self.atm == 'oifs':
+            self.LMFILE = self.cdo.selname('LSM',
                                        input=f'-setctomiss,0 -gec,0.5 {extra} {self.atmfix} {atminifile}',
                                        options='-t ecmwf -f nc')
-        self.SMFILE = self.cdo.addc('1', input=f'-setctomiss,1 -setmisstoc,0 {self.LMFILE}')
+            self.SMFILE = self.cdo.addc('1', input=f'-setctomiss,1 -setmisstoc,0 {self.LMFILE}')
 
     def chain(self, cmd):
         """Adds a generic cdo operator"""
