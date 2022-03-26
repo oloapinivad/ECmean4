@@ -8,11 +8,11 @@ import sys
 import logging
 import itertools
 from pathlib import Path
+from glob import glob
 import yaml
 import numpy as np
 from cdo import Cdo
 from metpy.units import units
-from glob import glob
 
 cdo = Cdo()
 
@@ -106,7 +106,7 @@ def vars_are_there(infile, var_needed, reference):
         ffile = infile[0]
     else:
         ffile = infile
-    
+
     if os.path.isfile(ffile):
 
         # extract units from attributes: messy string manipulation to get it
@@ -178,7 +178,7 @@ def load_yaml(infile):
     return cfg
 
 
-def _expand_filename(fn, var, year1, year2, face, diag):
+def _expand_filename(fn, var, year1, year2, diag):
     """Expands a path (filename or dir) for var, expname, frequency, ensemble etc. and
        environment variables."""
     return Path(str(os.path.expandvars(fn)).format(
@@ -207,9 +207,9 @@ def make_input_filename(var, year1, year2, face, diag):
     # Make an iterable even if year1 is not a list
     yy = year1
     if not isinstance(year1, list):
-        yy = [ year1 ]
+        yy = [year1]
     for year in yy:
-        fname = _expand_filename(filepath, var, year, year, face, diag)
+        fname = _expand_filename(filepath, var, year, year2, diag)
         filename = filename + sorted(glob(str(fname)))
     if len(filename) == 1:  # glob always returns a list, return str if only one
         filename = filename[0]
