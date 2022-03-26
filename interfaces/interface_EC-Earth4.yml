@@ -1,11 +1,13 @@
 # Configuration yaml file for EC-Earth4 model and variables
 # 
 # Possible filetype attributes for variables are defined in the model section
-# The full path is $basedir/$dir/$filename
+# The full path is $ECEDIR/$basedir/$dir/$filename
 # 
-# basedir can be formatted with: expname
-# dir can be formatted with: expname
-# filename can be formatted with: expname, year1, year2, var and star (*)
+# ECEDIR (defined in config) contains all experiments
+# basedir contains inifiles 
+# dir is where the output files can be found
+# filename is the filanamee maskc
+# All of these can be formatted with: expname, year1, year2, var, star (*) and others
 #
 # The key 'component' is used to determine the specific type of grid fixes to apply
 # (defined in cdopipe for now)

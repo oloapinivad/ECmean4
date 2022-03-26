@@ -32,6 +32,11 @@ class Diagnostic():
             self.modelname = cfg['model']['name']
         if self.year1 == self.year2:  # Ignore if only one year requested
             self.ftrend = False
+        #  These are here in prevision of future expansion to CMOR
+        self.frequency = '*'
+        self.ensemble = '*'
+        self.grid = '*'
+        self.version = '*'
 
         # hard-coded resolution (due to climatological dataset)
         self.resolution = cfg['PI']['resolution']
@@ -173,28 +178,40 @@ def load_yaml(infile):
     return cfg
 
 
+def _expand_filename(fn, var, year1, year2, face, diag):
+    """Expands a path (filename or dir) for var, expname, frequency, ensemble etc. and
+       environment variables."""
+    return Path(str(os.path.expandvars(fn)).format(
+                             expname=diag.expname,
+                             year1=year1,
+                             year2=year2,
+                             var=var,
+                             frequency=diag.frequency,
+                             ensemble=diag.ensemble,
+                             grid=diag.grid,
+                             model=diag.modelname,
+                             version=diag.version
+                            ))
+
+
 def make_input_filename(var, year1, year2, face, diag):
-    """Create input filenames for the required variable and a given year"""
+    """Create full input filepaths for the required variable and a given year"""
 
     filetype = face[var]['filetype']
-    filemask = face['filetype'][filetype]['filename']
-    filedir = Path(os.path.expandvars(face['model']['basedir'].format(expname=diag.expname)),
-                   os.path.expandvars(face['filetype'][filetype]['dir'].format(expname=diag.expname)))
+    filepath = Path(diag.ECEDIR) / \
+               Path(face['model']['basedir']) / \
+               Path(face['filetype'][filetype]['dir']) / \
+               Path(face['filetype'][filetype]['filename'])
     # if year1 is a list, loop over it (we cannot use curly brackets anymore, now we pass a list)
     filename = []
-    if isinstance(year1, list):
-        yy = year1
-    else:
+    # Make an iterable even if year1 is not a list
+    yy = year1
+    if not isinstance(year1, list):
         yy = [ year1 ]
     for year in yy:
-        fname = Path(os.path.expandvars(filemask.format(expname=diag.expname,
-                                                       year1=year,
-                                                       year2=year2,
-                                                       var=var)))
-        fname = sorted(glob(str(diag.ECEDIR / filedir / fname)))
-        filename = filename + fname
-    #  print('FILENAME in make input fname: ', filename)
-    if len(filename) == 1:  # glob always returns a list
+        fname = _expand_filename(filepath, var, year, year, face, diag)
+        filename = filename + sorted(glob(str(fname)))
+    if len(filename) == 1:  # glob always returns a list, return str if only one
         filename = filename[0]
     return filename
 
