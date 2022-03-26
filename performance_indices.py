@@ -177,11 +177,14 @@ def main(args):
 
     # trick to avoid the loop on years
     # define required years with a {year1,year2} and then use cdo select feature
-    years_list = [str(element) for element in range(diag.year1, diag.year2+1)]
-    diag.years_joined = ','.join(years_list)
+    #years_list = [str(element) for element in range(diag.year1, diag.year2+1)]
+    #diag.years_joined = ','.join(years_list)
     # special treatment to exploit bash wild cards on multiple years
-    if len(years_list) > 1:
-        diag.years_joined = '{' + diag.years_joined + '}'
+    #if len(years_list) > 1:
+    #    diag.years_joined = '{' + diag.years_joined + '}'
+    
+    # We now use a list
+    diag.years_joined = list(range(diag.year1, diag.year2+1))
 
     # main loop: manager is required for shared variables
     mgr = Manager()
@@ -248,7 +251,7 @@ if __name__ == '__main__':
                         help='define the level of logging. default: error')
     parser.add_argument('-j', dest="numproc", type=int, default=1,
                         help='number of processors to use')
-    parser.add_argument('-m', '--model', type=str, default='EC-Earth4',
+    parser.add_argument('-m', '--model', type=str, default='',
                         help='model name')
     args = parser.parse_args()
 

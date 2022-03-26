@@ -178,13 +178,22 @@ def make_input_filename(var, year1, year2, face, diag):
 
     filetype = face[var]['filetype']
     filemask = face['filetype'][filetype]['filename']
-    filename = Path(os.path.expandvars(filemask.format(expname=diag.expname,
-                                                       year1=year1,
-                                                       year2=year2,
-                                                       var=var)))
     filedir = Path(os.path.expandvars(face['model']['basedir'].format(expname=diag.expname)),
                    os.path.expandvars(face['filetype'][filetype]['dir'].format(expname=diag.expname)))
-    filename = sorted(glob(str(diag.ECEDIR / filedir / filename)))
+    # if year1 is a list, loop over it (we cannot use curly brackets anymore, now we pass a list)
+    filename = []
+    if isinstance(year1, list):
+        yy = year1
+    else:
+        yy = [ year1 ]
+    for year in yy:
+        fname = Path(os.path.expandvars(filemask.format(expname=diag.expname,
+                                                       year1=year,
+                                                       year2=year2,
+                                                       var=var)))
+        fname = sorted(glob(str(diag.ECEDIR / filedir / fname)))
+        filename = filename + fname
+    #  print('FILENAME in make input fname: ', filename)
     if len(filename) == 1:  # glob always returns a list
         filename = filename[0]
     return filename
