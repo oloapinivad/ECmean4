@@ -56,8 +56,9 @@ class CdoPipe:
         if component == 'oifs':
             self.atmfix = f'-setgridtype,regular -setgrid,{self.ATMGRIDFILE}'
             self.ATMGAFILE = self.cdo.gridarea(input=f'{self.atmfix} {atminifile}')
-        elif component == 'cmor':
+        elif component == 'cmoratm':
             self.atmfix = ''
+            self.ATMGAFILE = self.cdo.gridarea(input=f'{atminifile}')
         else:
             sys.exit('Atmospheric component not supported')
 
@@ -69,7 +70,7 @@ class CdoPipe:
             if component == 'nemo':
                 self.OCEGAFILE = self.cdo.expr('area=e1t*e2t', input=oceinifile)
                 self.ocefix = f'-setgridarea,{self.OCEGAFILE}'
-            elif component == 'cmor':
+            elif component == 'cmoratm':
                 self.ocefix = ''
             else:
                 sys.exit('Oceanic component not supported')
@@ -88,6 +89,12 @@ class CdoPipe:
                                        input=f'-setctomiss,0 -gec,0.5 {extra} {self.atmfix} {atminifile}',
                                        options='-t ecmwf -f nc')
             self.SMFILE = self.cdo.addc('1', input=f'-setctomiss,1 -setmisstoc,0 {self.LMFILE}')
+        elif component == 'cmoratm':
+            self.LMFILE = self.cdo.selname('sftlf',
+                                       input=f'-gec,0.5 {extra} {self.atmfix} {atminifile}')
+            self.SMFILE = self.cdo.addc('1', input=f'-setctomiss,1 -setmisstoc,0 {self.LMFILE}')
+            self.cdo.infov(self.LMFILE)
+            self.cdo.infov(self.SMFILE)
 
     def chain(self, cmd):
         """Adds a generic cdo operator"""

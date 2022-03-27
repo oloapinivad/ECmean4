@@ -95,10 +95,14 @@ def var_is_there(infile, var, reference):
     """Check if a variable is available in the input file and provide its units."""
 
     # Use only first file if list is passed
-    if isinstance(infile, list):
-        ffile = infile[0]
+    
+    if infile:
+        if isinstance(infile, list):
+            ffile = infile[0]
+        else:
+            ffile = infile
     else:
-        ffile = infile
+        ffile = ''
 
     # if file exists, check which variables are inside
     if os.path.isfile(ffile):
@@ -299,20 +303,22 @@ def getcomponent(face):  # unused function
 def getinifiles(face, diag):
     """Return the inifiles from the interface, needs the component dictionary"""
     comp = face['model']['component']
-    atminifile = os.path.expandvars(face['component'][comp['atm']]
-                                        ['inifile'].format(expname=diag.expname))
-    oceinifile = os.path.expandvars(face['component'][comp['oce']]
-                                        ['inifile'].format(expname=diag.expname))
+    atminifile = face['component'][comp['atm']]['inifile']
+    oceinifile = face['component'][comp['oce']]['inifile']
+
     if atminifile:
         if not atminifile[0] == '/':
-            atminifile = str(diag.ECEDIR /
-                         Path(os.path.expandvars(face['model']['basedir'].format(expname=diag.expname))) /
-                         Path(atminifile))
+            atminifile = Path(diag.ECEDIR) / \
+                         Path(face['model']['basedir']) / \
+                         Path(atminifile)
+        atminifile = str(_expand_filename(atminifile, '', diag.year1, diag.year1, diag))
     if oceinifile:
         if not oceinifile[0] == '/':
-            oceinifile = str(diag.ECEDIR /
-                         Path(os.path.expandvars(face['model']['basedir'].format(expname=diag.expname))) /
-                         Path(oceinifile))
-    if not os.path.exists(oceinifile):
-        oceinifile = ''
+            oceinifile = Path(diag.ECEDIR) / \
+                         Path(face['model']['basedir']) / \
+                         Path(oceinifile)
+        oceinifile = str(_expand_filename(oceinifile, '', diag.year1, diag.year1, diag))
+    
+    print("ATMINI", atminifile)
+    print("OCEINI", oceinifile)
     return atminifile, oceinifile
