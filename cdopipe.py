@@ -52,12 +52,11 @@ class CdoPipe:
 
     def _set_atm_fixgrid(self, component, atminifile):
         """Define the command require for correcting model grid"""
-
         # this could improved using the modelname variable: if EC-Earth, do this...
         if component == 'oifs':
             self.atmfix = f'-setgridtype,regular -setgrid,{self.ATMGRIDFILE}'
             self.ATMGAFILE = self.cdo.gridarea(input=f'{self.atmfix} {atminifile}')
-        if component == 'cmor':
+        elif component == 'cmor':
             self.atmfix = ''
         else:
             sys.exit('Atmospheric component not supported')
@@ -70,7 +69,7 @@ class CdoPipe:
             if component == 'nemo':
                 self.OCEGAFILE = self.cdo.expr('area=e1t*e2t', input=oceinifile)
                 self.ocefix = f'-setgridarea,{self.OCEGAFILE}'
-            if component == 'cmor':
+            elif component == 'cmor':
                 self.ocefix = ''
             else:
                 sys.exit('Oceanic component not supported')
@@ -83,7 +82,6 @@ class CdoPipe:
 
     def make_atm_masks(self, component, atminifile, extra=''):
         """Create land-sea masks for atmosphere model"""
-
         # prepare ATM LSM: this need to be improved, since it is clearly model dependent
         if component == 'oifs':
             self.LMFILE = self.cdo.selname('LSM',

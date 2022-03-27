@@ -162,7 +162,7 @@ def main(args):
     comp = face['model']['component']  # Get component for each domain
     atminifile, oceinifile = getinifiles(face, diag)
     cdop.set_gridfixes(atminifile, oceinifile, comp['atm'], comp['oce'])
-    cdop.make_atm_masks(comp, atminifile, extra=f'-invertlat -remapcon2,{diag.resolution}')
+    cdop.make_atm_masks(comp['atm'], atminifile, extra=f'-invertlat -remapcon2,{diag.resolution}')
 
     # add missing unit definitions
     units_extra_definition()
