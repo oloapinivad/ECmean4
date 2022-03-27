@@ -35,7 +35,7 @@ def worker(cdopin, piclim, face, diag, field_3d, varstat, varlist):
         # check if required variables are there: use interface file
         # check into first file, and load also model variable units
         infile = make_input_filename(var, diag.year1, diag.year1, face, diag)
-        isavail, varunit = vars_are_there(infile, [var], face['variables'])
+        isavail, varunit = vars_are_there(infile, var, face['variables'])
         # varunit = {**varunit, **retunit}
 
         # if var is not available, store a NaN for the table
@@ -163,7 +163,7 @@ def main(args):
     comp = face['model']['component']  # Get component for each domain
     atminifile, oceinifile = getinifiles(face, diag)
     cdop.set_gridfixes(atminifile, oceinifile, comp['atm'], comp['oce'])
-    cdop.make_atm_masks(atminifile, extra=f'-invertlat -remapcon2,{diag.resolution}')
+    cdop.make_atm_masks(comp, atminifile, extra=f'-invertlat -remapcon2,{diag.resolution}')
 
     # add missing unit definitions
     units_extra_definition()

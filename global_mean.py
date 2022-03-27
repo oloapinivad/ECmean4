@@ -39,7 +39,7 @@ def worker(cdopin, ref, face, diag, varmean, vartrend, varlist):
         # with this implementation, files are accessed multiple times for each variables
         # this is simpler but might slow down the code
         infile = make_input_filename(var, diag.year1, diag.year1, face, diag)
-        isavail, varunit = vars_are_there(infile, [var], face['variables'])
+        isavail, varunit = vars_are_there(infile, var, face['variables'])
 
         if not isavail[var]:
             varmean[var] = float("NaN")
@@ -124,7 +124,7 @@ def main(args):
     comp = face['model']['component']  # Get component for each domain
     atminifile, oceinifile = getinifiles(face, diag)
     cdop.set_gridfixes(atminifile, oceinifile, comp['atm'], comp['oce'])
-    cdop.make_atm_masks(atminifile)
+    cdop.make_atm_masks(comp, atminifile)
 
     # list of vars on which to work
     var_atm = cfg['global']['atm_vars']

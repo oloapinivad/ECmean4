@@ -209,9 +209,11 @@ def make_input_filename(var, year1, year2, face, diag):
         yy = [year1]
     for year in yy:
         fname = _expand_filename(filepath, var, year, year2, diag)
+        print("filename: ", fname)
         filename = filename + sorted(glob(str(fname)))
     if len(filename) == 1:  # glob always returns a list, return str if only one
         filename = filename[0]
+    print("filename exp: ", filename)
     return filename
 
 

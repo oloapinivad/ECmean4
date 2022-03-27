@@ -81,11 +81,11 @@ class CdoPipe:
         self._set_atm_fixgrid(atmcomp, atminifile)
         self._set_oce_fixgrid(ocecomp, oceinifile)
 
-    def make_atm_masks(self, atminifile, extra=''):
+    def make_atm_masks(self, component, atminifile, extra=''):
         """Create land-sea masks for atmosphere model"""
 
         # prepare ATM LSM: this need to be improved, since it is clearly model dependent
-        if self.atm == 'oifs':
+        if component == 'oifs':
             self.LMFILE = self.cdo.selname('LSM',
                                        input=f'-setctomiss,0 -gec,0.5 {extra} {self.atmfix} {atminifile}',
                                        options='-t ecmwf -f nc')
