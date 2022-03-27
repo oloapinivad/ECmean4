@@ -19,7 +19,7 @@ from time import time
 from multiprocessing import Process, Manager
 import numpy as np
 from tabulate import tabulate
-from ecmean import vars_are_there, load_yaml, make_input_filename, \
+from ecmean import var_is_there, load_yaml, make_input_filename, \
                       get_levels, units_extra_definition, units_are_integrals, \
                       units_converter, directions_match, chunks, \
                       Diagnostic, getinifiles, getdomain
@@ -35,11 +35,10 @@ def worker(cdopin, piclim, face, diag, field_3d, varstat, varlist):
         # check if required variables are there: use interface file
         # check into first file, and load also model variable units
         infile = make_input_filename(var, diag.year1, diag.year1, face, diag)
-        isavail, varunit = vars_are_there(infile, var, face['variables'])
-        # varunit = {**varunit, **retunit}
+        isavail, varunit = var_is_there(infile, var, face['variables'])
 
         # if var is not available, store a NaN for the table
-        if not isavail[var]:
+        if not isavail:
             varstat[var] = float('NaN')
         else:
             # unit conversion: from original data to data required by PI
@@ -47,9 +46,9 @@ def worker(cdopin, piclim, face, diag, field_3d, varstat, varlist):
             # use offset and factor separately (e.g. will not work with Fahrenait)
             # now in functions.py
             logging.debug(var)
-            logging.debug(varunit[var] + ' ---> ' + piclim[var]['units'])
+            logging.debug(varunit + ' ---> ' + piclim[var]['units'])
             # adjust integrated quantities
-            new_units = units_are_integrals(varunit[var], piclim[var])
+            new_units = units_are_integrals(varunit, piclim[var])
 
             # unit conversion
             offset, factor = units_converter(new_units, piclim[var]['units'])

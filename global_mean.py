@@ -20,7 +20,7 @@ import copy
 from time import time
 from tabulate import tabulate
 import numpy as np
-from ecmean import vars_are_there, load_yaml, \
+from ecmean import var_is_there, load_yaml, \
                       make_input_filename, write_tuning_table, \
                       units_extra_definition, units_are_integrals, \
                       units_converter, directions_match, chunks, \
@@ -39,9 +39,9 @@ def worker(cdopin, ref, face, diag, varmean, vartrend, varlist):
         # with this implementation, files are accessed multiple times for each variables
         # this is simpler but might slow down the code
         infile = make_input_filename(var, diag.year1, diag.year1, face, diag)
-        isavail, varunit = vars_are_there(infile, var, face['variables'])
+        isavail, varunit = var_is_there(infile, var, face['variables'])
 
-        if not isavail[var]:
+        if not isavail:
             varmean[var] = float("NaN")
             vartrend[var] = float("NaN")
         else:
@@ -50,10 +50,10 @@ def worker(cdopin, ref, face, diag, varmean, vartrend, varlist):
 
             # conversion debug
             logging.debug(var)
-            logging.debug(varunit[var] + ' ---> ' + ref[var]['units'])
+            logging.debug(varunit + ' ---> ' + ref[var]['units'])
 
             # adjust integrated quantities
-            adjusted_units = units_are_integrals(varunit[var], ref[var])
+            adjusted_units = units_are_integrals(varunit, ref[var])
 
             # unit conversion
             offset, factor = units_converter(adjusted_units, ref[var]['units'])

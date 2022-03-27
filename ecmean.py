@@ -91,15 +91,8 @@ def is_number(s):
         return False
 
 
-def vars_are_there(infile, var_needed, reference):
-    """Check if a list of variables is available in the input file.
-       Make sure all requested vars are available (use first year)
-       first find all needed variables (including those needed for derived ones)
-       added extra if to check if file exists"""
-
-    # if file exists, check which variables are inside
-    isavail = {}
-    isunit = {}
+def var_is_there(infile, var, reference):
+    """Check if a variable is available in the input file and provide its units."""
 
     # Use only first file if list is passed
     if isinstance(infile, list):
@@ -107,64 +100,48 @@ def vars_are_there(infile, var_needed, reference):
     else:
         ffile = infile
 
+    # if file exists, check which variables are inside
     if os.path.isfile(ffile):
+        params = cdo.pardes(input=ffile)
+        # Extract list of vars and of units in infile
+        vars_avail = [v.split()[1] for v in params]
+        # The following is a trick to obtain the units list (placing '' for missing ones)
+        units_avail = [(v.replace('[', ']').split(']')[1:2] or [''])[0] for v in params]
+        units_avail = dict(zip(vars_avail, units_avail))  # Transform into dict
 
-        # extract units from attributes: messy string manipulation to get it
-        units_avail_list = cdo.showattribute('*@units', input=ffile)
-
-        # extract variables
-        var_avail_list = [v.split()[1] for v in cdo.pardes(input=ffile)]
-
-        # create a dictionary, taking care when units are missing
-        # not really pythonic, need to be improved
-        var_avail = {}
-        for u in units_avail_list:
-            if u.replace(':', '') in var_avail_list:
-                ind = units_avail_list.index(u)
-                if 'units' in units_avail_list[ind+1]:
-                    found_unit = re.findall('"([^"]*)"', units_avail_list[ind+1])[0]
-                else:
-                    found_unit = ''
-                var_avail[u.replace(':', '')] = found_unit
-
-        # loop on vars
-        for v in var_needed:
-            isavail[v] = True
-            d = reference[v].get('derived')
-            # if variable is derived, extract required vars
-            if d:
-                var_req = re.split('[*+-]', d)
-
-                # check of unit is specified in the interface file
-                u = reference[v].get('units')
-                if u:
-                    isunit[v] = u
-                else:
-                    logging.warning('%s is a derived var, assuming unit '
-                                    'as the first of its term', v)
-                    isunit[v] = var_avail[var_req[0]]
-
-                # remove numbers
-                for x in var_req:
-                    if is_number(x):
-                        var_req.remove(x)
-            else:
-                var_req = [v]
-                isunit[v] = var_avail[v]
-
-            # check if required varialbes are in model output
+        # if variable is derived, extract required vars
+        d = reference[var].get('derived')
+        if d:
+            var_req = re.split('[*+-]', d)
+            # remove numbers
             for x in var_req:
-                if x not in var_avail:
-                    isavail[v] = False
-                    isunit[v] = None
-                    logging.warning("Variable %s needed by %s is not "
-                                    "available in the model output!", x, v)
+                if is_number(x):
+                    var_req.remove(x)
+
+            # check of unit is specified in the interface file
+            varunit = reference[var].get('units')
+            if not varunit:
+                logging.warning('%s is a derived var, assuming unit '
+                                'as the first of its term', var)
+                varunit = units_avail.get(var_req[0])
+        else:
+            var_req = [var]
+            varunit = units_avail.get(var)
+
+        # check if all required variables are in model output
+        isavail = True
+        for x in var_req:
+            if x not in vars_avail:
+                isavail = False
+                logging.warning("Variable %s needed by %s is not "
+                                "available in the model output!", x, var)
     else:
-        for v in var_needed:
-            isavail[v] = False
-            isunit[v] = None
-        print(f'Not available: {var_needed} File: {infile}')
-    return isavail, isunit
+        isavail = False
+        varunit = None
+        print(f'Not available: {var} File: {infile}')
+        logging.warning("Requested file %s is not available.", infile)
+
+    return isavail, varunit
 
 
 def load_yaml(infile):
