@@ -1,7 +1,7 @@
 [![Maintenance](https://img.shields.io/badge/Maintained%3F-yes-green.svg)](https://GitHub.com/Naereen/StrapDown.js/graphs/commit-activity)
 [![made-with-python](https://img.shields.io/badge/Made%20with-Python-1f425f.svg)](https://www.python.org/)
 
-![ECmean4](docs/ecmean4_small.png)
+![ECmean4](docs/ecmean4_smallest.png)
 
 *An EC-Earth4 basic evaluation tool*
 
