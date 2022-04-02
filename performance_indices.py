@@ -19,10 +19,10 @@ from time import time
 from multiprocessing import Process, Manager
 import numpy as np
 from tabulate import tabulate
-from ecmean import vars_are_there, load_yaml, make_input_filename, \
+from ecmean import var_is_there, load_yaml, make_input_filename, \
                       get_levels, units_extra_definition, units_are_integrals, \
                       units_converter, directions_match, chunks, \
-                      Diagnostic
+                      Diagnostic, getinifiles, getdomain
 from cdopipe import CdoPipe
 
 
@@ -34,13 +34,11 @@ def worker(cdopin, piclim, face, diag, field_3d, varstat, varlist):
     for var in varlist:
         # check if required variables are there: use interface file
         # check into first file, and load also model variable units
-        infile = make_input_filename(diag.ECEDIR, var, diag.expname,
-                                     diag.year1, diag.year1, face)
-        isavail, varunit = vars_are_there(infile, [var], face)
-        # varunit = {**varunit, **retunit}
+        infile = make_input_filename(var, diag.year1, diag.year1, face, diag)
+        isavail, varunit = var_is_there(infile, var, face['variables'])
 
         # if var is not available, store a NaN for the table
-        if not isavail[var]:
+        if not isavail:
             varstat[var] = float('NaN')
         else:
             # unit conversion: from original data to data required by PI
@@ -48,17 +46,16 @@ def worker(cdopin, piclim, face, diag, field_3d, varstat, varlist):
             # use offset and factor separately (e.g. will not work with Fahrenait)
             # now in functions.py
             logging.debug(var)
-            logging.debug(varunit[var] + ' ---> ' + piclim[var]['units'])
+            logging.debug(varunit + ' ---> ' + piclim[var]['units'])
             # adjust integrated quantities
-            new_units = units_are_integrals(varunit[var], piclim[var])
+            new_units = units_are_integrals(varunit, piclim[var])
 
             # unit conversion
-            units_conversion = units_converter(new_units, piclim[var]['units'])
+            offset, factor = units_converter(new_units, piclim[var]['units'])
 
             # sign adjustment (for heat fluxes)
-            units_conversion['factor'] = units_conversion['factor'] * \
-                directions_match(face[var], piclim[var])
-            logging.debug(units_conversion)
+            factor = factor * directions_match(face['variables'][var], piclim[var])
+            logging.debug(offset, factor)
 
             # extract info from pi_climatology.yml
             # reference dataset and reference varname
@@ -70,8 +67,7 @@ def worker(cdopin, piclim, face, diag, field_3d, varstat, varlist):
             vvvv = str(diag.CLMDIR / f'variance_{dataref}_{dataname}.nc')
 
             # create a file list using bash wildcards
-            infile = make_input_filename(
-                diag.ECEDIR, var, diag.expname, diag.years_joined, '????', face)
+            infile = make_input_filename(var, diag.years_joined, '????', face, diag)
 
             # Start fresh pipe
             # This leaves the input file undefined for now. It can be set later with
@@ -86,8 +82,8 @@ def worker(cdopin, piclim, face, diag, field_3d, varstat, varlist):
             # the set of variables you need
             # otherwise, use only select (this avoid loop)
             # WARNING: it may scale badly with high-resolution centennial runs
-            if 'derived' in face[var].keys():
-                cmd = face[var]['derived']
+            if 'derived' in face['variables'][var].keys():
+                cmd = face['variables'][var]['derived']
                 dervars = (",".join(re.findall("[a-zA-Z]+", cmd)))
                 cdop.selectname(dervars)
                 cdop.expr(var, cmd)
@@ -95,11 +91,12 @@ def worker(cdopin, piclim, face, diag, field_3d, varstat, varlist):
                 cdop.selectname(var)
 
             # fix grids and set domain making use component key from interface file
-            cdop.fixgrid(domain=face[var]['component'])
+            domain = getdomain(var, face)
+            cdop.fixgrid(domain=domain)
             cdop.timmean()
 
             # use convert() of cdopipe class to convert units
-            cdop.convert(units_conversion['offset'], units_conversion['factor'])
+            cdop.convert(offset, factor)
 
             # temporarily using remapbil instead of remapcon due to NEMO grid missing corner
             outfile = cdop.execute('remapbil', diag.resolution)
@@ -155,19 +152,20 @@ def main(args):
     # cdop = CdoPipe(debug=True)
     cdop = CdoPipe()
 
+    # loading the var-to-file interface
+    face = load_yaml(INDIR / Path('interfaces', f'interface_{diag.modelname}.yml'))
+
+    # load the climatology reference data
+    piclim = load_yaml('pi_climatology.yml')
+
     # new bunch of functions to set grids, create correction command, masks and areas
-    cdop.set_gridfixes(diag.atminifile, diag.oceinifile, 'oifs', 'nemo')
-    cdop.make_atm_masks(diag.atminifile, extra=f'-invertlat -remapcon2,{diag.resolution}')
+    comp = face['model']['component']  # Get component for each domain
+    atminifile, oceinifile = getinifiles(face, diag)
+    cdop.set_gridfixes(atminifile, oceinifile, comp['atm'], comp['oce'])
+    cdop.make_atm_masks(atminifile, extra=f'-invertlat -remapcon2,{diag.resolution}')
 
     # add missing unit definitions
     units_extra_definition()
-
-    # loading the var-to-file interface
-    face = load_yaml(INDIR / 'interface_ece4.yml')
-
-    # reference data: it is badly written but it can be implemented in a much more intelligent
-    # and modular way
-    piclim = load_yaml('pi_climatology.yml')
 
     # defines the two varlist
     field_2d = cfg['PI']['2d_vars']['field']
@@ -178,13 +176,14 @@ def main(args):
 
     # trick to avoid the loop on years
     # define required years with a {year1,year2} and then use cdo select feature
-    years_list = [str(element) for element in range(diag.year1, diag.year2+1)]
-    diag.years_joined = ','.join(years_list)
+    #years_list = [str(element) for element in range(diag.year1, diag.year2+1)]
+    #diag.years_joined = ','.join(years_list)
     # special treatment to exploit bash wild cards on multiple years
-    if len(years_list) > 1:
-        diag.years_joined = '{' + diag.years_joined + '}'
-    if diag.fverb:
-        print(diag.years_joined)
+    #if len(years_list) > 1:
+    #    diag.years_joined = '{' + diag.years_joined + '}'
+    
+    # We now use a list
+    diag.years_joined = list(range(diag.year1, diag.year2+1))
 
     # main loop: manager is required for shared variables
     mgr = Manager()
@@ -201,7 +200,7 @@ def main(args):
         p.start()
         processes.append(p)
 
-     # wait for the processes to finish
+    # wait for the processes to finish
     for proc in processes:
         proc.join()
 
@@ -251,6 +250,8 @@ if __name__ == '__main__':
                         help='define the level of logging. default: error')
     parser.add_argument('-j', dest="numproc", type=int, default=1,
                         help='number of processors to use')
+    parser.add_argument('-m', '--model', type=str, default='',
+                        help='model name')
     args = parser.parse_args()
 
     # log level with logging

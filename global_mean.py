@@ -20,15 +20,15 @@ import copy
 from time import time
 from tabulate import tabulate
 import numpy as np
-from ecmean import vars_are_there, load_yaml, \
+from ecmean import var_is_there, load_yaml, \
                       make_input_filename, write_tuning_table, \
                       units_extra_definition, units_are_integrals, \
                       units_converter, directions_match, chunks, \
-                      Diagnostic
+                      Diagnostic, getinifiles, getdomain
 from cdopipe import CdoPipe
 
 
-def worker(cdopin, ref, face, exp, varmean, vartrend, varlist):
+def worker(cdopin, ref, face, diag, varmean, vartrend, varlist):
     """Main parallel diagnostic worker"""
 
     cdop = copy.copy(cdopin)  # Create a new local instance to avoid overlap of the cdo pipe
@@ -36,12 +36,12 @@ def worker(cdopin, ref, face, exp, varmean, vartrend, varlist):
 
         # check if required variables are there: use interface file
         # check into first file, and load also model variable units
-        # with this implementation, files are accessed multiple times for each variables 
+        # with this implementation, files are accessed multiple times for each variables
         # this is simpler but might slow down the code
-        infile = make_input_filename(exp.ECEDIR, var, exp.expname, exp.year1, exp.year1, face)
-        isavail, varunit = vars_are_there(infile, [var], face)
+        infile = make_input_filename(var, diag.year1, diag.year1, face, diag)
+        isavail, varunit = var_is_there(infile, var, face['variables'])
 
-        if not isavail[var]:
+        if not isavail:
             varmean[var] = float("NaN")
             vartrend[var] = float("NaN")
         else:
@@ -50,23 +50,22 @@ def worker(cdopin, ref, face, exp, varmean, vartrend, varlist):
 
             # conversion debug
             logging.debug(var)
-            logging.debug(varunit[var] + ' ---> ' + ref[var]['units'])
+            logging.debug(varunit + ' ---> ' + ref[var]['units'])
 
             # adjust integrated quantities
-            adjusted_units = units_are_integrals(varunit[var], ref[var])
+            adjusted_units = units_are_integrals(varunit, ref[var])
 
             # unit conversion
-            units_conversion = units_converter(adjusted_units, ref[var]['units'])
+            offset, factor = units_converter(adjusted_units, ref[var]['units'])
 
             # sign adjustment (for heat fluxes)
-            units_conversion['factor'] = units_conversion['factor'] * \
-                directions_match(face[var], ref[var])
+            factor = factor * directions_match(face['variables'][var], ref[var])
 
             # conversion debug
-            logging.debug(units_conversion)
+            logging.debug(offset, factor)
 
-            if 'derived' in face[var].keys():
-                cmd = face[var]['derived']
+            if 'derived' in face['variables'][var].keys():
+                cmd = face['variables'][var]['derived']
                 dervars = (",".join(re.findall("[a-zA-Z]+", cmd)))
                 cdop.selectname(dervars)
                 cdop.expr(var, cmd)
@@ -74,7 +73,8 @@ def worker(cdopin, ref, face, exp, varmean, vartrend, varlist):
                 cdop.selectname(var)
 
             # Introduce grid fixes specifying type of file (atm or oce)
-            cdop.fixgrid(domain=face[var]['component'])
+            domain = getdomain(var, face)
+            cdop.fixgrid(domain=domain)
 
             # land/sea variables
             cdop.masked_meansum(ref[var].get('total', 'global'))
@@ -82,16 +82,16 @@ def worker(cdopin, ref, face, exp, varmean, vartrend, varlist):
 
             a = []
             # loop on years: call CDO to perform all the computations
-            yrange = range(exp.year1, exp.year2+1)
+            yrange = range(diag.year1, diag.year2+1)
             for year in yrange:
-                infile = make_input_filename(exp.ECEDIR, var, exp.expname, year, year, face)
+                infile = make_input_filename(var, year, year, face, diag)
                 x = cdop.output(infile, keep=True)
                 a.append(x)
 
-            varmean[var] = (mean(a) + units_conversion['offset']) * units_conversion['factor']
-            if exp.ftrend:
+            varmean[var] = (mean(a) + offset) * factor
+            if diag.ftrend:
                 vartrend[var] = np.polyfit(yrange, a, 1)[0]
-            if exp.fverb:
+            if diag.fverb:
                 print('Average', var, varmean[var])
 
 
@@ -113,15 +113,18 @@ def main(args):
     # Init CdoPipe object to use in the following
     cdop = CdoPipe()
 
-    # New bunch of functions to set grids, create correction command, masks and areas
-    cdop.set_gridfixes(diag.atminifile, diag.oceinifile, 'oifs', 'nemo')
-    cdop.make_atm_masks(diag.atminifile)
-
     # load reference data
     ref = load_yaml(INDIR / 'gm_reference.yml')
 
     # loading the var-to-file interface
-    face = load_yaml(INDIR / 'interface_ece4.yml')
+    face = load_yaml(INDIR / Path('interfaces', f'interface_{diag.modelname}.yml'))
+
+    # New bunch of functions to set grids, create correction command, masks and areas
+    # Can probably be cleaned up further
+    comp = face['model']['component']  # Get component for each domain
+    atminifile, oceinifile = getinifiles(face, diag)
+    cdop.set_gridfixes(atminifile, oceinifile, comp['atm'], comp['oce'])
+    cdop.make_atm_masks(atminifile)
 
     # list of vars on which to work
     var_atm = cfg['global']['atm_vars']
@@ -149,9 +152,6 @@ def main(args):
         p.start()
         processes.append(p)
 
-    # simpler option, to be checked
-    #p.join()
-
     # wait for the processes to finish
     for proc in processes:
         proc.join()
@@ -165,15 +165,15 @@ def main(args):
     # loop on the variables to create the output table
     global_table = []
     for var in var_atm + var_oce:
-        beta = face[var]
+        beta = face['variables'][var]
         gamma = ref[var]
 
         out_sequence = [var, beta['varname'], gamma['units'], varmean[var]]
         if diag.ftrend:
             out_sequence = out_sequence + [vartrend[var]]
-        out_sequence = out_sequence + [float(gamma['observations']['val']),
-                                       gamma['observations'].get('data', ''),
-                                       gamma['observations'].get('years', '')]
+        out_sequence = out_sequence + [float(gamma['val']),
+                                       gamma.get('data', ''),
+                                       gamma.get('years', '')]
         global_table.append(out_sequence)
 
     # prepare the header for the table
@@ -215,7 +215,7 @@ if __name__ == "__main__":
                         help='appends also single line to a table')
     parser.add_argument('-o', '--output', metavar='FILE', type=str, default='',
                         help='path of output one-line table')
-    parser.add_argument('-m', '--model', type=str, default='EC-Earth4',
+    parser.add_argument('-m', '--model', type=str, default='',
                         help='model name')
     parser.add_argument('-v', '--loglevel', type=str, default='ERROR',
                         help='define the level of logging.')

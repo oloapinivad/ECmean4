@@ -8,6 +8,7 @@ import sys
 import logging
 import itertools
 from pathlib import Path
+from glob import glob
 import yaml
 import numpy as np
 from cdo import Cdo
@@ -26,31 +27,37 @@ class Diagnostic():
         self.ftable = getattr(args, 'line', False)
         self.ftrend = getattr(args, 'trend', False)
         self.numproc = args.numproc
-        self.modelname = getattr(args, 'model', 'EC-Earth4')
+        self.modelname = getattr(args, 'model', '')
+        if not self.modelname:
+            self.modelname = cfg['model']['name']
         if self.year1 == self.year2:  # Ignore if only one year requested
             self.ftrend = False
+        #  These are here in prevision of future expansion to CMOR
+        self.frequency = '*'
+        self.ensemble = '*'
+        self.grid = '*'
+        self.version = '*'
 
         # hard-coded resolution (due to climatological dataset)
         self.resolution = cfg['PI']['resolution']
 
         # Various input and output directories
-        self.ECEDIR = Path(os.path.expandvars(cfg['dirs']['exp']), self.expname)
+        self.ECEDIR = Path(os.path.expandvars(cfg['dirs']['exp']))
         self.TABDIR = Path(os.path.expandvars(cfg['dirs']['tab']))
         self.CLMDIR = Path(os.path.expandvars(cfg['dirs']['clm']), self.resolution)
-        self.oceinifile = cfg['areas']['oce']
-        self.atminifile = str(self.ECEDIR / f'ICMGG{self.expname}INIT')
         self.years_joined = ''
 
         self.linefile = self.TABDIR / 'global_means.txt'
 
         # check if output attribute exists
-        if hasattr(self, 'output') : 
-           self.linefile = args.output
-           self.ftable = True
+        if hasattr(self, 'output'):
+            self.linefile = args.output
+            self.ftable = True
+
 
 def chunks(iterable, num):
-    """Generate num adjacent chunks of data from a list iterable"""
-    """Split lists in a convienet way for a parallel process"""
+    """Generate num adjacent chunks of data from a list iterable
+       Split lists in a convenient way for a parallel process"""
     size = int(np.ceil(len(iterable) / num))
     it = iter(iterable)
     return iter(lambda: tuple(itertools.islice(it, size)), ())
@@ -84,73 +91,57 @@ def is_number(s):
         return False
 
 
-def vars_are_there(infile, var_needed, reference):
-    """Check if a list of variables is available in the input file.
-       Make sure all requested vars are available (use first year)
-       first find all needed variables (including those needed for derived ones)
-       added extra if to check if file exists"""
+def var_is_there(infile, var, reference):
+    """Check if a variable is available in the input file and provide its units."""
+
+    # Use only first file if list is passed
+    if isinstance(infile, list):
+        ffile = infile[0]
+    else:
+        ffile = infile
 
     # if file exists, check which variables are inside
-    isavail = {}
-    isunit = {}
-    if os.path.isfile(infile):
+    if os.path.isfile(ffile):
+        params = cdo.pardes(input=ffile)
+        # Extract list of vars and of units in infile
+        vars_avail = [v.split()[1] for v in params]
+        # The following is a trick to obtain the units list (placing '' for missing ones)
+        units_avail = [(v.replace('[', ']').split(']')[1:2] or [''])[0] for v in params]
+        units_avail = dict(zip(vars_avail, units_avail))  # Transform into dict
 
-        # extract units from attributes: messy string manipulation to get it
-        units_avail_list = cdo.showattribute('*@units', input=infile)
-
-        # extract variables
-        var_avail_list = [v.split()[1] for v in cdo.pardes(input=infile)]
-
-        # create a dictionary, taking care when units are missing
-        # not really pythonic, need to be improved
-        var_avail = {}
-        for u in units_avail_list:
-            if u.replace(':', '') in var_avail_list:
-                ind = units_avail_list.index(u)
-                if 'units' in units_avail_list[ind+1]:
-                    found_unit = re.findall('"([^"]*)"', units_avail_list[ind+1])[0]
-                else:
-                    found_unit = ''
-                var_avail[u.replace(':', '')] = found_unit
-
-        # loop on vars
-        for v in var_needed:
-            isavail[v] = True
-
-            d = reference[v].get('derived')
-            # if variable is derived, extract required vars
-            if d:
-                var_req = re.split('[*+-]', d)
-
-                # check of unit is specified in the interface file
-                u = reference[v].get('units')
-                if u:
-                    isunit[v] = u
-                else:
-                    logging.warning('%s is a derived var, assuming unit '
-                                    'as the first of its term', v)
-                    isunit[v] = var_avail[var_req[0]]
-
-                # remove numbers
-                for x in var_req:
-                    if is_number(x):
-                        var_req.remove(x)
-            else:
-                var_req = [v]
-                isunit[v] = var_avail[v]
-
-            # check if required varialbes are in model output
+        # if variable is derived, extract required vars
+        d = reference[var].get('derived')
+        if d:
+            var_req = re.split('[*+-]', d)
+            # remove numbers
             for x in var_req:
-                if x not in var_avail:
-                    isavail[v] = False
-                    isunit[v] = None
-                    logging.warning("Variable %s needed by %s is not "
-                                    "available in the model output!", x, v)
+                if is_number(x):
+                    var_req.remove(x)
+
+            # check of unit is specified in the interface file
+            varunit = reference[var].get('units')
+            if not varunit:
+                logging.warning('%s is a derived var, assuming unit '
+                                'as the first of its term', var)
+                varunit = units_avail.get(var_req[0])
+        else:
+            var_req = [var]
+            varunit = units_avail.get(var)
+
+        # check if all required variables are in model output
+        isavail = True
+        for x in var_req:
+            if x not in vars_avail:
+                isavail = False
+                logging.warning("Variable %s needed by %s is not "
+                                "available in the model output!", x, var)
     else:
-        for v in var_needed:
-            isavail[v] = False
-            isunit[v] = None
-    return isavail, isunit
+        isavail = False
+        varunit = None
+        print(f'Not available: {var} File: {infile}')
+        logging.warning("Requested file %s is not available.", infile)
+
+    return isavail, varunit
 
 
 def load_yaml(infile):
@@ -163,13 +154,42 @@ def load_yaml(infile):
     return cfg
 
 
-def make_input_filename(dr, var, expname, year1, year2, face):
-    """Create input filenames for the required variable and a given year"""
+def _expand_filename(fn, var, year1, year2, diag):
+    """Expands a path (filename or dir) for var, expname, frequency, ensemble etc. and
+       environment variables."""
+    return Path(str(os.path.expandvars(fn)).format(
+                             expname=diag.expname,
+                             year1=year1,
+                             year2=year2,
+                             var=var,
+                             frequency=diag.frequency,
+                             ensemble=diag.ensemble,
+                             grid=diag.grid,
+                             model=diag.modelname,
+                             version=diag.version
+                            ))
 
-    filetype = face[var]['filetype']
-    fname = dr / 'output' / face[var]['component'] / \
-        f'{expname}_{filetype}_{year1}-{year2}.nc'
-    return str(fname)
+
+def make_input_filename(var, year1, year2, face, diag):
+    """Create full input filepaths for the required variable and a given year"""
+
+    filetype = face['variables'][var]['filetype']
+    filepath = Path(diag.ECEDIR) / \
+               Path(face['model']['basedir']) / \
+               Path(face['filetype'][filetype]['dir']) / \
+               Path(face['filetype'][filetype]['filename'])
+    # if year1 is a list, loop over it (we cannot use curly brackets anymore, now we pass a list)
+    filename = []
+    # Make an iterable even if year1 is not a list
+    yy = year1
+    if not isinstance(year1, list):
+        yy = [year1]
+    for year in yy:
+        fname = _expand_filename(filepath, var, year, year2, diag)
+        filename = filename + sorted(glob(str(fname)))
+    if len(filename) == 1:  # glob always returns a list, return str if only one
+        filename = filename[0]
+    return filename
 
 
 def units_extra_definition():
@@ -181,7 +201,6 @@ def units_extra_definition():
     units.define('Sv = 1e+6 m^3/s')  # Replace Sievert with Sverdrup
 
 
-# use metpy/pint to provide factors for correction of units
 def units_converter(org_units, tgt_units):
     """Units conversion using metpy and pint.
     From a org_units convert to tgt_units providing offset and factor.
@@ -215,7 +234,7 @@ def units_converter(org_units, tgt_units):
         offset = 0.
         factor = 1.
 
-    return {'offset': offset, 'factor': factor}
+    return offset, factor
 
 
 def units_are_integrals(org_units, ref_var):
@@ -249,7 +268,7 @@ def write_tuning_table(linefile, varmean, var_table, expname, year1, year2, face
                 print('{:>12s}'.format(var), end=' ', file=f)
             print('\n%             ', end=' ', file=f)
             for var in var_table:
-                print('{:>12s}'.format(face[var]['units']), end=' ', file=f)
+                print('{:>12s}'.format(face['variables'][var]['units']), end=' ', file=f)
             print(file=f)
 
     with open(linefile, 'a', encoding='utf-8') as f:
@@ -257,3 +276,41 @@ def write_tuning_table(linefile, varmean, var_table, expname, year1, year2, face
         for var in var_table:
             print('{:12.5f}'.format(varmean[var] * ref[var].get('factor', 1)), end=' ', file=f)
         print(file=f)
+
+
+def getdomain(var, face):
+    """Given a variable var extract its domain (ace or atm) from the interface.
+       To do so it creates a dictionary providing the domain associated with a component.
+       (the interface file specifies the component for each domain instead)"""
+    comp = face['filetype'][face['variables'][var]['filetype']]['component']
+    d = face['model']['component']
+    domain = dict(zip([list(d.values())[x] for x in range(len(d.values()))], d.keys()))
+    return domain[comp]
+
+
+def getcomponent(face):  # unused function
+    """Return a dictionary providing the domain associated with a variable
+       (the interface file specifies the domain for each component instead)"""
+    d = face['component']
+    p = dict(zip([list(d.values())[x]['domain'] for x in range(len(d.values()))], d.keys()))
+    return p
+
+
+def getinifiles(face, diag):
+    """Return the inifiles from the interface, needs the component dictionary"""
+    comp = face['model']['component']
+    atminifile = os.path.expandvars(face['component'][comp['atm']]
+                                        ['inifile'].format(expname=diag.expname))
+    oceinifile = os.path.expandvars(face['component'][comp['oce']]
+                                        ['inifile'].format(expname=diag.expname))
+    if not atminifile[0] == '/':
+        atminifile = str(diag.ECEDIR /
+                         Path(os.path.expandvars(face['model']['basedir'].format(expname=diag.expname))) /
+                         Path(atminifile))
+    if not oceinifile[0] == '/':
+        oceinifile = str(diag.ECEDIR /
+                         Path(os.path.expandvars(face['model']['basedir'].format(expname=diag.expname))) /
+                         Path(oceinifile))
+    if not os.path.exists(oceinifile):
+        oceinifile = ''
+    return atminifile, oceinifile
