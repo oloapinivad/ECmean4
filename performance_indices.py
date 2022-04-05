@@ -171,7 +171,7 @@ def main(args):
     cdop.make_atm_masks(atminifile, extra=f'-invertlat -remapcon2,{diag.resolution}')
 
     # create interpolation weights
-    cdop.make_atm_remap_weights(atminifile, 'remapbil', diag.resolution)
+    cdop.make_atm_remap_weights(atminifile, 'remapcon', diag.resolution)
     cdop.make_oce_remap_weights(ocegridfile, 'remapbil', diag.resolution)
 
     # add missing unit definitions
