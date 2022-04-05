@@ -94,9 +94,12 @@ def is_number(s):
 def var_is_there(infile, var, reference):
     """Check if a variable is available in the input file and provide its units."""
 
-    # Use only first file if list is passed
+    # Use only first file if list is passed and it is longer than 0
     if isinstance(infile, list):
-        ffile = infile[0]
+        if len(infile) > 0 : 
+            ffile = infile[0]
+        else :
+            ffile = ''
     else:
         ffile = infile
 
