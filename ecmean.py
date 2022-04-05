@@ -299,26 +299,28 @@ def getcomponent(face):  # unused function
 def getinifiles(face, diag):
     """Return the inifiles from the interface, needs the component dictionary"""
     comp = face['model']['component']
-    atminifile = os.path.expandvars(face['component'][comp['atm']]
-                                        ['inifile'].format(expname=diag.expname))
-    ocegridfile = os.path.expandvars(face['component'][comp['oce']]
-                                        ['gridfile'].format(expname=diag.expname))
-    oceareafile = os.path.expandvars(face['component'][comp['oce']]
-                                        ['areafile'].format(expname=diag.expname))
-    if not atminifile[0] == '/':
-        atminifile = str(diag.ECEDIR /
+
+    # use a dictionary to create the list of initial files
+    inifiles = {}
+    for k, v in zip(['atminifile','ocegridfile','oceareafile'],['inifile','gridfile','areafile']) :
+
+        # the component is atmosphere for atminifile only
+        x = 'atm' if k in 'atminifile' else 'oce'
+
+        # expand the path
+        inifile = os.path.expandvars(face['component'][comp[x]]
+                                        [v].format(expname=diag.expname))
+
+        # add the full path if missing
+        if not inifile[0] == '/' :
+            inifiles[k] =  str(diag.ECEDIR /
                          Path(os.path.expandvars(face['model']['basedir'].format(expname=diag.expname))) /
-                         Path(atminifile))
-    if not ocegridfile[0] == '/':
-        ocegridfile = str(diag.ECEDIR /
-                         Path(os.path.expandvars(face['model']['basedir'].format(expname=diag.expname))) /
-                         Path(ocegridfile))
-    if not oceareafile[0] == '/':
-        oceareafile = str(diag.ECEDIR /
-                         Path(os.path.expandvars(face['model']['basedir'].format(expname=diag.expname))) /
-                         Path(oceareafile))
-    if not os.path.exists(ocegridfile):
-        ocegridfile = ''
-    if not os.path.exists(oceareafile):
-        oceareafile = ''
-    return atminifile, ocegridfile, oceareafile
+                         Path(inifile))
+
+        # if ocean files does not exists (atm-only run) set inifiles string empty
+        if x == 'oce' :
+            if not os.path.exists(inifiles[k]) : 
+                inifiles[k] = ''
+
+    # return dictionary values only
+    return inifiles.values()
