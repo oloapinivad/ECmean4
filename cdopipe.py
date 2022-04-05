@@ -35,7 +35,7 @@ class CdoPipe:
         self.domain = ''
         self.infile = ''
 
-    def _set_grids(self, atminifile, oceinifile):
+    def _set_grids(self, atminifile, ocegridfile):
         """Create grid description files for both atmosphere and ocean"""
 
         self.ATMGRIDFILE = self.tempstore.newFile()
@@ -44,9 +44,9 @@ class CdoPipe:
             for line in griddes:
                 print(line, file=f)
 
-        if oceinifile:
+        if ocegridfile:
             self.OCEGRIDFILE = self.tempstore.newFile()
-            griddes = self.cdo.griddes(input=str(oceinifile))
+            griddes = self.cdo.griddes(input=str(ocegridfile))
             with open(self.OCEGRIDFILE, 'w', encoding='utf-8') as f:
                 for line in griddes:
                     print(line, file=f)
@@ -62,23 +62,22 @@ class CdoPipe:
 
         self.ATMGAFILE = self.cdo.gridarea(input=f'{self.atmfix} {atminifile}')
 
-    def _set_oce_fixgrid(self, component, oceinifile):
+    def _set_oce_fixgrid(self, component, ocegridfile, oceareafile):
         """Define the command require for correcting model grid"""
 
-        if oceinifile:
-            self.OCEGAFILE = self.cdo.expr('area=e1t*e2t', input=oceinifile)
-
+        if ocegridfile and oceareafile:
             # this could improved using the modelname variable: if EC-Earth, do this...
             if component == 'nemo':
+                self.OCEGAFILE = self.cdo.expr('area=e1t*e2t', input=oceareafile)
                 self.ocefix = f'-setgridarea,{self.OCEGAFILE}'
             else:
                 sys.exit('Oceanic component not supported')
 
-    def set_gridfixes(self, atminifile, oceinifile, atmcomp, ocecomp):
+    def set_gridfixes(self, atminifile, ocegridfile, oceareafile, atmcomp, ocecomp):
         """Create all internal grid files and set fixes for atm and oce grids"""
-        self._set_grids(atminifile, oceinifile)
+        self._set_grids(atminifile, ocegridfile)
         self._set_atm_fixgrid(atmcomp, atminifile)
-        self._set_oce_fixgrid(ocecomp, oceinifile)
+        self._set_oce_fixgrid(ocecomp, ocegridfile, oceareafile)
 
     def make_atm_masks(self, atminifile, extra=''):
         """Create land-sea masks for atmosphere model"""
@@ -91,13 +90,14 @@ class CdoPipe:
 
     def make_atm_remap_weights(self, atminifile, remap_method, target): 
         """Create atmosphere remap weights"""
-        if remap_method == "remapbil" : 
+        if remap_method == 'remapbil' : 
             self.ATMWEIGHTS = self.cdo.genbil(target, input=f'{self.atmfix} {atminifile}')
 
-    def make_oce_remap_weights(self, oceinifile, remap_method, target):
+    def make_oce_remap_weights(self, ocegridfile, remap_method, target):
         """Create atmosphere remap weights"""
-        if remap_method == "remapbil" :
-            self.OCEWEIGHTS = self.cdo.genbil(target, input=f'-selname,bathy_meter {self.ocefix} {oceinifile}')
+        if ocegridfile:
+            if remap_method == 'remapbil' :
+                self.OCEWEIGHTS = self.cdo.genbil(target, input=f'{self.ocefix} {ocegridfile}')
 
     def chain(self, cmd):
         """Adds a generic cdo operator"""

@@ -13,7 +13,7 @@ As in the previous ECmean, all computations and weights are done with CDO. Howev
 Two scripts takes care of all the computation and produces a txt table:
 
 - **global_mean.py**: computes the global averages for many dynamical and physical fields. It compares the output against a set of climatological values defined in `reference.yml`
-- **performance_indices.py**: computes Reichler and Kim Performance Indices. It work on a regular 2x2 grid and it is based on old climatological assessment present in the original ECmean. The climatology is defined by `pi_climatology.yml script. Climatology for PI is still VERY outdated.
+- **performance_indices.py**: computes Reichler and Kim Performance Indices. It work on a regular 2x2 grid and it is based on old climatological assessment present in the original ECmean. The climatology is defined by `pi_climatology.yml` script. Climatology for PI is still VERY outdated.
 
 ## Configuration
 

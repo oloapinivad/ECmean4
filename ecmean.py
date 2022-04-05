@@ -301,16 +301,24 @@ def getinifiles(face, diag):
     comp = face['model']['component']
     atminifile = os.path.expandvars(face['component'][comp['atm']]
                                         ['inifile'].format(expname=diag.expname))
-    oceinifile = os.path.expandvars(face['component'][comp['oce']]
-                                        ['inifile'].format(expname=diag.expname))
+    ocegridfile = os.path.expandvars(face['component'][comp['oce']]
+                                        ['gridfile'].format(expname=diag.expname))
+    oceareafile = os.path.expandvars(face['component'][comp['oce']]
+                                        ['areafile'].format(expname=diag.expname))
     if not atminifile[0] == '/':
         atminifile = str(diag.ECEDIR /
                          Path(os.path.expandvars(face['model']['basedir'].format(expname=diag.expname))) /
                          Path(atminifile))
-    if not oceinifile[0] == '/':
-        oceinifile = str(diag.ECEDIR /
+    if not ocegridfile[0] == '/':
+        ocegridfile = str(diag.ECEDIR /
                          Path(os.path.expandvars(face['model']['basedir'].format(expname=diag.expname))) /
-                         Path(oceinifile))
-    if not os.path.exists(oceinifile):
-        oceinifile = ''
-    return atminifile, oceinifile
+                         Path(ocegridfile))
+    if not oceareafile[0] == '/':
+        oceareafile = str(diag.ECEDIR /
+                         Path(os.path.expandvars(face['model']['basedir'].format(expname=diag.expname))) /
+                         Path(oceareafile))
+    if not os.path.exists(ocegridfile):
+        ocegridfile = ''
+    if not os.path.exists(oceareafile):
+        oceareafile = ''
+    return atminifile, ocegridfile, oceareafile
