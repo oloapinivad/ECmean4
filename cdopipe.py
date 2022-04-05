@@ -25,6 +25,8 @@ class CdoPipe:
         self.SMFILE = ''
         self.ATMGAFILE = 'dummy'
         self.OCEGAFILE = 'dummy'
+        self.ATMWEIGHTS = ''
+        self.OCEWEIGHTS = ''
         self.atmfix = ''
         self.ocefix = ''
         self.TMPDIR = tempdir
@@ -86,6 +88,16 @@ class CdoPipe:
                                        input=f'-setctomiss,0 -gec,0.5 {extra} {self.atmfix} {atminifile}',
                                        options='-t ecmwf -f nc')
         self.SMFILE = self.cdo.addc('1', input=f'-setctomiss,1 -setmisstoc,0 {self.LMFILE}')
+
+    def make_atm_remap_weights(self, atminifile, remap_method, target): 
+        """Create atmosphere remap weights"""
+        if remap_method == "remapbil" : 
+            self.ATMWEIGHTS = self.cdo.genbil(target, input=f'{self.atmfix} {atminifile}')
+
+    def make_oce_remap_weights(self, oceinifile, remap_method, target):
+        """Create atmosphere remap weights"""
+        if remap_method == "remapbil" :
+            self.OCEWEIGHTS = self.cdo.genbil(target, input=f'-selname,bathy_meter {self.ocefix} {oceinifile}')
 
     def chain(self, cmd):
         """Adds a generic cdo operator"""
