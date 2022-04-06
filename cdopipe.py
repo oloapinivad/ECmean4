@@ -180,6 +180,9 @@ class CdoPipe:
 
     def div(self, fname):
         self.pipe = '-div ' + self.pipe + ' ' + fname
+    
+    def fldcor(self, fname) :
+        self.pipe = '-fldcor ' + self.pipe + ' ' + fname
 
     def levels(self, infile):
         return list(map(float, self.cdo.showlevel(input=infile)[0].split()))
