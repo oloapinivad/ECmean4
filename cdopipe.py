@@ -19,12 +19,12 @@ class CdoPipe:
     def __init__(self, *args, tempdir=tempfile.gettempdir(), **kwargs):
         """Initialize object pipe"""
         self.pipe = ''
-        self.ATMGRIDFILE = ''
-        self.OCEGRIDFILE = ''
-        self.LMFILE = ''
-        self.SMFILE = ''
-        self.ATMGAFILE = 'dummy'
-        self.OCEGAFILE = 'dummy'
+        self.ATMGRID = ''
+        self.OCEGRID = ''
+        self.LANDMASK = ''
+        self.SEAMASK = ''
+        self.ATMGRIDAREA = 'dummy'
+        self.OCEGRIDAREA = 'dummy'
         self.ATMWEIGHTS = ''
         self.OCEWEIGHTS = ''
         self.atmfix = ''
@@ -38,16 +38,16 @@ class CdoPipe:
     def _set_grids(self, atminifile, ocegridfile):
         """Create grid description files for both atmosphere and ocean"""
 
-        self.ATMGRIDFILE = self.tempstore.newFile()
+        self.ATMGRID = self.tempstore.newFile()
         griddes = self.cdo.griddes(input=str(atminifile))
-        with open(self.ATMGRIDFILE, 'w', encoding='utf-8') as f:
+        with open(self.ATMGRID, 'w', encoding='utf-8') as f:
             for line in griddes:
                 print(line, file=f)
 
         if ocegridfile:
-            self.OCEGRIDFILE = self.tempstore.newFile()
+            self.OCEGRID = self.tempstore.newFile()
             griddes = self.cdo.griddes(input=str(ocegridfile))
-            with open(self.OCEGRIDFILE, 'w', encoding='utf-8') as f:
+            with open(self.OCEGRID, 'w', encoding='utf-8') as f:
                 for line in griddes:
                     print(line, file=f)
 
@@ -56,11 +56,11 @@ class CdoPipe:
 
         # this could improved using the modelname variable: if EC-Earth, do this...
         if component == 'oifs':
-            self.atmfix = f'-setgridtype,regular -setgrid,{self.ATMGRIDFILE}'
+            self.atmfix = f'-setgridtype,regular -setgrid,{self.ATMGRID}'
         else:
             sys.exit('Atmospheric component not supported')
 
-        self.ATMGAFILE = self.cdo.gridarea(input=f'{self.atmfix} {atminifile}')
+        self.ATMGRIDAREA = self.cdo.gridarea(input=f'{self.atmfix} {atminifile}')
 
     def _set_oce_fixgrid(self, component, ocegridfile, oceareafile):
         """Define the command require for correcting model grid"""
@@ -68,8 +68,8 @@ class CdoPipe:
         if ocegridfile and oceareafile:
             # this could improved using the modelname variable: if EC-Earth, do this...
             if component == 'nemo':
-                self.OCEGAFILE = self.cdo.expr('area=e1t*e2t', input=oceareafile)
-                self.ocefix = f'-setgridarea,{self.OCEGAFILE}'
+                self.OCEGRIDAREA = self.cdo.expr('area=e1t*e2t', input=oceareafile)
+                self.ocefix = f'-setgridarea,{self.OCEGRIDAREA}'
             else:
                 sys.exit('Oceanic component not supported')
 
@@ -83,10 +83,10 @@ class CdoPipe:
         """Create land-sea masks for atmosphere model"""
 
         # prepare ATM LSM: this need to be improved, since it is clearly model dependent
-        self.LMFILE = self.cdo.selname('LSM',
+        self.LANDMASK = self.cdo.selname('LSM',
                                        input=f'-setctomiss,0 -gec,0.5 {extra} {self.atmfix} {atminifile}',
                                        options='-t ecmwf -f nc')
-        self.SMFILE = self.cdo.addc('1', input=f'-setctomiss,1 -setmisstoc,0 {self.LMFILE}')
+        self.SEAMASK = self.cdo.addc('1', input=f'-setctomiss,1 -setmisstoc,0 {self.LANDMASK}')
 
     def make_atm_remap_weights(self, atminifile, remap_method, target): 
         """Create atmosphere remap weights"""
@@ -142,22 +142,22 @@ class CdoPipe:
             self.pipe = self.atmfix + ' ' + self.pipe
 
     def mask(self, mask_type):
-        if not self.LMFILE:
+        if not self.LANDMASK:
             sys.exit('Needed grid file not defined, call make_grids method first')
 
         if mask_type == 'land':
-            self.mul(self.LMFILE)
+            self.mul(self.LANDMASK)
         elif mask_type in ['sea', 'ocean']:
-            self.mul(self.SMFILE)
+            self.mul(self.SEAMASK)
 
     def masked_meansum(self, mask_type):
-        if not self.LMFILE:
+        if not self.LANDMASK:
             sys.exit('Needed grid file not defined, call make_grids method first')
 
         if mask_type == 'land':
-            self.chain(f'fldsum -mul {self.ATMGAFILE} -mul {self.LMFILE}')
+            self.chain(f'fldsum -mul {self.ATMGRIDAREA} -mul {self.LANDMASK}')
         elif mask_type in ['sea', 'ocean']:
-            self.chain(f'fldsum -mul {self.ATMGAFILE} -mul {self.SMFILE}')
+            self.chain(f'fldsum -mul {self.ATMGRIDAREA} -mul {self.SEAMASK}')
         else:
             self.chain('fldmean')
 
