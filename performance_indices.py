@@ -102,9 +102,8 @@ def worker(cdopin, piclim, face, diag, field_3d, varstat, varlist):
             #outfile = cdop.execute('remapbil', diag.resolution)
             if getdomain(var, face) in 'atm' :
                 outfile = cdop.execute('remap', diag.resolution, cdop.ATMWEIGHTS)
-            if getdomain(var, face) in 'oce' + 'ice' : 
+            elif getdomain(var, face) in 'oce' + 'ice' : 
                 outfile = cdop.execute('remap', diag.resolution, cdop.OCEWEIGHTS)
-                #outfile = cdop.execute('remapbil', diag.resolution)
 
 
             # special treatment which includes vertical interpolation

@@ -298,29 +298,29 @@ def getcomponent(face):  # unused function
 
 def getinifiles(face, diag):
     """Return the inifiles from the interface, needs the component dictionary"""
-    comp = face['model']['component']
+    dictcomp = face['model']['component']
 
     # use a dictionary to create the list of initial files
     inifiles = {}
-    for k, v in zip(['atminifile','ocegridfile','oceareafile'],['inifile','gridfile','areafile']) :
+    for filename, filein in zip(['atminifile','ocegridfile','oceareafile'],['inifile','gridfile','areafile']) :
 
         # the component is atmosphere for atminifile only
-        x = 'atm' if k in 'atminifile' else 'oce'
+        comp = 'atm' if filename == 'atminifile' else 'oce'
 
         # expand the path
-        inifile = os.path.expandvars(face['component'][comp[x]]
-                                        [v].format(expname=diag.expname))
+        inifile = os.path.expandvars(face['component'][dictcomp[comp]]
+                                        [filein].format(expname=diag.expname))
 
         # add the full path if missing
         if not inifile[0] == '/' :
-            inifiles[k] =  str(diag.ECEDIR /
+            inifiles[filename] =  str(diag.ECEDIR /
                          Path(os.path.expandvars(face['model']['basedir'].format(expname=diag.expname))) /
                          Path(inifile))
 
         # if ocean files does not exists (atm-only run) set inifiles string empty
-        if x == 'oce' :
-            if not os.path.exists(inifiles[k]) : 
-                inifiles[k] = ''
+        if comp == 'oce' :
+            if not os.path.exists(inifiles[filename]) : 
+                inifiles[filename] = ''
 
     # return dictionary values only
     return inifiles.values()

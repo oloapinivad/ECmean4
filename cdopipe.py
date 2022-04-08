@@ -93,7 +93,8 @@ class CdoPipe:
 
         # this creates the method to be called in the remap
         genweight = remap_method.replace('remap','gen')
-        themethod = getattr(getattr(self, 'cdo')(), genweight)
+        themethod = getattr(self.cdo(), genweight)
+    
         #self.ATMWEIGHTS = self.cdo.genbil(target, input=f'{self.atmfix} {atminifile}')
         self.ATMWEIGHTS = themethod(target, input=f'{self.atmfix} {atminifile}')
         logging.debug("Atmosphere is remapping with " + genweight + " method")
@@ -103,11 +104,11 @@ class CdoPipe:
         if ocegridfile:
             genweight = remap_method.replace('remap','gen')
             try : 
-                themethod = getattr(getattr(self, 'cdo')(), genweight)
+                themethod = getattr(self.cdo(), genweight)
                 self.OCEWEIGHTS = themethod(target, input=f'{self.ocefix} {ocegridfile}')
                 logging.debug("Ocean is remapping with " + genweight + " method")
             except : 
-                themethod = getattr(getattr(self, 'cdo')(), 'genbil')
+                themethod = getattr(self.cdo(), 'genbil')
                 self.OCEWEIGHTS = themethod(target, input=f'{self.ocefix} {ocegridfile}')
                 logging.warning("Ocean is remapping with genbil method cause cannot do " + genweight)
 
