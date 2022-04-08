@@ -45,13 +45,15 @@ filetype:
 # Specify additional properties of each component
 # such as inifiles, an extra help file containing 
 # info such as areas, used in set_gridfixes
-# inifile can be formatted with: expname
+# and info on grid structure, used for remapping weights
+# inifile, gridfile and areafile can be formatted with: expname
 # If a relative path is used this is attached to $ECEDIR/$basedir
 component:
   oifs:
     inifile: 'ICMGG{expname}INIT'
   nemo:
-    inifile: domain_cfg.nc
+    gridfile: nemo-initial-state.nc
+    areafile: domain_cfg.nc
 
 # Definition of individual variables
 variables:

@@ -301,19 +301,29 @@ def getcomponent(face):  # unused function
 
 def getinifiles(face, diag):
     """Return the inifiles from the interface, needs the component dictionary"""
-    comp = face['model']['component']
-    atminifile = os.path.expandvars(face['component'][comp['atm']]
-                                        ['inifile'].format(expname=diag.expname))
-    oceinifile = os.path.expandvars(face['component'][comp['oce']]
-                                        ['inifile'].format(expname=diag.expname))
-    if not atminifile[0] == '/':
-        atminifile = str(diag.ECEDIR /
+    dictcomp = face['model']['component']
+
+    # use a dictionary to create the list of initial files
+    inifiles = {}
+    for filename, filein in zip(['atminifile','ocegridfile','oceareafile'],['inifile','gridfile','areafile']) :
+
+        # the component is atmosphere for atminifile only
+        comp = 'atm' if filename == 'atminifile' else 'oce'
+
+        # expand the path
+        inifile = os.path.expandvars(face['component'][dictcomp[comp]]
+                                        [filein].format(expname=diag.expname))
+
+        # add the full path if missing
+        if not inifile[0] == '/' :
+            inifiles[filename] =  str(diag.ECEDIR /
                          Path(os.path.expandvars(face['model']['basedir'].format(expname=diag.expname))) /
-                         Path(atminifile))
-    if not oceinifile[0] == '/':
-        oceinifile = str(diag.ECEDIR /
-                         Path(os.path.expandvars(face['model']['basedir'].format(expname=diag.expname))) /
-                         Path(oceinifile))
-    if not os.path.exists(oceinifile):
-        oceinifile = ''
-    return atminifile, oceinifile
+                         Path(inifile))
+
+        # if ocean files does not exists (atm-only run) set inifiles string empty
+        if comp == 'oce' :
+            if not os.path.exists(inifiles[filename]) : 
+                inifiles[filename] = ''
+
+    # return dictionary values only
+    return inifiles.values()

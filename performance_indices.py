@@ -99,7 +99,12 @@ def worker(cdopin, piclim, face, diag, field_3d, varstat, varlist):
             cdop.convert(offset, factor)
 
             # temporarily using remapbil instead of remapcon due to NEMO grid missing corner
-            outfile = cdop.execute('remapbil', diag.resolution)
+            #outfile = cdop.execute('remapbil', diag.resolution)
+            if getdomain(var, face) in 'atm' :
+                outfile = cdop.execute('remap', diag.resolution, cdop.ATMWEIGHTS)
+            elif getdomain(var, face) in 'oce' + 'ice' : 
+                outfile = cdop.execute('remap', diag.resolution, cdop.OCEWEIGHTS)
+
 
             # special treatment which includes vertical interpolation
             if var in field_3d:
@@ -109,14 +114,14 @@ def worker(cdopin, piclim, face, diag, field_3d, varstat, varlist):
 
                 cdop.chain(f'intlevelx,{format_vlevels}')
                 cdop.zonmean()
-                cdop.invertlat()
+                #cdop.invertlat()
                 cdop.sub(clim)
                 cdop.sqr()
                 cdop.div(vvvv)
                 cdop.chain('vertmean -genlevelbounds,zbot=0,ztop=100000')
 
             else:
-                cdop.invertlat()
+                #cdop.invertlat()
                 cdop.sub(clim)
                 cdop.sqr()
                 cdop.div(vvvv)
@@ -149,7 +154,7 @@ def main(args):
     os.makedirs(diag.TABDIR, exist_ok=True)
 
     # Init CdoPipe object to use in the following
-    # cdop = CdoPipe(debug=True)
+    #cdop = CdoPipe(debug=True)
     cdop = CdoPipe()
 
     # loading the var-to-file interface
@@ -160,9 +165,13 @@ def main(args):
 
     # new bunch of functions to set grids, create correction command, masks and areas
     comp = face['model']['component']  # Get component for each domain
-    atminifile, oceinifile = getinifiles(face, diag)
-    cdop.set_gridfixes(atminifile, oceinifile, comp['atm'], comp['oce'])
-    cdop.make_atm_masks(atminifile, extra=f'-invertlat -remapcon2,{diag.resolution}')
+    atminifile, ocegridfile, oceareafile = getinifiles(face, diag)
+    cdop.set_gridfixes(atminifile, ocegridfile, oceareafile, comp['atm'], comp['oce'])
+    cdop.make_atm_masks(atminifile, extra=f'-remapcon2,{diag.resolution}')
+
+    # create interpolation weights
+    cdop.make_atm_remap_weights(atminifile, 'remapcon', diag.resolution)
+    cdop.make_oce_remap_weights(ocegridfile, 'remapbil', diag.resolution)
 
     # add missing unit definitions
     units_extra_definition()

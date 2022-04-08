@@ -122,8 +122,8 @@ def main(args):
     # New bunch of functions to set grids, create correction command, masks and areas
     # Can probably be cleaned up further
     comp = face['model']['component']  # Get component for each domain
-    atminifile, oceinifile = getinifiles(face, diag)
-    cdop.set_gridfixes(atminifile, oceinifile, comp['atm'], comp['oce'])
+    atminifile, ocegridfile, oceareafile = getinifiles(face, diag)
+    cdop.set_gridfixes(atminifile, ocegridfile, oceareafile, comp['atm'], comp['oce'])
     cdop.make_atm_masks(atminifile)
 
     # list of vars on which to work
