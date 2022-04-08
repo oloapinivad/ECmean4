@@ -204,6 +204,7 @@ class CdoPipe:
             logging.debug('Applying cat: ', input)
             input = '-cat [ ' + ' '.join(input) + ' ]'
         logging.debug('called cdop.execute with: %s', self.pipe)
+        logging.debug('input file: %s', input)
         out = fn(input=self.pipe.format(infile=input), *args, **kwargs)
         if not keep:
             self.start()  # clear pipe
