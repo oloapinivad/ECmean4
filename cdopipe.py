@@ -56,7 +56,6 @@ class CdoPipe:
         """Define the command require for correcting model grid"""
         # this could improved using the modelname variable: if EC-Earth, do this...
         if component == 'oifs':
-<<<<<<< HEAD
             self.atmfix = f'-setgridtype,regular -setgrid,{self.ATMGRID}'
             self.ATMGRIDAREA = self.cdo.gridarea(input=f'{self.atmfix} {atminifile}')
         elif component == 'cmoratm':
@@ -87,7 +86,6 @@ class CdoPipe:
     def make_atm_masks(self, component, atminifile, extra=''):
         """Create land-sea masks for atmosphere model"""
         # prepare ATM LSM: this need to be improved, since it is clearly model dependent
-<<<<<<< HEAD
         if component == 'oifs':
             self.LANDMASK = self.cdo.selname('LSM',
                                        input=f'-setctomiss,0 -gec,0.5 {extra} {self.atmfix} {atminifile}',
