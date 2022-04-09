@@ -302,23 +302,29 @@ def getcomponent(face):  # unused function
 
 def getinifiles(face, diag):
     """Return the inifiles from the interface, needs the component dictionary"""
-    comp = face['model']['component']
-    atminifile = face['component'][comp['atm']]['inifile']
-    oceinifile = face['component'][comp['oce']]['inifile']
+    dictcomp = face['model']['component']
 
-    if atminifile:
-        if not atminifile[0] == '/':
-            atminifile = Path(diag.ECEDIR) / \
-                         Path(face['model']['basedir']) / \
-                         Path(atminifile)
-        atminifile = str(_expand_filename(atminifile, '', diag.year1, diag.year1, diag))
-    if oceinifile:
-        if not oceinifile[0] == '/':
-            oceinifile = Path(diag.ECEDIR) / \
-                         Path(face['model']['basedir']) / \
-                         Path(oceinifile)
-        oceinifile = str(_expand_filename(oceinifile, '', diag.year1, diag.year1, diag))
-    
-    print("ATMINI", atminifile)
-    print("OCEINI", oceinifile)
-    return atminifile, oceinifile
+    # use a dictionary to create the list of initial files
+    inifiles = {}
+    for filename, filein in zip(['atminifile','ocegridfile','oceareafile'],['inifile','gridfile','areafile']) :
+
+        # the component is atmosphere for atminifile only
+        comp = 'atm' if filename == 'atminifile' else 'oce'
+
+        # expand the path
+        inifile = os.path.expandvars(face['component'][dictcomp[comp]]
+                                        [filein].format(expname=diag.expname))
+
+        # add the full path if missing
+        if not inifile[0] == '/' :
+            inifiles[filename] =  str(diag.ECEDIR /
+                         Path(os.path.expandvars(face['model']['basedir'].format(expname=diag.expname))) /
+                         Path(inifile))
+
+        # if ocean files does not exists (atm-only run) set inifiles string empty
+        if comp == 'oce' :
+            if not os.path.exists(inifiles[filename]) : 
+                inifiles[filename] = ''
+
+    # return dictionary values only
+    return inifiles.values()

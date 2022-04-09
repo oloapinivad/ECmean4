@@ -1,7 +1,8 @@
 [![Maintenance](https://img.shields.io/badge/Maintained%3F-yes-green.svg)](https://GitHub.com/Naereen/StrapDown.js/graphs/commit-activity)
 [![made-with-python](https://img.shields.io/badge/Made%20with-Python-1f425f.svg)](https://www.python.org/)
 
-# ECmean4
+![ECmean4](docs/ecmean4_smallest.png)
+
 *An EC-Earth4 basic evaluation tool*
 
 This is the painful road to switch from bash to python3 as a scripting interface.
@@ -12,7 +13,7 @@ As in the previous ECmean, all computations and weights are done with CDO. Howev
 Two scripts takes care of all the computation and produces a txt table:
 
 - **global_mean.py**: computes the global averages for many dynamical and physical fields. It compares the output against a set of climatological values defined in `reference.yml`
-- **performance_indices.py**: computes Reichler and Kim Performance Indices. It work on a regular 2x2 grid and it is based on old climatological assessment present in the original ECmean. The climatology is defined by `pi_climatology.yml script. Climatology for PI is still VERY outdated.
+- **performance_indices.py**: computes Reichler and Kim Performance Indices. It work on a regular 2x2 grid and it is based on old climatological assessment present in the original ECmean. The climatology is defined by `pi_climatology.yml` script. Climatology for PI is still VERY outdated.
 
 ## Configuration
 
