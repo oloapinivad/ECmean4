@@ -36,7 +36,6 @@ def worker(cdopin, piclim, face, diag, field_3d, varstat, varlist):
         # check into first file, and load also model variable units
         infile = make_input_filename(var, diag.year1, diag.year1, face, diag)
         isavail, varunit = var_is_there(infile, var, face['variables'])
-        print(f"Var: {var} {varunit}")
 
         # if var is not available, store a NaN for the table
         if not isavail:
@@ -57,7 +56,6 @@ def worker(cdopin, piclim, face, diag, field_3d, varstat, varlist):
             # sign adjustment (for heat fluxes)
             factor = factor * directions_match(face['variables'][var], piclim[var])
             logging.debug(offset, factor)
-            print("factor: ", factor)
 
             # extract info from pi_climatology.yml
             # reference dataset and reference varname
@@ -160,7 +158,7 @@ def main(args):
     cdop = CdoPipe()
 
     # loading the var-to-file interface
-    face = load_yaml(INDIR / Path('interfaces', f'interface_{diag.modelname}.yml'))
+    face = load_yaml(INDIR / Path('interfaces', f'interface_{diag.interface}.yml'))
 
     # load the climatology reference data
     piclim = load_yaml('pi_climatology.yml')
