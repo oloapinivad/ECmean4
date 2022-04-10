@@ -36,6 +36,7 @@ def worker(cdopin, piclim, face, diag, field_3d, varstat, varlist):
         # check into first file, and load also model variable units
         infile = make_input_filename(var, diag.year1, diag.year1, face, diag)
         isavail, varunit = var_is_there(infile, var, face['variables'])
+        print(f"Var: {var} {varunit}")
 
         # if var is not available, store a NaN for the table
         if not isavail:
@@ -56,6 +57,7 @@ def worker(cdopin, piclim, face, diag, field_3d, varstat, varlist):
             # sign adjustment (for heat fluxes)
             factor = factor * directions_match(face['variables'][var], piclim[var])
             logging.debug(offset, factor)
+            print("factor: ", factor)
 
             # extract info from pi_climatology.yml
             # reference dataset and reference varname
@@ -167,7 +169,7 @@ def main(args):
     comp = face['model']['component']  # Get component for each domain
     atminifile, ocegridfile, oceareafile = getinifiles(face, diag)
     cdop.set_gridfixes(atminifile, ocegridfile, oceareafile, comp['atm'], comp['oce'])
-    cdop.make_atm_masks(atminifile, extra=f'-remapcon2,{diag.resolution}')
+    cdop.make_atm_masks(comp['atm'], atminifile, extra=f'-remapcon2,{diag.resolution}')
 
     # create interpolation weights
     cdop.make_atm_remap_weights(atminifile, 'remapcon', diag.resolution)

@@ -72,8 +72,9 @@ class CdoPipe:
             if component == 'nemo':
                 self.OCEGRIDAREA = self.cdo.expr('area=e1t*e2t', input=oceareafile)
                 self.ocefix = f'-setgridarea,{self.OCEGRIDAREA}'
-            elif component == 'cmoratm':
+            elif component == 'cmoroce':
                 self.ocefix = ''
+                self.OCEGRIDAREA = self.cdo.gridarea(input=f'{oceareafile}')
             else:
                 sys.exit('Oceanic component not supported')
 
@@ -152,10 +153,9 @@ class CdoPipe:
             self.pipe = self.atmfix + ' ' + self.pipe
 
     def mask(self, mask_type):
-        if not self.LANDMASK:
-            sys.exit('Needed grid file not defined, call make_grids method first')
-
         if mask_type == 'land':
+            if not self.LANDMASK:
+                sys.exit('Needed grid file not defined, call make_grids method first')
             self.mul(self.LANDMASK)
         elif mask_type in ['sea', 'ocean']:
             self.mul(self.SEAMASK)

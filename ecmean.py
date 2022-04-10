@@ -321,40 +321,12 @@ def getinifiles(face, diag):
                 inifiles[filename] = Path(diag.ECEDIR) / \
                                  Path(face['model']['basedir']) / \
                                  Path(inifile)
-                print(inifiles[filename])
                 inifiles[filename] = str(_expand_filename(inifiles[filename],
                                                           '', diag.year1, diag.year1, diag))
 
-        # if file does not exists (eg. for ocean in atm-only run) set inifiles string empty
+# if file does not exists (eg. for ocean in atm-only run) set inifiles string empty
 #        if inifile and not os.path.exists(inifiles[filename]): 
-#           print("voiding it")
 #          inifiles[filename] = ''
 
-        print(inifiles)
     # return dictionary values only
     return inifiles.values()
-
-
-def getinifiles_old(face, diag):
-    """Return the inifiles from the interface, needs the component dictionary"""
-    comp = face['model']['component']
-    atminifile = face['component'][comp['atm']]['inifile']
-    oceinifile = face['component'][comp['oce']]['inifile']
-
-    if atminifile:
-        if not atminifile[0] == '/':
-            atminifile = Path(diag.ECEDIR) / \
-                         Path(face['model']['basedir']) / \
-                         Path(atminifile)
-        atminifile = str(_expand_filename(atminifile, '', diag.year1, diag.year1, diag))
-    if oceinifile:
-        if not oceinifile[0] == '/':
-            oceinifile = Path(diag.ECEDIR) / \
-                         Path(face['model']['basedir']) / \
-                         Path(oceinifile)
-        oceinifile = str(_expand_filename(oceinifile, '', diag.year1, diag.year1, diag))
-
-    print("ATMINI", atminifile)
-    print("OCEINI", oceinifile)
-    return atminifile, oceinifile
-

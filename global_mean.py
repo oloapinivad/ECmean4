@@ -124,7 +124,7 @@ def main(args):
     comp = face['model']['component']  # Get component for each domain
     atminifile, ocegridfile, oceareafile = getinifiles(face, diag)
     cdop.set_gridfixes(atminifile, ocegridfile, oceareafile, comp['atm'], comp['oce'])
-    cdop.make_atm_masks(comp, atminifile)
+    cdop.make_atm_masks(comp['atm'], atminifile)
 
     # list of vars on which to work
     var_atm = cfg['global']['atm_vars']
