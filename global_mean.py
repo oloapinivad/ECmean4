@@ -221,6 +221,8 @@ if __name__ == "__main__":
                         help='define the level of logging.')
     parser.add_argument('-j', dest="numproc", type=int, default=1,
                         help='number of processors to use')
+    parser.add_argument('-e', '--ensemble', type=str, default='r1i1p1f1',
+                        help='variant label (ripf number for cmor)')
 
     args = parser.parse_args()
 

@@ -34,8 +34,8 @@ class Diagnostic():
             self.ftrend = False
         #  These are here in prevision of future expansion to CMOR
         self.interface = cfg['interface']
-        self.frequency = '*'
-        self.ensemble = 'r1i1p1f1'
+        self.frequency = '*mon'
+        self.ensemble = getattr(args, 'ensemble', 'r1i1p1f1')
         self.grid = '*'
         self.version = '*'
 

@@ -261,6 +261,8 @@ if __name__ == '__main__':
                         help='number of processors to use')
     parser.add_argument('-m', '--model', type=str, default='',
                         help='model name')
+    parser.add_argument('-e', '--ensemble', type=str, default='r1i1p1f1',
+                        help='variant label (ripf number for cmor)')
     args = parser.parse_args()
 
     # log level with logging
