@@ -34,7 +34,7 @@ class Diagnostic():
             self.ftrend = False
         #  These are here in prevision of future expansion to CMOR
         self.frequency = '*'
-        self.ensemble = '*'
+        self.ensemble = 'r1i1p1f1'
         self.grid = '*'
         self.version = '*'
 
@@ -95,7 +95,6 @@ def var_is_there(infile, var, reference):
     """Check if a variable is available in the input file and provide its units."""
 
     # Use only first file if list is passed
-    
     if infile:
         if isinstance(infile, list):
             ffile = infile[0]
@@ -306,25 +305,56 @@ def getinifiles(face, diag):
 
     # use a dictionary to create the list of initial files
     inifiles = {}
-    for filename, filein in zip(['atminifile','ocegridfile','oceareafile'],['inifile','gridfile','areafile']) :
+    for comp, filename, filein in zip(['atm', 'oce', 'oce'],
+                                      ['atminifile','ocegridfile','oceareafile'],
+                                      ['inifile','gridfile','areafile']):
 
-        # the component is atmosphere for atminifile only
-        comp = 'atm' if filename == 'atminifile' else 'oce'
-
-        # expand the path
-        inifile = os.path.expandvars(face['component'][dictcomp[comp]]
-                                        [filein].format(expname=diag.expname))
+        inifile = face['component'][dictcomp[comp]][filein]
 
         # add the full path if missing
-        if not inifile[0] == '/' :
-            inifiles[filename] =  str(diag.ECEDIR /
-                         Path(os.path.expandvars(face['model']['basedir'].format(expname=diag.expname))) /
-                         Path(inifile))
+        inifiles[filename] = ''
+        if inifile:
+            if inifile[0] == '/':
+                inifiles[filename] = str(_expand_filename(inifile,
+                                                          '', diag.year1, diag.year1, diag))
+            else:
+                inifiles[filename] = Path(diag.ECEDIR) / \
+                                 Path(face['model']['basedir']) / \
+                                 Path(inifile)
+                print(inifiles[filename])
+                inifiles[filename] = str(_expand_filename(inifiles[filename],
+                                                          '', diag.year1, diag.year1, diag))
 
-        # if ocean files does not exists (atm-only run) set inifiles string empty
-        if comp == 'oce' :
-            if not os.path.exists(inifiles[filename]) : 
-                inifiles[filename] = ''
+        # if file does not exists (eg. for ocean in atm-only run) set inifiles string empty
+#        if inifile and not os.path.exists(inifiles[filename]): 
+#           print("voiding it")
+#          inifiles[filename] = ''
 
+        print(inifiles)
     # return dictionary values only
     return inifiles.values()
+
+
+def getinifiles_old(face, diag):
+    """Return the inifiles from the interface, needs the component dictionary"""
+    comp = face['model']['component']
+    atminifile = face['component'][comp['atm']]['inifile']
+    oceinifile = face['component'][comp['oce']]['inifile']
+
+    if atminifile:
+        if not atminifile[0] == '/':
+            atminifile = Path(diag.ECEDIR) / \
+                         Path(face['model']['basedir']) / \
+                         Path(atminifile)
+        atminifile = str(_expand_filename(atminifile, '', diag.year1, diag.year1, diag))
+    if oceinifile:
+        if not oceinifile[0] == '/':
+            oceinifile = Path(diag.ECEDIR) / \
+                         Path(face['model']['basedir']) / \
+                         Path(oceinifile)
+        oceinifile = str(_expand_filename(oceinifile, '', diag.year1, diag.year1, diag))
+
+    print("ATMINI", atminifile)
+    print("OCEINI", oceinifile)
+    return atminifile, oceinifile
+

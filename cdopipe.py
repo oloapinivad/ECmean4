@@ -161,10 +161,9 @@ class CdoPipe:
             self.mul(self.SEAMASK)
 
     def masked_meansum(self, mask_type):
-        if not self.LANDMASK:
-            sys.exit('Needed grid file not defined, call make_grids method first')
-
         if mask_type == 'land':
+            if not self.LANDMASK:
+                sys.exit('Needed grid file not defined, call make_grids method first')
             self.chain(f'fldsum -mul {self.ATMGRIDAREA} -mul {self.LANDMASK}')
         elif mask_type in ['sea', 'ocean']:
             self.chain(f'fldsum -mul {self.ATMGRIDAREA} -mul {self.SEAMASK}')
