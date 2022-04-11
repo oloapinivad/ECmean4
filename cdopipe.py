@@ -89,36 +89,36 @@ class CdoPipe:
         # prepare ATM LSM: this need to be improved, since it is clearly model dependent
         if component == 'oifs':
             self.LANDMASK = self.cdo.selname('LSM',
-                                       input=f'-setctomiss,0 -gec,0.5 {extra} {self.atmfix} {atminifile}',
-                                       options='-t ecmwf -f nc')
+                                input=f'-setctomiss,0 -gec,0.5 {extra} {self.atmfix} {atminifile}',
+                                options='-t ecmwf -f nc')
             self.SEAMASK = self.cdo.addc('1', input=f'-setctomiss,1 -setmisstoc,0 {self.LANDMASK}')
         elif component == 'cmoratm':
             self.LANDMASK = self.cdo.selname('sftlf',
-                                       input=f'-gec,0.5 {extra} {self.atmfix} {atminifile}')
+                                input=f'-gec,0.5 {extra} {self.atmfix} {atminifile}')
             self.SEAMASK = self.cdo.addc('1', input=f'-setctomiss,1 -setmisstoc,0 {self.LANDMASK}')
             self.cdo.infov(self.LANDMASK)
             self.cdo.infov(self.SEAMASK)
 
-    def make_atm_remap_weights(self, atminifile, remap_method, target): 
+    def make_atm_remap_weights(self, atminifile, remap_method, target):
         """Create atmosphere remap weights"""
 
         # this creates the method to be called in the remap
-        genweight = remap_method.replace('remap','gen')
+        genweight = remap_method.replace('remap', 'gen')
         themethod = getattr(self.cdo(), genweight)
-    
-        #self.ATMWEIGHTS = self.cdo.genbil(target, input=f'{self.atmfix} {atminifile}')
+
+        # self.ATMWEIGHTS = self.cdo.genbil(target, input=f'{self.atmfix} {atminifile}')
         self.ATMWEIGHTS = themethod(target, input=f'{self.atmfix} {atminifile}')
         logging.debug("Atmosphere is remapping with " + genweight + " method")
-            
+
     def make_oce_remap_weights(self, ocegridfile, remap_method, target):
         """Create ocean remap weights, use remapbil as fallback"""
         if ocegridfile:
-            genweight = remap_method.replace('remap','gen')
-            try : 
+            genweight = remap_method.replace('remap', 'gen')
+            try:
                 themethod = getattr(self.cdo(), genweight)
                 self.OCEWEIGHTS = themethod(target, input=f'{self.ocefix} {ocegridfile}')
                 logging.debug("Ocean is remapping with " + genweight + " method")
-            except : 
+            except:
                 themethod = getattr(self.cdo(), 'genbil')
                 self.OCEWEIGHTS = themethod(target, input=f'{self.ocefix} {ocegridfile}')
                 logging.warning("Ocean is remapping with genbil method cause cannot do " + genweight)

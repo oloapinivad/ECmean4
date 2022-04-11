@@ -26,7 +26,7 @@ class Diagnostic():
         self.fverb = not args.silent
         self.ftable = getattr(args, 'line', False)
         self.ftrend = getattr(args, 'trend', False)
-        self.debug =  getattr(args, 'debug', False)
+        self.debug = getattr(args, 'debug', False)
         self.numproc = args.numproc
         self.modelname = getattr(args, 'model', '')
         if not self.modelname:
@@ -106,15 +106,15 @@ def var_is_there(infile, var, reference):
         ffile = ''
 
     # File could still be a merge: find all files
-    flist = [ x for x in ffile.split()  if x not in ['[', ']', '-merge'] ]
+    flist = [x for x in ffile.split() if x not in ['[', ']', '-merge']]
 
     isavail = True
     for f in flist:
         isavail = isavail and os.path.isfile(f)
-    isavail = isavail and ( len(flist)>0 )
+    isavail = isavail and (len(flist) > 0)
 
     # if file exists, check which variables are inside
-    if isavail: 
+    if isavail:
         params = cdo.pardes(input=ffile)
         # Extract list of vars and of units in infile
         vars_avail = [v.split()[1] for v in params]
@@ -321,8 +321,8 @@ def getinifiles(face, diag):
     # use a dictionary to create the list of initial files
     inifiles = {}
     for comp, filename, filein in zip(['atm', 'oce', 'oce'],
-                                      ['atminifile','ocegridfile','oceareafile'],
-                                      ['inifile','gridfile','areafile']):
+                                      ['atminifile', 'ocegridfile', 'oceareafile'],
+                                      ['inifile', 'gridfile', 'areafile']):
 
         inifile = face['component'][dictcomp[comp]][filein]
 
@@ -340,7 +340,7 @@ def getinifiles(face, diag):
                                                           '', diag.year1, diag.year1, diag))
 
 # if file does not exists (eg. for ocean in atm-only run) set inifiles string empty
-#        if inifile and not os.path.exists(inifiles[filename]): 
+#        if inifile and not os.path.exists(inifiles[filename]):
 #          inifiles[filename] = ''
 
     # return dictionary values only

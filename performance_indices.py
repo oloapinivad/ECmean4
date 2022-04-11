@@ -106,12 +106,11 @@ def worker(cdopin, piclim, face, diag, field_3d, varstat, varlist):
             cdop.convert(offset, factor)
 
             # temporarily using remapbil instead of remapcon due to NEMO grid missing corner
-            #outfile = cdop.execute('remapbil', diag.resolution)
-            if getdomain(var, face) in 'atm' :
+            # outfile = cdop.execute('remapbil', diag.resolution)
+            if getdomain(var, face) in 'atm':
                 outfile = cdop.execute('remap', diag.resolution, cdop.ATMWEIGHTS)
-            elif getdomain(var, face) in 'oce' + 'ice' : 
+            elif getdomain(var, face) in 'oce' + 'ice':
                 outfile = cdop.execute('remap', diag.resolution, cdop.OCEWEIGHTS)
-
 
             # special treatment which includes vertical interpolation
             if var in field_3d:
@@ -121,14 +120,14 @@ def worker(cdopin, piclim, face, diag, field_3d, varstat, varlist):
 
                 cdop.chain(f'intlevelx,{format_vlevels}')
                 cdop.zonmean()
-                #cdop.invertlat()
+                # cdop.invertlat()
                 cdop.sub(clim)
                 cdop.sqr()
                 cdop.div(vvvv)
                 cdop.chain('vertmean -genlevelbounds,zbot=0,ztop=100000')
 
             else:
-                #cdop.invertlat()
+                # cdop.invertlat()
                 cdop.sub(clim)
                 cdop.sqr()
                 cdop.div(vvvv)
@@ -161,7 +160,7 @@ def main(args):
     os.makedirs(diag.TABDIR, exist_ok=True)
 
     # Init CdoPipe object to use in the following
-    #cdop = CdoPipe(debug=True)
+    # cdop = CdoPipe(debug=True)
     cdop = CdoPipe()
 
     # loading the var-to-file interface
@@ -192,12 +191,12 @@ def main(args):
 
     # trick to avoid the loop on years
     # define required years with a {year1,year2} and then use cdo select feature
-    #years_list = [str(element) for element in range(diag.year1, diag.year2+1)]
-    #diag.years_joined = ','.join(years_list)
+    # years_list = [str(element) for element in range(diag.year1, diag.year2+1)]
+    # diag.years_joined = ','.join(years_list)
     # special treatment to exploit bash wild cards on multiple years
-    #if len(years_list) > 1:
+    # if len(years_list) > 1:
     #    diag.years_joined = '{' + diag.years_joined + '}'
-    
+
     # We now use a list
     diag.years_joined = list(range(diag.year1, diag.year2+1))
 
