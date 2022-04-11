@@ -38,7 +38,14 @@ def worker(cdopin, ref, face, diag, varmean, vartrend, varlist):
         # check into first file, and load also model variable units
         # with this implementation, files are accessed multiple times for each variables
         # this is simpler but might slow down the code
-        infile = make_input_filename(var, diag.year1, diag.year1, face, diag)
+
+        if 'derived' in face['variables'][var].keys():
+            cmd = face['variables'][var]['derived']
+            dervars = re.findall("[a-zA-Z]+", cmd)
+        else:
+            dervars = [var]
+
+        infile = make_input_filename(var, dervars, diag.year1, diag.year1, face, diag)
         isavail, varunit = var_is_there(infile, var, face['variables'])
 
         if not isavail:
@@ -66,8 +73,8 @@ def worker(cdopin, ref, face, diag, varmean, vartrend, varlist):
 
             if 'derived' in face['variables'][var].keys():
                 cmd = face['variables'][var]['derived']
-                dervars = (",".join(re.findall("[a-zA-Z]+", cmd)))
-                cdop.selectname(dervars)
+#                dervars = (",".join(re.findall("[a-zA-Z]+", cmd)))
+                cdop.selectname(",".join(dervars))
                 cdop.expr(var, cmd)
             else:
                 cdop.selectname(var)
@@ -84,7 +91,7 @@ def worker(cdopin, ref, face, diag, varmean, vartrend, varlist):
             # loop on years: call CDO to perform all the computations
             yrange = range(diag.year1, diag.year2+1)
             for year in yrange:
-                infile = make_input_filename(var, year, year, face, diag)
+                infile = make_input_filename(var, dervars, year, year, face, diag)
                 x = cdop.output(infile, keep=True)
                 a.append(x)
 
@@ -111,7 +118,7 @@ def main(args):
     os.makedirs(diag.TABDIR, exist_ok=True)
 
     # Init CdoPipe object to use in the following
-    cdop = CdoPipe()
+    cdop = CdoPipe(debug=diag.debug)
 
     # load reference data
     ref = load_yaml(INDIR / 'gm_reference.yml')
@@ -223,6 +230,8 @@ if __name__ == "__main__":
                         help='number of processors to use')
     parser.add_argument('-e', '--ensemble', type=str, default='r1i1p1f1',
                         help='variant label (ripf number for cmor)')
+    parser.add_argument('-d', '--debug', action='store_true',
+                        help='activate cdo debugging')
 
     args = parser.parse_args()
 

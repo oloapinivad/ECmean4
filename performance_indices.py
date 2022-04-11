@@ -32,9 +32,16 @@ def worker(cdopin, piclim, face, diag, field_3d, varstat, varlist):
     cdop = copy.copy(cdopin)  # Create a new local instance
 
     for var in varlist:
+
+        if 'derived' in face['variables'][var].keys():
+            cmd = face['variables'][var]['derived']
+            dervars = re.findall("[a-zA-Z]+", cmd)
+        else:
+            dervars = [var]
+
         # check if required variables are there: use interface file
         # check into first file, and load also model variable units
-        infile = make_input_filename(var, diag.year1, diag.year1, face, diag)
+        infile = make_input_filename(var, dervars, diag.year1, diag.year1, face, diag)
         isavail, varunit = var_is_there(infile, var, face['variables'])
 
         # if var is not available, store a NaN for the table
@@ -67,7 +74,7 @@ def worker(cdopin, piclim, face, diag, field_3d, varstat, varlist):
             vvvv = str(diag.CLMDIR / f'variance_{dataref}_{dataname}.nc')
 
             # create a file list using bash wildcards
-            infile = make_input_filename(var, diag.years_joined, '????', face, diag)
+            infile = make_input_filename(var, dervars, diag.years_joined, '????', face, diag)
 
             # Start fresh pipe
             # This leaves the input file undefined for now. It can be set later with
@@ -84,8 +91,8 @@ def worker(cdopin, piclim, face, diag, field_3d, varstat, varlist):
             # WARNING: it may scale badly with high-resolution centennial runs
             if 'derived' in face['variables'][var].keys():
                 cmd = face['variables'][var]['derived']
-                dervars = (",".join(re.findall("[a-zA-Z]+", cmd)))
-                cdop.selectname(dervars)
+#                dervars = (",".join(re.findall("[a-zA-Z]+", cmd)))
+                cdop.selectname(",".join(dervars))
                 cdop.expr(var, cmd)
             else:
                 cdop.selectname(var)

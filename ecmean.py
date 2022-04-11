@@ -26,6 +26,7 @@ class Diagnostic():
         self.fverb = not args.silent
         self.ftable = getattr(args, 'line', False)
         self.ftrend = getattr(args, 'trend', False)
+        self.debug =  getattr(args, 'debug', False)
         self.numproc = args.numproc
         self.modelname = getattr(args, 'model', '')
         if not self.modelname:
@@ -104,8 +105,16 @@ def var_is_there(infile, var, reference):
     else:
         ffile = ''
 
+    # File could still be a merge: find all files
+    flist = [ x for x in ffile.split()  if x not in ['[', ']', '-merge'] ]
+
+    isavail = True
+    for f in flist:
+        isavail = isavail and os.path.isfile(f)
+    isavail = isavail and ( len(flist)>0 )
+
     # if file exists, check which variables are inside
-    if os.path.isfile(ffile):
+    if isavail: 
         params = cdo.pardes(input=ffile)
         # Extract list of vars and of units in infile
         vars_avail = [v.split()[1] for v in params]
@@ -140,7 +149,6 @@ def var_is_there(infile, var, reference):
                 logging.warning("Variable %s needed by %s is not "
                                 "available in the model output!", x, var)
     else:
-        isavail = False
         varunit = None
         print(f'Not available: {var} File: {infile}')
         logging.warning("Requested file %s is not available.", infile)
@@ -174,10 +182,10 @@ def _expand_filename(fn, var, year1, year2, diag):
                             ))
 
 
-def make_input_filename(var, year1, year2, face, diag):
+def make_input_filename(var0, varlist, year1, year2, face, diag):
     """Create full input filepaths for the required variable and a given year"""
 
-    filetype = face['variables'][var]['filetype']
+    filetype = face['variables'][var0]['filetype']
     filepath = Path(diag.ECEDIR) / \
                Path(face['model']['basedir']) / \
                Path(face['filetype'][filetype]['dir']) / \
@@ -189,8 +197,14 @@ def make_input_filename(var, year1, year2, face, diag):
     if not isinstance(year1, list):
         yy = [year1]
     for year in yy:
-        fname = _expand_filename(filepath, var, year, year2, diag)
-        filename = filename + sorted(glob(str(fname)))
+        filename1 = []
+        for var in varlist:
+            fname = _expand_filename(filepath, var, year, year2, diag)
+            filename1 = filename1 + sorted(glob(str(fname)))
+        if len(filename1) <= 1:
+            filename = filename + filename1
+        else:
+            filename = filename + ['-merge [ ' + ' '.join(filename1) + ' ]']
     if len(filename) == 1:  # glob always returns a list, return str if only one
         filename = filename[0]
     return filename
