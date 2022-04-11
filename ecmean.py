@@ -201,6 +201,7 @@ def make_input_filename(var0, varlist, year1, year2, face, diag):
         for var in varlist:
             fname = _expand_filename(filepath, var, year, year2, diag)
             filename1 = filename1 + sorted(glob(str(fname)))
+        filename1 = list(dict.fromkeys(filename1))
         if len(filename1) <= 1:
             filename = filename + filename1
         else:

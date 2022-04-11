@@ -160,8 +160,7 @@ def main(args):
     os.makedirs(diag.TABDIR, exist_ok=True)
 
     # Init CdoPipe object to use in the following
-    # cdop = CdoPipe(debug=True)
-    cdop = CdoPipe()
+    cdop = CdoPipe(debug=diag.debug)
 
     # loading the var-to-file interface
     face = load_yaml(INDIR / Path('interfaces', f'interface_{diag.interface}.yml'))
@@ -269,6 +268,8 @@ if __name__ == '__main__':
                         help='model name')
     parser.add_argument('-e', '--ensemble', type=str, default='r1i1p1f1',
                         help='variant label (ripf number for cmor)')
+    parser.add_argument('-d', '--debug', action='store_true',
+                        help='activate cdo debugging')
     args = parser.parse_args()
 
     # log level with logging
