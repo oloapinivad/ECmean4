@@ -89,15 +89,13 @@ class CdoPipe:
         # prepare ATM LSM: this need to be improved, since it is clearly model dependent
         if component == 'oifs':
             self.LANDMASK = self.cdo.selname('LSM',
-                                input=f'-setctomiss,0 -gec,0.5 {extra} {self.atmfix} {atminifile}',
+                                input=f'-gec,0.5 {extra} {self.atmfix} {atminifile}',
                                 options='-t ecmwf -f nc')
-            self.SEAMASK = self.cdo.addc('1', input=f'-setctomiss,1 -setmisstoc,0 {self.LANDMASK}')
+            self.SEAMASK = self.cdo.mulc('-1', input=f'-subc,1 {self.LANDMASK}')
         elif component == 'cmoratm':
             self.LANDMASK = self.cdo.selname('sftlf',
                                 input=f'-gec,0.5 {extra} {self.atmfix} {atminifile}')
-            self.SEAMASK = self.cdo.addc('1', input=f'-setctomiss,1 -setmisstoc,0 {self.LANDMASK}')
-            self.cdo.infov(self.LANDMASK)
-            self.cdo.infov(self.SEAMASK)
+            self.SEAMASK = self.cdo.mulc('-1', input=f'-subc,1 {self.LANDMASK}')
 
     def make_atm_remap_weights(self, atminifile, remap_method, target):
         """Create atmosphere remap weights"""
@@ -156,9 +154,9 @@ class CdoPipe:
         if mask_type == 'land':
             if not self.LANDMASK:
                 sys.exit('Needed grid file not defined, call make_grids method first')
-            self.mul(self.LANDMASK)
+            self.ifthen(self.LANDMASK)
         elif mask_type in ['sea', 'ocean']:
-            self.mul(self.SEAMASK)
+            self.ifthen(self.SEAMASK)
 
     def masked_meansum(self, mask_type):
         if mask_type == 'land':
@@ -214,6 +212,9 @@ class CdoPipe:
 
     def div(self, fname):
         self.pipe = '-div ' + self.pipe + ' ' + fname
+
+    def ifthen(self, fname):
+        self.pipe = '-ifthen ' + fname + ' ' + self.pipe
 
     def levels(self, infile):
         return list(map(float, self.cdo.showlevel(input=infile)[0].split()))
