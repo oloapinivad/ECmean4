@@ -62,7 +62,7 @@ def worker(cdopin, piclim, face, diag, field_3d, varstat, varlist):
 
             # sign adjustment (for heat fluxes)
             factor = factor * directions_match(face['variables'][var], piclim[var])
-            logging.debug(offset, factor)
+            logging.debug('Offset %f, Factor %f', offset, factor)
 
             # extract info from pi_climatology.yml
             # reference dataset and reference varname
