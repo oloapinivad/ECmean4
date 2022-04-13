@@ -63,8 +63,12 @@ def worker(cdopin, piclim, face, diag, field_3d, varstat, varlist):
             dataname = piclim[var]['dataname']
 
             # get files for climatology
-            clim = str(diag.CLMDIR / f'climate_{dataref}_{dataname}.nc')
-            vvvv = str(diag.CLMDIR / f'variance_{dataref}_{dataname}.nc')
+            if diag.climatology == 'RK08': 
+                clim = str(diag.RESCLMDIR / f'climate_{dataref}_{dataname}.nc')
+                vvvv = str(diag.RESCLMDIR / f'variance_{dataref}_{dataname}.nc')
+            elif diag.climatology == 'EC22': 
+                clim =  str(diag.RESCLMDIR / f'climate_{dataname}_{dataref}_{diag.resolution}_1990-2019.nc')
+                vvvv =  str(diag.RESCLMDIR / f'variance_{dataname}_{dataref}_{diag.resolution}_1990-2019.nc')
 
             # create a file list using bash wildcards
             infile = make_input_filename(var, diag.years_joined, '????', face, diag)
@@ -161,7 +165,7 @@ def main(args):
     face = load_yaml(INDIR / Path('interfaces', f'interface_{diag.modelname}.yml'))
 
     # load the climatology reference data
-    piclim = load_yaml('pi_climatology.yml')
+    piclim = load_yaml(diag.CLMDIR / f'pi_climatology_{diag.climatology}.yml')
 
     # new bunch of functions to set grids, create correction command, masks and areas
     comp = face['model']['component']  # Get component for each domain
@@ -181,7 +185,13 @@ def main(args):
     field_3d = cfg['PI']['3d_vars']['field']
     field_oce = cfg['PI']['oce_vars']['field']
     field_ice = cfg['PI']['ice_vars']['field']
+    # temporary suppression of missing for EC22 climatology
+    if diag.climatology == 'EC22' : 
+        field_2d.remove('net_sfc')
+        field_2d.remove('psl')
+
     field_all = field_2d + field_3d + field_oce + field_ice
+
 
     # trick to avoid the loop on years
     # define required years with a {year1,year2} and then use cdo select feature
@@ -225,7 +235,7 @@ def main(args):
     # loop on the variables
     for var in field_all:
         out_sequence = [var, varstat[var], piclim[var]['mask'], piclim[var]
-                        ['dataset'], piclim[var]['cmip3'], varstat[var]/piclim[var]['cmip3']]
+                        ['dataset'], piclim[var]['cmip3'], varstat[var]/float(piclim[var]['cmip3'])]
         global_table.append(out_sequence)
 
     # nice loop on dictionary to get the partial and total pi
@@ -233,7 +243,7 @@ def main(args):
     total_pi = np.mean([varstat[k] for k in field_2d + field_3d + field_oce + field_ice])
 
     # write the file  with tabulate: cool python feature
-    tablefile = diag.TABDIR / f'PI4_RK08_{diag.expname}_{diag.year1}_{diag.year2}.txt'
+    tablefile = diag.TABDIR / f'PI4_{diag.climatology}_{diag.expname}_{diag.year1}_{diag.year2}.txt'
     if diag.fverb:
         print(tablefile)
     with open(tablefile, 'w', encoding='utf-8') as f:
@@ -261,6 +271,8 @@ if __name__ == '__main__':
                         help='number of processors to use')
     parser.add_argument('-m', '--model', type=str, default='',
                         help='model name')
+    parser.add_argument('-c', '--climatology', type=str, default='RK08',
+                        help='climatology to be compared. default: RK08')
     args = parser.parse_args()
 
     # log level with logging

@@ -28,6 +28,7 @@ class Diagnostic():
         self.ftrend = getattr(args, 'trend', False)
         self.numproc = args.numproc
         self.modelname = getattr(args, 'model', '')
+        self.climatology = getattr(args, 'climatology')
         if not self.modelname:
             self.modelname = cfg['model']['name']
         if self.year1 == self.year2:  # Ignore if only one year requested
@@ -44,7 +45,8 @@ class Diagnostic():
         # Various input and output directories
         self.ECEDIR = Path(os.path.expandvars(cfg['dirs']['exp']))
         self.TABDIR = Path(os.path.expandvars(cfg['dirs']['tab']))
-        self.CLMDIR = Path(os.path.expandvars(cfg['dirs']['clm']), self.resolution)
+        self.CLMDIR = Path(os.path.expandvars(cfg['dirs']['clm']), self.climatology)
+        self.RESCLMDIR = Path(self.CLMDIR, self.resolution)
         self.years_joined = ''
 
         self.linefile = self.TABDIR / 'global_means.txt'
