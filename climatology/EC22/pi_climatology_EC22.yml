@@ -4,6 +4,12 @@ tas:
   dataname : tas
   mask: land
   cmip3: Nan
+psl: 
+  dataset: ERA5
+  units: Pa
+  dataname : MSL
+  mask: global
+  cmip3: Nan
 pr:
   dataset: MSWEP
   units: 'mm/month'
