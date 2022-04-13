@@ -1,0 +1,66 @@
+tas: 
+  dataset: CRU
+  units: degC
+  dataname : tas
+  mask: land
+  cmip3: ''
+pr:
+  dataset: MSWEP
+  units: 'mm/month'
+  dataname : precipitation
+  mask: global
+  cmip3: ''
+tauu:
+  dataset: ORAS5
+  units: 'N/m^2'
+  dataname : sozotaux
+  mask: ocean
+  cmip3: ''
+tauv:
+  dataset: DASILVA
+  units: 'N/m^2'
+  dataname : sometauy
+  mask: ocean
+  cmip3: ''
+ua: 
+  dataset: ERA5
+  units: 'm/s'
+  dataname : U_zonal
+  mask: global
+  cmip3: ''
+va:
+  dataset: ERA5
+  units: 'm/s'
+  dataname : V_zonal
+  mask: global
+  cmip3: ''
+ta:
+  dataset: ERA5
+  units: K
+  dataname : T_zonal
+  mask: global
+  cmip3: ''
+hus:
+  dataset: ERA5
+  units: 'kg/kg'
+  dataname : Q_zonal
+  mask: global
+  cmip3: ''
+tos: 
+  dataset: ORAS5
+  units: 'degC'
+  dataname : sosstsst
+  mask: ocean
+  cmip3: ''
+sos: 
+  dataset: ORAS5
+  units: psu
+  dataname : sosaline
+  mask: ocean
+  cmip3: ''
+siconc: 
+  dataset: ORAS5
+  units: ''
+  dataname : ileadfrac
+  mask: ocean
+  cmip3: ''
