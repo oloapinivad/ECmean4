@@ -182,6 +182,14 @@ def _expand_filename(fn, var, year1, year2, diag):
                             ))
 
 
+def _filter_filename_by_year(fname, year):
+    """Find filename containing a given year in a list of filenames"""
+    filenames = glob(str(fname))
+    year1 = [int(x.split('_')[-1][0:4]) for x in filenames]
+    year2 = [int(x.split('_')[-1][7:11]) for x in filenames]
+    return [filenames[i] for i in range(len(year1)) if year >= year1[i] and year <= year2[i]]
+
+
 def make_input_filename(var0, varlist, year1, year2, face, diag):
     """Create full input filepaths for the required variable and a given year"""
 
@@ -199,15 +207,17 @@ def make_input_filename(var0, varlist, year1, year2, face, diag):
     for year in yy:
         filename1 = []
         for var in varlist:
-            fname = _expand_filename(filepath, var, year, year2, diag)
-            filename1 = filename1 + sorted(glob(str(fname)))
-        filename1 = list(dict.fromkeys(filename1))
+            fname = _expand_filename(filepath, var, '*', '*', diag)
+            fname = _filter_filename_by_year(fname, year)
+            filename1 = filename1 + fname
+        filename1 = list(dict.fromkeys(filename1))  # Filter unique ones
         if len(filename1) <= 1:
             filename = filename + filename1
         else:
             filename = filename + ['-merge [ ' + ' '.join(filename1) + ' ]']
     if len(filename) == 1:  # glob always returns a list, return str if only one
         filename = filename[0]
+    logging.debug("Filenames: %s", filename)
     return filename
 
 

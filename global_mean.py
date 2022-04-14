@@ -69,7 +69,7 @@ def worker(cdopin, ref, face, diag, varmean, vartrend, varlist):
             factor = factor * directions_match(face['variables'][var], ref[var])
 
             # conversion debug
-            logging.debug(offset, factor)
+            logging.debug('Offset %f, Factor %f', offset, factor)
 
             if 'derived' in face['variables'][var].keys():
                 cmd = face['variables'][var]['derived']
