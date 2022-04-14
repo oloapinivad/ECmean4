@@ -190,18 +190,17 @@ def main(args):
     head = head + ['Obs.', 'Dataset', 'Years']
 
     # write the file with tabulate: cool python feature
-    tablefile = diag.TABDIR / f'global_mean_{diag.expname}_{diag.year1}_{diag.year2}.txt'
+    tablefile = diag.TABDIR / f'global_mean_{diag.expname}_{diag.modelname}_{diag.ensemble}_{diag.year1}_{diag.year2}.txt'
     if diag.fverb:
         print(tablefile)
     with open(tablefile, 'w', encoding='utf-8') as f:
         f.write(tabulate(global_table, headers=head, tablefmt='orgtbl'))
 
     # Print appending one line to table (for tuning)
-    if diag.fverb:
-        print(diag.linefile)
     if diag.ftable:
-        write_tuning_table(diag.linefile, varmean, var_table, diag.expname,
-                           diag.year1, diag.year2, face, ref)
+        if diag.fverb:
+            print(diag.linefile)
+        write_tuning_table(diag.linefile, varmean, var_table, diag, face, ref)
 
     # clean
     cdop.cdo.cleanTempDir()

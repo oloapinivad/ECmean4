@@ -238,7 +238,7 @@ def main(args):
     total_pi = np.mean([varstat[k] for k in field_2d + field_3d + field_oce + field_ice])
 
     # write the file  with tabulate: cool python feature
-    tablefile = diag.TABDIR / f'PI4_RK08_{diag.expname}_{diag.year1}_{diag.year2}.txt'
+    tablefile = diag.TABDIR / f'PI4_RK08_{diag.expname}_{diag.modelname}_{diag.ensemble}_{diag.year1}_{diag.year2}.txt'
     if diag.fverb:
         print(tablefile)
     with open(tablefile, 'w', encoding='utf-8') as f:

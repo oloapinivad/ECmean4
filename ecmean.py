@@ -286,22 +286,21 @@ def directions_match(org, dst):
     return factor
 
 
-def write_tuning_table(linefile, varmean, var_table, expname, year1, year2, face, ref):
+def write_tuning_table(linefile, varmean, var_table, diag, face, ref):
     """Write results appending one line to a text file.
        Write a tuning table: need to fix reference to face/ref"""
-
     if not os.path.isfile(linefile):
         with open(linefile, 'w', encoding='utf-8') as f:
-            print('%exp from   to ', end='', file=f)
+            print('%model  ens  exp from   to ', end='', file=f)
             for var in var_table:
                 print('{:>12s}'.format(var), end=' ', file=f)
-            print('\n%             ', end=' ', file=f)
+            print('\n%                         ', end=' ', file=f)
             for var in var_table:
-                print('{:>12s}'.format(face['variables'][var]['units']), end=' ', file=f)
+                print('{:>12s}'.format(ref[var]['units']), end=' ', file=f)
             print(file=f)
 
     with open(linefile, 'a', encoding='utf-8') as f:
-        print(expname, '{:4d} {:4d} '.format(year1, year2), end='', file=f)
+        print(f'{diag.modelname} {diag.ensemble} {diag.expname}', '{:4d} {:4d} '.format(diag.year1, diag.year2), end='', file=f)
         for var in var_table:
             print('{:12.5f}'.format(varmean[var] * ref[var].get('factor', 1)), end=' ', file=f)
         print(file=f)
