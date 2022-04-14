@@ -23,8 +23,8 @@ class CdoPipe:
         self.OCEGRID = ''
         self.LANDMASK = ''
         self.SEAMASK = ''
-        self.ATMGRIDAREA = 'dummy'
-        self.OCEGRIDAREA = 'dummy'
+        self.ATMGRIDAREA = ''
+        self.OCEGRIDAREA = ''
         self.ATMWEIGHTS = ''
         self.OCEWEIGHTS = ''
         self.atmfix = ''
@@ -67,14 +67,17 @@ class CdoPipe:
     def _set_oce_fixgrid(self, component, ocegridfile, oceareafile):
         """Define the command require for correcting model grid"""
 
-        if ocegridfile and oceareafile:
+        if ocegridfile:
             # this could improved using the modelname variable: if EC-Earth, do this...
             if component == 'nemo':
                 self.OCEGRIDAREA = self.cdo.expr('area=e1t*e2t', input=oceareafile)
                 self.ocefix = f'-setgridarea,{self.OCEGRIDAREA}'
             elif component == 'cmoroce':
                 self.ocefix = ''
-                self.OCEGRIDAREA = self.cdo.gridarea(input=f'{oceareafile}')
+                if oceareafile:
+                    self.OCEGRIDAREA = oceareafile
+                else:
+                    self.OCEGRIDAREA = self.cdo.gridarea(input=f'{ocegridfile}')
             else:
                 sys.exit('Oceanic component not supported')
 
