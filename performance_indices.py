@@ -171,10 +171,10 @@ def main(args):
     comp = face['model']['component']  # Get component for each domain
     atminifile, ocegridfile, oceareafile = getinifiles(face, diag)
     cdop.set_gridfixes(atminifile, ocegridfile, oceareafile, comp['atm'], comp['oce'])
-    cdop.make_atm_masks(atminifile, extra=f'-remapcon2,{diag.resolution}')
+    cdop.make_atm_masks(atminifile, extra=f'-remapbil,{diag.resolution}')
 
     # create interpolation weights
-    cdop.make_atm_remap_weights(atminifile, 'remapcon', diag.resolution)
+    cdop.make_atm_remap_weights(atminifile, 'remapbil', diag.resolution)
     cdop.make_oce_remap_weights(ocegridfile, 'remapbil', diag.resolution)
 
     # add missing unit definitions
@@ -188,7 +188,6 @@ def main(args):
     # temporary suppression of missing for EC22 climatology
     if diag.climatology == 'EC22' : 
         field_2d.remove('net_sfc')
-        field_2d.remove('psl')
 
     field_all = field_2d + field_3d + field_oce + field_ice
 
