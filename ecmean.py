@@ -185,8 +185,9 @@ def _expand_filename(fn, var, year1, year2, diag):
 def _filter_filename_by_year(fname, year):
     """Find filename containing a given year in a list of filenames"""
     filenames = glob(str(fname))
-    year1 = [int(x.split('_')[-1][0:4]) for x in filenames]
-    year2 = [int(x.split('_')[-1][7:11]) for x in filenames]
+    # Assumes that the file name ends with 199001-199012.nc or 1990-1991.nc
+    year1 = [int(x.split('_')[-1].split('-')[0][0:4]) for x in filenames]
+    year2 = [int(x.split('_')[-1].split('-')[1][0:4]) for x in filenames]
     return [filenames[i] for i in range(len(year1)) if year >= year1[i] and year <= year2[i]]
 
 
