@@ -49,8 +49,8 @@ component:
   cmoratm:
     inifile: 'amip/fx/atmos/fx/r0i0p0/*/sftlf/sftlf_fx_{model}_amip_r0i0p0.nc'
   cmoroce:
-    gridfile: 'amip/fx/ocean/fx/r0i0p0/*/areacello/areacello_fx_{model}_amip_r0i0p0.nc'
-    areafile: 'amip/fx/ocean/fx/r0i0p0/*/sftof/sftof_fx_{model}_amip_r0i0p0.nc'
+#    areafile: 'amip/fx/ocean/fx/r0i0p0/*/areacello/areacello_fx_{model}_amip_r0i0p0.nc'
+    gridfile: 'amip/fx/ocean/fx/r0i0p0/*/sftof/sftof_fx_{model}_amip_r0i0p0.nc'
 
 # Definition of individual variables
 variables:

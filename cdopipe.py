@@ -10,6 +10,7 @@
 import sys
 import tempfile
 import logging
+from glob import glob
 from cdo import Cdo, CdoTempfileStore
 
 
@@ -75,7 +76,8 @@ class CdoPipe:
             elif component == 'cmoroce':
                 self.ocefix = ''
                 if oceareafile:
-                    self.OCEGRIDAREA = oceareafile
+                    self.OCEGRIDAREA = str(glob(oceareafile)[0])
+                    self.ocefix = f'-setgridarea,{self.OCEGRIDAREA}'
                 else:
                     self.OCEGRIDAREA = self.cdo.gridarea(input=f'{ocegridfile}')
             else:

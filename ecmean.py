@@ -335,7 +335,7 @@ def getinifiles(face, diag):
                                       ['atminifile', 'ocegridfile', 'oceareafile'],
                                       ['inifile', 'gridfile', 'areafile']):
 
-        inifile = face['component'][dictcomp[comp]][filein]
+        inifile = face['component'][dictcomp[comp]].get(filein, '')
 
         # add the full path if missing
         inifiles[filename] = ''
@@ -349,10 +349,8 @@ def getinifiles(face, diag):
                                  Path(inifile)
                 inifiles[filename] = str(_expand_filename(inifiles[filename],
                                                           '', diag.year1, diag.year1, diag))
-
-# if file does not exists (eg. for ocean in atm-only run) set inifiles string empty
-#        if inifile and not os.path.exists(inifiles[filename]):
-#          inifiles[filename] = ''
+        else:
+            inifiles[filename] = ''
 
     # return dictionary values only
     return inifiles.values()
