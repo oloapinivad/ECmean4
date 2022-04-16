@@ -26,6 +26,25 @@ from ecmean import var_is_there, load_yaml, make_input_filename, \
 from cdopipe import CdoPipe
 
 
+def parse_arguments(args):
+    """Parse CLI arguments"""
+
+    parser = argparse.ArgumentParser(
+        description='ECmean Performance Indices for EC-Earth4')
+    parser.add_argument('exp', metavar='EXP', type=str, help='experiment ID')
+    parser.add_argument('year1', metavar='Y1', type=int, help='starting year')
+    parser.add_argument('year2', metavar='Y2', type=int, help='final year')
+    parser.add_argument('-s', '--silent', action='store_true',
+                        help='do not print anything to std output')
+    parser.add_argument('-v', '--loglevel', type=str, default='ERROR',
+                        help='define the level of logging. default: error')
+    parser.add_argument('-j', dest="numproc", type=int, default=1,
+                        help='number of processors to use')
+    parser.add_argument('-m', '--model', type=str, default='',
+                        help='model name')
+    return parser.parse_args(args)
+
+
 def worker(cdopin, piclim, face, diag, field_3d, varstat, varlist):
     """Main parallel diagnostic worker"""
 
@@ -138,10 +157,18 @@ def worker(cdopin, piclim, face, diag, field_3d, varstat, varlist):
                 print('PI for ', var, varstat[var])
 
 
-def main(args):
+def main(argv):
     """Main performance indices calculation"""
 
     assert sys.version_info >= (3, 7)
+
+    args = parse_arguments(argv)
+    # log level with logging
+    # currently basic definition trought the text
+    numeric_level = getattr(logging, args.loglevel.upper(), None)
+    if not isinstance(numeric_level, int):
+        raise ValueError('Invalid log level: %s' % loglevel)
+    logging.basicConfig(level=numeric_level)
 
     # config file (looks for it in the same dir as the .py program file
     INDIR = Path(os.path.dirname(os.path.abspath(__file__)))
@@ -246,29 +273,4 @@ def main(args):
 
 
 if __name__ == '__main__':
-
-    # arguments
-    parser = argparse.ArgumentParser(
-        description='ECmean Performance Indices for EC-Earth4')
-    parser.add_argument('exp', metavar='EXP', type=str, help='experiment ID')
-    parser.add_argument('year1', metavar='Y1', type=int, help='starting year')
-    parser.add_argument('year2', metavar='Y2', type=int, help='final year')
-    parser.add_argument('-s', '--silent', action='store_true',
-                        help='do not print anything to std output')
-    parser.add_argument('-v', '--loglevel', type=str, default='ERROR',
-                        help='define the level of logging. default: error')
-    parser.add_argument('-j', dest="numproc", type=int, default=1,
-                        help='number of processors to use')
-    parser.add_argument('-m', '--model', type=str, default='',
-                        help='model name')
-    args = parser.parse_args()
-
-    # log level with logging
-    # currently basic definition trought the text
-    loglevel = args.loglevel.upper()
-    numeric_level = getattr(logging, loglevel.upper(), None)
-    if not isinstance(numeric_level, int):
-        raise ValueError('Invalid log level: %s' % loglevel)
-    logging.basicConfig(level=numeric_level)
-
-    main(args)
+    sys.exit(main(sys.argv[1:]))
