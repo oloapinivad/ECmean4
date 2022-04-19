@@ -65,7 +65,7 @@ class CdoPipe:
     def _set_oce_fixgrid(self, component, ocegridfile, oceareafile):
         """Define the command require for correcting model grid"""
 
-        if ocegridfile and oceareafile:
+        if oceareafile:
             # this could improved using the modelname variable: if EC-Earth, do this...
             if component == 'nemo':
                 self.OCEGRIDAREA = self.cdo.expr('area=e1t*e2t', input=oceareafile)
