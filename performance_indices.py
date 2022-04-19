@@ -40,6 +40,8 @@ def parse_arguments(args):
                         help='define the level of logging. default: error')
     parser.add_argument('-j', dest="numproc", type=int, default=1,
                         help='number of processors to use')
+    parser.add_argument('-c', '--config', type=str, default='',
+                        help='config file')
     parser.add_argument('-m', '--model', type=str, default='',
                         help='model name')
     return parser.parse_args(args)
@@ -170,9 +172,12 @@ def main(argv):
         raise ValueError('Invalid log level: %s' % loglevel)
     logging.basicConfig(level=numeric_level)
 
-    # config file (looks for it in the same dir as the .py program file
     INDIR = Path(os.path.dirname(os.path.abspath(__file__)))
-    cfg = load_yaml(INDIR / 'config.yml')
+    # config file (looks for it in the same dir as the .py program file
+    if args.config:
+        cfg = load_yaml(args.config)
+    else:
+        cfg = load_yaml(INDIR / 'config.yml')
 
     # Setup all common variables, directories from arguments and config files
     diag = Diagnostic(args, cfg)
