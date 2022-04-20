@@ -53,6 +53,7 @@ def worker(cdopin, piclim, face, diag, field_3d, varstat, varlist):
     cdop = copy.copy(cdopin)  # Create a new local instance
 
     for var in varlist:
+
         # check if required variables are there: use interface file
         # check into first file, and load also model variable units
         infile = make_input_filename(var, diag.year1, diag.year1, face, diag)
@@ -186,7 +187,6 @@ def main(argv):
     os.makedirs(diag.TABDIR, exist_ok=True)
 
     # Init CdoPipe object to use in the following
-    #cdop = CdoPipe(debug=True)
     cdop = CdoPipe()
 
     # loading the var-to-file interface
