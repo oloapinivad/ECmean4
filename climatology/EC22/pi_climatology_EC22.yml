@@ -95,10 +95,10 @@ siconc:
   year1: 1990
   year2: 2019
 net_sfc:
-  dataset: CERES-EBAF
+  dataset: NOCS
   units: 'W/m2'
-  dataname : sfc_net_tot_all_mon
-  mask: global
+  dataname : net_sfc
+  mask: ocean
   cmip3: Nan
-  year1: 2000
-  year2: 2019
+  year1: 1990
+  year2: 2014

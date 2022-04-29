@@ -7,9 +7,8 @@ set -e
 # to set: time period (default, can be shorter if data are missing)
 year1=1990
 year2=2019
-#vars="mean_sea_level_pressure specific_humidity v_component_of_wind u_component_of_wind \
-#vars="temperature sosaline sosstsst ileadfra sowaflup sozotaux sometauy precipitation "
-vars="tas sfc_net_tot_all_mon"
+vars="mean_sea_level_pressure specific_humidity v_component_of_wind u_component_of_wind temperature sosaline sosstsst ileadfra sowaflup sozotaux sometauy precipitation net_sfc tas"
+vars="net_sfc"
 
 # directory where the data to create the climatology are
 TMPDIR=/work/scratch/users/paolo/ecmean_datasets/tmp_$RANDOM
@@ -29,7 +28,7 @@ for var in $vars ; do
 
 	echo "Processing $var !!!"
 
-	# var properties (variance ratio not used)
+	# var properties (variance ratio to avoid irrelistic values is used)
 	case $var in 
 		tas) 		dataset=CRU; 	remap_method=remapbil ; variance_ratio=1e3 ;;
 		precipitation) 	dataset=MSWEP ; remap_method=remapcon ; variance_ratio=1e6 ;;
@@ -39,7 +38,8 @@ for var in $vars ; do
 		*component*) 	dataset=ERA5 ;  remap_method=remapbil ; variance_ratio=1e6 ;;
 		temperature) 	dataset=ERA5 ;  remap_method=remapbil ; variance_ratio=1e6 ;;
 		mean_sea_lev*)	dataset=ERA5 ;  remap_method=remapbil ; variance_ratio=1e3 ;;
-		sfc_net_tot_all_mon) dataset=CERES-EBAF ; remap_method=remapbil ; variance_ratio=1e3 ;;
+		sfc_net_tot_all_mon) dataset=CERES-EBAF ; remap_method=remapbil ; variance_ratio=1e6 ;;
+		net_sfc) 	dataset=NOCS ; remap_method=remapbil ; variance_ratio=1e6 ;;
 
 	esac
 
@@ -51,6 +51,7 @@ for var in $vars ; do
 		ORAS5)	search="$DATADIR/$dataset/data/$var*.nc" ;; 
 		ERA5)   search="/work/datasets/obs/ERA5/$var/mon/${dataset}_${var}*.nc" ;; 
 		CERES-EBAF) search="$DATADIR/$dataset/data/*.nc" ;;
+		NOCS) search="$DATADIR/$dataset/data/*net_sfc*.nc" ;;
 	esac
 
 	# clean temp
@@ -90,16 +91,14 @@ for var in $vars ; do
 		varname=${varname}_zonal
 	fi
 
-	# safecheck on variance, currently disabled
-	#$cdozip $zoncommand -timmean $varcommand tmp.nc $dataset/climate_${suffix}
-	# variance: added condition to set a minimum variance of 10^-3, otherwise exclude
-	#$cdozip $zoncommand -timvar $varcommand tmp.nc $dataset/variance_${suffix}
-	#minvar=$(cdo output -fldmin -vertmin  $dataset/variance_${suffix})
-	#maxvar=$(cdo output -fldmax -vertmax $dataset/variance_${suffix})
-	#div=$(awk -v a="$minvar" -v b="$maxvar" 'BEGIN{print (a / b)}') 
-	#factor=$(awk -v a="$maxvar" -v b="${variance_ratio}" 'BEGIN{print (a / b)}')
-	#echo $var $minvar $maxvar $div >> variance.txt
-	#echo "Minimum accepted variance: $factor" >> variance.txt
+	# safecheck on variance
+	# added condition to set a minimum variance depending on variance ratio, otherwise exclude
+	# compute dataset variance and its maximum
+	$cdozip $zoncommand -timvar $varcommand $tmpfile $TMPDIR/variance_tmp_${var}.nc
+	maxvar=$(cdo output -fldmax -vertmax $TMPDIR/variance_tmp_${var}.nc)
+	# define minimum accepted variance as a variance_ratio of the max variance 
+	factor=$(awk -v a="$maxvar" -v b="${variance_ratio}" 'BEGIN{print (a / b)}')
+	echo "Minimum accepted variance: $factor"
 
 	# create grid files
 	for grid in $grids ; do 
@@ -119,7 +118,7 @@ for var in $vars ; do
 				factorcommand=""
 			elif [[ $kind == variance ]] ; then
 				timcommand="-timvar"
-				factorcommand="-setrtomiss,0,0"
+				factorcommand="-setrtomiss,0,$factor"
 			fi
 			newsuffix=${varname}_${dataset}_${grid}_${firstyear}-${lastyear}.nc
 			CLIMDIR=$ECMEANDIR/climatology/EC22/${grid}
