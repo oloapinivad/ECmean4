@@ -40,7 +40,10 @@ class Diagnostic():
         self.version = '*'
 
         # hard-coded resolution (due to climatological dataset)
-        self.resolution = cfg['PI']['resolution']
+        if self.climatology == 'RK08' : 
+            self.resolution = 'r180x91'
+        else :
+            self.resolution = cfg['PI']['resolution']
 
         # Various input and output directories
         self.ECEDIR = Path(os.path.expandvars(cfg['dirs']['exp']))

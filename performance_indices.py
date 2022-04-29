@@ -59,16 +59,19 @@ def worker(cdopin, piclim, face, diag, field_3d, varstat, varlist):
 
             # extract info from pi_climatology.yml
             # reference dataset and reference varname
+            # as well as years when available
             dataref = piclim[var]['dataset']
             dataname = piclim[var]['dataname']
+            datayear1 = piclim[var].get('year1', 'nan')
+            datayear2 = piclim[var].get('year2', 'nan')
 
             # get files for climatology
             if diag.climatology == 'RK08': 
                 clim = str(diag.RESCLMDIR / f'climate_{dataref}_{dataname}.nc')
                 vvvv = str(diag.RESCLMDIR / f'variance_{dataref}_{dataname}.nc')
             elif diag.climatology == 'EC22': 
-                clim =  str(diag.RESCLMDIR / f'climate_{dataname}_{dataref}_{diag.resolution}_1990-2019.nc')
-                vvvv =  str(diag.RESCLMDIR / f'variance_{dataname}_{dataref}_{diag.resolution}_1990-2019.nc')
+                clim =  str(diag.RESCLMDIR / f'climate_{dataname}_{dataref}_{diag.resolution}_{datayear1}-{datayear2}.nc')
+                vvvv =  str(diag.RESCLMDIR / f'variance_{dataname}_{dataref}_{diag.resolution}_{datayear1}-{datayear2}.nc')
 
             # create a file list using bash wildcards
             infile = make_input_filename(var, diag.years_joined, '????', face, diag)
@@ -185,10 +188,6 @@ def main(args):
     field_3d = cfg['PI']['3d_vars']['field']
     field_oce = cfg['PI']['oce_vars']['field']
     field_ice = cfg['PI']['ice_vars']['field']
-    # temporary suppression of missing for EC22 climatology
-    if diag.climatology == 'EC22' : 
-        field_2d.remove('net_sfc')
-
     field_all = field_2d + field_3d + field_oce + field_ice
 
 
