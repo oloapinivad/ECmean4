@@ -8,7 +8,7 @@ set -e
 year1=1990
 year2=2019
 vars="mean_sea_level_pressure specific_humidity v_component_of_wind u_component_of_wind temperature sosaline sosstsst ileadfra sowaflup sozotaux sometauy precipitation net_sfc tas"
-vars="net_sfc"
+vars="snow_cover"
 
 # directory where the data to create the climatology are
 TMPDIR=/work/scratch/users/paolo/ecmean_datasets/tmp_$RANDOM
@@ -38,6 +38,7 @@ for var in $vars ; do
 		*component*) 	dataset=ERA5 ;  remap_method=remapbil ; variance_ratio=1e6 ;;
 		temperature) 	dataset=ERA5 ;  remap_method=remapbil ; variance_ratio=1e6 ;;
 		mean_sea_lev*)	dataset=ERA5 ;  remap_method=remapbil ; variance_ratio=1e3 ;;
+		snow_cover)	dataset=ERA5 ;  remap_method=remapbil ; variance_ratio=1e3 ;;
 		sfc_net_tot_all_mon) dataset=CERES-EBAF ; remap_method=remapbil ; variance_ratio=1e6 ;;
 		net_sfc) 	dataset=NOCS ; remap_method=remapbil ; variance_ratio=1e6 ;;
 

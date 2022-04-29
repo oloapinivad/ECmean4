@@ -102,3 +102,11 @@ net_sfc:
   cmip3: Nan
   year1: 1990
   year2: 2014
+snc:
+  dataset: ERA5
+  units: ''
+  dataname : snc
+  mask: land
+  cmip3: Nan
+  year1: 1990
+  year2: 2019
