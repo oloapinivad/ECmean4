@@ -4,69 +4,102 @@ tas:
   dataname : tas
   mask: land
   cmip3: Nan
+  year1: 1990
+  year2: 2018
 psl: 
   dataset: ERA5
   units: Pa
   dataname : MSL
   mask: global
   cmip3: Nan
+  year1: 1990
+  year2: 2019
 pr:
   dataset: MSWEP
   units: 'mm/month'
   dataname : precipitation
   mask: global
   cmip3: Nan
+  year1: 1990
+  year2: 2019
 tauu:
   dataset: ORAS5
   units: 'N/m^2'
   dataname : sozotaux
   mask: ocean
   cmip3: Nan
+  year1: 1990
+  year2: 2019
 tauv:
   dataset: ORAS5
   units: 'N/m^2'
   dataname : sometauy
   mask: ocean
   cmip3: Nan
+  year1: 1990
+  year2: 2019
 ua: 
   dataset: ERA5
   units: 'm/s'
   dataname : U_zonal
   mask: global
   cmip3: Nan
+  year1: 1990
+  year2: 2019
 va:
   dataset: ERA5
   units: 'm/s'
   dataname : V_zonal
   mask: global
   cmip3: Nan
+  year1: 1990
+  year2: 2019
 ta:
   dataset: ERA5
   units: K
   dataname : T_zonal
   mask: global
   cmip3: Nan
+  year1: 1990
+  year2: 2019
 hus:
   dataset: ERA5
   units: 'kg/kg'
   dataname : Q_zonal
   mask: global
   cmip3: Nan
+  year1: 1990
+  year2: 2019
 tos: 
   dataset: ORAS5
   units: 'degC'
   dataname : sosstsst
   mask: ocean
   cmip3: Nan
+  year1: 1990
+  year2: 2019
 sos: 
   dataset: ORAS5
   units: psu
   dataname : sosaline
   mask: ocean
   cmip3: Nan
+  year1: 1990
+  year2: 2019
 siconc: 
   dataset: ORAS5
   units: ''
   dataname : ileadfra
   mask: ocean
   cmip3: Nan
+  year1: 1990
+  year2: 2019
+net_sfc:
+  dataset: CERES-EBAF
+  units: 'W/m2'
+  dataname : sfc_net_tot_all_mon
+  mask: global
+  cmip3: Nan
+  year1: 2001
+  year2: 2019
+

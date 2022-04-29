@@ -1,0 +1,136 @@
+#!/bin/bash
+set -e
+
+# bash script to create mean and interannual variance for simplified version of reichler and kim built on EC-mean
+# it requires the data from the required datasets, it is included for reproducibility
+
+# to set: time period (default, can be shorter if data are missing)
+year1=1990
+year2=2019
+#vars="mean_sea_level_pressure specific_humidity v_component_of_wind u_component_of_wind \
+#vars="temperature sosaline sosstsst ileadfra sowaflup sozotaux sometauy precipitation "
+vars="tas sfc_net_tot_all_mon"
+
+# directory where the data to create the climatology are
+TMPDIR=/work/scratch/users/paolo/ecmean_datasets/tmp_$RANDOM
+ECMEANDIR=/work/scratch/users/paolo/ecmean_datasets/ECmean4
+mkdir -p $TMPDIR
+
+
+# cdo details
+cdozip="cdo205 -f nc4 -z zip"
+
+# targets resolution and years
+grids="r180x90 r360x180 original"
+years=${year1}-${year2}
+
+# loop on vars
+for var in $vars ; do
+
+	echo "Processing $var !!!"
+
+	# var properties (variance ratio not used)
+	case $var in 
+		tas) 		dataset=CRU; 	remap_method=remapbil ; variance_ratio=1e3 ;;
+		precipitation) 	dataset=MSWEP ; remap_method=remapcon ; variance_ratio=1e6 ;;
+		so*)		dataset=ORAS5 ; remap_method=remapbil ; variance_ratio=1e6 ;;
+		ileadfra)    	dataset=ORAS5 ; remap_method=remapbil ; variance_ratio=1e6 ;;
+		specific*)	dataset=ERA5 ;  remap_method=remapbil ; variance_ratio=1e9 ;;
+		*component*) 	dataset=ERA5 ;  remap_method=remapbil ; variance_ratio=1e6 ;;
+		temperature) 	dataset=ERA5 ;  remap_method=remapbil ; variance_ratio=1e6 ;;
+		mean_sea_lev*)	dataset=ERA5 ;  remap_method=remapbil ; variance_ratio=1e3 ;;
+		sfc_net_tot_all_mon) dataset=CERES-EBAF ; remap_method=remapbil ; variance_ratio=1e3 ;;
+
+	esac
+
+	# dataset directories: can use the DATADIR but can specify other details
+	DATADIR=/work/scratch/users/paolo/ecmean_datasets
+	case $dataset in 
+		CRU) 	search="$DATADIR/$dataset/data/*.nc" ;;
+		MSWEP)	search="$DATADIR/$dataset/data/*.nc" ;;
+		ORAS5)	search="$DATADIR/$dataset/data/$var*.nc" ;; 
+		ERA5)   search="/work/datasets/obs/ERA5/$var/mon/${dataset}_${var}*.nc" ;; 
+		CERES-EBAF) search="$DATADIR/$dataset/data/*.nc" ;;
+	esac
+
+	# clean temp
+	rm -f tmp_${var}.nc
+
+	# safe check for cat on the number of files
+	if [[ $(ls $search | wc -l) == 1 ]] ; then
+		catcommand=""
+	else 
+		catcommand="-cat"
+	fi
+
+	# cat, select years and yearmean
+	tmpfile=$TMPDIR/tmp_${var}.nc 
+	cdo yearmean -selyear,$year1/$year2 $catcommand $search $tmpfile
+
+	# extract real first and last year
+	firstyear=$(cdo showyear $tmpfile | head -n1 | cut -f2 -d" ")
+	lastyear=$(cdo showyear $tmpfile | tail -n2 | rev | cut -f1 -d" " | rev)
+	echo $firstyear $lastyear
+
+
+	# specific properties for ERA5
+	if [[ $dataset == "ERA5"  ]] ; then
+		varname=$(cdo -t ecmwf showname $tmpfile | xargs)
+		varcommand="-setname,$varname"
+	else 
+		varname=$var
+		varcommand=""
+	fi
+
+	# check on the number of levels
+	if [[ $(cdo nlevel $tmpfile) == 1 ]] ; then
+		zoncommand=""
+	else 
+		zoncommand="zonmean"
+		varname=${varname}_zonal
+	fi
+
+	# safecheck on variance, currently disabled
+	#$cdozip $zoncommand -timmean $varcommand tmp.nc $dataset/climate_${suffix}
+	# variance: added condition to set a minimum variance of 10^-3, otherwise exclude
+	#$cdozip $zoncommand -timvar $varcommand tmp.nc $dataset/variance_${suffix}
+	#minvar=$(cdo output -fldmin -vertmin  $dataset/variance_${suffix})
+	#maxvar=$(cdo output -fldmax -vertmax $dataset/variance_${suffix})
+	#div=$(awk -v a="$minvar" -v b="$maxvar" 'BEGIN{print (a / b)}') 
+	#factor=$(awk -v a="$maxvar" -v b="${variance_ratio}" 'BEGIN{print (a / b)}')
+	#echo $var $minvar $maxvar $div >> variance.txt
+	#echo "Minimum accepted variance: $factor" >> variance.txt
+
+	# create grid files
+	for grid in $grids ; do 
+		mkdir -p $grid
+		
+	        if [[ $grid == "original" ]] ; then
+        	        remap=""
+       		else
+        	        remap="-${remap_method},$grid"
+        	fi
+
+		# loop on climate and variance files
+		for kind in climate variance ; do
+
+			if [[ $kind == climate ]] ; then
+				timcommand="-timmean"
+				factorcommand=""
+			elif [[ $kind == variance ]] ; then
+				timcommand="-timvar"
+				factorcommand="-setrtomiss,0,0"
+			fi
+			newsuffix=${varname}_${dataset}_${grid}_${firstyear}-${lastyear}.nc
+			CLIMDIR=$ECMEANDIR/climatology/EC22/${grid}
+                        mkdir -p $CLIMDIR
+			$cdozip $zoncommand $factorcommand ${varcommand} $timcommand $remap $tmpfile  $CLIMDIR/${kind}_${newsuffix}
+
+		done
+	done
+	# clean
+	rm $tmpfile 
+
+done
+rm -rf $TMPDIR
+
