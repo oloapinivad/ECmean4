@@ -1,14 +1,18 @@
 #!/bin/bash
 set -e
 
-# bash script to create mean and interannual variance for simplified version of reichler and kim built on EC-mean
+# very trivial bash script to create mean and interannual variance for simplified version of reichler and kim built on EC-Mean4
+# it includes the variance ratio safecheck
 # it requires the data from the required datasets, it is included for reproducibility
+# P.Davini, CNR-ISAC, Apr 2022
+
 
 # to set: time period (default, can be shorter if data are missing)
 year1=1990
 year2=2019
 vars="mean_sea_level_pressure specific_humidity v_component_of_wind u_component_of_wind temperature sosaline sosstsst ileadfra sowaflup sozotaux sometauy precipitation net_sfc tas"
 vars="snow_cover"
+vars="analysed_sst sea_ice_fraction"
 
 # directory where the data to create the climatology are
 TMPDIR=/work/scratch/users/paolo/ecmean_datasets/tmp_$RANDOM
@@ -20,7 +24,7 @@ mkdir -p $TMPDIR
 cdozip="cdo205 -f nc4 -z zip"
 
 # targets resolution and years
-grids="r180x90 r360x180 original"
+grids="r180x90 r360x180" # original"
 years=${year1}-${year2}
 
 # loop on vars
@@ -39,8 +43,10 @@ for var in $vars ; do
 		temperature) 	dataset=ERA5 ;  remap_method=remapbil ; variance_ratio=1e6 ;;
 		mean_sea_lev*)	dataset=ERA5 ;  remap_method=remapbil ; variance_ratio=1e3 ;;
 		snow_cover)	dataset=ERA5 ;  remap_method=remapbil ; variance_ratio=1e3 ;;
-		sfc_net_tot_all_mon) dataset=CERES-EBAF ; remap_method=remapbil ; variance_ratio=1e6 ;;
+		sfc_net_tot_all_mon) 	dataset=CERES-EBAF ; remap_method=remapbil ; variance_ratio=1e6 ;;
 		net_sfc) 	dataset=NOCS ; remap_method=remapbil ; variance_ratio=1e6 ;;
+		analysed_sst)	dataset=ESA-CCI-L4 ; remap_method=remapbil ; variance_ratio=1e6 ;;
+		sea_ice_fraction)	dataset=ESA-CCI-L4 ; remap_method=remapbil ; variance_ratio=1e6 ;;
 
 	esac
 
@@ -53,6 +59,7 @@ for var in $vars ; do
 		ERA5)   search="/work/datasets/obs/ERA5/$var/mon/${dataset}_${var}*.nc" ;; 
 		CERES-EBAF) search="$DATADIR/$dataset/data/*.nc" ;;
 		NOCS) search="$DATADIR/$dataset/data/*net_sfc*.nc" ;;
+		ESA-CCI-L4) search="/work/datasets/obs/$dataset/day/${var}/*${var}*.nc" ;;
 	esac
 
 	# clean temp

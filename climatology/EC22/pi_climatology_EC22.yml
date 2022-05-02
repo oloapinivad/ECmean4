@@ -71,9 +71,9 @@ hus:
   year1: 1990
   year2: 2019
 tos: 
-  dataset: ORAS5
+  dataset: ERA-CCI-L4
   units: 'degC'
-  dataname : sosstsst
+  dataname : analysed_sst
   mask: ocean
   cmip3: Nan
   year1: 1990
@@ -87,9 +87,9 @@ sos:
   year1: 1990
   year2: 2019
 siconc: 
-  dataset: ORAS5
+  dataset: ESA-CCI-L4
   units: ''
-  dataname : ileadfra
+  dataname : sea_ice_fraction
   mask: ocean
   cmip3: Nan
   year1: 1990
