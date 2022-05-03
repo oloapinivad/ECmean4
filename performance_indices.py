@@ -266,21 +266,23 @@ if __name__ == '__main__':
     parser.add_argument('exp', metavar='EXP', type=str, help='experiment ID')
     parser.add_argument('year1', metavar='Y1', type=int, help='starting year')
     parser.add_argument('year2', metavar='Y2', type=int, help='final year')
-    parser.add_argument('-s', '--silent', action='store_true',
-                        help='do not print anything to std output')
-    parser.add_argument('-v', '--loglevel', type=str, default='ERROR',
-                        help='define the level of logging. default: error')
     parser.add_argument('-j', dest="numproc", type=int, default=1,
                         help='number of processors to use')
     parser.add_argument('-m', '--model', type=str, default='',
                         help='model name')
     parser.add_argument('-c', '--climatology', type=str, default='RK08',
-                        help='climatology to be compared. default: RK08')
+                        help='climatology to be compared. default: RK08. Options: [RK08, EC22]')
 
     parser.add_argument('-e', '--ensemble', type=str, default='r1i1p1f1',
                         help='variant label (ripf number for cmor)')
     parser.add_argument('-d', '--debug', action='store_true',
                         help='activate cdo debugging')
+    parser.add_argument('-v', '--loglevel', type=str, default='ERROR',
+                        help='define the level of logging. default: error')
+    parser.add_argument('-s', '--silent', action='store_true',
+                        help='do not print anything to std output')
+
+
     args = parser.parse_args()
 
     # log level with logging
