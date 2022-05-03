@@ -17,9 +17,9 @@ Welcome to ECmean4's documentation!
 
 
 
+
 Indices and tables
 ==================
 
 * :ref:`genindex`
 * :ref:`modindex`
-* :ref:`search`

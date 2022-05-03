@@ -15,7 +15,8 @@
 import os
 import sys
 sys.path.insert(0, os.path.abspath('../../../'))
-sys.path.insert(0, os.path.abspath('.'))
+#sys.path.insert(0, os.path.abspath('sources'))
+#sys.path.insert(0, os.path.abspath('sources/_apidocs'))
 
 
 # -- Project information -----------------------------------------------------
