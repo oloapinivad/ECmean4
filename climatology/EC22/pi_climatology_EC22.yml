@@ -71,8 +71,8 @@ hus:
   year1: 1990
   year2: 2019
 tos: 
-  dataset: ERA-CCI-L4
-  units: 'degC'
+  dataset: ESA-CCI-L4
+  units: 'K'
   dataname : analysed_sst
   mask: ocean
   cmip3: Nan

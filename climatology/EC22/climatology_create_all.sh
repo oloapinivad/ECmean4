@@ -13,6 +13,7 @@ year2=2019
 vars="mean_sea_level_pressure specific_humidity v_component_of_wind u_component_of_wind temperature sosaline sosstsst ileadfra sowaflup sozotaux sometauy precipitation net_sfc tas"
 vars="snow_cover"
 vars="analysed_sst sea_ice_fraction"
+vars="analysed_sst"
 
 # directory where the data to create the climatology are
 TMPDIR=/work/scratch/users/paolo/ecmean_datasets/tmp_$RANDOM
@@ -45,7 +46,7 @@ for var in $vars ; do
 		snow_cover)	dataset=ERA5 ;  remap_method=remapbil ; variance_ratio=1e3 ;;
 		sfc_net_tot_all_mon) 	dataset=CERES-EBAF ; remap_method=remapbil ; variance_ratio=1e6 ;;
 		net_sfc) 	dataset=NOCS ; remap_method=remapbil ; variance_ratio=1e6 ;;
-		analysed_sst)	dataset=ESA-CCI-L4 ; remap_method=remapbil ; variance_ratio=1e6 ;;
+		analysed_sst)	dataset=ESA-CCI-L4 ; remap_method=remapbil ; variance_ratio=1e3 ;;
 		sea_ice_fraction)	dataset=ESA-CCI-L4 ; remap_method=remapbil ; variance_ratio=1e6 ;;
 
 	esac
