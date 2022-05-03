@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>cdopipe module &mdash; ECmean4  documentation</title>
+      <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/doctools.js"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="ecmean module" href="ecmean.html" />
+    <link rel="prev" title="ECmean4" href="modules.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="../index.html" class="icon icon-home"> ECmean4
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../intro.html">Introduction</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="modules.html">ECmean4</a><ul class="current">
+<li class="toctree-l2 current"><a class="current reference internal" href="#">cdopipe module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ecmean.html">ecmean module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="global_mean.html">global_mean module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="performance_indices.html">performance_indices module</a></li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">ECmean4</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
+          <li><a href="modules.html">ECmean4</a> &raquo;</li>
+      <li>cdopipe module</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/_apidocs/cdopipe.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="module-cdopipe">
+<span id="cdopipe-module"></span><h1>cdopipe module<a class="headerlink" href="#module-cdopipe" title="Permalink to this headline"></a></h1>
+<p>Class to create pipes of cdo commands</p>
+<p>&#64;author Jost von Hardenberg (<a class="reference external" href="mailto:jost&#46;hardenberg&#37;&#52;&#48;polito&#46;it">jost<span>&#46;</span>hardenberg<span>&#64;</span>polito<span>&#46;</span>it</a>), March 2022
+&#64;author Paolo Davini (<a class="reference external" href="mailto:p&#46;davini&#37;&#52;&#48;isac&#46;cnr&#46;it">p<span>&#46;</span>davini<span>&#64;</span>isac<span>&#46;</span>cnr<span>&#46;</span>it</a>), March 2022</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="cdopipe.CdoPipe">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">cdopipe.</span></span><span class="sig-name descname"><span class="pre">CdoPipe</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tempdir</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'/tmp'</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cdopipe.html#CdoPipe"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cdopipe.CdoPipe" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.10)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<p>A class to add commands in sequence to a cdo pipe</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="cdopipe.CdoPipe.cat">
+<span class="sig-name descname"><span class="pre">cat</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cdopipe.html#CdoPipe.cat"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cdopipe.CdoPipe.cat" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="cdopipe.CdoPipe.chain">
+<span class="sig-name descname"><span class="pre">chain</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cmd</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cdopipe.html#CdoPipe.chain"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cdopipe.CdoPipe.chain" title="Permalink to this definition"></a></dt>
+<dd><p>Adds a generic cdo operator</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="cdopipe.CdoPipe.convert">
+<span class="sig-name descname"><span class="pre">convert</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">offset</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">factor</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cdopipe.html#CdoPipe.convert"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cdopipe.CdoPipe.convert" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="cdopipe.CdoPipe.div">
+<span class="sig-name descname"><span class="pre">div</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fname</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cdopipe.html#CdoPipe.div"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cdopipe.CdoPipe.div" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="cdopipe.CdoPipe.execute">
+<span class="sig-name descname"><span class="pre">execute</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cmd</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">input</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">keep</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cdopipe.html#CdoPipe.execute"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cdopipe.CdoPipe.execute" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="cdopipe.CdoPipe.expr">
+<span class="sig-name descname"><span class="pre">expr</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">var</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">expr</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cdopipe.html#CdoPipe.expr"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cdopipe.CdoPipe.expr" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="cdopipe.CdoPipe.fixgrid">
+<span class="sig-name descname"><span class="pre">fixgrid</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">domain</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cdopipe.html#CdoPipe.fixgrid"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cdopipe.CdoPipe.fixgrid" title="Permalink to this definition"></a></dt>
+<dd><p>Applies grid fixes, requires specifying the domain (atm or oce)</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="cdopipe.CdoPipe.ifthen">
+<span class="sig-name descname"><span class="pre">ifthen</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fname</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cdopipe.html#CdoPipe.ifthen"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cdopipe.CdoPipe.ifthen" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="cdopipe.CdoPipe.invertlat">
+<span class="sig-name descname"><span class="pre">invertlat</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cdopipe.html#CdoPipe.invertlat"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cdopipe.CdoPipe.invertlat" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="cdopipe.CdoPipe.levels">
+<span class="sig-name descname"><span class="pre">levels</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">infile</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cdopipe.html#CdoPipe.levels"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cdopipe.CdoPipe.levels" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="cdopipe.CdoPipe.make_atm_masks">
+<span class="sig-name descname"><span class="pre">make_atm_masks</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">component</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">atminifile</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">extra</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cdopipe.html#CdoPipe.make_atm_masks"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cdopipe.CdoPipe.make_atm_masks" title="Permalink to this definition"></a></dt>
+<dd><p>Create land-sea masks for atmosphere model</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="cdopipe.CdoPipe.make_atm_remap_weights">
+<span class="sig-name descname"><span class="pre">make_atm_remap_weights</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">atminifile</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">remap_method</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">target</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cdopipe.html#CdoPipe.make_atm_remap_weights"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cdopipe.CdoPipe.make_atm_remap_weights" title="Permalink to this definition"></a></dt>
+<dd><p>Create atmosphere remap weights</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="cdopipe.CdoPipe.make_oce_remap_weights">
+<span class="sig-name descname"><span class="pre">make_oce_remap_weights</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ocegridfile</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">remap_method</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">target</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cdopipe.html#CdoPipe.make_oce_remap_weights"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cdopipe.CdoPipe.make_oce_remap_weights" title="Permalink to this definition"></a></dt>
+<dd><p>Create ocean remap weights, use remapbil as fallback</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="cdopipe.CdoPipe.mask">
+<span class="sig-name descname"><span class="pre">mask</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mask_type</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cdopipe.html#CdoPipe.mask"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cdopipe.CdoPipe.mask" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="cdopipe.CdoPipe.masked_meansum">
+<span class="sig-name descname"><span class="pre">masked_meansum</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mask_type</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cdopipe.html#CdoPipe.masked_meansum"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cdopipe.CdoPipe.masked_meansum" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="cdopipe.CdoPipe.mul">
+<span class="sig-name descname"><span class="pre">mul</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fname</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cdopipe.html#CdoPipe.mul"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cdopipe.CdoPipe.mul" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="cdopipe.CdoPipe.output">
+<span class="sig-name descname"><span class="pre">output</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">infile</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cdopipe.html#CdoPipe.output"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cdopipe.CdoPipe.output" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="cdopipe.CdoPipe.selcode">
+<span class="sig-name descname"><span class="pre">selcode</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">var</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cdopipe.html#CdoPipe.selcode"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cdopipe.CdoPipe.selcode" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="cdopipe.CdoPipe.selectname">
+<span class="sig-name descname"><span class="pre">selectname</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">var</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cdopipe.html#CdoPipe.selectname"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cdopipe.CdoPipe.selectname" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="cdopipe.CdoPipe.selname">
+<span class="sig-name descname"><span class="pre">selname</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">var</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cdopipe.html#CdoPipe.selname"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cdopipe.CdoPipe.selname" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="cdopipe.CdoPipe.set_gridfixes">
+<span class="sig-name descname"><span class="pre">set_gridfixes</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">atminifile</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ocegridfile</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">oceareafile</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">atmcomp</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ocecomp</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cdopipe.html#CdoPipe.set_gridfixes"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cdopipe.CdoPipe.set_gridfixes" title="Permalink to this definition"></a></dt>
+<dd><p>Create all internal grid files and set fixes for atm and oce grids</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="cdopipe.CdoPipe.set_infile">
+<span class="sig-name descname"><span class="pre">set_infile</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">infile</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cdopipe.html#CdoPipe.set_infile"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cdopipe.CdoPipe.set_infile" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="cdopipe.CdoPipe.setdomain">
+<span class="sig-name descname"><span class="pre">setdomain</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">domain</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cdopipe.html#CdoPipe.setdomain"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cdopipe.CdoPipe.setdomain" title="Permalink to this definition"></a></dt>
+<dd><p>Specify variable domain: used to set needed grid manipulations</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="cdopipe.CdoPipe.setname">
+<span class="sig-name descname"><span class="pre">setname</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">var</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cdopipe.html#CdoPipe.setname"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cdopipe.CdoPipe.setname" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="cdopipe.CdoPipe.sqr">
+<span class="sig-name descname"><span class="pre">sqr</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cdopipe.html#CdoPipe.sqr"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cdopipe.CdoPipe.sqr" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="cdopipe.CdoPipe.start">
+<span class="sig-name descname"><span class="pre">start</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cdopipe.html#CdoPipe.start"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cdopipe.CdoPipe.start" title="Permalink to this definition"></a></dt>
+<dd><p>Cleans pipe for a new application</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="cdopipe.CdoPipe.sub">
+<span class="sig-name descname"><span class="pre">sub</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fname</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cdopipe.html#CdoPipe.sub"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cdopipe.CdoPipe.sub" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="cdopipe.CdoPipe.timmean">
+<span class="sig-name descname"><span class="pre">timmean</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cdopipe.html#CdoPipe.timmean"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cdopipe.CdoPipe.timmean" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="cdopipe.CdoPipe.zonmean">
+<span class="sig-name descname"><span class="pre">zonmean</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cdopipe.html#CdoPipe.zonmean"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cdopipe.CdoPipe.zonmean" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="modules.html" class="btn btn-neutral float-left" title="ECmean4" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="ecmean.html" class="btn btn-neutral float-right" title="ecmean module" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2022, Paolo Davini and Jost von Hardenberg.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

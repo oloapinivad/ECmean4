@@ -7,6 +7,7 @@ Welcome to ECmean4's documentation!
 ===================================
 
 .. automodule:: performance_indices
+    :members:
 .. automodule:: global_mean
     :members:
 
@@ -15,6 +16,8 @@ Welcome to ECmean4's documentation!
    :caption: Contents:
 
    intro
+
+   _apidocs/modules
 
 
 
