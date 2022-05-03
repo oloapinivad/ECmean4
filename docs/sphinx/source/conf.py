@@ -24,7 +24,7 @@ copyright = '2022, Paolo Davini and Jost von Hardenberg'
 author = 'Paolo Davini and Jost von Hardenberg'
 
 # The short X.Y version
-version = '0.1'
+version = ''
 # The full version, including alpha/beta/rc tags
 release = ''
 

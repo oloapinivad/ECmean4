@@ -30,9 +30,6 @@
             <a href="index.html" class="icon icon-home"> ECmean4
             <img src="_static/ecmean4_small.png" class="logo" alt="Logo"/>
           </a>
-              <div class="version">
-                0.1
-              </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
     <input type="text" name="q" placeholder="Search docs" />
@@ -43,6 +40,8 @@
         </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
               <ul class="current">
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="#scripts">Scripts</a></li>
+<li class="toctree-l1"><a class="reference internal" href="#configuration">Configuration</a></li>
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="_apidocs/modules.html">ECmean4</a></li>
@@ -76,6 +75,19 @@
 <h1>Introduction<a class="headerlink" href="#introduction" title="Permalink to this headline"></a></h1>
 <p>ECmean4 is a lightweight tool for evaluation of basic properties of Global Climate Models.
 It builts on the original ECmean which has been used for EC-Earth2 and EC-Earth3 evaluation, but it uses Python3 as a scripting language to perform lazy calls to CDO.</p>
+</section>
+<section id="scripts">
+<h1>Scripts<a class="headerlink" href="#scripts" title="Permalink to this headline"></a></h1>
+<p>Two scripts takes care of all the computation and produces a txt table:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">global_mean.py</span></code>: computes the global averages for many dynamical and physical fields. It compares the output against a set of climatological values defined in <code class="docutils literal notranslate"><span class="pre">gm_reference.yml</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">performance_indices.py</span></code>: computes Reichler and Kim Performance Indices. It work on a regular 2x2 grid and it is based on old climatological assessment present in the original ECmean. The climatology is defined by <code class="docutils literal notranslate"><span class="pre">pi_climatology.yml</span></code> script. Climatology for PI is still VERY outdated.</p></li>
+</ul>
+</section>
+<section id="configuration">
+<h1>Configuration<a class="headerlink" href="#configuration" title="Permalink to this headline"></a></h1>
+<p>A template configuration file is included in the repo, including folder definition and all the details that can be manually adjusted You will need to copy <code class="docutils literal notranslate"><span class="pre">cp</span> <span class="pre">config.tmpl</span> <span class="pre">config.yml</span></code> and then edit the required folder before running the script
+Conversion from model variables - as well as file structure - is handled by a model depedent file <code class="docutils literal notranslate"><span class="pre">interrfaces/interface_*.yml</span></code> that can support so far EC-Earth4, CMIP5 and CMIP6 models.</p>
 </section>
 
 
