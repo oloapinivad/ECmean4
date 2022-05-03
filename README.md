@@ -22,7 +22,7 @@ A template configuration file is included in the repo, including folder definiti
 You will need to copy `cp config.tmpl config.yml` and then edit the required folder before runninn
 g the script`
 
-Conversion from model variables - as well as file structure - is handled by a model depedent file `interface_ece4.yml` that can be potentially updated to other climate models.
+Conversion from model variables - as well as file structure - is handled by a model depedent file `interface_EC-Earth4.yml` that can be potentially updated to other climate models.
 
 ## Python dependencies and installation
 
