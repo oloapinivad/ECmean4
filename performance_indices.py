@@ -32,9 +32,16 @@ def worker(cdopin, piclim, face, diag, field_3d, varstat, varlist):
     cdop = copy.copy(cdopin)  # Create a new local instance
 
     for var in varlist:
+
+        if 'derived' in face['variables'][var].keys():
+            cmd = face['variables'][var]['derived']
+            dervars = re.findall("[a-zA-Z]+", cmd)
+        else:
+            dervars = [var]
+
         # check if required variables are there: use interface file
         # check into first file, and load also model variable units
-        infile = make_input_filename(var, diag.year1, diag.year1, face, diag)
+        infile = make_input_filename(var, dervars, diag.year1, diag.year1, face, diag)
         isavail, varunit = var_is_there(infile, var, face['variables'])
 
         # if var is not available, store a NaN for the table
@@ -55,7 +62,7 @@ def worker(cdopin, piclim, face, diag, field_3d, varstat, varlist):
 
             # sign adjustment (for heat fluxes)
             factor = factor * directions_match(face['variables'][var], piclim[var])
-            logging.debug(offset, factor)
+            logging.debug('Offset %f, Factor %f', offset, factor)
 
             # extract info from pi_climatology.yml
             # reference dataset and reference varname
@@ -67,7 +74,7 @@ def worker(cdopin, piclim, face, diag, field_3d, varstat, varlist):
             vvvv = str(diag.CLMDIR / f'variance_{dataref}_{dataname}.nc')
 
             # create a file list using bash wildcards
-            infile = make_input_filename(var, diag.years_joined, '????', face, diag)
+            infile = make_input_filename(var, dervars, diag.years_joined, '????', face, diag)
 
             # Start fresh pipe
             # This leaves the input file undefined for now. It can be set later with
@@ -84,8 +91,8 @@ def worker(cdopin, piclim, face, diag, field_3d, varstat, varlist):
             # WARNING: it may scale badly with high-resolution centennial runs
             if 'derived' in face['variables'][var].keys():
                 cmd = face['variables'][var]['derived']
-                dervars = (",".join(re.findall("[a-zA-Z]+", cmd)))
-                cdop.selectname(dervars)
+#                dervars = (",".join(re.findall("[a-zA-Z]+", cmd)))
+                cdop.selectname(",".join(dervars))
                 cdop.expr(var, cmd)
             else:
                 cdop.selectname(var)
@@ -99,12 +106,11 @@ def worker(cdopin, piclim, face, diag, field_3d, varstat, varlist):
             cdop.convert(offset, factor)
 
             # temporarily using remapbil instead of remapcon due to NEMO grid missing corner
-            #outfile = cdop.execute('remapbil', diag.resolution)
-            if getdomain(var, face) in 'atm' :
+            # outfile = cdop.execute('remapbil', diag.resolution)
+            if getdomain(var, face) in 'atm':
                 outfile = cdop.execute('remap', diag.resolution, cdop.ATMWEIGHTS)
-            elif getdomain(var, face) in 'oce' + 'ice' : 
+            elif getdomain(var, face) in 'oce' + 'ice':
                 outfile = cdop.execute('remap', diag.resolution, cdop.OCEWEIGHTS)
-
 
             # special treatment which includes vertical interpolation
             if var in field_3d:
@@ -114,14 +120,14 @@ def worker(cdopin, piclim, face, diag, field_3d, varstat, varlist):
 
                 cdop.chain(f'intlevelx,{format_vlevels}')
                 cdop.zonmean()
-                #cdop.invertlat()
+                # cdop.invertlat()
                 cdop.sub(clim)
                 cdop.sqr()
                 cdop.div(vvvv)
                 cdop.chain('vertmean -genlevelbounds,zbot=0,ztop=100000')
 
             else:
-                #cdop.invertlat()
+                # cdop.invertlat()
                 cdop.sub(clim)
                 cdop.sqr()
                 cdop.div(vvvv)
@@ -154,11 +160,10 @@ def main(args):
     os.makedirs(diag.TABDIR, exist_ok=True)
 
     # Init CdoPipe object to use in the following
-    #cdop = CdoPipe(debug=True)
-    cdop = CdoPipe()
+    cdop = CdoPipe(debug=diag.debug)
 
     # loading the var-to-file interface
-    face = load_yaml(INDIR / Path('interfaces', f'interface_{diag.modelname}.yml'))
+    face = load_yaml(INDIR / Path('interfaces', f'interface_{diag.interface}.yml'))
 
     # load the climatology reference data
     piclim = load_yaml('pi_climatology.yml')
@@ -167,7 +172,7 @@ def main(args):
     comp = face['model']['component']  # Get component for each domain
     atminifile, ocegridfile, oceareafile = getinifiles(face, diag)
     cdop.set_gridfixes(atminifile, ocegridfile, oceareafile, comp['atm'], comp['oce'])
-    cdop.make_atm_masks(atminifile, extra=f'-remapcon2,{diag.resolution}')
+    cdop.make_atm_masks(comp['atm'], atminifile, extra=f'-remapcon2,{diag.resolution}')
 
     # create interpolation weights
     cdop.make_atm_remap_weights(atminifile, 'remapcon', diag.resolution)
@@ -185,12 +190,12 @@ def main(args):
 
     # trick to avoid the loop on years
     # define required years with a {year1,year2} and then use cdo select feature
-    #years_list = [str(element) for element in range(diag.year1, diag.year2+1)]
-    #diag.years_joined = ','.join(years_list)
+    # years_list = [str(element) for element in range(diag.year1, diag.year2+1)]
+    # diag.years_joined = ','.join(years_list)
     # special treatment to exploit bash wild cards on multiple years
-    #if len(years_list) > 1:
+    # if len(years_list) > 1:
     #    diag.years_joined = '{' + diag.years_joined + '}'
-    
+
     # We now use a list
     diag.years_joined = list(range(diag.year1, diag.year2+1))
 
@@ -233,7 +238,7 @@ def main(args):
     total_pi = np.mean([varstat[k] for k in field_2d + field_3d + field_oce + field_ice])
 
     # write the file  with tabulate: cool python feature
-    tablefile = diag.TABDIR / f'PI4_RK08_{diag.expname}_{diag.year1}_{diag.year2}.txt'
+    tablefile = diag.TABDIR / f'PI4_RK08_{diag.expname}_{diag.modelname}_{diag.ensemble}_{diag.year1}_{diag.year2}.txt'
     if diag.fverb:
         print(tablefile)
     with open(tablefile, 'w', encoding='utf-8') as f:
@@ -261,6 +266,10 @@ if __name__ == '__main__':
                         help='number of processors to use')
     parser.add_argument('-m', '--model', type=str, default='',
                         help='model name')
+    parser.add_argument('-e', '--ensemble', type=str, default='r1i1p1f1',
+                        help='variant label (ripf number for cmor)')
+    parser.add_argument('-d', '--debug', action='store_true',
+                        help='activate cdo debugging')
     args = parser.parse_args()
 
     # log level with logging
