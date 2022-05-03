@@ -6,14 +6,13 @@
 Welcome to ECmean4's documentation!
 ===================================
 
-.. automodule:: _apidocs/performance_indices
-    :members:
-
 .. toctree::
    :maxdepth: 2
    :caption: Contents:
 
    intro
+
+   _apidocs/modules
 
 
 
