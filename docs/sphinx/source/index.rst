@@ -6,9 +6,7 @@
 Welcome to ECmean4's documentation!
 ===================================
 
-.. automodule:: performance_indices
-    :members:
-.. automodule:: global_mean
+.. automodule:: _apidocs/performance_indices
     :members:
 
 .. toctree::
@@ -17,7 +15,6 @@ Welcome to ECmean4's documentation!
 
    intro
 
-   _apidocs/modules
 
 
 
