@@ -6,6 +6,9 @@
 Welcome to ECmean4's documentation!
 ===================================
 
+.. automodule:: ECmean4.ecmean
+    :members:
+
 .. toctree::
    :maxdepth: 2
    :caption: Contents:
