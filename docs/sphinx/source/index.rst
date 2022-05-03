@@ -6,7 +6,8 @@
 Welcome to ECmean4's documentation!
 ===================================
 
-.. automodule:: ECmean4.ecmean
+.. automodule:: performance_indices
+.. automodule:: global_mean
     :members:
 
 .. toctree::
