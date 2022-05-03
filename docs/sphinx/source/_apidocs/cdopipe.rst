@@ -1,4 +1,4 @@
-cdopipe module
+cdopipe class
 ==============
 
 .. automodule:: cdopipe

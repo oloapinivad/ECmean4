@@ -15,8 +15,9 @@
 import os
 import sys
 sys.path.insert(0, os.path.abspath('../../../'))
-#sys.path.insert(0, os.path.abspath('sources'))
-#sys.path.insert(0, os.path.abspath('sources/_apidocs'))
+sys.path.insert(0, os.path.abspath("."))
+sys.path.insert(0, os.path.abspath("../"))
+sys.path.insert(0, os.path.abspath("../../"))
 
 
 # -- Project information -----------------------------------------------------
@@ -26,7 +27,7 @@ copyright = '2022, Paolo Davini and Jost von Hardenberg'
 author = 'Paolo Davini and Jost von Hardenberg'
 
 # The short X.Y version
-version = ''
+version = '0.1'
 # The full version, including alpha/beta/rc tags
 release = ''
 

@@ -7,10 +7,15 @@ Welcome to ECmean4's documentation!
 ===================================
 
 .. toctree::
-   :maxdepth: 2
-   :caption: Contents:
+   :maxdepth: 1
 
    intro
+
+ECmean4 code
+^^^^^^^^^^^^^^^
+
+.. toctree::
+   :maxdepth: 1
 
    _apidocs/modules
 
