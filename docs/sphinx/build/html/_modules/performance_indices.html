@@ -27,9 +27,6 @@
             <a href="../index.html" class="icon icon-home"> ECmean4
             <img src="../_static/ecmean4_small.png" class="logo" alt="Logo"/>
           </a>
-              <div class="version">
-                0.1
-              </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
     <input type="text" name="q" placeholder="Search docs" />
@@ -40,6 +37,8 @@
         </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
               <ul>
 <li class="toctree-l1"><a class="reference internal" href="../intro.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../intro.html#scripts">Scripts</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../intro.html#configuration">Configuration</a></li>
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../_apidocs/modules.html">ECmean4</a></li>
@@ -98,7 +97,7 @@
 <span class="kn">from</span> <span class="nn">cdopipe</span> <span class="kn">import</span> <span class="n">CdoPipe</span>
 
 
-<div class="viewcode-block" id="worker"><a class="viewcode-back" href="../_apidocs/performance_indices.html#performance_indices.worker">[docs]</a><span class="k">def</span> <span class="nf">worker</span><span class="p">(</span><span class="n">cdopin</span><span class="p">,</span> <span class="n">piclim</span><span class="p">,</span> <span class="n">face</span><span class="p">,</span> <span class="n">diag</span><span class="p">,</span> <span class="n">field_3d</span><span class="p">,</span> <span class="n">varstat</span><span class="p">,</span> <span class="n">varlist</span><span class="p">):</span>
+<div class="viewcode-block" id="pi_worker"><a class="viewcode-back" href="../_apidocs/performance_indices.html#performance_indices.pi_worker">[docs]</a><span class="k">def</span> <span class="nf">pi_worker</span><span class="p">(</span><span class="n">cdopin</span><span class="p">,</span> <span class="n">piclim</span><span class="p">,</span> <span class="n">face</span><span class="p">,</span> <span class="n">diag</span><span class="p">,</span> <span class="n">field_3d</span><span class="p">,</span> <span class="n">varstat</span><span class="p">,</span> <span class="n">varlist</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Main parallel diagnostic worker&quot;&quot;&quot;</span>
 
     <span class="n">cdop</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">cdopin</span><span class="p">)</span>  <span class="c1"># Create a new local instance</span>
@@ -216,7 +215,7 @@
                 <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;PI for &#39;</span><span class="p">,</span> <span class="n">var</span><span class="p">,</span> <span class="n">varstat</span><span class="p">[</span><span class="n">var</span><span class="p">])</span></div>
 
 
-<div class="viewcode-block" id="main"><a class="viewcode-back" href="../_apidocs/performance_indices.html#performance_indices.main">[docs]</a><span class="k">def</span> <span class="nf">main</span><span class="p">(</span><span class="n">args</span><span class="p">):</span>
+<div class="viewcode-block" id="pi_main"><a class="viewcode-back" href="../_apidocs/performance_indices.html#performance_indices.pi_main">[docs]</a><span class="k">def</span> <span class="nf">pi_main</span><span class="p">(</span><span class="n">args</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Main performance indices calculation&quot;&quot;&quot;</span>
 
     <span class="k">assert</span> <span class="n">sys</span><span class="o">.</span><span class="n">version_info</span> <span class="o">&gt;=</span> <span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">7</span><span class="p">)</span>
@@ -281,7 +280,7 @@
 
     <span class="c1"># loop on the variables, create the parallel process</span>
     <span class="k">for</span> <span class="n">varlist</span> <span class="ow">in</span> <span class="n">chunks</span><span class="p">(</span><span class="n">field_all</span><span class="p">,</span> <span class="n">diag</span><span class="o">.</span><span class="n">numproc</span><span class="p">):</span>
-        <span class="n">p</span> <span class="o">=</span> <span class="n">Process</span><span class="p">(</span><span class="n">target</span><span class="o">=</span><span class="n">worker</span><span class="p">,</span>
+        <span class="n">p</span> <span class="o">=</span> <span class="n">Process</span><span class="p">(</span><span class="n">target</span><span class="o">=</span><span class="n">pi_worker</span><span class="p">,</span>
                     <span class="n">args</span><span class="o">=</span><span class="p">(</span><span class="n">cdop</span><span class="p">,</span> <span class="n">piclim</span><span class="p">,</span> <span class="n">face</span><span class="p">,</span> <span class="n">diag</span><span class="p">,</span> <span class="n">field_3d</span><span class="p">,</span> <span class="n">varstat</span><span class="p">,</span> <span class="n">varlist</span><span class="p">))</span>
         <span class="n">p</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
         <span class="n">processes</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">p</span><span class="p">)</span>
@@ -352,7 +351,7 @@
         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Invalid log level: </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">loglevel</span><span class="p">)</span>
     <span class="n">logging</span><span class="o">.</span><span class="n">basicConfig</span><span class="p">(</span><span class="n">level</span><span class="o">=</span><span class="n">numeric_level</span><span class="p">)</span>
 
-    <span class="n">main</span><span class="p">(</span><span class="n">args</span><span class="p">)</span>
+    <span class="n">pi_main</span><span class="p">(</span><span class="n">args</span><span class="p">)</span>
 </pre></div>
 
            </div>

@@ -80,20 +80,40 @@
              
   <section id="module-global_mean">
 <span id="global-mean-module"></span><h1>global_mean module<a class="headerlink" href="#module-global_mean" title="Permalink to this headline"></a></h1>
-<p>python3 version of ECmean global mean tool
+<p>python3 version of ECmean global mean tool.
 Using a reference file from yaml and cdo bindings</p>
-<p>&#64;author Paolo Davini (<a class="reference external" href="mailto:p&#46;davini&#37;&#52;&#48;isac&#46;cnr&#46;it">p<span>&#46;</span>davini<span>&#64;</span>isac<span>&#46;</span>cnr<span>&#46;</span>it</a>), March 2022
+<p>&#64;author Paolo Davini (<a class="reference external" href="mailto:p&#46;davini&#37;&#52;&#48;isac&#46;cnr&#46;it">p<span>&#46;</span>davini<span>&#64;</span>isac<span>&#46;</span>cnr<span>&#46;</span>it</a>), March 2022.
 &#64;author Jost von Hardenberg (<a class="reference external" href="mailto:jost&#46;hardenberg&#37;&#52;&#48;polito&#46;it">jost<span>&#46;</span>hardenberg<span>&#64;</span>polito<span>&#46;</span>it</a>), March 2022</p>
 <dl class="py function">
-<dt class="sig sig-object py" id="global_mean.main">
-<span class="sig-prename descclassname"><span class="pre">global_mean.</span></span><span class="sig-name descname"><span class="pre">main</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">args</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/global_mean.html#main"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#global_mean.main" title="Permalink to this definition"></a></dt>
-<dd><p>The main EC-mean4 code</p>
+<dt class="sig sig-object py" id="global_mean.gm_main">
+<span class="sig-prename descclassname"><span class="pre">global_mean.</span></span><span class="sig-name descname"><span class="pre">gm_main</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">args</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/global_mean.html#gm_main"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#global_mean.gm_main" title="Permalink to this definition"></a></dt>
+<dd><p>The main ECmean4 global mean code</p>
 </dd></dl>
 
 <dl class="py function">
-<dt class="sig sig-object py" id="global_mean.worker">
-<span class="sig-prename descclassname"><span class="pre">global_mean.</span></span><span class="sig-name descname"><span class="pre">worker</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cdopin</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ref</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">face</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">diag</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">varmean</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vartrend</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">varlist</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/global_mean.html#worker"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#global_mean.worker" title="Permalink to this definition"></a></dt>
-<dd><p>Main parallel diagnostic worker</p>
+<dt class="sig sig-object py" id="global_mean.gm_worker">
+<span class="sig-prename descclassname"><span class="pre">global_mean.</span></span><span class="sig-name descname"><span class="pre">gm_worker</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cdopin</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ref</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">face</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">diag</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">varmean</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vartrend</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">varlist</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/global_mean.html#gm_worker"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#global_mean.gm_worker" title="Permalink to this definition"></a></dt>
+<dd><p>Main parallel diagnostic worker for global mean</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>cdopin</strong> – a cdo class object</p></li>
+<li><p><strong>ref</strong> – the reference dictionary for the global mean</p></li>
+<li><p><strong>face</strong> – the interface to be used to access the data</p></li>
+<li><p><strong>diag</strong> – the diagnostic class object</p></li>
+<li><p><strong>varmean</strong> – the dictionary for the global mean (empty)</p></li>
+<li><p><strong>vartrend</strong> – the dictionary for the trends (empty)</p></li>
+<li><p><strong>varlist</strong> – the variable on which compute the global mean</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>the dictionary for the trends
+varmean: the dictionary for the global mean</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>vartrend</p>
+</dd>
+</dl>
 </dd></dl>
 
 </section>

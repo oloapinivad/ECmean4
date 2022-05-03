@@ -26,7 +26,7 @@ from ecmean import var_is_there, load_yaml, make_input_filename, \
 from cdopipe import CdoPipe
 
 
-def worker(cdopin, piclim, face, diag, field_3d, varstat, varlist):
+def pi_worker(cdopin, piclim, face, diag, field_3d, varstat, varlist):
     """Main parallel diagnostic worker"""
 
     cdop = copy.copy(cdopin)  # Create a new local instance
@@ -144,7 +144,7 @@ def worker(cdopin, piclim, face, diag, field_3d, varstat, varlist):
                 print('PI for ', var, varstat[var])
 
 
-def main(args):
+def pi_main(args):
     """Main performance indices calculation"""
 
     assert sys.version_info >= (3, 7)
@@ -209,7 +209,7 @@ def main(args):
 
     # loop on the variables, create the parallel process
     for varlist in chunks(field_all, diag.numproc):
-        p = Process(target=worker,
+        p = Process(target=pi_worker,
                     args=(cdop, piclim, face, diag, field_3d, varstat, varlist))
         p.start()
         processes.append(p)
@@ -280,4 +280,4 @@ if __name__ == '__main__':
         raise ValueError('Invalid log level: %s' % loglevel)
     logging.basicConfig(level=numeric_level)
 
-    main(args)
+    pi_main(args)
