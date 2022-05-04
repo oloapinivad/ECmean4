@@ -242,8 +242,8 @@ def main(args):
         global_table.append(out_sequence)
 
     # nice loop on dictionary to get the partial and total pi
-    partial_pi = np.mean([varstat[k] for k in field_2d + field_3d])
-    total_pi = np.mean([varstat[k] for k in field_2d + field_3d + field_oce + field_ice])
+    partial_pi = np.nanmean([varstat[k] for k in field_2d + field_3d])
+    total_pi = np.nanmean([varstat[k] for k in field_2d + field_3d + field_oce + field_ice])
 
     # write the file  with tabulate: cool python feature
     tablefile = diag.TABDIR / f'PI4_{diag.climatology}_{diag.expname}_{diag.modelname}_{diag.ensemble}_{diag.year1}_{diag.year2}.txt'
