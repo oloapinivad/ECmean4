@@ -5,9 +5,9 @@ name: Basic PyTest
 
 on:
   push:
-    branches: [ testing ]
-  #pull_request:
-  #  branches: [ main ]
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
 
 permissions:
   contents: read
