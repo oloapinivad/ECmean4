@@ -19,6 +19,8 @@ jobs:
 
     steps:
     - uses: actions/checkout@v3
+    - name: Install CDO
+      run: sudo apt install cdo
     - name: Set up Python 3.9
       uses: actions/setup-python@v3
       with:
