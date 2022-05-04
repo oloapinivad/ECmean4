@@ -1,4 +1,4 @@
-[![Maintenance](https://img.shields.io/badge/Maintained%3F-yes-green.svg)](https://github.com/oloapinivad/ECmean4.js/graphs/commit-activity)
+[![Maintenance](https://img.shields.io/badge/Maintained%3F-yes-green.svg)](https://github.com/oloapinivad/ECmean4/graphs/commit-activity)
 [![made-with-python](https://img.shields.io/badge/Made%20with-Python-1f425f.svg)](https://www.python.org/)
 [![Basic PyTest](https://github.com/oloapinivad/ECmean4/actions/workflows/pytest.yml/badge.svg)](https://github.com/oloapinivad/ECmean4/actions/workflows/pytest.yml)
 
