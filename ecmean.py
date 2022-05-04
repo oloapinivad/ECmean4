@@ -26,6 +26,7 @@ class Diagnostic():
         self.fverb = not args.silent
         self.ftable = getattr(args, 'line', False)
         self.ftrend = getattr(args, 'trend', False)
+        self.debug = getattr(args, 'debug', False)
         self.numproc = args.numproc
         self.modelname = getattr(args, 'model', '')
         if not self.modelname:
@@ -33,8 +34,9 @@ class Diagnostic():
         if self.year1 == self.year2:  # Ignore if only one year requested
             self.ftrend = False
         #  These are here in prevision of future expansion to CMOR
-        self.frequency = '*'
-        self.ensemble = '*'
+        self.interface = cfg['interface']
+        self.frequency = '*mon'
+        self.ensemble = getattr(args, 'ensemble', 'r1i1p1f1')
         self.grid = '*'
         self.version = '*'
 
@@ -94,17 +96,25 @@ def is_number(s):
 def var_is_there(infile, var, reference):
     """Check if a variable is available in the input file and provide its units."""
 
-    # Use only first file if list is passed and it is longer than 0
-    if isinstance(infile, list):
-        if len(infile) > 0 : 
+    # Use only first file if list is passed
+    if infile:
+        if isinstance(infile, list):
             ffile = infile[0]
-        else :
-            ffile = ''
+        else:
+            ffile = infile
     else:
-        ffile = infile
+        ffile = ''
+
+    # File could still be a merge: find all files
+    flist = [x for x in ffile.split() if x not in ['[', ']', '-merge']]
+
+    isavail = True
+    for f in flist:
+        isavail = isavail and os.path.isfile(f)
+    isavail = isavail and (len(flist) > 0)
 
     # if file exists, check which variables are inside
-    if os.path.isfile(ffile):
+    if isavail:
         params = cdo.pardes(input=ffile)
         # Extract list of vars and of units in infile
         vars_avail = [v.split()[1] for v in params]
@@ -139,7 +149,6 @@ def var_is_there(infile, var, reference):
                 logging.warning("Variable %s needed by %s is not "
                                 "available in the model output!", x, var)
     else:
-        isavail = False
         varunit = None
         print(f'Not available: {var} File: {infile}')
         logging.warning("Requested file %s is not available.", infile)
@@ -173,10 +182,19 @@ def _expand_filename(fn, var, year1, year2, diag):
                             ))
 
 
-def make_input_filename(var, year1, year2, face, diag):
+def _filter_filename_by_year(fname, year):
+    """Find filename containing a given year in a list of filenames"""
+    filenames = glob(str(fname))
+    # Assumes that the file name ends with 199001-199012.nc or 1990-1991.nc
+    year1 = [int(x.split('_')[-1].split('-')[0][0:4]) for x in filenames]
+    year2 = [int(x.split('_')[-1].split('-')[1][0:4]) for x in filenames]
+    return [filenames[i] for i in range(len(year1)) if year >= year1[i] and year <= year2[i]]
+
+
+def make_input_filename(var0, varlist, year1, year2, face, diag):
     """Create full input filepaths for the required variable and a given year"""
 
-    filetype = face['variables'][var]['filetype']
+    filetype = face['variables'][var0]['filetype']
     filepath = Path(diag.ECEDIR) / \
                Path(face['model']['basedir']) / \
                Path(face['filetype'][filetype]['dir']) / \
@@ -188,10 +206,19 @@ def make_input_filename(var, year1, year2, face, diag):
     if not isinstance(year1, list):
         yy = [year1]
     for year in yy:
-        fname = _expand_filename(filepath, var, year, year2, diag)
-        filename = filename + sorted(glob(str(fname)))
+        filename1 = []
+        for var in varlist:
+            fname = _expand_filename(filepath, var, '*', '*', diag)
+            fname = _filter_filename_by_year(fname, year)
+            filename1 = filename1 + fname
+        filename1 = list(dict.fromkeys(filename1))  # Filter unique ones
+        if len(filename1) <= 1:
+            filename = filename + filename1
+        else:
+            filename = filename + ['-merge [ ' + ' '.join(filename1) + ' ]']
     if len(filename) == 1:  # glob always returns a list, return str if only one
         filename = filename[0]
+    logging.debug("Filenames: %s", filename)
     return filename
 
 
@@ -260,22 +287,21 @@ def directions_match(org, dst):
     return factor
 
 
-def write_tuning_table(linefile, varmean, var_table, expname, year1, year2, face, ref):
+def write_tuning_table(linefile, varmean, var_table, diag, face, ref):
     """Write results appending one line to a text file.
        Write a tuning table: need to fix reference to face/ref"""
-
     if not os.path.isfile(linefile):
         with open(linefile, 'w', encoding='utf-8') as f:
-            print('%exp from   to ', end='', file=f)
+            print('%model  ens  exp from   to ', end='', file=f)
             for var in var_table:
                 print('{:>12s}'.format(var), end=' ', file=f)
-            print('\n%             ', end=' ', file=f)
+            print('\n%                         ', end=' ', file=f)
             for var in var_table:
-                print('{:>12s}'.format(face['variables'][var]['units']), end=' ', file=f)
+                print('{:>12s}'.format(ref[var]['units']), end=' ', file=f)
             print(file=f)
 
     with open(linefile, 'a', encoding='utf-8') as f:
-        print(expname, '{:4d} {:4d} '.format(year1, year2), end='', file=f)
+        print(f'{diag.modelname} {diag.ensemble} {diag.expname}', '{:4d} {:4d} '.format(diag.year1, diag.year2), end='', file=f)
         for var in var_table:
             print('{:12.5f}'.format(varmean[var] * ref[var].get('factor', 1)), end=' ', file=f)
         print(file=f)
@@ -305,25 +331,26 @@ def getinifiles(face, diag):
 
     # use a dictionary to create the list of initial files
     inifiles = {}
-    for filename, filein in zip(['atminifile','ocegridfile','oceareafile'],['inifile','gridfile','areafile']) :
+    for comp, filename, filein in zip(['atm', 'oce', 'oce'],
+                                      ['atminifile', 'ocegridfile', 'oceareafile'],
+                                      ['inifile', 'gridfile', 'areafile']):
 
-        # the component is atmosphere for atminifile only
-        comp = 'atm' if filename == 'atminifile' else 'oce'
-
-        # expand the path
-        inifile = os.path.expandvars(face['component'][dictcomp[comp]]
-                                        [filein].format(expname=diag.expname))
+        inifile = face['component'][dictcomp[comp]].get(filein, '')
 
         # add the full path if missing
-        if not inifile[0] == '/' :
-            inifiles[filename] =  str(diag.ECEDIR /
-                         Path(os.path.expandvars(face['model']['basedir'].format(expname=diag.expname))) /
-                         Path(inifile))
-
-        # if ocean files does not exists (atm-only run) set inifiles string empty
-        if comp == 'oce' :
-            if not os.path.exists(inifiles[filename]) : 
-                inifiles[filename] = ''
+        inifiles[filename] = ''
+        if inifile:
+            if inifile[0] == '/':
+                inifiles[filename] = str(_expand_filename(inifile,
+                                                          '', diag.year1, diag.year1, diag))
+            else:
+                inifiles[filename] = Path(diag.ECEDIR) / \
+                                 Path(face['model']['basedir']) / \
+                                 Path(inifile)
+                inifiles[filename] = str(_expand_filename(inifiles[filename],
+                                                          '', diag.year1, diag.year1, diag))
+        else:
+            inifiles[filename] = ''
 
     # return dictionary values only
     return inifiles.values()
