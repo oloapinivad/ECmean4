@@ -1,0 +1,18 @@
+| Var     |        PI | Domain   | Dataset   |   CMIP3 |   Ratio to CMIP3 |
+|---------+-----------+----------+-----------+---------+------------------|
+| net_sfc |  20.0704  | ocean    | OAFLUX    |   14.24 |         1.40944  |
+| tas     |  14.4893  | land     | CRU       |   25.13 |         0.576574 |
+| psl     |   2.78021 | global   | COADS     |   11.69 |         0.237828 |
+| pr      |  29.74    | global   | CMAP      |   38.87 |         0.765114 |
+| tauu    |  11.0499  | ocean    | DASILVA   |    4.03 |         2.74191  |
+| tauv    |   6.70676 | ocean    | DASILVA   |    3.1  |         2.16347  |
+| ta      |  15.5623  | global   | ERA40     |   38.89 |         0.400163 |
+| ua      |   4.07934 | global   | ERA40     |   12.07 |         0.337974 |
+| va      |   2.64931 | global   | ERA40     |    8.25 |         0.321129 |
+| hus     |  14.4105  | global   | ERA40     |   29.41 |         0.489987 |
+| tos     | nan       | ocean    | GISS      |   17.21 |       nan        |
+| sos     | nan       | ocean    | levitus   |    0.22 |       nan        |
+| siconc  | nan       | ocean    | GISS      |    0.34 |       nan        |
+
+Partial PI (atm only) is   : 12.153806447982788
+Total Performance Index is : nan

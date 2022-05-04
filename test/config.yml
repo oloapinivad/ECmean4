@@ -4,7 +4,7 @@ model:
    name: EC-Earth4
 
 dirs:
-   exp: test
+   exp: test/data
    tab: test/table
    clm: climatology
 
