@@ -326,7 +326,10 @@ def getcomponent(face):  # unused function
 
 
 def getinifiles(face, diag):
-    """Return the inifiles from the interface, needs the component dictionary"""
+    """
+    Return the inifiles from the interface, needs the component dictionary
+    Check if inifiles exist.
+    """
     dictcomp = face['model']['component']
 
     # use a dictionary to create the list of initial files
@@ -349,8 +352,13 @@ def getinifiles(face, diag):
                                  Path(inifile)
                 inifiles[filename] = str(_expand_filename(inifiles[filename],
                                                           '', diag.year1, diag.year1, diag))
+
+            # safe check if inifile exist in the experiment folder
+            if not os.path.exists(inifiles[filename]) :
+                inifiles[filename] = ''
         else:
             inifiles[filename] = ''
+
 
     # return dictionary values only
     return inifiles.values()
