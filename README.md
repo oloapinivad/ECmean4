@@ -1,6 +1,6 @@
 [![Maintenance](https://img.shields.io/badge/Maintained%3F-yes-green.svg)](https://GitHub.com/Naereen/StrapDown.js/graphs/commit-activity)
 [![made-with-python](https://img.shields.io/badge/Made%20with-Python-1f425f.svg)](https://www.python.org/)
-![Basic Pytest](https://github.com/github/docs/actions/workflows/pytest.yml/badge.svg)
+![Basic Pytest](https://github.com/oloapinivad/ECmean4/actions/workflows/pytest.yml/badge.svg)
 
 ![ECmean4](docs/ecmean4_smallest.png)
 
