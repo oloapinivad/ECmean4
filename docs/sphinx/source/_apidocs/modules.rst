@@ -1,5 +1,5 @@
-ECmean4
-=======
+ECmean4 autodoc
+===============
 
 .. toctree::
    :maxdepth: 4

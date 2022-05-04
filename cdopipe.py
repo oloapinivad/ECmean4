@@ -3,8 +3,10 @@
 '''
  Class to create pipes of cdo commands
 
- @author Jost von Hardenberg (jost.hardenberg@polito.it), March 2022
- @author Paolo Davini (p.davini@isac.cnr.it), March 2022
+ :Authors: 
+ 	Jost von Hardenberg (jost.hardenberg@polito.it), March 2022
+	Paolo Davini (p.davini@isac.cnr.it), March 2022
+
 '''
 
 import sys

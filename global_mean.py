@@ -43,8 +43,7 @@ def gm_worker(cdopin, ref, face, diag, varmean, vartrend, varlist):
 	varlist: the variable on which compute the global mean
 
     Returns:
-	vartrend: the dictionary for the trends
-	varmean: the dictionary for the global mean
+	vartrend and varmean under the form of a dictionaries
 
     """
 

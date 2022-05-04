@@ -10,6 +10,9 @@ Welcome to ECmean4's documentation!
    :maxdepth: 1
 
    intro
+   installation
+   configuration
+   usage
 
 ECmean4 code
 ^^^^^^^^^^^^^^^
