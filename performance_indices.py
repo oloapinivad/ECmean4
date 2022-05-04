@@ -280,8 +280,8 @@ def main(argv):
         print(tablefile)
     with open(tablefile, 'w', encoding='utf-8') as f:
         f.write(tabulate(global_table, headers=head, tablefmt='orgtbl'))
-        f.write('\n\nPartial PI (atm only) is   : ' + str(partial_pi))
-        f.write('\nTotal Performance Index is : ' + str(total_pi))
+        f.write('\n\nPartial PI (atm only) is   : ' + str(round(partial_pi,3)))
+        f.write('\nTotal Performance Index is : ' + str(round(total_pi,3)))
 
     # Make sure al temp files have been removed
     cdop.cdo.cleanTempDir()
