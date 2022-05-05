@@ -1,11 +1,11 @@
 tas: 
-  dataset: CRU
+  dataset: 'CRU v4.05'
   units: degC
   dataname : tas
   mask: land
   cmip3: Nan
   year1: 1990
-  year2: 2018
+  year2: 2019
 psl: 
   dataset: ERA5
   units: Pa
@@ -15,7 +15,7 @@ psl:
   year1: 1990
   year2: 2019
 pr:
-  dataset: MSWEP
+  dataset: "MSWEP v2"
   units: 'mm/month'
   dataname : precipitation
   mask: global
@@ -56,7 +56,7 @@ va:
   year2: 2019
 ta:
   dataset: ERA5
-  units: K
+  units: 'K'
   dataname : T_zonal
   mask: global
   cmip3: Nan
@@ -95,7 +95,7 @@ siconc:
   year1: 1990
   year2: 2019
 net_sfc:
-  dataset: NOCS
+  dataset: "NOCS v2.0"
   units: 'W/m2'
   dataname : net_sfc
   mask: ocean

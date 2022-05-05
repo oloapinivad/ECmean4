@@ -13,7 +13,7 @@ year2=2019
 vars="mean_sea_level_pressure specific_humidity v_component_of_wind u_component_of_wind temperature sosaline sosstsst ileadfra sowaflup sozotaux sometauy precipitation net_sfc tas"
 vars="snow_cover"
 vars="analysed_sst sea_ice_fraction"
-vars="analysed_sst"
+vars="tas"
 
 # directory where the data to create the climatology are
 TMPDIR=/work/scratch/users/paolo/ecmean_datasets/tmp_$RANDOM
@@ -87,13 +87,17 @@ for var in $vars ; do
 	if [[ $dataset == "ERA5"  ]] ; then
 		varname=$(cdo -t ecmwf showname $tmpfile | xargs)
 		varcommand="-setname,$varname"
-	else 
+	elif [[ $dataset == "CRU" ]] ; then
+		varname=$var
+		varcommand="-setname,$varname -selname,tmp"
+	else
 		varname=$var
 		varcommand=""
 	fi
 
+	levels=$(cdo nlevel $tmpfile | head -n1)
 	# check on the number of levels
-	if [[ $(cdo nlevel $tmpfile) == 1 ]] ; then
+	if [[ $levels == 1 ]] ; then
 		zoncommand=""
 	else 
 		zoncommand="zonmean"
