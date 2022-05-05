@@ -19,6 +19,7 @@ cdo = Cdo()
 
 class Diagnostic():
     """General container class for common variables"""
+
     def __init__(self, args, cfg):
         self.expname = args.exp
         self.year1 = args.year1
@@ -170,16 +171,16 @@ def _expand_filename(fn, var, year1, year2, diag):
     """Expands a path (filename or dir) for var, expname, frequency, ensemble etc. and
        environment variables."""
     return Path(str(os.path.expandvars(fn)).format(
-                             expname=diag.expname,
-                             year1=year1,
-                             year2=year2,
-                             var=var,
-                             frequency=diag.frequency,
-                             ensemble=diag.ensemble,
-                             grid=diag.grid,
-                             model=diag.modelname,
-                             version=diag.version
-                            ))
+        expname=diag.expname,
+        year1=year1,
+        year2=year2,
+        var=var,
+        frequency=diag.frequency,
+        ensemble=diag.ensemble,
+        grid=diag.grid,
+        model=diag.modelname,
+        version=diag.version
+    ))
 
 
 def _filter_filename_by_year(fname, year):
@@ -196,9 +197,9 @@ def make_input_filename(var0, varlist, year1, year2, face, diag):
 
     filetype = face['variables'][var0]['filetype']
     filepath = Path(diag.ECEDIR) / \
-               Path(face['model']['basedir']) / \
-               Path(face['filetype'][filetype]['dir']) / \
-               Path(face['filetype'][filetype]['filename'])
+        Path(face['model']['basedir']) / \
+        Path(face['filetype'][filetype]['dir']) / \
+        Path(face['filetype'][filetype]['filename'])
     # if year1 is a list, loop over it (we cannot use curly brackets anymore, now we pass a list)
     filename = []
     # Make an iterable even if year1 is not a list
@@ -301,7 +302,8 @@ def write_tuning_table(linefile, varmean, var_table, diag, face, ref):
             print(file=f)
 
     with open(linefile, 'a', encoding='utf-8') as f:
-        print(f'{diag.modelname} {diag.ensemble} {diag.expname}', '{:4d} {:4d} '.format(diag.year1, diag.year2), end='', file=f)
+        print(f'{diag.modelname} {diag.ensemble} {diag.expname}',
+              '{:4d} {:4d} '.format(diag.year1, diag.year2), end='', file=f)
         for var in var_table:
             print('{:12.5f}'.format(varmean[var] * ref[var].get('factor', 1)), end=' ', file=f)
         print(file=f)
@@ -348,17 +350,16 @@ def getinifiles(face, diag):
                                                           '', diag.year1, diag.year1, diag))
             else:
                 inifiles[filename] = Path(diag.ECEDIR) / \
-                                 Path(face['model']['basedir']) / \
-                                 Path(inifile)
+                    Path(face['model']['basedir']) / \
+                    Path(inifile)
                 inifiles[filename] = str(_expand_filename(inifiles[filename],
                                                           '', diag.year1, diag.year1, diag))
 
             # safe check if inifile exist in the experiment folder
-            if not os.path.exists(inifiles[filename]) :
+            if not os.path.exists(inifiles[filename]):
                 inifiles[filename] = ''
         else:
             inifiles[filename] = ''
-
 
     # return dictionary values only
     return inifiles.values()
