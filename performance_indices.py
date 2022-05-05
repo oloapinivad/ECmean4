@@ -20,9 +20,9 @@ from multiprocessing import Process, Manager
 import numpy as np
 from tabulate import tabulate
 from ecmean import var_is_there, load_yaml, make_input_filename, \
-                      get_levels, units_extra_definition, units_are_integrals, \
-                      units_converter, directions_match, chunks, \
-                      Diagnostic, getinifiles, getdomain
+    get_levels, units_extra_definition, units_are_integrals, \
+    units_converter, directions_match, chunks, \
+    Diagnostic, getinifiles, getdomain
 from cdopipe import CdoPipe
 
 
@@ -63,7 +63,7 @@ def worker(cdopin, piclim, face, diag, field_3d, varstat, varlist):
             dervars = re.findall("[a-zA-Z]+", cmd)
         else:
             dervars = [var]
-            
+
         # check if required variables are there: use interface file
         # check into first file, and load also model variable units
         infile = make_input_filename(var, dervars, diag.year1, diag.year1, face, diag)
@@ -179,7 +179,7 @@ def main(argv):
     # currently basic definition trought the text
     numeric_level = getattr(logging, args.loglevel.upper(), None)
     if not isinstance(numeric_level, int):
-        raise ValueError('Invalid log level: %s' % loglevel)
+        raise ValueError('Invalid log level: %s' % args.loglevel)
     logging.basicConfig(level=numeric_level)
 
     INDIR = Path(os.path.dirname(os.path.abspath(__file__)))
@@ -197,7 +197,6 @@ def main(argv):
 
     # Init CdoPipe object to use in the following
     cdop = CdoPipe(debug=diag.debug)
-
 
     # loading the var-to-file interface
     face = load_yaml(INDIR / Path('interfaces', f'interface_{diag.interface}.yml'))
@@ -280,8 +279,8 @@ def main(argv):
         print(tablefile)
     with open(tablefile, 'w', encoding='utf-8') as f:
         f.write(tabulate(global_table, headers=head, tablefmt='orgtbl'))
-        f.write('\n\nPartial PI (atm only) is   : ' + str(round(partial_pi,3)))
-        f.write('\nTotal Performance Index is : ' + str(round(total_pi,3)))
+        f.write('\n\nPartial PI (atm only) is   : ' + str(round(partial_pi, 3)))
+        f.write('\nTotal Performance Index is : ' + str(round(total_pi, 3)))
 
     # Make sure al temp files have been removed
     cdop.cdo.cleanTempDir()

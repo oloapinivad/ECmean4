@@ -21,10 +21,10 @@ from time import time
 from tabulate import tabulate
 import numpy as np
 from ecmean import var_is_there, load_yaml, \
-                      make_input_filename, write_tuning_table, \
-                      units_extra_definition, units_are_integrals, \
-                      units_converter, directions_match, chunks, \
-                      Diagnostic, getinifiles, getdomain
+    make_input_filename, write_tuning_table, \
+    units_extra_definition, units_are_integrals, \
+    units_converter, directions_match, chunks, \
+    Diagnostic, getinifiles, getdomain
 from cdopipe import CdoPipe
 
 
@@ -144,7 +144,7 @@ def main(argv):
     # currently basic definition trought the text
     numeric_level = getattr(logging, args.loglevel.upper(), None)
     if not isinstance(numeric_level, int):
-        raise ValueError('Invalid log level: %s' % loglevel)
+        raise ValueError('Invalid log level: %s' % args.loglevel)
     logging.basicConfig(level=numeric_level)
 
     INDIR = Path(os.path.dirname(os.path.abspath(__file__)))
@@ -252,4 +252,3 @@ def main(argv):
 if __name__ == "__main__":
 
     sys.exit(main(sys.argv[1:]))
-
