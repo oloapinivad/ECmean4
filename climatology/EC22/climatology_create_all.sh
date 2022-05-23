@@ -10,10 +10,9 @@ set -e
 # to set: time period (default, can be shorter if data are missing)
 year1=1990
 year2=2019
-vars="mean_sea_level_pressure specific_humidity v_component_of_wind u_component_of_wind temperature sosaline sosstsst ileadfra sowaflup sozotaux sometauy precipitation net_sfc tas"
-vars="snow_cover"
+vars="tas precipitation mean_sea_level_pressure specific_humidity v_component_of_wind u_component_of_wind temperature sosaline sowaflup sozotaux sometauy net_sfc snow_cover analysed_sst sea_ice_fraction"
 vars="analysed_sst sea_ice_fraction"
-vars="tas"
+vars="sea_ice_fraction"
 
 # directory where the data to create the climatology are
 TMPDIR=/work/scratch/users/paolo/ecmean_datasets/tmp_$RANDOM
@@ -100,18 +99,18 @@ for var in $vars ; do
 	if [[ $levels == 1 ]] ; then
 		zoncommand=""
 	else 
-		zoncommand="zonmean"
+		zoncommand="-zonmean"
 		varname=${varname}_zonal
 	fi
 
 	# safecheck on variance
 	# added condition to set a minimum variance depending on variance ratio, otherwise exclude
 	# compute dataset variance and its maximum
-	$cdozip $zoncommand -timvar $varcommand $tmpfile $TMPDIR/variance_tmp_${var}.nc
-	maxvar=$(cdo output -fldmax -vertmax $TMPDIR/variance_tmp_${var}.nc)
+	#$cdozip $zoncommand -timvar $varcommand $tmpfile $TMPDIR/variance_tmp_${var}.nc
+	#maxvar=$(cdo output -fldmax -vertmax $TMPDIR/variance_tmp_${var}.nc)
 	# define minimum accepted variance as a variance_ratio of the max variance 
-	factor=$(awk -v a="$maxvar" -v b="${variance_ratio}" 'BEGIN{print (a / b)}')
-	echo "Minimum accepted variance: $factor"
+	#factor=$(awk -v a="$maxvar" -v b="${variance_ratio}" 'BEGIN{print (a / b)}')
+	#echo "Minimum accepted variance: $factor"
 
 	# create grid files
 	for grid in $grids ; do 
@@ -123,6 +122,24 @@ for var in $vars ; do
         	        remap="-${remap_method},$grid"
         	fi
 
+		# safecheck on variance, version 2
+		# use 5 sigma from the mean of the log10 distribution
+	        if [[ $var == "analysed_sst" ]] ; then
+	                cleaning="-setrtomiss,0,1e-8"
+	        else
+	                cleaning="-setctomiss,0"
+	        fi
+
+		$cdozip -b 64 log10 $cleaning ${zoncommand} -timvar -$remap $varcommand $tmpfile $TMPDIR/variance_tmp_${var}.nc
+	        meanvar=$(cdo output -fldmean,weights=FALSE -vertmean,weights=FALSE  $TMPDIR/variance_tmp_${var}.nc)
+        	sdvar=$(cdo output -vertmean,weights=FALSE  -fldstd,weights=FALSE  $TMPDIR/variance_tmp_${var}.nc)
+       		# define minimum accepted variance as a variance_ratio of the max variance
+        	echo $meanvar $sdvar
+        	lowfactor=$(awk -v a="$meanvar" -v b="${sdvar}" 'BEGIN{print (10^(a - 5*b))}')
+        	highfactor=$(awk -v a="$meanvar" -v b="${sdvar}" 'BEGIN{print (10^(a + 5*b))}')
+        	echo $lowfactor $highfactor
+
+
 		# loop on climate and variance files
 		for kind in climate variance ; do
 
@@ -131,7 +148,9 @@ for var in $vars ; do
 				factorcommand=""
 			elif [[ $kind == variance ]] ; then
 				timcommand="-timvar"
-				factorcommand="-setrtomiss,0,$factor"
+				#factorcommand="-setrtomiss,0,$factor"
+				factorcommand="-setvrange,$lowfactor,$highfactor"
+				#factorcommand=""
 			fi
 			newsuffix=${varname}_${dataset}_${grid}_${firstyear}-${lastyear}.nc
 			CLIMDIR=$ECMEANDIR/climatology/EC22/${grid}
