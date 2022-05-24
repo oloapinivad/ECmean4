@@ -1,5 +1,6 @@
 tas: 
-  dataset: 'CRU v4.05'
+  dataset: 'CRU'
+  version: '4.05'
   units: degC
   dataname : tas
   mask: land
@@ -15,7 +16,8 @@ psl:
   year1: 1990
   year2: 2019
 pr:
-  dataset: "MSWEP v2"
+  dataset: 'MSWEP'
+  version: 'v2'
   units: 'mm/month'
   dataname : precipitation
   mask: global
@@ -95,7 +97,8 @@ siconc:
   year1: 1990
   year2: 2019
 net_sfc:
-  dataset: "NOCS v2.0"
+  dataset: 'NOCS'
+  version: '2.0'
   units: 'W/m2'
   dataname : net_sfc
   mask: ocean

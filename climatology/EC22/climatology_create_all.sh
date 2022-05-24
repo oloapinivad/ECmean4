@@ -11,8 +11,9 @@ set -e
 year1=1990
 year2=2019
 vars="tas precipitation mean_sea_level_pressure specific_humidity v_component_of_wind u_component_of_wind temperature sosaline sowaflup sozotaux sometauy net_sfc snow_cover analysed_sst sea_ice_fraction"
-vars="analysed_sst sea_ice_fraction"
-vars="sea_ice_fraction"
+vars="sea_ice_fraction analysed_sst"
+
+for climtype in EC22 ; do
 
 # directory where the data to create the climatology are
 TMPDIR=/work/scratch/users/paolo/ecmean_datasets/tmp_$RANDOM
@@ -96,6 +97,7 @@ for var in $vars ; do
 
 	levels=$(cdo nlevel $tmpfile | head -n1)
 	# check on the number of levels
+	cleanvarname=${varname}
 	if [[ $levels == 1 ]] ; then
 		zoncommand=""
 	else 
@@ -125,16 +127,25 @@ for var in $vars ; do
 		# safecheck on variance, version 2
 		# use 5 sigma from the mean of the log10 distribution
 	        if [[ $var == "analysed_sst" ]] ; then
-	                cleaning="-setrtomiss,0,1e-8"
+	                cleaning="-setrtomiss,0,5e-03"
+			echo HERE!
 	        else
 	                cleaning="-setctomiss,0"
 	        fi
 
-		$cdozip -b 64 log10 $cleaning ${zoncommand} -timvar -$remap $varcommand $tmpfile $TMPDIR/variance_tmp_${var}.nc
+		# compute the variance on the needed grid, and move it to log10
+		$cdozip -b 64 log10 ${cleaning} -timvar ${zoncommand} ${remap} ${varcommand} ${tmpfile} $TMPDIR/variance_tmp_${var}.nc
+
+		# mean field, without area or level wieghts 
 	        meanvar=$(cdo output -fldmean,weights=FALSE -vertmean,weights=FALSE  $TMPDIR/variance_tmp_${var}.nc)
-        	sdvar=$(cdo output -vertmean,weights=FALSE  -fldstd,weights=FALSE  $TMPDIR/variance_tmp_${var}.nc)
+
+		# more complicated for std, use a false area and expr to estimate it also for vertical profiles
+		cdo addc,1 -mulc,0 $TMPDIR/variance_tmp_${var}.nc $TMPDIR/false_area.nc
+		sdvar=$(cdo output -expr,"out=sqrt(fldmean(vertmean(sqr($cleanvarname-fldmean(vertmean($cleanvarname))))))" -setgridarea,$TMPDIR/false_area.nc $TMPDIR/variance_tmp_${var}.nc)
        		# define minimum accepted variance as a variance_ratio of the max variance
         	echo $meanvar $sdvar
+
+		# extract range
         	lowfactor=$(awk -v a="$meanvar" -v b="${sdvar}" 'BEGIN{print (10^(a - 5*b))}')
         	highfactor=$(awk -v a="$meanvar" -v b="${sdvar}" 'BEGIN{print (10^(a + 5*b))}')
         	echo $lowfactor $highfactor
@@ -148,14 +159,19 @@ for var in $vars ; do
 				factorcommand=""
 			elif [[ $kind == variance ]] ; then
 				timcommand="-timvar"
-				#factorcommand="-setrtomiss,0,$factor"
-				factorcommand="-setvrange,$lowfactor,$highfactor"
-				#factorcommand=""
+				if [[ $climtype == "EC22_nofilter" ]] ; then
+					factorcommand=""
+					echo HEREEEEE!
+				elif [[ $climtype == "EC22" ]] ; then
+					factorcommand="-setvrange,$lowfactor,$highfactor"
+					#factorcommand="-setrtomiss,0,$factor"
+				fi
 			fi
 			newsuffix=${varname}_${dataset}_${grid}_${firstyear}-${lastyear}.nc
-			CLIMDIR=$ECMEANDIR/climatology/EC22/${grid}
+			CLIMDIR=$ECMEANDIR/climatology/${climtype}/${grid}
                         mkdir -p $CLIMDIR
-			$cdozip $zoncommand $factorcommand ${varcommand} $timcommand $remap $tmpfile  $CLIMDIR/${kind}_${newsuffix}
+			echo $cdozip ${factorcommand} ${cleaning} ${timcommand} ${zoncommand} ${remap} ${varcommand} $tmpfile  $CLIMDIR/${kind}_${newsuffix}
+			$cdozip ${factorcommand} ${cleaning} ${timcommand} ${zoncommand} ${remap} ${varcommand} $tmpfile  $CLIMDIR/${kind}_${newsuffix}
 
 		done
 	done
@@ -164,4 +180,4 @@ for var in $vars ; do
 
 done
 rm -rf $TMPDIR
-
+done
