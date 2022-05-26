@@ -34,7 +34,8 @@ class Diagnostic():
         if self.year1 == self.year2:  # Ignore if only one year requested
             self.ftrend = False
         #  These are here in prevision of future expansion to CMOR
-        self.interface = cfg['interface']
+        if not self.interface:
+            self.interface = cfg['interface']
         self.frequency = '*mon'
         self.ensemble = getattr(args, 'ensemble', 'r1i1p1f1')
         self.grid = '*'

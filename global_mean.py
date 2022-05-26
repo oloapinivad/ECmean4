@@ -231,6 +231,8 @@ if __name__ == "__main__":
                         help='variant label (ripf number for cmor)')
     parser.add_argument('-d', '--debug', action='store_true',
                         help='activate cdo debugging')
+    parser.add_argument('-i', '--interface', type=str, default='',
+                        help='interface (overrides config.yml)')
 
     args = parser.parse_args()
 
