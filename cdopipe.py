@@ -111,7 +111,7 @@ class CdoPipe:
 
         # self.ATMWEIGHTS = self.cdo.genbil(target, input=f'{self.atmfix} {atminifile}')
         self.ATMWEIGHTS = themethod(target, input=f'{self.atmfix} {atminifile}')
-        logging.debug("Atmosphere is remapping with " + genweight + " method")
+        logging.debug("Atmosphere is remapping with %s method", genweight)
 
     def make_oce_remap_weights(self, ocegridfile, remap_method, target):
         """Create ocean remap weights, use remapbil as fallback"""
@@ -120,11 +120,11 @@ class CdoPipe:
             try:
                 themethod = getattr(self.cdo(), genweight)
                 self.OCEWEIGHTS = themethod(target, input=f'{self.ocefix} {ocegridfile}')
-                logging.debug("Ocean is remapping with " + genweight + " method")
+                logging.debug("Ocean is remapping with %s method", genweight)
             except:
                 themethod = getattr(self.cdo(), 'genbil')
                 self.OCEWEIGHTS = themethod(target, input=f'{self.ocefix} {ocegridfile}')
-                logging.warning("Ocean is remapping with genbil method cause cannot do " + genweight)
+                logging.warning("Ocean is remapping with genbil method cause cannot do %s", genweight)
 
     def chain(self, cmd):
         """Adds a generic cdo operator"""

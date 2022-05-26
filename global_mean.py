@@ -243,7 +243,7 @@ def main(argv):
     if diag.ftable:
         if diag.fverb:
             print(diag.linefile)
-        write_tuning_table(diag.linefile, varmean, var_table, diag, face, ref)
+        write_tuning_table(diag.linefile, varmean, var_table, diag, ref)
 
     # clean
     cdop.cdo.cleanTempDir()
