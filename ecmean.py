@@ -29,6 +29,7 @@ class Diagnostic():
         self.debug = getattr(args, 'debug', False)
         self.numproc = args.numproc
         self.modelname = getattr(args, 'model', '')
+        self.interface = getattr(args, 'interface', '')
         if not self.modelname:
             self.modelname = cfg['model']['name']
         if self.year1 == self.year2:  # Ignore if only one year requested
