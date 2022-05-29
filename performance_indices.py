@@ -270,7 +270,7 @@ if __name__ == '__main__':
                         help='number of processors to use')
     parser.add_argument('-m', '--model', type=str, default='',
                         help='model name')
-    parser.add_argument('-c', '--climatology', type=str, default='RK08',
+    parser.add_argument('-k', '--climatology', type=str, default='RK08',
                         help='climatology to be compared. default: RK08. Options: [RK08, EC22]')
 
     parser.add_argument('-e', '--ensemble', type=str, default='r1i1p1f1',
