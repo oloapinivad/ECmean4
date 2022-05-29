@@ -358,7 +358,7 @@ def getinifiles(face, diag):
                                                           '', diag.year1, diag.year1, diag))
 
             # safe check if inifile exist in the experiment folder
-            if not os.path.exists(inifiles[filename]):
+            if not glob(inifiles[filename]):
                 inifiles[filename] = ''
         else:
             inifiles[filename] = ''
