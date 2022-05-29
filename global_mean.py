@@ -21,11 +21,45 @@ from time import time
 from tabulate import tabulate
 import numpy as np
 from ecmean import var_is_there, load_yaml, \
-                      make_input_filename, write_tuning_table, \
-                      units_extra_definition, units_are_integrals, \
-                      units_converter, directions_match, chunks, \
-                      Diagnostic, getinifiles, getdomain
+    make_input_filename, write_tuning_table, \
+    units_extra_definition, units_are_integrals, \
+    units_converter, directions_match, chunks, \
+    Diagnostic, getinifiles, getdomain
 from cdopipe import CdoPipe
+
+
+def parse_arguments(args):
+    """Parse CLI arguments for global mean"""
+
+    parser = argparse.ArgumentParser(
+        description='ECmean global mean diagnostics for EC-Earth4')
+    parser.add_argument('exp', metavar='EXP', type=str, help='experiment ID')
+    parser.add_argument('year1', metavar='Y1', type=int, help='starting year')
+    parser.add_argument('year2', metavar='Y2', type=int, help='final year')
+    parser.add_argument('-s', '--silent', action='store_true',
+                        help='do not print anything to std output')
+    parser.add_argument('-t', '--trend', action='store_true',
+                        help='compute trends')
+    parser.add_argument('-l', '--line', action='store_true',
+                        help='appends also single line to a table')
+    parser.add_argument('-o', '--output', metavar='FILE', type=str, default='',
+                        help='path of output one-line table')
+    parser.add_argument('-m', '--model', type=str, default='',
+                        help='model name')
+    parser.add_argument('-c', '--config', type=str, default='',
+                        help='config file')
+    parser.add_argument('-v', '--loglevel', type=str, default='ERROR',
+                        help='define the level of logging.')
+    parser.add_argument('-j', dest="numproc", type=int, default=1,
+                        help='number of processors to use')
+    parser.add_argument('-e', '--ensemble', type=str, default='r1i1p1f1',
+                        help='variant label (ripf number for cmor)')
+    parser.add_argument('-d', '--debug', action='store_true',
+                        help='activate cdo debugging')
+    parser.add_argument('-i', '--interface', type=str, default='',
+                        help='interface (overrides config.yml)')
+
+    return parser.parse_args(args)
 
 
 def worker(cdopin, ref, face, diag, varmean, vartrend, varlist):
@@ -102,14 +136,25 @@ def worker(cdopin, ref, face, diag, varmean, vartrend, varlist):
                 print('Average', var, varmean[var])
 
 
-def main(args):
+def main(argv):
     """The main EC-mean4 code"""
 
     assert sys.version_info >= (3, 7)
 
-    # config file (looks for it in the same dir as the .py program file
+    args = parse_arguments(argv)
+    # log level with logging
+    # currently basic definition trought the text
+    numeric_level = getattr(logging, args.loglevel.upper(), None)
+    if not isinstance(numeric_level, int):
+        raise ValueError('Invalid log level: %s' % args.loglevel)
+    logging.basicConfig(level=numeric_level)
+
     INDIR = Path(os.path.dirname(os.path.abspath(__file__)))
-    cfg = load_yaml(INDIR / 'config.yml')
+    # config file (looks for it in the same dir as the .py program file
+    if args.config:
+        cfg = load_yaml(args.config)
+    else:
+        cfg = load_yaml(INDIR / 'config.yml')
 
     # Setup all common variables, directories from arguments and config files
     diag = Diagnostic(args, cfg)
@@ -200,48 +245,11 @@ def main(args):
     if diag.ftable:
         if diag.fverb:
             print(diag.linefile)
-        write_tuning_table(diag.linefile, varmean, var_table, diag, face, ref)
+        write_tuning_table(diag.linefile, varmean, var_table, diag, ref)
 
     # clean
     cdop.cdo.cleanTempDir()
 
 
 if __name__ == "__main__":
-    # arguments
-    parser = argparse.ArgumentParser(
-        description='ECmean global mean diagnostics for EC-Earth4')
-    parser.add_argument('exp', metavar='EXP', type=str, help='experiment ID')
-    parser.add_argument('year1', metavar='Y1', type=int, help='starting year')
-    parser.add_argument('year2', metavar='Y2', type=int, help='final year')
-    parser.add_argument('-s', '--silent', action='store_true',
-                        help='do not print anything to std output')
-    parser.add_argument('-t', '--trend', action='store_true',
-                        help='compute trends')
-    parser.add_argument('-l', '--line', action='store_true',
-                        help='appends also single line to a table')
-    parser.add_argument('-o', '--output', metavar='FILE', type=str, default='',
-                        help='path of output one-line table')
-    parser.add_argument('-m', '--model', type=str, default='',
-                        help='model name')
-    parser.add_argument('-v', '--loglevel', type=str, default='ERROR',
-                        help='define the level of logging.')
-    parser.add_argument('-j', dest="numproc", type=int, default=1,
-                        help='number of processors to use')
-    parser.add_argument('-e', '--ensemble', type=str, default='r1i1p1f1',
-                        help='variant label (ripf number for cmor)')
-    parser.add_argument('-d', '--debug', action='store_true',
-                        help='activate cdo debugging')
-    parser.add_argument('-i', '--interface', type=str, default='',
-                        help='interface (overrides config.yml)')
-
-    args = parser.parse_args()
-
-    # log level with logging
-    # currently basic definition trought the text
-    loglevel = args.loglevel.upper()
-    numeric_level = getattr(logging, loglevel.upper(), None)
-    if not isinstance(numeric_level, int):
-        raise ValueError('Invalid log level: %s' % loglevel)
-    logging.basicConfig(level=numeric_level)
-
-    main(args)
+    sys.exit(main(sys.argv[1:]))

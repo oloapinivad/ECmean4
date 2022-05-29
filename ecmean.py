@@ -19,6 +19,7 @@ cdo = Cdo()
 
 class Diagnostic():
     """General container class for common variables"""
+
     def __init__(self, args, cfg):
         self.expname = args.exp
         self.year1 = args.year1
@@ -172,22 +173,22 @@ def _expand_filename(fn, var, year1, year2, diag):
     """Expands a path (filename or dir) for var, expname, frequency, ensemble etc. and
        environment variables."""
     return Path(str(os.path.expandvars(fn)).format(
-                             expname=diag.expname,
-                             year1=year1,
-                             year2=year2,
-                             var=var,
-                             frequency=diag.frequency,
-                             ensemble=diag.ensemble,
-                             grid=diag.grid,
-                             model=diag.modelname,
-                             version=diag.version
-                            ))
+        expname=diag.expname,
+        year1=year1,
+        year2=year2,
+        var=var,
+        frequency=diag.frequency,
+        ensemble=diag.ensemble,
+        grid=diag.grid,
+        model=diag.modelname,
+        version=diag.version
+    ))
 
 
 def _filter_filename_by_year(fname, year):
     """Find filename containing a given year in a list of filenames"""
     filenames = glob(str(fname))
-    # Assumes that the file name ends with 199001-199012.nc or 1990-1991.nc
+    # Assumes that the file name ends with 199001-199012.nc or 1990-1991.nc
     year1 = [int(x.split('_')[-1].split('-')[0][0:4]) for x in filenames]
     year2 = [int(x.split('_')[-1].split('-')[1][0:4]) for x in filenames]
     return [filenames[i] for i in range(len(year1)) if year >= year1[i] and year <= year2[i]]
@@ -198,9 +199,9 @@ def make_input_filename(var0, varlist, year1, year2, face, diag):
 
     filetype = face['variables'][var0]['filetype']
     filepath = Path(diag.ECEDIR) / \
-               Path(face['model']['basedir']) / \
-               Path(face['filetype'][filetype]['dir']) / \
-               Path(face['filetype'][filetype]['filename'])
+        Path(face['model']['basedir']) / \
+        Path(face['filetype'][filetype]['dir']) / \
+        Path(face['filetype'][filetype]['filename'])
     # if year1 is a list, loop over it (we cannot use curly brackets anymore, now we pass a list)
     filename = []
     # Make an iterable even if year1 is not a list
@@ -289,7 +290,7 @@ def directions_match(org, dst):
     return factor
 
 
-def write_tuning_table(linefile, varmean, var_table, diag, face, ref):
+def write_tuning_table(linefile, varmean, var_table, diag, ref):
     """Write results appending one line to a text file.
        Write a tuning table: need to fix reference to face/ref"""
     if not os.path.isfile(linefile):
@@ -303,7 +304,8 @@ def write_tuning_table(linefile, varmean, var_table, diag, face, ref):
             print(file=f)
 
     with open(linefile, 'a', encoding='utf-8') as f:
-        print(f'{diag.modelname} {diag.ensemble} {diag.expname}', '{:4d} {:4d} '.format(diag.year1, diag.year2), end='', file=f)
+        print(f'{diag.modelname} {diag.ensemble} {diag.expname}',
+              '{:4d} {:4d} '.format(diag.year1, diag.year2), end='', file=f)
         for var in var_table:
             print('{:12.5f}'.format(varmean[var] * ref[var].get('factor', 1)), end=' ', file=f)
         print(file=f)
@@ -328,7 +330,10 @@ def getcomponent(face):  # unused function
 
 
 def getinifiles(face, diag):
-    """Return the inifiles from the interface, needs the component dictionary"""
+    """
+    Return the inifiles from the interface, needs the component dictionary
+    Check if inifiles exist.
+    """
     dictcomp = face['model']['component']
 
     # use a dictionary to create the list of initial files
@@ -347,10 +352,14 @@ def getinifiles(face, diag):
                                                           '', diag.year1, diag.year1, diag))
             else:
                 inifiles[filename] = Path(diag.ECEDIR) / \
-                                 Path(face['model']['basedir']) / \
-                                 Path(inifile)
+                    Path(face['model']['basedir']) / \
+                    Path(inifile)
                 inifiles[filename] = str(_expand_filename(inifiles[filename],
                                                           '', diag.year1, diag.year1, diag))
+
+            # safe check if inifile exist in the experiment folder
+            if not glob(inifiles[filename]):
+                inifiles[filename] = ''
         else:
             inifiles[filename] = ''
 
