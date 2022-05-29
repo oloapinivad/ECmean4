@@ -48,6 +48,8 @@ def parse_arguments(args):
                         help='variant label (ripf number for cmor)')
     parser.add_argument('-d', '--debug', action='store_true',
                         help='activate cdo debugging')
+    parser.add_argument('-i', '--interface', type=str, default='',
+                        help='interface (overrides config.yml)')
     return parser.parse_args(args)
 
 
@@ -287,5 +289,4 @@ def main(argv):
 
 
 if __name__ == '__main__':
-
     sys.exit(main(sys.argv[1:]))
