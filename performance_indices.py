@@ -290,7 +290,7 @@ def main(argv):
     if diag.fverb:
         print(tablefile)
     with open(tablefile, 'w', encoding='utf-8') as f:
-        f.write(tabulate(global_table, headers=head, tablefmt='orgtbl'))
+        f.write(tabulate(global_table, headers=head, tablefmt='orgtbl', floatfmt=".2f"))
         f.write('\n\nPartial PI (atm only) is   : ' + str(round(partial_pi, 3)))
         f.write('\nTotal Performance Index is : ' + str(round(total_pi, 3)))
 
