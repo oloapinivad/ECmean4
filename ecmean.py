@@ -32,6 +32,7 @@ class Diagnostic():
         self.modelname = getattr(args, 'model', '')
         self.climatology = getattr(args, 'climatology', 'RK08')
         self.interface = getattr(args, 'interface', '')
+        self.resolution = getattr(args, 'resolution', '')
         if not self.modelname:
             self.modelname = cfg['model']['name']
         if self.year1 == self.year2:  # Ignore if only one year requested
@@ -47,8 +48,9 @@ class Diagnostic():
         # hard-coded resolution (due to climatological dataset)
         if self.climatology == 'RK08' : 
             self.resolution = 'r180x91'
-        else :
-            self.resolution = cfg['PI']['resolution']
+        else:
+            if not self.resolution:
+                self.resolution = cfg['PI']['resolution']
 
         # Various input and output directories
         self.ECEDIR = Path(os.path.expandvars(cfg['dirs']['exp']))

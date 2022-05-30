@@ -46,6 +46,8 @@ def parse_arguments(args):
                         help='model name')
     parser.add_argument('-k', '--climatology', type=str, default='RK08',
                         help='climatology to be compared. default: RK08. Options: [RK08, EC22]')
+    parser.add_argument('-r', '--resolution', type=str, default='',
+                        help='climatology resolution')
     parser.add_argument('-e', '--ensemble', type=str, default='r1i1p1f1',
                         help='variant label (ripf number for cmor)')
     parser.add_argument('-d', '--debug', action='store_true',
