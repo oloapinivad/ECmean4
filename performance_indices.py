@@ -173,7 +173,7 @@ def pi_worker(cdopin, piclim, face, diag, field_3d, varstat, varlist):
 
 
 
-def pi_main(argv):
+def main(argv):
 
     """Main performance indices calculation"""
 
@@ -293,5 +293,5 @@ def pi_main(argv):
 
 if __name__ == '__main__':
 
-    sys.exit(pi_main(sys.argv[1:]))
+    sys.exit(main(sys.argv[1:]))
 

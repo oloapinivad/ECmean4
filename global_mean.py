@@ -152,7 +152,7 @@ def gm_worker(cdopin, ref, face, diag, varmean, vartrend, varlist):
                 print('Average', var, varmean[var])
 
 
-def gm_main(argv):
+def main(argv):
     """The main ECmean4 global mean code"""
 
 
@@ -270,4 +270,4 @@ def gm_main(argv):
 
 if __name__ == "__main__":
 
-    sys.exit(gm_main(sys.argv[1:]))
+    sys.exit(main(sys.argv[1:]))
