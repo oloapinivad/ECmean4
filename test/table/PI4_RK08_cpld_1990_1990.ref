@@ -12,7 +12,7 @@
 | hus     |    14.3957  | global   | ERA40     |   29.41 |         0.489485 |
 | tos     |    27.8633  | ocean    | GISS      |   17.21 |         1.61902  |
 | sos     | 24335       | ocean    | levitus   |    0.22 |    110614        |
-| siconc  |   100.244   | ocean    | GISS      |    0.34 |       294.837    |
+| siconc  |   100.244   | ocean    | GISS      |    0.34 |       294.836    |
 
 Partial PI (atm only) is   : 12.291
 Total Performance Index is : 1891.233
