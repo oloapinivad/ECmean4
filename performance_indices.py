@@ -53,7 +53,8 @@ def parse_arguments(args):
     return parser.parse_args(args)
 
 
-def worker(cdopin, piclim, face, diag, field_3d, varstat, varlist):
+def pi_worker(cdopin, piclim, face, diag, field_3d, varstat, varlist):
+
     """Main parallel diagnostic worker"""
 
     cdop = copy.copy(cdopin)  # Create a new local instance
@@ -171,7 +172,9 @@ def worker(cdopin, piclim, face, diag, field_3d, varstat, varlist):
                 print('PI for ', var, varstat[var])
 
 
+
 def main(argv):
+
     """Main performance indices calculation"""
 
     assert sys.version_info >= (3, 7)
@@ -247,7 +250,7 @@ def main(argv):
 
     # loop on the variables, create the parallel process
     for varlist in chunks(field_all, diag.numproc):
-        p = Process(target=worker,
+        p = Process(target=pi_worker,
                     args=(cdop, piclim, face, diag, field_3d, varstat, varlist))
         p.start()
         processes.append(p)
@@ -289,4 +292,6 @@ def main(argv):
 
 
 if __name__ == '__main__':
+
     sys.exit(main(sys.argv[1:]))
+

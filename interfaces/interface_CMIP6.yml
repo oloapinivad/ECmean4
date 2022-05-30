@@ -15,7 +15,7 @@
 
 # Definition of model name and components belonging to it
 model:
-  basedir: 'CMIP6/CMIP/*/{model}/{expname}'
+  basedir: 'CMIP6/model-output/*/{model}/{expname}/*/*/'
   component:
     atm: cmoratm
     oce: cmoroce
@@ -25,19 +25,19 @@ model:
 filetype: 
   atm2d:
     filename: '{var}_{frequency}_{model}_{expname}_{ensemble}_{grid}_{year1}01-{year2}12.nc'
-    dir: '{ensemble}/{frequency}/{var}/{grid}/{version}'
+    dir: '{ensemble}/{var}'
     component: cmoratm
   atm3d:
     filename: '{var}_{frequency}_{model}_{expname}_{ensemble}_{grid}_{year1}01-{year2}12.nc'
-    dir: '{ensemble}/{frequency}/{var}/{grid}/{version}'
+    dir: '{ensemble}/{var}'
     component: cmoratm
   oce2d:
     filename: '{var}_{frequency}_{model}_{expname}_{ensemble}_{grid}_{year1}01-{year2}12.nc'
-    dir: '{ensemble}/{frequency}/{var}/{grid}/{version}'
+    dir: '{ensemble}/{var}'
     component: cmoroce
   ice:
     filename: '{var}_{frequency}_{model}_{expname}_{ensemble}_{grid}_{year1}01-{year2}12.nc'
-    dir: '{ensemble}/{frequency}/{var}/{grid}/{version}'
+    dir: '{ensemble}/{var}'
     component: cmoroce
 
 # Specify additional properties of each component
@@ -47,10 +47,10 @@ filetype:
 # If a relative path is used this is attached to $ECEDIR/$basedir
 component:
   cmoratm:
-    inifile: 'r1i1p1f1/fx/sftlf/*/*/sftlf_fx_{model}_{expname}_r1i1p1f1_{grid}.nc'
+    inifile: 'r1i1p1f1/sftlf/sftlf_fx_{model}_{expname}_r1i1p1f1_{grid}.nc'
   cmoroce:
-    gridfile: 'r1i1p1f1/Ofx/sftof/*/*/sftof_Ofx_{model}_{expname}_r1i1p1f1_{grid}.nc'
-    areafile: 'r1i1p1f1/Ofx/areacello/*/*/areacello_Ofx_{model}_{expname}_r1i1p1f1_{grid}.nc'
+    gridfile: 'r1i1p1f1/sftof/sftof_Ofx_{model}_{expname}_r1i1p1f1_{grid}.nc'
+    areafile: 'r1i1p1f1/areacello/areacello_Ofx_{model}_{expname}_r1i1p1f1_{grid}.nc'
 
 # Definition of individual variables
 variables:

@@ -1,12 +1,14 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-'''
- python3 version of ECmean global mean tool
- Using a reference file from yaml and cdo bindings
+"""
+   python3 version of ECmean global mean tool.
+   Using a reference file from yaml and cdo bindings
 
- @author Paolo Davini (p.davini@isac.cnr.it), March 2022
- @author Jost von Hardenberg (jost.hardenberg@polito.it), March 2022
-'''
+   @author Paolo Davini (p.davini@isac.cnr.it), March 2022.
+   @author Jost von Hardenberg (jost.hardenberg@polito.it), March 2022
+"""
+
+__author__ = "Paolo Davini (p.davini@isac.cnr.it), March 2022."
 
 import os
 import sys
@@ -62,8 +64,22 @@ def parse_arguments(args):
     return parser.parse_args(args)
 
 
-def worker(cdopin, ref, face, diag, varmean, vartrend, varlist):
-    """Main parallel diagnostic worker"""
+def gm_worker(cdopin, ref, face, diag, varmean, vartrend, varlist):
+    """Main parallel diagnostic worker for global mean
+   
+    Args: 
+	cdopin: a cdo class object
+	ref: the reference dictionary for the global mean
+	face: the interface to be used to access the data
+	diag: the diagnostic class object
+	varmean: the dictionary for the global mean (empty)
+	vartrend: the dictionary for the trends (empty)
+	varlist: the variable on which compute the global mean
+
+    Returns:
+	vartrend and varmean under the form of a dictionaries
+
+    """
 
     cdop = copy.copy(cdopin)  # Create a new local instance to avoid overlap of the cdo pipe
     for var in varlist:
@@ -137,7 +153,8 @@ def worker(cdopin, ref, face, diag, varmean, vartrend, varlist):
 
 
 def main(argv):
-    """The main EC-mean4 code"""
+    """The main ECmean4 global mean code"""
+
 
     assert sys.version_info >= (3, 7)
 
@@ -199,7 +216,7 @@ def main(argv):
 
     # loop on the variables, create the parallel process
     for varlist in chunks(var_all, diag.numproc):
-        p = Process(target=worker, args=(cdop, ref, face, diag,
+        p = Process(target=gm_worker, args=(cdop, ref, face, diag,
                                          varmean, vartrend, varlist))
         p.start()
         processes.append(p)
@@ -252,4 +269,5 @@ def main(argv):
 
 
 if __name__ == "__main__":
+
     sys.exit(main(sys.argv[1:]))
