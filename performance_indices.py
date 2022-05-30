@@ -20,13 +20,41 @@ from multiprocessing import Process, Manager
 import numpy as np
 from tabulate import tabulate
 from ecmean import var_is_there, load_yaml, make_input_filename, \
-                      get_levels, units_extra_definition, units_are_integrals, \
-                      units_converter, directions_match, chunks, \
-                      Diagnostic, getinifiles, getdomain
+    get_levels, units_extra_definition, units_are_integrals, \
+    units_converter, directions_match, chunks, \
+    Diagnostic, getinifiles, getdomain
 from cdopipe import CdoPipe
 
 
+def parse_arguments(args):
+    """Parse CLI arguments"""
+
+    parser = argparse.ArgumentParser(
+        description='ECmean Performance Indices for EC-Earth4')
+    parser.add_argument('exp', metavar='EXP', type=str, help='experiment ID')
+    parser.add_argument('year1', metavar='Y1', type=int, help='starting year')
+    parser.add_argument('year2', metavar='Y2', type=int, help='final year')
+    parser.add_argument('-s', '--silent', action='store_true',
+                        help='do not print anything to std output')
+    parser.add_argument('-v', '--loglevel', type=str, default='ERROR',
+                        help='define the level of logging. default: error')
+    parser.add_argument('-j', dest="numproc", type=int, default=1,
+                        help='number of processors to use')
+    parser.add_argument('-c', '--config', type=str, default='',
+                        help='config file')
+    parser.add_argument('-m', '--model', type=str, default='',
+                        help='model name')
+    parser.add_argument('-e', '--ensemble', type=str, default='r1i1p1f1',
+                        help='variant label (ripf number for cmor)')
+    parser.add_argument('-d', '--debug', action='store_true',
+                        help='activate cdo debugging')
+    parser.add_argument('-i', '--interface', type=str, default='',
+                        help='interface (overrides config.yml)')
+    return parser.parse_args(args)
+
+
 def pi_worker(cdopin, piclim, face, diag, field_3d, varstat, varlist):
+
     """Main parallel diagnostic worker"""
 
     cdop = copy.copy(cdopin)  # Create a new local instance
@@ -144,14 +172,27 @@ def pi_worker(cdopin, piclim, face, diag, field_3d, varstat, varlist):
                 print('PI for ', var, varstat[var])
 
 
+
 def pi_main(args):
+
     """Main performance indices calculation"""
 
     assert sys.version_info >= (3, 7)
 
-    # config file (looks for it in the same dir as the .py program file
+    args = parse_arguments(argv)
+    # log level with logging
+    # currently basic definition trought the text
+    numeric_level = getattr(logging, args.loglevel.upper(), None)
+    if not isinstance(numeric_level, int):
+        raise ValueError('Invalid log level: %s' % args.loglevel)
+    logging.basicConfig(level=numeric_level)
+
     INDIR = Path(os.path.dirname(os.path.abspath(__file__)))
-    cfg = load_yaml(INDIR / 'config.yml')
+    # config file (looks for it in the same dir as the .py program file
+    if args.config:
+        cfg = load_yaml(args.config)
+    else:
+        cfg = load_yaml(INDIR / 'config.yml')
 
     # Setup all common variables, directories from arguments and config files
     diag = Diagnostic(args, cfg)
@@ -243,34 +284,14 @@ def pi_main(args):
         print(tablefile)
     with open(tablefile, 'w', encoding='utf-8') as f:
         f.write(tabulate(global_table, headers=head, tablefmt='orgtbl'))
-        f.write('\n\nPartial PI (atm only) is   : ' + str(partial_pi))
-        f.write('\nTotal Performance Index is : ' + str(total_pi))
+        f.write('\n\nPartial PI (atm only) is   : ' + str(round(partial_pi, 3)))
+        f.write('\nTotal Performance Index is : ' + str(round(total_pi, 3)))
 
     # Make sure al temp files have been removed
     cdop.cdo.cleanTempDir()
 
 
 if __name__ == '__main__':
-
-    # arguments
-    parser = argparse.ArgumentParser(
-        description='ECmean Performance Indices for EC-Earth4')
-    parser.add_argument('exp', metavar='EXP', type=str, help='experiment ID')
-    parser.add_argument('year1', metavar='Y1', type=int, help='starting year')
-    parser.add_argument('year2', metavar='Y2', type=int, help='final year')
-    parser.add_argument('-s', '--silent', action='store_true',
-                        help='do not print anything to std output')
-    parser.add_argument('-v', '--loglevel', type=str, default='ERROR',
-                        help='define the level of logging. default: error')
-    parser.add_argument('-j', dest="numproc", type=int, default=1,
-                        help='number of processors to use')
-    parser.add_argument('-m', '--model', type=str, default='',
-                        help='model name')
-    parser.add_argument('-e', '--ensemble', type=str, default='r1i1p1f1',
-                        help='variant label (ripf number for cmor)')
-    parser.add_argument('-d', '--debug', action='store_true',
-                        help='activate cdo debugging')
-    args = parser.parse_args()
 
     # log level with logging
     # currently basic definition trought the text
@@ -281,3 +302,5 @@ if __name__ == '__main__':
     logging.basicConfig(level=numeric_level)
 
     pi_main(args)
+    #sys.exit(main(sys.argv[1:]))
+
