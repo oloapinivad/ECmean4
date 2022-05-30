@@ -173,7 +173,7 @@ def pi_worker(cdopin, piclim, face, diag, field_3d, varstat, varlist):
 
 
 
-def pi_main(args):
+def pi_main(argv):
 
     """Main performance indices calculation"""
 
@@ -293,14 +293,5 @@ def pi_main(args):
 
 if __name__ == '__main__':
 
-    # log level with logging
-    # currently basic definition trought the text
-    loglevel = args.loglevel.upper()
-    numeric_level = getattr(logging, loglevel.upper(), None)
-    if not isinstance(numeric_level, int):
-        raise ValueError('Invalid log level: %s' % loglevel)
-    logging.basicConfig(level=numeric_level)
-
-    pi_main(args)
-    #sys.exit(main(sys.argv[1:]))
+    sys.exit(pi_main(sys.argv[1:]))
 

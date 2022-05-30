@@ -152,7 +152,7 @@ def gm_worker(cdopin, ref, face, diag, varmean, vartrend, varlist):
                 print('Average', var, varmean[var])
 
 
-def gm_main(args):
+def gm_main(argv):
     """The main ECmean4 global mean code"""
 
 
@@ -270,14 +270,4 @@ def gm_main(args):
 
 if __name__ == "__main__":
 
-    # log level with logging
-    # currently basic definition trought the text
-    loglevel = args.loglevel.upper()
-    numeric_level = getattr(logging, loglevel.upper(), None)
-    if not isinstance(numeric_level, int):
-        raise ValueError('Invalid log level: %s' % loglevel)
-    logging.basicConfig(level=numeric_level)
-
-    gm_main(args)
-
-    #sys.exit(main(sys.argv[1:]))
+    sys.exit(gm_main(sys.argv[1:]))
