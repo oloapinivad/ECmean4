@@ -46,7 +46,7 @@ class Diagnostic():
         self.version = '*'
 
         # hard-coded resolution (due to climatological dataset)
-        if self.climatology == 'RK08' : 
+        if self.climatology == 'RK08':
             self.resolution = 'r180x91'
         else:
             if not self.resolution:

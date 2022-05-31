@@ -104,12 +104,12 @@ def worker(cdopin, piclim, face, diag, field_3d, varstat, varlist):
             datayear2 = piclim[var].get('year2', 'nan')
 
             # get files for climatology
-            if diag.climatology == 'RK08': 
+            if diag.climatology == 'RK08':
                 clim = str(diag.RESCLMDIR / f'climate_{dataref}_{dataname}.nc')
                 vvvv = str(diag.RESCLMDIR / f'variance_{dataref}_{dataname}.nc')
-            elif diag.climatology == 'EC22': 
-                clim =  str(diag.RESCLMDIR / f'climate_{dataname}_{dataref}_{diag.resolution}_{datayear1}-{datayear2}.nc')
-                vvvv =  str(diag.RESCLMDIR / f'variance_{dataname}_{dataref}_{diag.resolution}_{datayear1}-{datayear2}.nc')
+            elif diag.climatology == 'EC22':
+                clim = str(diag.RESCLMDIR / f'climate_{dataname}_{dataref}_{diag.resolution}_{datayear1}-{datayear2}.nc')
+                vvvv = str(diag.RESCLMDIR / f'variance_{dataname}_{dataref}_{diag.resolution}_{datayear1}-{datayear2}.nc')
 
             # create a file list using bash wildcards
             infile = make_input_filename(var, dervars, diag.years_joined, '????', face, diag)
@@ -237,7 +237,6 @@ def main(argv):
     field_ice = cfg['PI']['ice_vars']['field']
     field_all = field_2d + field_3d + field_oce + field_ice
 
-
     # trick to avoid the loop on years
     # define required years with a {year1,year2} and then use cdo select feature
     # years_list = [str(element) for element in range(diag.year1, diag.year2+1)]
@@ -288,7 +287,8 @@ def main(argv):
     total_pi = np.nanmean([varstat[k] for k in field_2d + field_3d + field_oce + field_ice])
 
     # write the file  with tabulate: cool python feature
-    tablefile = diag.TABDIR / f'PI4_{diag.climatology}_{diag.expname}_{diag.modelname}_{diag.ensemble}_{diag.year1}_{diag.year2}.txt'
+    tablefile = diag.TABDIR / \
+        f'PI4_{diag.climatology}_{diag.expname}_{diag.modelname}_{diag.ensemble}_{diag.year1}_{diag.year2}.txt'
     if diag.fverb:
         print(tablefile)
     with open(tablefile, 'w', encoding='utf-8') as f:
