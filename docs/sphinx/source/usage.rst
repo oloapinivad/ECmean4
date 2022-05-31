@@ -95,12 +95,14 @@ CMOR compatibility
 It is possible to use these tools also to analyze CMOR files for CMIP5 or CMIP6. This assumes a standard ESGF directory structure but you can change it by modifying the corresponding interface files `interfaces/interface_CMIP6.yml` and `interfaces/interface_CMIP6.yml`.
 In order to allow masking you will need the `sftlf`, `sftof` and `areacello` variables for you experiment of interest too.
 
-Usage example CMIP5::
+Usage example for CMIP5::
+
         ./global_mean.py historical 1990 1999 -j 12 -m EC-EARTH -e r1i1p1 -i CMIP5
 
 will compute performance indices for member r1i1p1 of the EC-EARTH model in the CMIP5 historical experiment.
 
-Usage example CMIP6::
+Usage example for CMIP6::
+
         ./performance_indices.py historical 1990 1999 -j 12 -m EC-Earth3 -e r1i1p1f1 -i CMIP6 -k EC22 -r r360x180
 
 The same as above, but for the CMIP6 EC-Earth3 model. In this case the comparison is with the newer EC22 climatology at high r360x180 resolution.
