@@ -92,7 +92,7 @@ optional arguments:
 CMOR compatibility
 ^^^^^^^^^^^^^^^^^^
 
-It is possible to use these tools also to analyze CMOR files for CMIP5 or CMIP6. This assumes a standard ESGF directory structure but you can change it by modifying the corresponding interface files `interfaces/interface_CMIP6.yml` and `interfaces/interface_CMIP6.yml`.
+It is possible to use these tools also to analyze CMOR files for CMIP5 or CMIP6. This assumes a standard ESGF directory structure but you can change it by modifying the corresponding interface files ``interfaces/interface_CMIP6.yml`` and ``interfaces/interface_CMIP6.yml``.
 In order to allow masking you will need the `sftlf`, `sftof` and `areacello` variables for you experiment of interest too.
 
 Usage example for CMIP5::
