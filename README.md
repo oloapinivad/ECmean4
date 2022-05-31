@@ -8,7 +8,8 @@
 
 *An EC-Earth4 basic evaluation tool*
 
-This is the painful road to switch from bash to python3 as a scripting interface.
-As in the previous ECmean, all computations and weights are done with CDO. However, python3 is taking care of the script in place of bash, and YML files are using to handle all the configuration/metadata required. EC-Earth4 data and CMIP5/CMIP6 data are supported.
+ECmean4 is a lightweight parallelized tool for evaluation of basic properties of Global Climate Models, such as global mean, pattern correlation and climate model performance indices.
+
+It builts on the original ECmean which has been used for EC-Earth2 and EC-Earth3 evaluation, but it uses Python3 as a scripting language to perform lazy calls to CDO and makes use of YML configuration files. It works both on raw EC-Earth4 output and on CMOR model output from CMIP5 and CMIP6.
 
 A complete [ReadTheDocs Documentation](https://ecmean4.readthedocs.io/en/latest/index.html) is being developed, please refer to this.
