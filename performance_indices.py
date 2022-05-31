@@ -44,6 +44,10 @@ def parse_arguments(args):
                         help='config file')
     parser.add_argument('-m', '--model', type=str, default='',
                         help='model name')
+    parser.add_argument('-k', '--climatology', type=str, default='RK08',
+                        help='climatology to be compared. default: RK08. Options: [RK08, EC22]')
+    parser.add_argument('-r', '--resolution', type=str, default='',
+                        help='climatology resolution')
     parser.add_argument('-e', '--ensemble', type=str, default='r1i1p1f1',
                         help='variant label (ripf number for cmor)')
     parser.add_argument('-d', '--debug', action='store_true',
@@ -94,12 +98,19 @@ def pi_worker(cdopin, piclim, face, diag, field_3d, varstat, varlist):
 
             # extract info from pi_climatology.yml
             # reference dataset and reference varname
+            # as well as years when available
             dataref = piclim[var]['dataset']
             dataname = piclim[var]['dataname']
+            datayear1 = piclim[var].get('year1', 'nan')
+            datayear2 = piclim[var].get('year2', 'nan')
 
             # get files for climatology
-            clim = str(diag.CLMDIR / f'climate_{dataref}_{dataname}.nc')
-            vvvv = str(diag.CLMDIR / f'variance_{dataref}_{dataname}.nc')
+            if diag.climatology == 'RK08':
+                clim = str(diag.RESCLMDIR / f'climate_{dataref}_{dataname}.nc')
+                vvvv = str(diag.RESCLMDIR / f'variance_{dataref}_{dataname}.nc')
+            elif diag.climatology == 'EC22':
+                clim = str(diag.RESCLMDIR / f'climate_{dataname}_{dataref}_{diag.resolution}_{datayear1}-{datayear2}.nc')
+                vvvv = str(diag.RESCLMDIR / f'variance_{dataname}_{dataref}_{diag.resolution}_{datayear1}-{datayear2}.nc')
 
             # create a file list using bash wildcards
             infile = make_input_filename(var, dervars, diag.years_joined, '????', face, diag)
@@ -207,16 +218,16 @@ def main(argv):
     face = load_yaml(INDIR / Path('interfaces', f'interface_{diag.interface}.yml'))
 
     # load the climatology reference data
-    piclim = load_yaml('pi_climatology.yml')
+    piclim = load_yaml(diag.CLMDIR / f'pi_climatology_{diag.climatology}.yml')
 
     # new bunch of functions to set grids, create correction command, masks and areas
     comp = face['model']['component']  # Get component for each domain
     atminifile, ocegridfile, oceareafile = getinifiles(face, diag)
     cdop.set_gridfixes(atminifile, ocegridfile, oceareafile, comp['atm'], comp['oce'])
-    cdop.make_atm_masks(comp['atm'], atminifile, extra=f'-remapcon2,{diag.resolution}')
+    cdop.make_atm_masks(comp['atm'], atminifile, extra=f'-remapbil,{diag.resolution}')
 
     # create interpolation weights
-    cdop.make_atm_remap_weights(atminifile, 'remapcon', diag.resolution)
+    cdop.make_atm_remap_weights(atminifile, 'remapbil', diag.resolution)
     cdop.make_oce_remap_weights(ocegridfile, 'remapbil', diag.resolution)
 
     # add missing unit definitions
@@ -271,19 +282,20 @@ def main(argv):
     # loop on the variables
     for var in field_all:
         out_sequence = [var, varstat[var], piclim[var]['mask'], piclim[var]
-                        ['dataset'], piclim[var]['cmip3'], varstat[var]/piclim[var]['cmip3']]
+                        ['dataset'], piclim[var]['cmip3'], varstat[var]/float(piclim[var]['cmip3'])]
         global_table.append(out_sequence)
 
     # nice loop on dictionary to get the partial and total pi
-    partial_pi = np.mean([varstat[k] for k in field_2d + field_3d])
-    total_pi = np.mean([varstat[k] for k in field_2d + field_3d + field_oce + field_ice])
+    partial_pi = np.nanmean([varstat[k] for k in field_2d + field_3d])
+    total_pi = np.nanmean([varstat[k] for k in field_2d + field_3d + field_oce + field_ice])
 
     # write the file  with tabulate: cool python feature
-    tablefile = diag.TABDIR / f'PI4_RK08_{diag.expname}_{diag.modelname}_{diag.ensemble}_{diag.year1}_{diag.year2}.txt'
+    tablefile = diag.TABDIR / \
+        f'PI4_{diag.climatology}_{diag.expname}_{diag.modelname}_{diag.ensemble}_{diag.year1}_{diag.year2}.txt'
     if diag.fverb:
         print(tablefile)
     with open(tablefile, 'w', encoding='utf-8') as f:
-        f.write(tabulate(global_table, headers=head, tablefmt='orgtbl'))
+        f.write(tabulate(global_table, headers=head, tablefmt='orgtbl', floatfmt=".2f"))
         f.write('\n\nPartial PI (atm only) is   : ' + str(round(partial_pi, 3)))
         f.write('\nTotal Performance Index is : ' + str(round(total_pi, 3)))
 

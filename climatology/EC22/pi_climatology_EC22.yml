@@ -1,0 +1,115 @@
+tas: 
+  dataset: 'CRU'
+  version: '4.05'
+  units: degC
+  dataname : tas
+  mask: land
+  cmip3: Nan
+  year1: 1990
+  year2: 2019
+psl: 
+  dataset: ERA5
+  units: Pa
+  dataname : MSL
+  mask: global
+  cmip3: Nan
+  year1: 1990
+  year2: 2019
+pr:
+  dataset: 'MSWEP'
+  version: 'v2'
+  units: 'mm/month'
+  dataname : precipitation
+  mask: global
+  cmip3: Nan
+  year1: 1990
+  year2: 2019
+tauu:
+  dataset: ORAS5
+  units: 'N/m^2'
+  dataname : sozotaux
+  mask: ocean
+  cmip3: Nan
+  year1: 1990
+  year2: 2019
+tauv:
+  dataset: ORAS5
+  units: 'N/m^2'
+  dataname : sometauy
+  mask: ocean
+  cmip3: Nan
+  year1: 1990
+  year2: 2019
+ua: 
+  dataset: ERA5
+  units: 'm/s'
+  dataname : U_zonal
+  mask: global
+  cmip3: Nan
+  year1: 1990
+  year2: 2019
+va:
+  dataset: ERA5
+  units: 'm/s'
+  dataname : V_zonal
+  mask: global
+  cmip3: Nan
+  year1: 1990
+  year2: 2019
+ta:
+  dataset: ERA5
+  units: 'K'
+  dataname : T_zonal
+  mask: global
+  cmip3: Nan
+  year1: 1990
+  year2: 2019
+hus:
+  dataset: ERA5
+  units: 'kg/kg'
+  dataname : Q_zonal
+  mask: global
+  cmip3: Nan
+  year1: 1990
+  year2: 2019
+tos: 
+  dataset: ESA-CCI-L4
+  units: 'K'
+  dataname : analysed_sst
+  mask: ocean
+  cmip3: Nan
+  year1: 1990
+  year2: 2019
+sos: 
+  dataset: ORAS5
+  units: psu
+  dataname : sosaline
+  mask: ocean
+  cmip3: Nan
+  year1: 1990
+  year2: 2019
+siconc: 
+  dataset: ESA-CCI-L4
+  units: ''
+  dataname : sea_ice_fraction
+  mask: ocean
+  cmip3: Nan
+  year1: 1990
+  year2: 2019
+net_sfc:
+  dataset: 'NOCS'
+  version: '2.0'
+  units: 'W/m2'
+  dataname : net_sfc
+  mask: ocean
+  cmip3: Nan
+  year1: 1990
+  year2: 2014
+snc:
+  dataset: ERA5
+  units: ''
+  dataname : snc
+  mask: land
+  cmip3: Nan
+  year1: 1990
+  year2: 2019

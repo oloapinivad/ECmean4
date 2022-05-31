@@ -76,3 +76,9 @@ net_sfc:
   dataname: qnet
   mask : ocean
   cmip3: 14.24
+snc:
+  dataset: 'nan'
+  units: ''
+  dataname : 'nan'
+  mask: land
+  cmip3: Nan

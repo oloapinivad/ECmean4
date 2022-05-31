@@ -30,7 +30,9 @@ class Diagnostic():
         self.debug = getattr(args, 'debug', False)
         self.numproc = args.numproc
         self.modelname = getattr(args, 'model', '')
+        self.climatology = getattr(args, 'climatology', 'RK08')
         self.interface = getattr(args, 'interface', '')
+        self.resolution = getattr(args, 'resolution', '')
         if not self.modelname:
             self.modelname = cfg['model']['name']
         if self.year1 == self.year2:  # Ignore if only one year requested
@@ -44,12 +46,17 @@ class Diagnostic():
         self.version = '*'
 
         # hard-coded resolution (due to climatological dataset)
-        self.resolution = cfg['PI']['resolution']
+        if self.climatology == 'RK08':
+            self.resolution = 'r180x91'
+        else:
+            if not self.resolution:
+                self.resolution = cfg['PI']['resolution']
 
         # Various input and output directories
         self.ECEDIR = Path(os.path.expandvars(cfg['dirs']['exp']))
         self.TABDIR = Path(os.path.expandvars(cfg['dirs']['tab']))
-        self.CLMDIR = Path(os.path.expandvars(cfg['dirs']['clm']), self.resolution)
+        self.CLMDIR = Path(os.path.expandvars(cfg['dirs']['clm']), self.climatology)
+        self.RESCLMDIR = Path(self.CLMDIR, self.resolution)
         self.years_joined = ''
 
         self.linefile = self.TABDIR / 'global_means.txt'

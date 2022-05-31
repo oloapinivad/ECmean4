@@ -198,3 +198,8 @@ variables:
     varname: 'Precip. minus evap. (ocean)'
     derived: 'pr-evspsbl'
     filetype: atm2d
+  snc:
+    varname: 'Snow fraction'
+    filetype: atm2d
+
+    
