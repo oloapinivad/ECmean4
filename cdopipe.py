@@ -101,7 +101,7 @@ class CdoPipe:
             self.SEAMASK = self.cdo.mulc('-1', input=f'-subc,1 {self.LANDMASK}')
         elif component == 'cmoratm':
             self.LANDMASK = self.cdo.selname('sftlf',
-                                             input=f'-gec,0.5 {extra} {self.atmfix} {atminifile}')
+                                             input=f'-gec,50 {extra} {self.atmfix} {atminifile}')
             self.SEAMASK = self.cdo.mulc('-1', input=f'-subc,1 {self.LANDMASK}')
 
     def make_atm_remap_weights(self, atminifile, remap_method, target):
