@@ -1,0 +1,25 @@
+# Choice of model name, determines the chosen interface and is printed in the output table
+interface: CMIP6
+model:
+   name: EC-Earth3
+
+dirs:
+   exp: test/data
+   tab: test/table
+   clm: climatology
+
+global:
+  atm_vars: [pr]
+  oce_vars: [tos]
+  tab_vars: [pr, tos]
+
+PI: 
+  2d_vars:
+    field: [pr]
+  3d_vars: 
+    field: [ta]
+  oce_vars: 
+    field: [tos]
+  ice_vars:
+    field: [siconc]
+  resolution: r180x91

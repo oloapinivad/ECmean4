@@ -126,7 +126,7 @@ class CdoPipe:
             except:
                 themethod = getattr(self.cdo(), 'genbil')
                 self.OCEWEIGHTS = themethod(target, input=f'{self.ocefix} {ocegridfile}')
-                logging.warning("Ocean is remapping with genbil method cause cannot do %s", genweight)
+                logging.warning("Ocean is remapping with genbil method because cannot do %s", genweight)
 
     def chain(self, cmd):
         """Adds a generic cdo operator"""
