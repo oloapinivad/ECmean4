@@ -197,7 +197,11 @@ def _filter_filename_by_year(fname, year):
     filenames = glob(str(fname))
     # Assumes that the file name ends with 199001-199012.nc or 1990-1991.nc
     year1 = [int(x.split('_')[-1].split('-')[0][0:4]) for x in filenames]
-    year2 = [int(x.split('_')[-1].split('-')[1][0:4]) for x in filenames]
+    try :
+        year2 = [int(x.split('_')[-1].split('-')[1][0:4]) for x in filenames]
+    except: 
+        # this is introduced to handle files whhich have only one year in their filename
+        year2 = year1
     return [filenames[i] for i in range(len(year1)) if year >= year1[i] and year <= year2[i]]
 
 

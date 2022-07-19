@@ -64,6 +64,9 @@ class CdoPipe:
         elif component == 'cmoratm':
             self.atmfix = ''
             self.ATMGRIDAREA = self.cdo.gridarea(input=f'{atminifile}')
+        elif component == 'globo':
+            self.atmfix = ''
+            self.ATMGRIDAREA = self.cdo.gridarea(input=f'{atminifile}')
         else:
             sys.exit('Atmospheric component not supported')
 
