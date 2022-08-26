@@ -26,9 +26,10 @@ from ecmean import load_yaml, \
     make_input_filename, write_tuning_table, \
     units_extra_definition, units_are_integrals, \
     units_converter, directions_match, chunks, \
-    Diagnostic, getinifiles, getdomain
-from xrpipe import var_is_there, area_cell, eval_formula, \
-    masked_meansum, make_atm_masks
+    Diagnostic, getdomain
+from xrpipe import var_is_there, eval_formula, \
+    masked_meansum, xr_get_inifiles, \
+    util_dictionary
 
 def parse_arguments(args):
     """Parse CLI arguments for global mean"""
@@ -181,22 +182,17 @@ def main(argv):
     # var_all = list(set(var_atm + var_table + var_oce))
     var_all = list(dict.fromkeys(var_atm + var_table + var_oce))  # python 3.7+, preserve order
 
-    # New bunch of functions to set grids, create correction command, masks and areas
+    # We need 
     # Can probably be cleaned up further
     comp = face['model']['component']  # Get component for each domain
-    atminifile, ocegridfile, oceareafile = getinifiles(face, diag)
-    #ocefile = make_input_filename(var_oce[0], var_oce[0], diag.year1, diag.year1, face, diag)
-    atmfile = make_input_filename(var_atm[0], var_atm[0], diag.year1, diag.year1, face, diag)
 
-    # create mask
-    util = {'atm_mask' : make_atm_masks(comp['atm'], atminifile)}
+    # this required a change from the original file requirements of CDO version
+    # now we have a mask file and two area files: need to be fixed and organized in the
+    # config file in order to be more portable
+    maskatmfile, atmareafile, oceareafile = xr_get_inifiles(face, diag)
 
-    if comp['atm'] == 'oifs' : 
-        xfield = xr.open_dataset(atmfile)
-        util['atm_weights'] = area_cell(xfield)
-    if comp['oce'] == 'nemo':
-        xfield = xr.open_dataset(oceareafile)
-        util['oce_weights'] = xfield['e1t']*xfield['e2t']
+    # create util dictionary including mask and weights for both atmosphere and ocean grids
+    util = util_dictionary(comp, maskatmfile, atmareafile, oceareafile)
     
     # add missing unit definition
     units_extra_definition()

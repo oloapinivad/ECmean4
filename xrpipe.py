@@ -10,6 +10,9 @@ import re
 import logging
 import operator
 import sys
+from pathlib import Path
+from glob import glob
+import cf2cdm
 
 def is_number(s):
     """Check if input is a float type"""
@@ -80,6 +83,9 @@ def var_is_there(infile, var, reference):
     return isavail, varunit
 
 def masked_meansum(xfield, var, weights, mask_type, mask):
+    """Evaluate the weighted averaged for global varialbes and for 
+    required vars estimate the land-only or ocean only surface integral"""
+
     tfield = xfield.mean(dim='time_counter').to_dataset(name = var)
     if mask_type == 'land':   
         tfield['mask'] = (('cell'), mask.values)
@@ -164,15 +170,26 @@ def operation(token, xdataset) :
             #print(token)
     return replacer
 
+def util_dictionary(component, maskatmfile, atmareafile, oceareafile) : 
+    """Create a dictionary with atmospheric mask and 
+    atmospheric and oceanic area weights"""
+
+    util = {
+        'atm_mask' : _make_atm_masks(component['atm'], maskatmfile),
+        'atm_weights': _make_atm_areas(component['atm'], atmareafile),
+        'oce_weights': _make_oce_areas(component['oce'], oceareafile)
+    }
+    
+    return (util)
 
 
-def make_atm_masks(component, atminifile):
+def _make_atm_masks(component, maskatmfile):
     """Create land-sea masks for atmosphere model"""
     # prepare ATM LSM: this need to be improved, since it is clearly model dependent
     if component == 'oifs':
-        # create mask
-        mask = xr.open_dataset(atminifile, engine="cfgrib")
-        print(mask)
+        # create mask: opening a grib and loading only lsm to avoid inconsistencies in the grib 
+        # structure -> see here https://github.com/ecmwf/cfgrib/issues/13
+        mask = xr.open_dataset(maskatmfile, engine="cfgrib", filter_by_keys={'shortName': 'lsm'})
         mask = mask['lsm']
     elif component == 'cmoratm':
         sys.exit("Mask from cmor non defined yet mismatch, this cannot be handled!")
@@ -180,6 +197,80 @@ def make_atm_masks(component, atminifile):
         #                                     input=f'-gec,50 {extra} {self.atmfix} {atminifile}')
         #    self.SEAMASK = self.cdo.mulc('-1', input=f'-subc,1 {self.LANDMASK}')
     return mask
+
+def _make_atm_areas(component, atmareafile) : 
+    "Create atmospheric weights for area operations"
+    if component == 'oifs' : 
+        xfield = xr.open_dataset(atmareafile)
+        area = area_cell(xfield)
+    else :
+        sys.exit("Area this cannot be handled!")
+    return area
+
+def _make_oce_areas(component, oceareafile) : 
+    "Create atmospheric weights for area operations"
+    if oceareafile: 
+        if component == 'nemo' : 
+            xfield = xr.open_dataset(oceareafile)
+            area = xfield['e1t']*xfield['e2t']
+        else :
+            sys.exit("Area this cannot be handled!")
+    else :
+        area = None
+    return area
+
+
+def xr_get_inifiles(face, diag):
+    """
+    Return the inifiles from the interface, needs the component dictionary
+    Check if inifiles exist.
+    """
+    dictcomp = face['model']['component']
+
+    # use a dictionary to create the list of initial files
+    inifiles = {}
+    for comp, filename, filein in zip(['atm', 'atm', 'oce'],
+                                      ['maskatmfile', 'atmareafile', 'oceareafile'],
+                                      ['inifile', 'atmfile', 'areafile']):
+
+        inifile = face['component'][dictcomp[comp]].get(filein, '')
+       
+        # add the full path if missing
+        inifiles[filename] = ''
+        if inifile:
+            if inifile[0] == '/':
+                inifiles[filename] = str(_expand_filename(inifile,
+                                                          '', diag.year1, diag.year1, diag))
+            else:
+                inifiles[filename] = Path(diag.ECEDIR) / \
+                    Path(face['model']['basedir']) / \
+                    Path(inifile)
+                inifiles[filename] = str(_expand_filename(inifiles[filename],
+                                                          '', diag.year1, diag.year1, diag))
+             
+            # safe check if inifile exist in the experiment folder
+            if not glob(inifiles[filename]):
+                inifiles[filename] = ''
+        else:
+            inifiles[filename] = ''
+
+    # return dictionary values only
+    return inifiles.values()
+    
+def _expand_filename(fn, var, year1, year2, diag):
+    """Expands a path (filename or dir) for var, expname, frequency, ensemble etc. and
+       environment variables."""
+    return Path(str(os.path.expandvars(fn)).format(
+        expname=diag.expname,
+        year1=year1,
+        year2=year2,
+        var=var,
+        frequency=diag.frequency,
+        ensemble=diag.ensemble,
+        grid=diag.grid,
+        model=diag.modelname,
+        version=diag.version
+    ))
 
 
 
