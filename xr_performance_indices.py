@@ -23,7 +23,7 @@ from ecmean import  load_yaml, units_extra_definition, units_are_integrals, \
     Diagnostic, getdomain, make_input_filename
 import xarray as xr
 from xrpipe import var_is_there, eval_formula, \
-    xr_get_inifiles, \
+    xr_get_inifiles, adjust_clim_file, xr_get_clim_files, \
     util_dictionary, remap_dictionary, guess_bounds
 
 
@@ -51,8 +51,6 @@ def parse_arguments(args):
                         help='climatology resolution')
     parser.add_argument('-e', '--ensemble', type=str, default='r1i1p1f1',
                         help='variant label (ripf number for cmor)')
-    parser.add_argument('-d', '--debug', action='store_true',
-                        help='activate cdo debugging')
     parser.add_argument('-i', '--interface', type=str, default='',
                         help='interface (overrides config.yml)')
     return parser.parse_args(args)
@@ -66,7 +64,6 @@ def pi_worker(util, piclim, face, diag, field_3d, varstat, varlist):
     for var in varlist:
 
         vdom =  getdomain(var, face)
-        #weights = util[vdom + '_weights']
 
         if 'derived' in face['variables'][var].keys():
             cmd = face['variables'][var]['derived']
@@ -89,34 +86,24 @@ def pi_worker(util, piclim, face, diag, field_3d, varstat, varlist):
             # now in functions.py
             logging.debug(var)
             logging.debug(varunit + ' ---> ' + piclim[var]['units'])
+
             # adjust integrated quantities
             new_units = units_are_integrals(varunit, piclim[var])
 
-            # unit conversion
+            # unit conversion (can be improved exploiting xarray)
             offset, factor = units_converter(new_units, piclim[var]['units'])
 
             # sign adjustment (for heat fluxes)
             factor = factor * directions_match(face['variables'][var], piclim[var])
             logging.debug('Offset %f, Factor %f', offset, factor)
 
-            # extract info from pi_climatology.yml
-            # reference dataset and reference varname
-            # as well as years when available
-            dataref = piclim[var]['dataset']
-            dataname = piclim[var]['dataname']
-            datayear1 = piclim[var].get('year1', 'nan')
-            datayear2 = piclim[var].get('year2', 'nan')
-
-            # get files for climatology
-            if diag.climatology == 'RK08':
-                clim = str(diag.RESCLMDIR / f'climate_{dataref}_{dataname}.nc')
-                vvvv = str(diag.RESCLMDIR / f'variance_{dataref}_{dataname}.nc')
-            elif diag.climatology == 'EC22':
-                clim = str(diag.RESCLMDIR / f'climate_{dataname}_{dataref}_{diag.resolution}_{datayear1}-{datayear2}.nc')
-                vvvv = str(diag.RESCLMDIR / f'variance_{dataname}_{dataref}_{diag.resolution}_{datayear1}-{datayear2}.nc')
 
             # create a file list using bash wildcards
             infile = make_input_filename(var, dervars, diag.years_joined, '????', face, diag)
+
+            # get filenames for climatology
+            clim, vvvv = xr_get_clim_files(piclim, var, diag)
+
 
             xfield = xr.open_mfdataset(infile)
             if vdom in 'oce' : 
@@ -128,55 +115,50 @@ def pi_worker(util, piclim, face, diag, field_3d, varstat, varlist):
             else:
                 outfield = xfield[var]
 
+            # mean over time and fixing of the units
             tmean = outfield.mean(dim='time_counter')
             tmean = tmean * factor + offset
 
+            # apply interpolation, if fixer is availble and with different grids
             if vdom in 'atm':
                 if util['atm_fix'] : 
-                    fixed = util['atm_fix'](tmean, keep_attrs=True)
-                    final = util['atm_remap'](fixed, keep_attrs=True)
+                    tmean = util['atm_fix'](tmean, keep_attrs=True)
+                final = util['atm_remap'](tmean, keep_attrs=True)
             if vdom in 'oce':
+                if util['oce_fix'] : 
+                    tmean = util['oce_fix'](tmean, keep_attrs=True)
                 final = util['oce_remap'](tmean, keep_attrs=True)
 
-            cfield = xr.open_dataset(clim)
-            vfield = xr.open_dataset(vvvv)
+            # open climatology files, fix their metadata
+            cfield = adjust_clim_file(xr.open_dataset(clim))
+            vfield = adjust_clim_file(xr.open_dataset(vvvv))
 
             if var in field_3d:
                 
-                vname = list(cfield.data_vars)[-1]
-                cfield = cfield[vname].metpy.convert_coordinate_units('lev', 'Pa')
-                vfield = vfield[vname].metpy.convert_coordinate_units('lev', 'Pa')
-                cfield = cfield.rename({"lev": "pressure_levels"})
-                vfield = vfield.rename({"lev": "pressure_levels"})
-                interped = final.interp(pressure_levels = cfield.pressure_levels.values)
-                
+                # xarray interpolation on pressure_levels
+                interped = final.interp(pressure_levels = cfield['pressure_levels'].values)
                 zonal = interped.mean(dim = 'lon')
+
+                # compute PI
                 complete = (zonal - cfield)**2 / vfield
+
+                # compute vertical bounds as weights
                 bounds_lev = guess_bounds(complete['pressure_levels'], name = 'lev')
                 bounds = abs(bounds_lev[:,0] - bounds_lev[:,1])
-                weights = xr.DataArray(bounds, coords=[complete.pressure_levels], dims=['pressure_levels'])
+                weights = xr.DataArray(bounds, coords=[complete['pressure_levels']], dims=['pressure_levels'])
+                
+                # vertical mean
                 outarray = complete.weighted(weights).mean(dim = 'pressure_levels')
 
             else :
-                cfield = xr.open_dataset(clim)
-                vfield = xr.open_dataset(vvvv)
-                if vdom in 'oce': 
-                    cfield = cfield.rename({"LONGITUDE": "lon", "LATITUDE": "lat"})
-                    vfield = vfield.rename({"LONGITUDE": "lon", "LATITUDE": "lat"})
-                    
-                cfield = cfield[list(cfield.data_vars)[-1]]
-                vfield = vfield[list(vfield.data_vars)[-1]]
 
+                # compute PI
                 outarray = (final - cfield)**2/vfield
                
+            # latitude-based averaging
             weights = np.cos(np.deg2rad(outarray.lat))
             out = outarray.weighted(weights).mean().values
 
-                #outarray.to_netcdf(var + '_field.nc')             
-                #outarray = mask(outarray, var, piclim[var]['mask'], util['atm_mask'] )
-
-                
-            
             # store the PI
             varstat[var] = float(out)
             if diag.fverb:
@@ -186,7 +168,7 @@ def main(argv):
 
     """Main performance indices calculation"""
 
-    #assert sys.version_info >= (3, 7)
+    assert sys.version_info >= (3, 7)
 
     args = parse_arguments(argv)
     # log level with logging
@@ -220,29 +202,21 @@ def main(argv):
     
     maskatmfile, atmareafile, oceareafile = xr_get_inifiles(face, diag)
 
-    dataname = piclim['tas']['dataname']
-    dataref = piclim['tas']['dataset']
-    clim = str(diag.RESCLMDIR / f'climate_{dataref}_{dataname}.nc')
-
-    #file = xr.open_dataset(clim)
-    #print(area_cell(file).sum())
-
-    #file = xr.open_dataset(atmareafile)
-    #print(area_cell(file).sum())
+    # all clim have the same grid, read from the first clim available
+    clim, vvvv = xr_get_clim_files(piclim, 'tas', diag)
   
-
     # create util dictionary including mask and weights for both atmosphere and ocean grids
     util = util_dictionary(comp, maskatmfile, clim, clim)
-    remap = remap_dictionary(comp, atmareafile, oceareafile, 2)
-    
-    
-    
-    #print(util['atm_mask'])
-    #print(remap['atm_fix'](util['atm_mask']))
-    #util['atm_mask'] = remap['atm_remap'](remap['atm_fix'](util['atm_mask']))
 
+    # on which grid interpolate? read from climatology grid
+    target_grid = xr.open_dataset(clim).coords
+
+    # create remap dictionary with atm and oce interpolators
+    remap = remap_dictionary(comp, atmareafile, oceareafile, target_grid)
+
+    # join the two dictionaries
     utildict = {**util, **remap}
-
+    
     # add missing unit definitions
     units_extra_definition()
 
