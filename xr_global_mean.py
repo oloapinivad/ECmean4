@@ -83,8 +83,6 @@ def gm_worker(util, ref, face, diag, varmean, vartrend, varlist):
 
     """
 
-
-
     for var in varlist:
 
         # compute weights
@@ -125,9 +123,10 @@ def gm_worker(util, ref, face, diag, varmean, vartrend, varlist):
             # loop on years: call CDO to perform all the computations
             yrange = range(diag.year1, diag.year2+1)
             for year in yrange:
-                xfield = xr.open_dataset(infile)
+
                 #print(xfield)
                 infile = make_input_filename(var, dervars, year, year, face, diag)
+                xfield = xr.open_dataset(infile)
                 if 'derived' in face['variables'][var].keys():
                     cmd = face['variables'][var]['derived']
                     outfield = eval_formula(cmd, xfield)
