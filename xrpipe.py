@@ -178,15 +178,17 @@ def area_cell(xfield):
     area_cell = (arclon1 + arclon2) * arclat / 2
 
     # we want a mask which is not dependent on time
-    if 'time_counter' in list(xfield.dims) : 
-        xfield['area'] = xfield['area'].mean(dim='time_counter')
+    for t in ['time', 'time_counter'] :
+        if t in list(xfield.dims) : 
+            xfield['area'] = xfield['area'].mean(dim=t)
 
     # if we are using a lon/lat regular grid reshape area_cell
     if 'lon' in list(xfield.dims) : 
         area_cell = area_cell.reshape([len(xfield['lon']), len(xfield['lat'])]).transpose() 
+        
     
     # since we are using numpy need to bring them back into xarray dataset
-    xfield['area'].values = area_cell
+    xfield['area'].values = np.squeeze(area_cell)
 
     return xfield['area']
 
@@ -280,25 +282,30 @@ def remap_dictionary(component, atmareafile, oceareafile, target_grid) :
 
     return remap
 
-def adjust_clim_file(cfield) : 
+def adjust_clim_file(cfield, remove_zero = False) : 
     """Routine to fix file format of climatology"""
 
     # fix coordinates
-    org = ['LONGITUDE', 'LATITUDE', 'lev']
-    new = ['lon', 'lat', 'pressure_levels']
+    org = ['LONGITUDE', 'LATITUDE', 'lev', 'plev']
+    new = ['lon', 'lat', 'pressure_levels', 'pressure_levels']
     for o, n in zip(org, new) : 
         if o in cfield.coords : 
             cfield = cfield.rename({o: n})
 
     # extract data_array
     cname = list(cfield.data_vars)[-1]
-    cfield = cfield[cname]
+    field = cfield[cname]
 
+    #print(field)
+    #if remove_zero : 
+    #    field = field.where(field==0, 1, cfield)
+    #print(field)
+    
     # convert vertical levels 
     if 'pressure_levels' in cfield.coords :
-        cfield = cfield.metpy.convert_coordinate_units('pressure_levels', 'Pa')
+        field = field.metpy.convert_coordinate_units('pressure_levels', 'Pa')
 
-    return cfield
+    return field
 
 def _make_atm_interp_weights(component, atmareafile, target_grid) :
     """"Create atmospheric interpolator"""

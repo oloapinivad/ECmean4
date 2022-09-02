@@ -8,6 +8,7 @@
  @author Jost von Hardenberg (jost.hardenberg@polito.it), 2022
 '''
 
+from cmath import nan
 import sys
 import os
 import re
@@ -131,7 +132,7 @@ def pi_worker(util, piclim, face, diag, field_3d, varstat, varlist):
 
             # open climatology files, fix their metadata
             cfield = adjust_clim_file(xr.open_dataset(clim))
-            vfield = adjust_clim_file(xr.open_dataset(vvvv))
+            vfield = adjust_clim_file(xr.open_dataset(vvvv), remove_zero = True)
 
             if var in field_3d:
                 
@@ -154,6 +155,7 @@ def pi_worker(util, piclim, face, diag, field_3d, varstat, varlist):
 
                 # compute PI
                 outarray = (final - cfield)**2/vfield
+                #vfield.to_netcdf(var + '_beast.nc')
                
             # latitude-based averaging
             weights = np.cos(np.deg2rad(outarray.lat))
