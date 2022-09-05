@@ -25,9 +25,8 @@ import xarray as xr
 from xr_ecmean import var_is_there, eval_formula, \
     util_dictionary, get_inifiles, load_yaml, \
     units_extra_definition, units_are_integrals, \
-    units_converter, directions_match, chunks, \
+    units_converter, directions_match, chunks, write_tuning_table, \
     Diagnostic, getdomain, make_input_filename, masked_meansum
-
 
 def parse_arguments(args):
     """Parse CLI arguments for global mean"""
@@ -61,8 +60,6 @@ def parse_arguments(args):
                         help='interface (overrides config.yml)')
 
     return parser.parse_args(args)
-
-
 
 def gm_worker(util, ref, face, diag, varmean, vartrend, varlist):
     """Main parallel diagnostic worker for global mean
@@ -119,7 +116,7 @@ def gm_worker(util, ref, face, diag, varmean, vartrend, varlist):
 
             a = []
             # loop on years: using xarray to perform the computations
-            # could be replaced by open_mfdataset
+            # could be replaced by open_mfdataset but need to handle the time-mean
             yrange = range(diag.year1, diag.year2+1)
             for year in yrange:
 
@@ -133,7 +130,7 @@ def gm_worker(util, ref, face, diag, varmean, vartrend, varlist):
                                
                 x = masked_meansum(outfield, var, weights, ref[var].get('total', 'global'), util['atm_mask'])
                 a.append(x)
-       
+      
             varmean[var] = (mean(a) + offset) * factor
             if diag.ftrend:
                 vartrend[var] = np.polyfit(yrange, a, 1)[0]
