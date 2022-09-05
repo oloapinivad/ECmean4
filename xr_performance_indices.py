@@ -8,7 +8,6 @@
  @author Jost von Hardenberg (jost.hardenberg@polito.it), 2022
 '''
 
-from cmath import nan
 import sys
 import os
 import re
@@ -19,13 +18,13 @@ from time import time
 from multiprocessing import Process, Manager
 import numpy as np
 from tabulate import tabulate
-from ecmean import  load_yaml, units_extra_definition, units_are_integrals, \
+import xarray as xr
+from xr_ecmean import var_is_there, eval_formula, \
+    get_inifiles, adjust_clim_file, get_clim_files, \
+    util_dictionary, remap_dictionary, guess_bounds, load_yaml, \
+    units_extra_definition, units_are_integrals, \
     units_converter, directions_match, chunks, \
     Diagnostic, getdomain, make_input_filename
-import xarray as xr
-from xrpipe import var_is_there, eval_formula, \
-    xr_get_inifiles, adjust_clim_file, xr_get_clim_files, \
-    util_dictionary, remap_dictionary, guess_bounds
 
 
 def parse_arguments(args):
@@ -59,7 +58,21 @@ def parse_arguments(args):
 
 def pi_worker(util, piclim, face, diag, field_3d, varstat, varlist):
 
-    """Main parallel diagnostic worker"""
+    """Main parallel diagnostic worker for performance indices
+    
+    Args: 
+	util: the utility dictionary, including mask, area and remap weights
+	piclim: the reference climatology for the global mean
+	face: the interface to be used to access the data
+	diag: the diagnostic class object
+	field_3d: the list of 3d vars to be handled differently
+	varstat: the dictionary for the variable PI (empty)
+	varlist: the variable on which compute the global mean
+
+    Returns:
+	vartrend under the form of a dictionaries
+
+    """
 
 
     for var in varlist:
@@ -103,7 +116,7 @@ def pi_worker(util, piclim, face, diag, field_3d, varstat, varlist):
             infile = make_input_filename(var, dervars, diag.years_joined, '????', face, diag)
 
             # get filenames for climatology
-            clim, vvvv = xr_get_clim_files(piclim, var, diag)
+            clim, vvvv = get_clim_files(piclim, var, diag)
 
 
             xfield = xr.open_mfdataset(infile)
@@ -155,7 +168,6 @@ def pi_worker(util, piclim, face, diag, field_3d, varstat, varlist):
 
                 # compute PI
                 outarray = (final - cfield)**2/vfield
-                #vfield.to_netcdf(var + '_beast.nc')
                
             # latitude-based averaging
             weights = np.cos(np.deg2rad(outarray.lat))
@@ -170,7 +182,7 @@ def main(argv):
 
     """Main performance indices calculation"""
 
-    assert sys.version_info >= (3, 7)
+    #assert sys.version_info >= (3, 7)
 
     args = parse_arguments(argv)
     # log level with logging
@@ -202,10 +214,10 @@ def main(argv):
     # new bunch of functions to set grids, create correction command, masks and areas
     comp = face['model']['component']  # Get component for each domain
     
-    maskatmfile, atmareafile, oceareafile = xr_get_inifiles(face, diag)
+    maskatmfile, atmareafile, oceareafile = get_inifiles(face, diag)
 
     # all clim have the same grid, read from the first clim available
-    clim, vvvv = xr_get_clim_files(piclim, 'tas', diag)
+    clim, vvvv = get_clim_files(piclim, 'tas', diag)
   
     # create util dictionary including mask and weights for both atmosphere and ocean grids
     util = util_dictionary(comp, maskatmfile, clim, clim)

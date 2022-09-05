@@ -22,14 +22,12 @@ from time import time
 from tabulate import tabulate
 import numpy as np
 import xarray as xr
-from ecmean import load_yaml, \
-    make_input_filename, write_tuning_table, \
+from xr_ecmean import var_is_there, eval_formula, \
+    util_dictionary, get_inifiles, load_yaml, \
     units_extra_definition, units_are_integrals, \
     units_converter, directions_match, chunks, \
-    Diagnostic, getdomain
-from xrpipe import var_is_there, eval_formula, \
-    masked_meansum, xr_get_inifiles, \
-    util_dictionary
+    Diagnostic, getdomain, make_input_filename, masked_meansum
+
 
 def parse_arguments(args):
     """Parse CLI arguments for global mean"""
@@ -70,7 +68,7 @@ def gm_worker(util, ref, face, diag, varmean, vartrend, varlist):
     """Main parallel diagnostic worker for global mean
    
     Args: 
-	mask: the object mask
+	util: the utility dictionary, including mask and weights
 	ref: the reference dictionary for the global mean
 	face: the interface to be used to access the data
 	diag: the diagnostic class object
@@ -120,11 +118,11 @@ def gm_worker(util, ref, face, diag, varmean, vartrend, varlist):
             logging.debug('Offset %f, Factor %f', offset, factor)
 
             a = []
-            # loop on years: call CDO to perform all the computations
+            # loop on years: using xarray to perform the computations
+            # could be replaced by open_mfdataset
             yrange = range(diag.year1, diag.year2+1)
             for year in yrange:
 
-                #print(xfield)
                 infile = make_input_filename(var, dervars, year, year, face, diag)
                 xfield = xr.open_dataset(infile)
                 if 'derived' in face['variables'][var].keys():
@@ -188,7 +186,7 @@ def main(argv):
     # this required a change from the original file requirements of CDO version
     # now we have a mask file and two area files: need to be fixed and organized in the
     # config file in order to be more portable
-    maskatmfile, atmareafile, oceareafile = xr_get_inifiles(face, diag)
+    maskatmfile, atmareafile, oceareafile = get_inifiles(face, diag)
 
     # create util dictionary including mask and weights for both atmosphere and ocean grids
     util = util_dictionary(comp, maskatmfile, atmareafile, oceareafile)

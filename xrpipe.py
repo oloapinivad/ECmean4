@@ -5,9 +5,7 @@ Shared functions for XArray ECmean4
 
 import numpy as np
 import xarray as xr
-import os
 import re
-import logging
 import operator
 import sys
 from pathlib import Path
@@ -22,65 +20,7 @@ def is_number(s):
     except ValueError:
         return False
 
-def var_is_there(infile, var, reference):
-    """Check if a variable is available in the input file and provide its units."""
 
-    # Use only first file if list is passed
-    if infile:
-        if isinstance(infile, list):
-            ffile = infile[0]
-        else:
-            ffile = infile
-    else:
-        ffile = ''
-
-    isavail = True
-    isavail = isavail and os.path.isfile(ffile)
-    #isavail = isavail and (len(flist) > 0)
-
-    if isavail:
-        xfield = xr.open_dataset(ffile)
-        vars_avail = [i for i in xfield.data_vars]
-        units_avail ={}
-        for i in vars_avail :
-            try: 
-                k = xfield[i].units
-            except : 
-                k = "None"
-            units_avail[i] = k
-
-          # if variable is derived, extract required vars
-        d = reference[var].get('derived')
-        if d:
-            var_req = re.split('[*+-]', d)
-            # remove numbers
-            for x in var_req:
-                if is_number(x):
-                    var_req.remove(x)
-
-            # check of unit is specified in the interface file
-            varunit = reference[var].get('units')
-            if not varunit:
-                logging.warning('%s is a derived var, assuming unit '
-                                'as the first of its term', var)
-                varunit = units_avail.get(var_req[0])
-        else:
-            var_req = [var]
-            varunit = units_avail.get(var)
-            
-            # check if all required variables are in model output
-        isavail = True
-        for x in var_req:
-            if x not in vars_avail:
-                isavail = False
-                logging.warning("Variable %s needed by %s is not "
-                                "available in the model output!", x, var)
-    else:
-        varunit = None
-        print(f'Not available: {var} File: {infile}')
-        logging.warning("Requested file %s is not available.", infile)
-
-    return isavail, varunit
 
 def masked_meansum(xfield, var, weights, mask_type, mask):
     """Evaluate the weighted averaged for global varialbes and for 
@@ -178,9 +118,13 @@ def area_cell(xfield):
     area_cell = (arclon1 + arclon2) * arclat / 2
 
     # we want a mask which is not dependent on time
-    for t in ['time', 'time_counter'] :
-        if t in list(xfield.dims) : 
-            xfield['area'] = xfield['area'].mean(dim=t)
+    #for t in ['time', 'time_counter'] :
+    #    if t in list(xfield.dims) : 
+    #        xfield['area'] = xfield['area'].mean(dim=t)
+
+    #use generator expression
+    for g in (t for t in ['time', 'time_counter'] if t in list(xfield.dims)) : 
+        xfield['area'] = xfield['area'].mean(dim=g)
 
     # if we are using a lon/lat regular grid reshape area_cell
     if 'lon' in list(xfield.dims) : 
@@ -283,7 +227,8 @@ def remap_dictionary(component, atmareafile, oceareafile, target_grid) :
     return remap
 
 def adjust_clim_file(cfield, remove_zero = False) : 
-    """Routine to fix file format of climatology"""
+    """Fix file format of climatology to make it equal to 
+    the format ingested by EC-Erth4"""
 
     # fix coordinates
     org = ['LONGITUDE', 'LATITUDE', 'lev', 'plev']
@@ -296,11 +241,10 @@ def adjust_clim_file(cfield, remove_zero = False) :
     cname = list(cfield.data_vars)[-1]
     field = cfield[cname]
 
-    #print(field)
-    #if remove_zero : 
-    #    field = field.where(field==0, 1, cfield)
-    #print(field)
-    
+    # set as NaN values equal to zero
+    if remove_zero : 
+        field = field.where(field!=0)
+
     # convert vertical levels 
     if 'pressure_levels' in cfield.coords :
         field = field.metpy.convert_coordinate_units('pressure_levels', 'Pa')
@@ -368,27 +312,7 @@ def _make_atm_masks(component, maskatmfile):
         #    self.SEAMASK = self.cdo.mulc('-1', input=f'-subc,1 {self.LANDMASK}')
     return mask
 
-def xr_get_clim_files(piclim, var, diag) : 
 
-    """Function to extra names for the climatology files"""
-
-    # extract info from pi_climatology.yml
-    # reference dataset and reference varname
-    # as well as years when available
-    dataref = piclim[var]['dataset']
-    dataname = piclim[var]['dataname']
-    datayear1 = piclim[var].get('year1', 'nan')
-    datayear2 = piclim[var].get('year2', 'nan')
-
-    # get files for climatology
-    if diag.climatology == 'RK08':
-        clim = str(diag.RESCLMDIR / f'climate_{dataref}_{dataname}.nc')
-        vvvv = str(diag.RESCLMDIR / f'variance_{dataref}_{dataname}.nc')
-    elif diag.climatology == 'EC22':
-        clim = str(diag.RESCLMDIR / f'climate_{dataname}_{dataref}_{diag.resolution}_{datayear1}-{datayear2}.nc')
-        vvvv = str(diag.RESCLMDIR / f'variance_{dataname}_{dataref}_{diag.resolution}_{datayear1}-{datayear2}.nc')
-
-    return clim, vvvv
 
 
 
@@ -455,20 +379,7 @@ def xr_get_inifiles(face, diag):
     # return dictionary values only
     return inifiles.values()
     
-def _expand_filename(fn, var, year1, year2, diag):
-    """Expands a path (filename or dir) for var, expname, frequency, ensemble etc. and
-       environment variables."""
-    return Path(str(os.path.expandvars(fn)).format(
-        expname=diag.expname,
-        year1=year1,
-        year2=year2,
-        var=var,
-        frequency=diag.frequency,
-        ensemble=diag.ensemble,
-        grid=diag.grid,
-        model=diag.modelname,
-        version=diag.version
-    ))
+
 
 
 
