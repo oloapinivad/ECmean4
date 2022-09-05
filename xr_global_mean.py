@@ -22,11 +22,14 @@ from time import time
 from tabulate import tabulate
 import numpy as np
 import xarray as xr
+import dask
 from xr_ecmean import var_is_there, eval_formula, \
     util_dictionary, get_inifiles, load_yaml, \
     units_extra_definition, units_are_integrals, \
     units_converter, directions_match, chunks, write_tuning_table, \
     Diagnostic, getdomain, make_input_filename, masked_meansum
+
+dask.config.set(scheduler="synchronous")
 
 def parse_arguments(args):
     """Parse CLI arguments for global mean"""
@@ -121,16 +124,19 @@ def gm_worker(util, ref, face, diag, varmean, vartrend, varlist):
             for year in yrange:
 
                 infile = make_input_filename(var, dervars, year, year, face, diag)
-                xfield = xr.open_dataset(infile)
+                xfield = xr.open_mfdataset(infile)
+                #print(xfield)
+                #ffield = xr.open_mfdataset(infile)
+                #print(ffield)
                 if 'derived' in face['variables'][var].keys():
                     cmd = face['variables'][var]['derived']
                     outfield = eval_formula(cmd, xfield)
                 else:
                     outfield = xfield[var]
-                               
+         
                 x = masked_meansum(outfield, var, weights, ref[var].get('total', 'global'), util['atm_mask'])
                 a.append(x)
-      
+
             varmean[var] = (mean(a) + offset) * factor
             if diag.ftrend:
                 vartrend[var] = np.polyfit(yrange, a, 1)[0]

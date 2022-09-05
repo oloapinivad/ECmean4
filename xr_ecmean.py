@@ -115,21 +115,16 @@ def getcomponent(face):  # unused function
 def var_is_there(infile, var, reference):
     """Check if a variable is available in the input file and provide its units."""
 
-    # Use only first file if list is passed
-    if infile:
-        if isinstance(infile, list):
-            ffile = infile[0]
-        else:
-            ffile = infile
-    else:
-        ffile = ''
+    # we want a list to use mfdataset
+    flist = infile
 
     isavail = True
-    isavail = isavail and os.path.isfile(ffile)
-    #isavail = isavail and (len(flist) > 0)
+    for f in flist:
+        isavail = isavail and os.path.isfile(f)
+    isavail = isavail and (len(flist) > 0)
 
     if isavail:
-        xfield = xr.open_dataset(ffile)
+        xfield = xr.open_mfdataset(flist)
         vars_avail = [i for i in xfield.data_vars]
         units_avail ={}
         for i in vars_avail :
@@ -287,9 +282,9 @@ def make_input_filename(var0, varlist, year1, year2, face, diag):
         if len(filename1) <= 1:
             filename = filename + filename1
         else:
-            filename = filename + ['-merge [ ' + ' '.join(filename1) + ' ]']
-    if len(filename) == 1:  # glob always returns a list, return str if only one
-        filename = filename[0]
+            filename = filename + filename1 
+    #if len(filename) == 1:  # glob always returns a list, return str if only one
+    #    filename = filename[0]
     logging.debug("Filenames: %s", filename)
     return filename
 
@@ -302,17 +297,21 @@ def masked_meansum(xfield, var, weights, mask_type, mask):
     """Evaluate the weighted averaged for global varialbes and for 
     required vars estimate the land-only or ocean only surface integral"""
 
-    tfield = xfield.mean(dim='time_counter').to_dataset(name = var)
+    #use generator expression
+    for g in (t for t in ['time', 'time_counter'] if t in list(xfield.dims)) : 
+        tfield = xfield.mean(dim=g).to_dataset(name = var)
+    #tfield = xfield.mean(dim='time_counter').to_dataset(name = var)
+
     if mask_type == 'land':   
-        tfield['mask'] = (('cell'), mask.values)
-        out = tfield[var].where(tfield['mask'] >= 0.5).weighted(weights).sum().item()
+        tfield['mask'] = (tuple(tfield.coords), mask.values)
+        out = tfield[var].where(tfield['mask'] >= 0.5).weighted(weights).sum().values
     elif mask_type in ['sea', 'ocean']:
-        tfield['mask'] = (('cell'), mask.values)
-        out = tfield[var].where(tfield['mask'] < 0.5).weighted(weights).sum().item()
+        tfield['mask'] = (tuple(tfield.coords), mask.values)
+        out = tfield[var].where(tfield['mask'] < 0.5).weighted(weights).sum().values
     else:
-        out = tfield[var].weighted(weights).mean().item()
+        out = tfield[var].weighted(weights.fillna(0)).mean().values
         
-    return out
+    return float(out)
 
 ##################################
 # AREA-WEIGHT AND MASK FUNCTIONS #
@@ -339,7 +338,11 @@ def _make_atm_masks(component, maskatmfile):
         mask = xr.open_dataset(maskatmfile, engine="cfgrib", filter_by_keys={'shortName': 'lsm'})
         mask = mask['lsm']
     elif component == 'cmoratm':
-        sys.exit("Mask from cmor non defined yet mismatch, this cannot be handled!")
+        mask = xr.open_mfdataset(maskatmfile)
+        mask = mask['sftlf']
+    else : 
+        sys.exit("Mask undefined yet mismatch, this cannot be handled!")
+
         #self.LANDMASK = self.cdo.selname('sftlf',
         #                                     input=f'-gec,50 {extra} {self.atmfix} {atminifile}')
         #    self.SEAMASK = self.cdo.mulc('-1', input=f'-subc,1 {self.LANDMASK}')
@@ -350,9 +353,11 @@ def _make_atm_areas(component, atmareafile) :
     if component == 'oifs' : 
         xfield = xr.open_dataset(atmareafile)
         area = area_cell(xfield)
+    elif component == 'cmoratm' :
+        xfield = xr.open_mfdataset(atmareafile)
+        area = area_cell(xfield)
     else :
-        sys.exit("Area this cannot be handled!")
-
+        sys.exit("Area for this configuration cannot be handled!")
     return area
 
 def _make_oce_areas(component, oceareafile) : 
@@ -364,8 +369,10 @@ def _make_oce_areas(component, oceareafile) :
                 area = xfield['e1t']*xfield['e2t']
             else : 
                 area = area_cell(xfield)
+        elif component == 'cmoroce' :
+            area = xr.open_mfdataset(oceareafile)['areacello']
         else :
-            sys.exit("Area this cannot be handled!")
+            sys.exit("Area for this configuration cannot be handled!")
     else :
         area = None
     return area
@@ -398,7 +405,6 @@ def guess_bounds(axis, name = 'lon') :
     bounds = np.array([min_bounds, max_bounds]).transpose()
     return(bounds)
 
-
 def area_cell(xfield): 
     """Function which estimate the area cell from bounds. This is done assuming 
     trapezoidal shape of the grids - useful for reduced grids. 
@@ -407,8 +413,8 @@ def area_cell(xfield):
 
     Earth_Radius = 6371000.
     xfield['area'] = xfield[list(xfield.data_vars)[-1]]
-
-    # bounds available
+    
+    # bounds available: EC-Earth4 definition
     if 'bounds_lon' in xfield.data_vars and 'bounds_lat' in xfield.data_vars :
 
         # the assumption of the vertex position is absolutely random, need to generalized
@@ -419,7 +425,20 @@ def area_cell(xfield):
         #dlon = xfield['bounds_lon'].isel(nvertex=1) - xfield['bounds_lon'].isel(nvertex=2)
         #dlat = xfield['bounds_lat'].isel(nvertex=2) - xfield['bounds_lat'].isel(nvertex=3)
 
+    # bounds available: cmor definition
+    # direction of tiling is very weird, this has to be rearranged
+    if 'lon_bnds' in xfield.data_vars and 'lat_bnds' in xfield.data_vars :
+        
+        blon = np.column_stack((xfield['lon_bnds'].isel(bnds=0), 
+            xfield['lon_bnds'].isel(bnds=1)))
+        blat = np.column_stack((xfield['lat_bnds'].isel(bnds=0), 
+            xfield['lat_bnds'].isel(bnds=1)))
+
+        bounds_lon = np.repeat(blon, len(xfield['lat']), axis = 0)
+        bounds_lat = np.tile(blat.transpose(), len(xfield['lon'])).transpose()
+
     # no bounds defined, using lon/lat estimation
+    # direction of tiling is very weird, this has to be rearranged
     else :
 
         # all this is made with numpy, perhaps better to use xarray?
@@ -428,23 +447,19 @@ def area_cell(xfield):
         blat =  guess_bounds(xfield['lat'], name = 'lat')
         bounds_lat = np.repeat(blat, len(xfield['lon']), axis = 0)
 
+    # cell dimension
     dlon = abs(bounds_lon[:,0] - bounds_lon[:,1])
     dlat = abs(bounds_lat[:,0] - bounds_lat[:,1])
 
     # safe check on cosine of 90: estimate the trapezoid
     arclon1 =  Earth_Radius * abs(np.cos(abs(np.deg2rad(bounds_lat[:,0])))) * np.deg2rad(dlon)
-    arclon2 =  Earth_Radius * abs(np.cos(abs(np.deg2rad(bounds_lat[:,0])))) * np.deg2rad(dlon)
+    arclon2 =  Earth_Radius * abs(np.cos(abs(np.deg2rad(bounds_lat[:,1])))) * np.deg2rad(dlon)
     arclat = Earth_Radius * np.deg2rad(dlat)
 
     # trapezoid area
     area_cell = (arclon1 + arclon2) * arclat / 2
-
-    # we want a mask which is not dependent on time
-    #for t in ['time', 'time_counter'] :
-    #    if t in list(xfield.dims) : 
-    #        xfield['area'] = xfield['area'].mean(dim=t)
-
-    #use generator expression
+    
+    #use generator expression to remove time dependency
     for g in (t for t in ['time', 'time_counter'] if t in list(xfield.dims)) : 
         xfield['area'] = xfield['area'].mean(dim=g)
 
@@ -452,7 +467,6 @@ def area_cell(xfield):
     if 'lon' in list(xfield.dims) : 
         area_cell = area_cell.reshape([len(xfield['lon']), len(xfield['lat'])]).transpose() 
         
-    
     # since we are using numpy need to bring them back into xarray dataset
     xfield['area'].values = np.squeeze(area_cell)
 
