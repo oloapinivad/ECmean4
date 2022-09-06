@@ -24,7 +24,10 @@ from xr_ecmean import var_is_there, eval_formula, \
     util_dictionary, remap_dictionary, guess_bounds, load_yaml, \
     units_extra_definition, units_are_integrals, \
     units_converter, directions_match, chunks, \
-    Diagnostic, getdomain, make_input_filename
+    Diagnostic, getdomain, make_input_filename, xr_preproc
+
+import dask
+dask.config.set(scheduler="synchronous")
 
 
 def parse_arguments(args):
@@ -119,7 +122,7 @@ def pi_worker(util, piclim, face, diag, field_3d, varstat, varlist):
             clim, vvvv = get_clim_files(piclim, var, diag)
 
 
-            xfield = xr.open_mfdataset(infile)
+            xfield = xr.open_mfdataset(infile, preprocess=xr_preproc)
             if vdom in 'oce' : 
                 xfield = xfield.rename({"nav_lon": "lon", "nav_lat": "lat"})
 
@@ -130,7 +133,7 @@ def pi_worker(util, piclim, face, diag, field_3d, varstat, varlist):
                 outfield = xfield[var]
 
             # mean over time and fixing of the units
-            tmean = outfield.mean(dim='time_counter')
+            tmean = outfield.mean(dim='time')
             tmean = tmean * factor + offset
 
             # apply interpolation, if fixer is availble and with different grids

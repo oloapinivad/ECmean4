@@ -27,7 +27,8 @@ from xr_ecmean import var_is_there, eval_formula, \
     util_dictionary, get_inifiles, load_yaml, \
     units_extra_definition, units_are_integrals, \
     units_converter, directions_match, chunks, write_tuning_table, \
-    Diagnostic, getdomain, make_input_filename, masked_meansum
+    Diagnostic, getdomain, make_input_filename, masked_meansum, \
+    xr_preproc
 import dask
 dask.config.set(scheduler="synchronous")
 
@@ -125,13 +126,10 @@ def gm_worker(util, ref, face, diag, varmean, vartrend, varlist):
             for year in yrange:
 
                 infile = make_input_filename(var, dervars, year, year, face, diag)
-                xfield = xr.open_mfdataset(infile)
+                xfield = xr.open_mfdataset(infile, preprocess=xr_preproc)
 
                 # time selection for longer dataset!
-                if 'time' in list(xfield.coords) :
-                    xfield = xfield.sel(time=(xfield.time.dt.year == year))
-                elif 'time_counter' in list(xfield.coords) :
-                    xfield = xfield.sel(time_counter=(xfield.time_counter.dt.year == year))
+                xfield = xfield.sel(time=(xfield.time.dt.year == year))
                 if 'derived' in face['variables'][var].keys():
                     cmd = face['variables'][var]['derived']
                     outfield = eval_formula(cmd, xfield)

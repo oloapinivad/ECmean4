@@ -122,7 +122,7 @@ def var_is_there(flist, var, reference):
     isavail = isavail and (len(flist) > 0)
 
     if isavail:
-        xfield = xr.open_mfdataset(flist)
+        xfield = xr.open_mfdataset(flist, preprocess=xr_preproc)
         vars_avail = [i for i in xfield.data_vars]
         units_avail ={}
         for i in vars_avail :
@@ -297,8 +297,8 @@ def masked_meansum(xfield, var, weights, mask_type, mask):
     required vars estimate the land-only or ocean only surface integral"""
 
     #use generator expression
-    for g in (t for t in ['time', 'time_counter'] if t in list(xfield.dims)) : 
-        tfield = xfield.mean(dim=g).to_dataset(name = var)
+    #for g in (t for t in ['time', 'time_counter'] if t in list(xfield.dims)) : 
+    tfield = xfield.mean(dim='time').to_dataset(name = var)
 
     if mask_type == 'land':   
         tfield['mask'] = (tuple(tfield.dims), mask.values)
@@ -333,10 +333,11 @@ def _make_atm_masks(component, maskatmfile):
     if component == 'oifs':
         # create mask: opening a grib and loading only lsm to avoid inconsistencies in the grib 
         # structure -> see here https://github.com/ecmwf/cfgrib/issues/13
-        mask = xr.open_dataset(maskatmfile, engine="cfgrib", filter_by_keys={'shortName': 'lsm'})
+        mask = xr.open_mfdataset(maskatmfile, engine="cfgrib", 
+            filter_by_keys={'shortName': 'lsm'}, preprocess=xr_preproc)
         mask = mask['lsm']
     elif component == 'cmoratm':
-        mask = xr.open_mfdataset(maskatmfile)
+        mask = xr.open_mfdataset(maskatmfile, preprocess=xr_preproc)
         mask = mask['sftlf']
     else : 
         sys.exit("Mask undefined yet mismatch, this cannot be handled!")
@@ -346,10 +347,10 @@ def _make_atm_masks(component, maskatmfile):
 def _make_atm_areas(component, atmareafile) : 
     "Create atmospheric weights for area operations"
     if component == 'oifs' : 
-        xfield = xr.open_dataset(atmareafile)
+        xfield = xr.open_mfdataset(atmareafile, preprocess=xr_preproc)
         area = _area_cell(xfield)
     elif component == 'cmoratm' :
-        xfield = xr.open_mfdataset(atmareafile)
+        xfield = xr.open_mfdataset(atmareafile, preprocess=xr_preproc)
         area = _area_cell(xfield)
     else :
         sys.exit("Area for this configuration cannot be handled!")
@@ -359,13 +360,13 @@ def _make_oce_areas(component, oceareafile) :
     "Create atmospheric weights for area operations"
     if oceareafile: 
         if component == 'nemo' : 
-            xfield = xr.open_dataset(oceareafile)
+            xfield = xr.open_mfdataset(oceareafile, preprocess=xr_preproc)
             if 'e1t' in xfield.data_vars : 
                 area = xfield['e1t']*xfield['e2t']
             else : 
                 area = _area_cell(xfield)
         elif component == 'cmoroce' :
-            area = xr.open_mfdataset(oceareafile)['areacello']
+            area = xr.open_mfdataset(oceareafile, preprocess=xr_preproc)['areacello']
         else :
             sys.exit("Area for this configuration cannot be handled!")
     else :
@@ -404,7 +405,7 @@ def _area_cell(xfield):
     """Function which estimate the area cell from bounds. This is done assuming 
     trapezoidal shape of the grids - useful for reduced grids. 
     Working also on regular grids which does not have lon/lat bounds
-    via the guess_bounds function"""    
+    via the guess_bounds function"""   
 
     Earth_Radius = 6371000.
     
@@ -461,6 +462,8 @@ def _area_cell(xfield):
 
         # all this is made with numpy, perhaps better to use xarray? 
         # should be improved, it is very clumsy
+        #print(list(xfield.coords))
+        #print(list(xfield.dims))
 
         if list(xfield.coords)[0] == 'lat' :
             bounds_lon = np.repeat(blon, len(xfield['lat']), axis = 0)
@@ -485,7 +488,7 @@ def _area_cell(xfield):
     
     # if we are using a lon/lat regular grid reshape area_cell
     if 'lon' in list(xfield.dims) : 
-        area_cell = area_cell.reshape([len(xfield['lon']), len(xfield['lat'])]).transpose() 
+        area_cell = area_cell.reshape([len(xfield['lon']), len(xfield['lat'])])
 
     # since we are using numpy need to bring them back into xarray dataset
     #xfield['area'].values = np.squeeze(area_cell)
@@ -631,6 +634,14 @@ def _make_oce_interp_weights(component, oceareafile, target_grid) :
 #########################
 # FILE FORMAT FUNCTIONS #
 #########################
+
+def xr_preproc(ds) :
+    """Preprocessing functuon to adjust coordinate and dimensions
+    names to a common format. To be called by xr.open_mf_dataset()"""
+
+    if 'time_counter' in list(ds.coords): 
+        ds = ds.rename({"time_counter": "time"})
+    return ds
 
 def adjust_clim_file(cfield, remove_zero = False) : 
     """Routine to fix file format of climatology"""
