@@ -662,8 +662,8 @@ def xr_preproc(ds) :
     if 'time_counter' in list(ds.coords): 
         ds = ds.rename({"time_counter": "time"})
 
-    if 'pressure_level' in list(ds.coords): 
-        ds = ds.rename({"pressure_level": "plev"})
+    if 'pressure_levels' in list(ds.coords): 
+        ds = ds.rename({"pressure_levels": "plev"})
 
     if 'nav_lon' in list(ds.coords): 
         ds = ds.rename({"nav_lon": "lon"})
