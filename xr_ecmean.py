@@ -444,7 +444,7 @@ def area_cell(xfield):
             xfield['lon_bnds'].isel(bnds=1)))
         blat = np.column_stack((xfield['lat_bnds'].isel(bnds=0), 
             xfield['lat_bnds'].isel(bnds=1)))
-        area_dims = ('lon', 'lat')
+        area_dims = ('lat', 'lon')
 
         bounds_lon = np.repeat(blon, len(xfield['lat']), axis = 0)
         bounds_lat = np.tile(blat.transpose(), len(xfield['lon'])).transpose()
@@ -458,19 +458,18 @@ def area_cell(xfield):
         
         blon = guess_bounds(xfield['lon'], name = 'lon')
         blat = guess_bounds(xfield['lat'], name = 'lat')
-        area_dims = ('lon', 'lat')
 
         # all this is made with numpy, perhaps better to use xarray? 
         # should be improved, it is very clumsy
 
         if list(xfield.coords)[0] == 'lat' :
             bounds_lon = np.repeat(blon, len(xfield['lat']), axis = 0)
-            print(bounds_lon)
             bounds_lat = np.tile(blat.transpose(), len(xfield['lon'])).transpose()
-        elif list(xfield.coords)[0] == 'lon' :
-            
+            area_dims = ('lat', 'lon')
+        elif list(xfield.coords)[0] == 'lon' :    
             bounds_lon = np.tile(blon.transpose(), len(xfield['lat'])).transpose()
             bounds_lat = np.repeat(blat, len(xfield['lon']), axis = 0)
+            area_dims = ('lon', 'lat')
 
     # cell dimension
     dlon = abs(bounds_lon[:,0] - bounds_lon[:,1])
@@ -484,16 +483,13 @@ def area_cell(xfield):
     # trapezoid area
     area_cell = (arclon1 + arclon2) * arclat / 2
     
-    #use generator expression to remove time dependency
-    #for g in (t for t in ['time', 'time_counter'] if t in list(xfield.dims)) : 
-    #  xfield['area'] = xfield['area'].mean(dim=g)
-
     # if we are using a lon/lat regular grid reshape area_cell
     if 'lon' in list(xfield.dims) : 
         area_cell = area_cell.reshape([len(xfield['lon']), len(xfield['lat'])]).transpose() 
 
     # since we are using numpy need to bring them back into xarray dataset
     #xfield['area'].values = np.squeeze(area_cell)
+    print(area_cell.shape)
     xfield['area'] = (area_dims, area_cell)
 
     # check the total area
