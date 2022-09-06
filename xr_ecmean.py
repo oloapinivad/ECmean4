@@ -347,10 +347,10 @@ def _make_atm_areas(component, atmareafile) :
     "Create atmospheric weights for area operations"
     if component == 'oifs' : 
         xfield = xr.open_dataset(atmareafile)
-        area = area_cell(xfield)
+        area = _area_cell(xfield)
     elif component == 'cmoratm' :
         xfield = xr.open_mfdataset(atmareafile)
-        area = area_cell(xfield)
+        area = _area_cell(xfield)
     else :
         sys.exit("Area for this configuration cannot be handled!")
     return area
@@ -363,7 +363,7 @@ def _make_oce_areas(component, oceareafile) :
             if 'e1t' in xfield.data_vars : 
                 area = xfield['e1t']*xfield['e2t']
             else : 
-                area = area_cell(xfield)
+                area = _area_cell(xfield)
         elif component == 'cmoroce' :
             area = xr.open_mfdataset(oceareafile)['areacello']
         else :
@@ -400,7 +400,7 @@ def guess_bounds(axis, name = 'lon') :
     bounds = np.array([min_bounds, max_bounds]).transpose()
     return(bounds)
 
-def area_cell(xfield): 
+def _area_cell(xfield): 
     """Function which estimate the area cell from bounds. This is done assuming 
     trapezoidal shape of the grids - useful for reduced grids. 
     Working also on regular grids which does not have lon/lat bounds
@@ -489,7 +489,6 @@ def area_cell(xfield):
 
     # since we are using numpy need to bring them back into xarray dataset
     #xfield['area'].values = np.squeeze(area_cell)
-    print(area_cell.shape)
     xfield['area'] = (area_dims, area_cell)
 
     # check the total area
@@ -511,13 +510,13 @@ def eval_formula(mystring, xdataset):
     token = [i for i in re.split('(\W+)', mystring) if i ]
     if (len(token)>1) :
         # Use order of operations 
-        out = operation(token, xdataset)
+        out = _operation(token, xdataset)
     else :
         out = xdataset[token[0]]
     return out
     
 # core of the parsing operation, using dictionaries and operator package
-def operation(token, xdataset) : 
+def _operation(token, xdataset) : 
     """Parsing of the CDO-based function using operator package
     and an ad-hoc dictionary. Could be improved, working with four basic 
     operations only."""
