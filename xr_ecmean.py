@@ -366,7 +366,11 @@ def _make_oce_areas(component, oceareafile) :
             else : 
                 area = _area_cell(xfield)
         elif component == 'cmoroce' :
-            area = xr.open_mfdataset(oceareafile, preprocess=xr_preproc)['areacello']
+            xfield = xr.open_mfdataset(oceareafile, preprocess=xr_preproc)
+            if 'areacello' in xfield.data_vars : 
+                area = xfield['areacello']
+            else : 
+                area = _area_cell(xfield)
         else :
             sys.exit("Area for this configuration cannot be handled!")
     else :
@@ -393,7 +397,7 @@ def guess_bounds(axis, name = 'lon') :
     if name in 'lat': 
         max_bounds[-1] = 90
         min_bounds[0] = (-90)
-    if name in 'lev' :
+    if name in 'plev' :
         min_bounds[0] = 0
         max_bounds[-1] = 100000
 
@@ -421,15 +425,13 @@ def _area_cell(xfield):
         bounds_lat = np.column_stack((xfield['bounds_lat'].isel(nvertex=2), 
             xfield['bounds_lat'].isel(nvertex=3)))
         area_dims = 'cell'
-        #dlon = xfield['bounds_lon'].isel(nvertex=1) - xfield['bounds_lon'].isel(nvertex=2)
-        #dlat = xfield['bounds_lat'].isel(nvertex=2) - xfield['bounds_lat'].isel(nvertex=3)
-
+  
     # bounds available: cmor definition
     # direction of tiling is very weird, this has to be rearranged
     elif 'lon_bnds' in xfield.data_vars and 'lat_bnds' in xfield.data_vars :
 
          # logging 
-        logging.debug('lon/lat_bounds found...')
+        logging.debug('cmor lon/lat_bounds found...')
 
         # get bounds dimension
         dimslist = list(xfield.dims) 
@@ -462,9 +464,6 @@ def _area_cell(xfield):
 
         # all this is made with numpy, perhaps better to use xarray? 
         # should be improved, it is very clumsy
-        #print(list(xfield.coords))
-        #print(list(xfield.dims))
-
         if list(xfield.coords)[0] == 'lat' :
             bounds_lon = np.repeat(blon, len(xfield['lat']), axis = 0)
             bounds_lat = np.tile(blat.transpose(), len(xfield['lon'])).transpose()
@@ -486,9 +485,11 @@ def _area_cell(xfield):
     # trapezoid area
     area_cell = (arclon1 + arclon2) * arclat / 2
     
-    # if we are using a lon/lat regular grid reshape area_cell
-    if 'lon' in list(xfield.dims) : 
+    # if we are using a lon/lat regular grid reshape area_cell: it has to be improved
+    if 'lon' in list(xfield.dims)[0] : 
         area_cell = area_cell.reshape([len(xfield['lon']), len(xfield['lat'])])
+    elif 'lat' in list(xfield.dims)[0] : 
+        area_cell = area_cell.reshape([len(xfield['lat']), len(xfield['lon'])])
 
     # since we are using numpy need to bring them back into xarray dataset
     #xfield['area'].values = np.squeeze(area_cell)
@@ -508,7 +509,8 @@ def _area_cell(xfield):
 # there might exists something more intelligent as pyparsing package
 def eval_formula(mystring, xdataset):
     """Evaluate the cmd string provided by the yaml file
-    producing a parsing for the derived variables""" 
+    producing a parsing for the derived variables"""
+
     # Tokenize the original string
     token = [i for i in re.split('(\W+)', mystring) if i ]
     if (len(token)>1) :
@@ -520,7 +522,7 @@ def eval_formula(mystring, xdataset):
     
 # core of the parsing operation, using dictionaries and operator package
 def _operation(token, xdataset) : 
-    """Parsing of the CDO-based function using operator package
+    """Parsing of the CDO-based commands using operator package
     and an ad-hoc dictionary. Could be improved, working with four basic 
     operations only."""
     
@@ -566,7 +568,7 @@ def _operation(token, xdataset) :
 
 def remap_dictionary(component, atmareafile, oceareafile, target_grid) : 
     """Create a dicitionary with atmospheric and oceanic weights for 
-    interpolation. There is an option of fix grid before the real interpolation
+    interpolation. There is an option of fix grid before the real interpolation:
     this is used for gaussian reduced grids"""
 
     atmfix, atmremap = _make_atm_interp_weights(component['atm'], atmareafile, target_grid)
@@ -587,6 +589,7 @@ def remap_dictionary(component, atmareafile, oceareafile, target_grid) :
 
 def _make_atm_interp_weights(component, atmareafile, target_grid) :
     """"Create atmospheric interpolator"""
+
     if component == 'oifs':
 
         # this is to get lon and lat from the Equator
@@ -606,12 +609,20 @@ def _make_atm_interp_weights(component, atmareafile, target_grid) :
         interp = xe.Regridder(fix(xfield['tas']), target_grid, periodic = True, method = "bilinear")
 
     elif component == 'cmoratm':
-        sys.exit("Mask from cmor non defined yet mismatch, this cannot be handled!")
+        
+        fix = None
+        xfield = xr.open_mfdataset(atmareafile, preprocess=xr_preproc)
+        xname = list(xfield.data_vars)[-1]
+        interp = xe.Regridder(xfield[xname].load(), target_grid, periodic = True, method = "bilinear")
+
+    else : 
+        sys.exit("Atm weights not defined for this component, this cannot be handled!")
     
     return fix, interp
 
 def _make_oce_interp_weights(component, oceareafile, target_grid) :
-    """"Create atmospheric interpolator"""
+    """"Create oceanic interpolator weights"""
+
     if component == 'nemo':
         fix = None
         xfield = xr.open_dataset(oceareafile)
@@ -625,8 +636,16 @@ def _make_oce_interp_weights(component, oceareafile, target_grid) :
         # use grid distance as generic variable
         interp = xe.Regridder(xfield['e1t'], 
             target_grid, method = "bilinear", ignore_degenerate=True)
-    elif component == 'cmoratm':
-        sys.exit("Mask from cmor non defined yet mismatch, this cannot be handled!")
+    elif component == 'cmoroce':
+
+        fix = None
+        xfield = xr.open_mfdataset(oceareafile, preprocess=xr_preproc)
+        xname = list(xfield.data_vars)[-1]
+        interp = xe.Regridder(xfield[xname].load(), target_grid, method = "bilinear",
+            ignore_degenerate=True)
+
+    else : 
+        sys.exit("Oce weights not defined for this component, this cannot be handled!")
 
     return fix, interp
 
@@ -639,16 +658,27 @@ def xr_preproc(ds) :
     """Preprocessing functuon to adjust coordinate and dimensions
     names to a common format. To be called by xr.open_mf_dataset()"""
 
+    #print(ds)
     if 'time_counter' in list(ds.coords): 
         ds = ds.rename({"time_counter": "time"})
+
+    if 'pressure_level' in list(ds.coords): 
+        ds = ds.rename({"pressure_level": "plev"})
+
+    if 'nav_lon' in list(ds.coords): 
+        ds = ds.rename({"nav_lon": "lon"})
+
+    if 'nav_lat' in list(ds.coords): 
+        ds = ds.rename({"nav_lat": "lat"})
+
     return ds
 
 def adjust_clim_file(cfield, remove_zero = False) : 
     """Routine to fix file format of climatology"""
 
     # fix coordinates
-    org = ['LONGITUDE', 'LATITUDE', 'lev', 'plev']
-    new = ['lon', 'lat', 'pressure_levels', 'pressure_levels']
+    org = ['LONGITUDE', 'LATITUDE', 'lev']
+    new = ['lon', 'lat', 'plev']
     for o, n in zip(org, new) : 
         if o in cfield.coords : 
             cfield = cfield.rename({o: n})
@@ -657,14 +687,12 @@ def adjust_clim_file(cfield, remove_zero = False) :
     cname = list(cfield.data_vars)[-1]
     field = cfield[cname]
 
-    #print(field)
     if remove_zero : 
         field = field.where(field!=0)
-    #print(field)
     
     # convert vertical levels 
-    if 'pressure_levels' in cfield.coords :
-        field = field.metpy.convert_coordinate_units('pressure_levels', 'Pa')
+    if 'plev' in cfield.coords :
+        field = field.metpy.convert_coordinate_units('plev', 'Pa')
 
     return field
 
@@ -715,7 +743,6 @@ def units_converter(org_units, tgt_units):
 
     return offset, factor
 
-
 def units_are_integrals(org_units, ref_var):
     """Check functions for spatially integrated variables"""
     if 'total' in ref_var.keys():
@@ -723,7 +750,6 @@ def units_are_integrals(org_units, ref_var):
     else:
         new_units = org_units
     return new_units
-
 
 def directions_match(org, dst):
     """Check function for fluxes direction: they should match. Default is down"""

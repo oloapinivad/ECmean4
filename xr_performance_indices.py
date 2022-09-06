@@ -123,8 +123,8 @@ def pi_worker(util, piclim, face, diag, field_3d, varstat, varlist):
 
 
             xfield = xr.open_mfdataset(infile, preprocess=xr_preproc)
-            if vdom in 'oce' : 
-                xfield = xfield.rename({"nav_lon": "lon", "nav_lat": "lat"})
+            #if vdom in 'oce' : 
+            #    xfield = xfield.rename({"nav_lon": "lon", "nav_lat": "lat"})
 
             if 'derived' in face['variables'][var].keys():
                 cmd = face['variables'][var]['derived']
@@ -152,20 +152,21 @@ def pi_worker(util, piclim, face, diag, field_3d, varstat, varlist):
 
             if var in field_3d:
                 
-                # xarray interpolation on pressure_levels
-                interped = final.interp(pressure_levels = cfield['pressure_levels'].values)
+                # xarray interpolation on plev, forcing to be in Pascal
+                final = final.metpy.convert_coordinate_units('plev', 'Pa')
+                interped = final.interp(plev = cfield['plev'].values)
                 zonal = interped.mean(dim = 'lon')
 
                 # compute PI
                 complete = (zonal - cfield)**2 / vfield
 
                 # compute vertical bounds as weights
-                bounds_lev = guess_bounds(complete['pressure_levels'], name = 'lev')
+                bounds_lev = guess_bounds(complete['plev'], name = 'plev')
                 bounds = abs(bounds_lev[:,0] - bounds_lev[:,1])
-                weights = xr.DataArray(bounds, coords=[complete['pressure_levels']], dims=['pressure_levels'])
+                weights = xr.DataArray(bounds, coords=[complete['plev']], dims=['plev'])
                 
                 # vertical mean
-                outarray = complete.weighted(weights).mean(dim = 'pressure_levels')
+                outarray = complete.weighted(weights).mean(dim = 'plev')
 
             else :
 
@@ -218,15 +219,18 @@ def main(argv):
     comp = face['model']['component']  # Get component for each domain
     
     maskatmfile, atmareafile, oceareafile = get_inifiles(face, diag)
+    #print(oceareafile)
 
     # all clim have the same grid, read from the first clim available
     clim, vvvv = get_clim_files(piclim, 'tas', diag)
+    #print(clim)
   
     # create util dictionary including mask and weights for both atmosphere and ocean grids
     util = util_dictionary(comp, maskatmfile, clim, clim)
 
     # on which grid interpolate? read from climatology grid
     target_grid = xr.open_dataset(clim).coords
+
 
     # create remap dictionary with atm and oce interpolators
     remap = remap_dictionary(comp, atmareafile, oceareafile, target_grid)
