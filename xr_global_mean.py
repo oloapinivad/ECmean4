@@ -22,14 +22,15 @@ from time import time
 from tabulate import tabulate
 import numpy as np
 import xarray as xr
-import dask
+
 from xr_ecmean import var_is_there, eval_formula, \
     util_dictionary, get_inifiles, load_yaml, \
     units_extra_definition, units_are_integrals, \
     units_converter, directions_match, chunks, write_tuning_table, \
     Diagnostic, getdomain, make_input_filename, masked_meansum
-
+import dask
 dask.config.set(scheduler="synchronous")
+
 
 def parse_arguments(args):
     """Parse CLI arguments for global mean"""
@@ -125,6 +126,9 @@ def gm_worker(util, ref, face, diag, varmean, vartrend, varlist):
 
                 infile = make_input_filename(var, dervars, year, year, face, diag)
                 xfield = xr.open_mfdataset(infile)
+
+                # time selection for longer dataset!
+                xfield = xfield.sel(time=(xfield.time.dt.year == year))
                 #print(xfield)
                 #ffield = xr.open_mfdataset(infile)
                 #print(ffield)

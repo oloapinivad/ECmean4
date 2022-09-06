@@ -92,7 +92,7 @@ def chunks(iterable, num):
     return iter(lambda: tuple(itertools.islice(it, size)), ())
 
 def getdomain(var, face):
-    """Given a variable var extract its domain (ace or atm) from the interface.
+    """Given a variable var extract its domain (oce or atm) from the interface.
        To do so it creates a dictionary providing the domain associated with a component.
        (the interface file specifies the component for each domain instead)"""
     comp = face['filetype'][face['variables'][var]['filetype']]['component']
@@ -112,12 +112,10 @@ def getcomponent(face):  # unused function
 # FILE FUNCTIONS #
 ##################
 
-def var_is_there(infile, var, reference):
+def var_is_there(flist, var, reference):
     """Check if a variable is available in the input file and provide its units."""
 
-    # we want a list to use mfdataset
-    flist = infile
-
+    # we expect a list obtained by glob
     isavail = True
     for f in flist:
         isavail = isavail and os.path.isfile(f)
@@ -134,7 +132,7 @@ def var_is_there(infile, var, reference):
                 k = "None"
             units_avail[i] = k
 
-          # if variable is derived, extract required vars
+        # if variable is derived, extract required vars
         d = reference[var].get('derived')
         if d:
             var_req = re.split('[*+-]', d)
@@ -162,8 +160,8 @@ def var_is_there(infile, var, reference):
                                 "available in the model output!", x, var)
     else:
         varunit = None
-        print(f'Not available: {var} File: {infile}')
-        logging.warning("Requested file %s is not available.", infile)
+        print(f'Not available: {var} File: {flist}')
+        logging.warning("Requested file %s is not available.", flist)
 
     return isavail, varunit
 
@@ -229,6 +227,7 @@ def get_inifiles(face, diag):
 def _expand_filename(fn, var, year1, year2, diag):
     """Expands a path (filename or dir) for var, expname, frequency, ensemble etc. and
        environment variables."""
+
     return Path(str(os.path.expandvars(fn)).format(
         expname=diag.expname,
         year1=year1,
@@ -300,7 +299,6 @@ def masked_meansum(xfield, var, weights, mask_type, mask):
     #use generator expression
     for g in (t for t in ['time', 'time_counter'] if t in list(xfield.dims)) : 
         tfield = xfield.mean(dim=g).to_dataset(name = var)
-    #tfield = xfield.mean(dim='time_counter').to_dataset(name = var)
 
     if mask_type == 'land':   
         tfield['mask'] = (tuple(tfield.coords), mask.values)
@@ -343,9 +341,6 @@ def _make_atm_masks(component, maskatmfile):
     else : 
         sys.exit("Mask undefined yet mismatch, this cannot be handled!")
 
-        #self.LANDMASK = self.cdo.selname('sftlf',
-        #                                     input=f'-gec,50 {extra} {self.atmfix} {atminifile}')
-        #    self.SEAMASK = self.cdo.mulc('-1', input=f'-subc,1 {self.LANDMASK}')
     return mask
 
 def _make_atm_areas(component, atmareafile) : 
@@ -412,10 +407,12 @@ def area_cell(xfield):
     via the guess_bounds function"""    
 
     Earth_Radius = 6371000.
-    xfield['area'] = xfield[list(xfield.data_vars)[-1]]
     
     # bounds available: EC-Earth4 definition
     if 'bounds_lon' in xfield.data_vars and 'bounds_lat' in xfield.data_vars :
+
+        # logging 
+        logging.debug('bounds_lon/lat found...')
 
         # the assumption of the vertex position is absolutely random, need to generalized
         bounds_lon = np.column_stack((xfield['bounds_lon'].isel(nvertex=1), 
@@ -428,7 +425,20 @@ def area_cell(xfield):
     # bounds available: cmor definition
     # direction of tiling is very weird, this has to be rearranged
     if 'lon_bnds' in xfield.data_vars and 'lat_bnds' in xfield.data_vars :
-        
+
+         # logging 
+        logging.debug('lon/lat_bounds found...')
+
+        # get bounds dimension
+        dimslist = list(xfield.dims) 
+
+        # if it is not called bnds, rename it
+        if 'bnds' not in  dimslist : 
+            logging.debug('bnds not found, renaming it...')         
+            for g in (t for t in list(xfield.dims) if t not in ['lon', 'lat', 'time']) : 
+                bdim = g
+            xfield = xfield.rename_dims({bdim: "bnds"})
+    
         blon = np.column_stack((xfield['lon_bnds'].isel(bnds=0), 
             xfield['lon_bnds'].isel(bnds=1)))
         blat = np.column_stack((xfield['lat_bnds'].isel(bnds=0), 
@@ -441,11 +451,21 @@ def area_cell(xfield):
     # direction of tiling is very weird, this has to be rearranged
     else :
 
-        # all this is made with numpy, perhaps better to use xarray?
+        # logging 
+        logging.debug('no bounds found, guessing area cell...')
+        
         blon = guess_bounds(xfield['lon'], name = 'lon')
-        bounds_lon = np.tile(blon.transpose(), len(xfield['lat'])).transpose()
         blat =  guess_bounds(xfield['lat'], name = 'lat')
-        bounds_lat = np.repeat(blat, len(xfield['lon']), axis = 0)
+
+        # all this is made with numpy, perhaps better to use xarray? 
+        # should be improved, it is very clumsy
+        if list(xfield.coords)[0] == 'lat' :
+            bounds_lon = np.repeat(blon, len(xfield['lat']), axis = 0)
+            bounds_lat = np.tile(blat.transpose(), len(xfield['lon'])).transpose()
+        elif list(xfield.coords)[0] == 'lon' :
+            
+            bounds_lon = np.tile(blon.transpose(), len(xfield['lat'])).transpose()
+            bounds_lat = np.repeat(blat, len(xfield['lon']), axis = 0)
 
     # cell dimension
     dlon = abs(bounds_lon[:,0] - bounds_lon[:,1])
@@ -466,9 +486,13 @@ def area_cell(xfield):
     # if we are using a lon/lat regular grid reshape area_cell
     if 'lon' in list(xfield.dims) : 
         area_cell = area_cell.reshape([len(xfield['lon']), len(xfield['lat'])]).transpose() 
-        
+
     # since we are using numpy need to bring them back into xarray dataset
-    xfield['area'].values = np.squeeze(area_cell)
+    #xfield['area'].values = np.squeeze(area_cell)
+    xfield['area'] = (('lat', 'lon'), area_cell)
+
+    # check the total area
+    logging.debug('Total Earth Surface: ' + str(xfield['area'].sum().values/10**6) + ' Km2')
 
     return xfield['area']
 
@@ -703,7 +727,6 @@ def directions_match(org, dst):
 ####################
 # OUTPUT FUNCTIONS #
 ####################
-
 
 def write_tuning_table(linefile, varmean, var_table, diag, ref):
     """Write results appending one line to a text file.
