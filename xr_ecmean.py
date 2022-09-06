@@ -301,10 +301,10 @@ def masked_meansum(xfield, var, weights, mask_type, mask):
         tfield = xfield.mean(dim=g).to_dataset(name = var)
 
     if mask_type == 'land':   
-        tfield['mask'] = (tuple(tfield.coords), mask.values)
+        tfield['mask'] = (tuple(tfield.dims), mask.values)
         out = tfield[var].where(tfield['mask'] >= 0.5).weighted(weights).sum().values
     elif mask_type in ['sea', 'ocean']:
-        tfield['mask'] = (tuple(tfield.coords), mask.values)
+        tfield['mask'] = (tuple(tfield.dims), mask.values)
         out = tfield[var].where(tfield['mask'] < 0.5).weighted(weights).sum().values
     else:
         out = tfield[var].weighted(weights.fillna(0)).mean().values
@@ -419,12 +419,13 @@ def area_cell(xfield):
             xfield['bounds_lon'].isel(nvertex=2)))
         bounds_lat = np.column_stack((xfield['bounds_lat'].isel(nvertex=2), 
             xfield['bounds_lat'].isel(nvertex=3)))
+        area_dims = 'cell'
         #dlon = xfield['bounds_lon'].isel(nvertex=1) - xfield['bounds_lon'].isel(nvertex=2)
         #dlat = xfield['bounds_lat'].isel(nvertex=2) - xfield['bounds_lat'].isel(nvertex=3)
 
     # bounds available: cmor definition
     # direction of tiling is very weird, this has to be rearranged
-    if 'lon_bnds' in xfield.data_vars and 'lat_bnds' in xfield.data_vars :
+    elif 'lon_bnds' in xfield.data_vars and 'lat_bnds' in xfield.data_vars :
 
          # logging 
         logging.debug('lon/lat_bounds found...')
@@ -443,6 +444,7 @@ def area_cell(xfield):
             xfield['lon_bnds'].isel(bnds=1)))
         blat = np.column_stack((xfield['lat_bnds'].isel(bnds=0), 
             xfield['lat_bnds'].isel(bnds=1)))
+        area_dims = ('lon', 'lat')
 
         bounds_lon = np.repeat(blon, len(xfield['lat']), axis = 0)
         bounds_lat = np.tile(blat.transpose(), len(xfield['lon'])).transpose()
@@ -455,12 +457,15 @@ def area_cell(xfield):
         logging.debug('no bounds found, guessing area cell...')
         
         blon = guess_bounds(xfield['lon'], name = 'lon')
-        blat =  guess_bounds(xfield['lat'], name = 'lat')
+        blat = guess_bounds(xfield['lat'], name = 'lat')
+        area_dims = ('lon', 'lat')
 
         # all this is made with numpy, perhaps better to use xarray? 
         # should be improved, it is very clumsy
+
         if list(xfield.coords)[0] == 'lat' :
             bounds_lon = np.repeat(blon, len(xfield['lat']), axis = 0)
+            print(bounds_lon)
             bounds_lat = np.tile(blat.transpose(), len(xfield['lon'])).transpose()
         elif list(xfield.coords)[0] == 'lon' :
             
@@ -480,8 +485,8 @@ def area_cell(xfield):
     area_cell = (arclon1 + arclon2) * arclat / 2
     
     #use generator expression to remove time dependency
-    for g in (t for t in ['time', 'time_counter'] if t in list(xfield.dims)) : 
-        xfield['area'] = xfield['area'].mean(dim=g)
+    #for g in (t for t in ['time', 'time_counter'] if t in list(xfield.dims)) : 
+    #  xfield['area'] = xfield['area'].mean(dim=g)
 
     # if we are using a lon/lat regular grid reshape area_cell
     if 'lon' in list(xfield.dims) : 
@@ -489,7 +494,7 @@ def area_cell(xfield):
 
     # since we are using numpy need to bring them back into xarray dataset
     #xfield['area'].values = np.squeeze(area_cell)
-    xfield['area'] = (('lat', 'lon'), area_cell)
+    xfield['area'] = (area_dims, area_cell)
 
     # check the total area
     logging.debug('Total Earth Surface: ' + str(xfield['area'].sum().values/10**6) + ' Km2')

@@ -128,10 +128,10 @@ def gm_worker(util, ref, face, diag, varmean, vartrend, varlist):
                 xfield = xr.open_mfdataset(infile)
 
                 # time selection for longer dataset!
-                xfield = xfield.sel(time=(xfield.time.dt.year == year))
-                #print(xfield)
-                #ffield = xr.open_mfdataset(infile)
-                #print(ffield)
+                if 'time' in list(xfield.coords) :
+                    xfield = xfield.sel(time=(xfield.time.dt.year == year))
+                elif 'time_counter' in list(xfield.coords) :
+                    xfield = xfield.sel(time_counter=(xfield.time_counter.dt.year == year))
                 if 'derived' in face['variables'][var].keys():
                     cmd = face['variables'][var]['derived']
                     outfield = eval_formula(cmd, xfield)
