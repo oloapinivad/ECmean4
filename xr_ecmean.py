@@ -421,7 +421,7 @@ def _area_cell(xfield, formula = 'square') :
     Earth_Radius = 6371000.
 
     # some check to starts
-    if all(x in xfield.coords for x in ['lon', 'lat']): 
+    if all(x in xfield.dims for x in ['lon', 'lat']): 
         logging.debug('Regulard grid recognized..')
         regular_grid=True
     else :
@@ -436,12 +436,16 @@ def _area_cell(xfield, formula = 'square') :
     # this is a nightmare, so far working only for ECE4 gaussian reduced
     if not regular_grid :
         
+        logging.debug('Unstructured grid, special ECE4 treatment...')
         # the assumption of the vertex position is absolutely random, need to generalized
         bounds_lon = np.column_stack((xfield['bounds_lon'].isel(nvertex=1), 
             xfield['bounds_lon'].isel(nvertex=2)))
         bounds_lat = np.column_stack((xfield['bounds_lat'].isel(nvertex=2), 
             xfield['bounds_lat'].isel(nvertex=3)))
         area_dims = 'cell'
+        # set full lat
+        full_lat = xfield['lat'].values
+
 
     # if we are dealing with a regular grid
     if regular_grid :
@@ -478,6 +482,7 @@ def _area_cell(xfield, formula = 'square') :
             xfield['lon_bnds'].isel(bnds=1)))
         blat = np.column_stack((xfield['lat_bnds'].isel(bnds=0), 
             xfield['lat_bnds'].isel(bnds=1)))
+        full_lat = np.repeat(xfield['lat'].values, len(xfield['lon']), axis = 0)
 
         # 2d matrix of bounds
         expansion = np.array([(y,x) for y in blat for x in blon])
@@ -495,7 +500,6 @@ def _area_cell(xfield, formula = 'square') :
         arclon1 =  Earth_Radius * abs(np.cos(abs(np.deg2rad(bounds_lat[:,0])))) * np.deg2rad(dlon)
         arclon2 =  Earth_Radius * abs(np.cos(abs(np.deg2rad(bounds_lat[:,1])))) * np.deg2rad(dlon)
     if formula == 'square' : 
-        full_lat = np.repeat(xfield['lat'].values, len(xfield['lon']), axis = 0)
         arclon1 = arclon2 = Earth_Radius * abs(np.cos(abs(np.deg2rad(full_lat)))) * np.deg2rad(dlon)
 
 
