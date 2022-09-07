@@ -405,94 +405,109 @@ def guess_bounds(axis, name = 'lon') :
     bounds = np.array([min_bounds, max_bounds]).transpose()
     return(bounds)
 
-def _area_cell(xfield): 
+def _area_cell(xfield, formula = 'square') : 
     """Function which estimate the area cell from bounds. This is done assuming 
-    trapezoidal shape of the grids - useful for reduced grids. 
+    trapezoidal or squared shape of the grids (can be useful for reduced grids_. 
     Working also on regular grids which does not have lon/lat bounds
-    via the guess_bounds function"""   
+    via the guess_bounds function. Unstructured grids are not supported. 
+    
+    Args: 
+    xfield: a generic xarray dataset
+    formula: square or trapezoid equation for the area cell
+    
+    Returns:
+    An xarray dataarray with the area for each grid point"""   
 
     Earth_Radius = 6371000.
-    
-    # bounds available: EC-Earth4 definition
-    if 'bounds_lon' in xfield.data_vars and 'bounds_lat' in xfield.data_vars :
 
-        # logging 
-        logging.debug('bounds_lon/lat found...')
+    # some check to starts
+    if all(x in xfield.coords for x in ['lon', 'lat']): 
+        logging.debug('Regulard grid recognized..')
+        regular_grid=True
+    else :
+        regular_grid=False
 
+    if all(x in xfield.data_vars for x in ['lon_bnds', 'lat_bnds']): 
+        logging.debug('cmor lon/lat_bounds found...')
+        cmor_bounds=True
+    else :
+        cmor_bounds=False
+
+    # this is a nightmare, so far working only for ECE4 gaussian reduced
+    if not regular_grid :
+        
         # the assumption of the vertex position is absolutely random, need to generalized
         bounds_lon = np.column_stack((xfield['bounds_lon'].isel(nvertex=1), 
             xfield['bounds_lon'].isel(nvertex=2)))
         bounds_lat = np.column_stack((xfield['bounds_lat'].isel(nvertex=2), 
             xfield['bounds_lat'].isel(nvertex=3)))
         area_dims = 'cell'
-  
-    # bounds available: cmor definition
-    # direction of tiling is very weird, this has to be rearranged
-    elif 'lon_bnds' in xfield.data_vars and 'lat_bnds' in xfield.data_vars :
 
-         # logging 
-        logging.debug('cmor lon/lat_bounds found...')
+    # if we are dealing with a regular grid
+    if regular_grid :
 
-        # get bounds dimension
-        dimslist = list(xfield.dims) 
+        # if we have bounds, just check they have the right dimensions names
+        if cmor_bounds : 
 
-        # if it is not called bnds, rename it
-        if 'bnds' not in  dimslist : 
-            logging.debug('bnds not found, renaming it...')         
-            for g in (t for t in list(xfield.dims) if t not in ['lon', 'lat', 'time']) : 
-                bdim = g
-            xfield = xfield.rename_dims({bdim: "bnds"})
-    
+             # if dimension is not called bnds, rename it
+            if 'bnds' not in  list(xfield.dims) : 
+                print('bnds not found, renaming it...')         
+                for g in (t for t in list(xfield.dims) if t not in ['lon', 'lat', 'time']) : 
+                    bdim = g
+                xfield = xfield.rename_dims({bdim: "bnds"})
+
+        # else use guess_bounds() and expand the xarray dataset including them
+        if not cmor_bounds : 
+
+            logging.debug('Bounds estimation from lon/lat...')
+            # create and xarray dataset which the boundaries
+            xbounds = xr.Dataset(
+                data_vars = dict(
+                    lat_bnds= (('lat', 'bnds'), guess_bounds(xfield['lat'], name = 'lat')), 
+                    lon_bnds= (('lon', 'bnds'), guess_bounds(xfield['lon'], name = 'lon'))
+                ),
+                coords = dict(
+                    lat = ('lat', xfield['lat'].values),
+                    lon = ('lon', xfield['lon'].values)
+                )
+            )
+            xfield = xfield.merge(xbounds)
+
+        # create numpy array
         blon = np.column_stack((xfield['lon_bnds'].isel(bnds=0), 
             xfield['lon_bnds'].isel(bnds=1)))
         blat = np.column_stack((xfield['lat_bnds'].isel(bnds=0), 
             xfield['lat_bnds'].isel(bnds=1)))
+
+        # 2d matrix of bounds
+        expansion = np.array([(y,x) for y in blat for x in blon])
+        bounds_lon = expansion[:,1,:]
+        bounds_lat = expansion[:,0,:]
         area_dims = ('lat', 'lon')
-
-        bounds_lon = np.repeat(blon, len(xfield['lat']), axis = 0)
-        bounds_lat = np.tile(blat.transpose(), len(xfield['lon'])).transpose()
-
-    # no bounds defined, using lon/lat estimation
-    # direction of tiling is very weird, this has to be rearranged
-    else :
-
-        # logging 
-        logging.debug('no bounds found, guessing area cell...')
-        
-        blon = guess_bounds(xfield['lon'], name = 'lon')
-        blat = guess_bounds(xfield['lat'], name = 'lat')
-
-        # all this is made with numpy, perhaps better to use xarray? 
-        # should be improved, it is very clumsy
-        if list(xfield.coords)[0] == 'lat' :
-            bounds_lon = np.repeat(blon, len(xfield['lat']), axis = 0)
-            bounds_lat = np.tile(blat.transpose(), len(xfield['lon'])).transpose()
-            area_dims = ('lat', 'lon')
-        elif list(xfield.coords)[0] == 'lon' :    
-            bounds_lon = np.tile(blon.transpose(), len(xfield['lat'])).transpose()
-            bounds_lat = np.repeat(blat, len(xfield['lon']), axis = 0)
-            area_dims = ('lon', 'lat')
-
+    
     # cell dimension
     dlon = abs(bounds_lon[:,0] - bounds_lon[:,1])
     dlat = abs(bounds_lat[:,0] - bounds_lat[:,1])
 
-    # safe check on cosine of 90: estimate the trapezoid
-    arclon1 =  Earth_Radius * abs(np.cos(abs(np.deg2rad(bounds_lat[:,0])))) * np.deg2rad(dlon)
-    arclon2 =  Earth_Radius * abs(np.cos(abs(np.deg2rad(bounds_lat[:,1])))) * np.deg2rad(dlon)
+    # safe check on cosine of 90 included: 
+    # assume a trapezoid or a squared cell (the latter is very close to CDO gridarea)
+    if formula == 'trapezoid' :
+        arclon1 =  Earth_Radius * abs(np.cos(abs(np.deg2rad(bounds_lat[:,0])))) * np.deg2rad(dlon)
+        arclon2 =  Earth_Radius * abs(np.cos(abs(np.deg2rad(bounds_lat[:,1])))) * np.deg2rad(dlon)
+    if formula == 'square' : 
+        full_lat = np.repeat(xfield['lat'].values, len(xfield['lon']), axis = 0)
+        arclon1 = arclon2 = Earth_Radius * abs(np.cos(abs(np.deg2rad(full_lat)))) * np.deg2rad(dlon)
+
+
     arclat = Earth_Radius * np.deg2rad(dlat)
 
     # trapezoid area
     area_cell = (arclon1 + arclon2) * arclat / 2
     
-    # if we are using a lon/lat regular grid reshape area_cell: it has to be improved
-    if 'lon' in list(xfield.dims)[0] : 
-        area_cell = area_cell.reshape([len(xfield['lon']), len(xfield['lat'])])
-    elif 'lat' in list(xfield.dims)[0] : 
+    if regular_grid :
         area_cell = area_cell.reshape([len(xfield['lat']), len(xfield['lon'])])
 
     # since we are using numpy need to bring them back into xarray dataset
-    #xfield['area'].values = np.squeeze(area_cell)
     xfield['area'] = (area_dims, area_cell)
 
     # check the total area
