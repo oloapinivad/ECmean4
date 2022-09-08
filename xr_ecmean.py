@@ -405,7 +405,38 @@ def guess_bounds(axis, name = 'lon') :
     bounds = np.array([min_bounds, max_bounds]).transpose()
     return(bounds)
 
-def _area_cell(xfield, formula = 'square') : 
+def _lonlat_to_sphere(lon, lat) :
+    """Convert from lon lat coordinates to a 3d sphere of unity radius"""
+    vec = np.array([
+        np.cos(np.deg2rad(lon))*np.cos(np.deg2rad(lat)),
+        np.sin(np.deg2rad(lon))*np.cos(np.deg2rad(lat)),
+        np.sin(np.deg2rad(lat))
+    ])
+    return(vec)
+
+def _huilier(a, b, c) : 
+    """Apply the huilier theorem giving three side of the pyramid"""
+    # More info at https://mathworld.wolfram.com/LHuiliersTheorem.html
+    s = (a+b+c)*0.5
+    t = np.tan(s * 0.5) * np.tan((s - a) * 0.5) * np.tan((s - b) * 0.5) * np.tan((s - c) * 0.5)
+    area = abs(4. * np.arctan(np.sqrt(abs(t))))
+    return(area)
+
+def _vector_spherical_triangle(p1, p2, p3) :  
+    """Given the coordinates of three points on a sphere, estimate the length of their vectors
+    a,b,c connecting to the centre of the spere. Then using L'Huilier formula derive the 3D angle 
+    among the three vectors, which be used to estimate the surface of the corresponding spherical
+    triangle. """
+    # This is inspired by CDO code found at https://code.mpimet.mpg.de/projects/cdo/repository/cdo/revisions/331ab3f7fd18295cf6a433fb799034c7589a4a61/entry/src/grid_area.cc"""
+    # the loop on a,b,c is very slow due to the presence of the cross product. It needs to be vectorized.
+    a = np.array([ np.arcsin(np.linalg.norm(np.cross(p1[i,:],p2[i,:]))) for i in range(p1.shape[0])])
+    b = np.array([ np.arcsin(np.linalg.norm(np.cross(p1[i,:],p3[i,:]))) for i in range(p1.shape[0])])
+    c = np.array([ np.arcsin(np.linalg.norm(np.cross(p3[i,:],p2[i,:]))) for i in range(p1.shape[0])])
+    area = _huilier(a,b,c)
+
+    return area
+
+def _area_cell(xfield, formula = 'squares') : 
     """Function which estimate the area cell from bounds. This is done assuming 
     trapezoidal or squared shape of the grids (can be useful for reduced grids_. 
     Working also on regular grids which does not have lon/lat bounds
@@ -413,7 +444,9 @@ def _area_cell(xfield, formula = 'square') :
     
     Args: 
     xfield: a generic xarray dataset
-    formula: square or trapezoid equation for the area cell
+    formula: 'squares' or 'trapezoids' or 'triangles' equation for the area cell
+        'squares' is the default, 'triangles' uses the spherical triangles - same as 
+        used by CDO - but currently due to lack of vectorization is terribly slow
     
     Returns:
     An xarray dataarray with the area for each grid point"""   
@@ -491,22 +524,31 @@ def _area_cell(xfield, formula = 'square') :
         area_dims = ('lat', 'lon')
     
     # cell dimension
-    dlon = abs(bounds_lon[:,0] - bounds_lon[:,1])
-    dlat = abs(bounds_lat[:,0] - bounds_lat[:,1])
+    if formula == "triangles" :
+        p1 = _lonlat_to_sphere(bounds_lon[:, 0],bounds_lat[:, 0]).transpose()
+        p2 = _lonlat_to_sphere(bounds_lon[:, 0],bounds_lat[:, 1]).transpose()
+        p3 = _lonlat_to_sphere(bounds_lon[:, 1],bounds_lat[:, 1]).transpose()
+        p4 = _lonlat_to_sphere(bounds_lon[:, 1],bounds_lat[:, 0]).transpose()
+        area_cell = _vector_spherical_triangle(p1,p2,p3) +  _vector_spherical_triangle(p1,p4,p3)
+        area_cell = area_cell * Earth_Radius**2
+    else : 
+        # cell dimension
+        dlon = abs(bounds_lon[:,0] - bounds_lon[:,1])
+        dlat = abs(bounds_lat[:,0] - bounds_lat[:,1])
 
-    # safe check on cosine of 90 included: 
-    # assume a trapezoid or a squared cell (the latter is very close to CDO gridarea)
-    if formula == 'trapezoid' :
-        arclon1 =  Earth_Radius * abs(np.cos(abs(np.deg2rad(bounds_lat[:,0])))) * np.deg2rad(dlon)
-        arclon2 =  Earth_Radius * abs(np.cos(abs(np.deg2rad(bounds_lat[:,1])))) * np.deg2rad(dlon)
-    if formula == 'square' : 
-        arclon1 = arclon2 = Earth_Radius * abs(np.cos(abs(np.deg2rad(full_lat)))) * np.deg2rad(dlon)
+        # safe check on cosine of 90 included: 
+        # assume a trapezoid or a squared cell
+        if formula == 'trapezoids' :
+            arclon1 =  Earth_Radius * abs(np.cos(abs(np.deg2rad(bounds_lat[:,0])))) * np.deg2rad(dlon)
+            arclon2 =  Earth_Radius * abs(np.cos(abs(np.deg2rad(bounds_lat[:,1])))) * np.deg2rad(dlon)
+        if formula == 'squares' : 
+            full_lat = np.repeat(xfield['lat'].values, len(xfield['lon']), axis = 0)
+            arclon1 = arclon2 = Earth_Radius * abs(np.cos(abs(np.deg2rad(full_lat)))) * np.deg2rad(dlon)
 
+        arclat = Earth_Radius * np.deg2rad(dlat)
 
-    arclat = Earth_Radius * np.deg2rad(dlat)
-
-    # trapezoid area
-    area_cell = (arclon1 + arclon2) * arclat / 2
+        # trapezoid area
+        area_cell = (arclon1 + arclon2) * arclat / 2
     
     if regular_grid :
         area_cell = area_cell.reshape([len(xfield['lat']), len(xfield['lon'])])
@@ -655,6 +697,7 @@ def _make_oce_interp_weights(component, oceareafile, target_grid) :
         # use grid distance as generic variable
         interp = xe.Regridder(xfield['e1t'], 
             target_grid, method = "bilinear", ignore_degenerate=True)
+        
     elif component == 'cmoroce':
 
         fix = None
