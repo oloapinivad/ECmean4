@@ -378,7 +378,7 @@ def _make_oce_areas(component, oceareafile) :
     return area
 
 def guess_bounds(axis, name = 'lon') : 
-    #inspired by https://gist.github.com/dennissergeev/60bf7b03443f1b2c8eb96ce0b1880150
+    # inspired by https://gist.github.com/dennissergeev/60bf7b03443f1b2c8eb96ce0b1880150
     """Basic function that estimates the boundaries for lon and lat if they are not
     available. Works only with regular grids. 
     It also avoid having values larger than 90N/90S as well as 0 and 10^5 Pa"""
@@ -415,7 +415,8 @@ def _lonlat_to_sphere(lon, lat) :
     return(vec)
 
 def _huilier(a, b, c) : 
-    """Apply the huilier theorem giving three side of the pyramid"""
+    """Apply the L'Huilier theorem from the three side of the spherical triangle obtaining
+    the spherical excess, i.e. the solid angle of the triangle, i.e. the area of the spherical surface"""
     # More info at https://mathworld.wolfram.com/LHuiliersTheorem.html
     s = (a+b+c)*0.5
     t = np.tan(s * 0.5) * np.tan((s - a) * 0.5) * np.tan((s - b) * 0.5) * np.tan((s - c) * 0.5)
@@ -424,29 +425,32 @@ def _huilier(a, b, c) :
 
 def _vector_spherical_triangle(p1, p2, p3) :  
     """Given the coordinates of three points on a sphere, estimate the length of their vectors
-    a,b,c connecting to the centre of the spere. Then using L'Huilier formula derive the 3D angle 
-    among the three vectors, which be used to estimate the surface of the corresponding spherical
-    triangle. """
-    # This is inspired by CDO code found at https://code.mpimet.mpg.de/projects/cdo/repository/cdo/revisions/331ab3f7fd18295cf6a433fb799034c7589a4a61/entry/src/grid_area.cc"""
-    # the loop on a,b,c is very slow due to the presence of the cross product. It needs to be vectorized.
-    a = np.array([ np.arcsin(np.linalg.norm(np.cross(p1[i,:],p2[i,:]))) for i in range(p1.shape[0])])
-    b = np.array([ np.arcsin(np.linalg.norm(np.cross(p1[i,:],p3[i,:]))) for i in range(p1.shape[0])])
-    c = np.array([ np.arcsin(np.linalg.norm(np.cross(p3[i,:],p2[i,:]))) for i in range(p1.shape[0])])
+    a,b,c connecting to the centre of the spere. Then using L'Huilier formula derive the solid angle 
+    among the three vectors, which is multiplied by squared Earth Radius is
+    exactly the surface of the corresponding spherical triangle. """
+    # This is inspired by CDO code found at 
+    # https://code.mpimet.mpg.de/projects/cdo/repository/cdo/revisions/331ab3f7fd18295cf6a433fb799034c7589a4a61/entry/src/grid_area.cc
+
+    a = np.arcsin(np.linalg.norm(np.cross(p1,p2),axis=1))
+    b = np.arcsin(np.linalg.norm(np.cross(p1,p3),axis=1)) 
+    c = np.arcsin(np.linalg.norm(np.cross(p3,p2),axis=1))
+
     area = _huilier(a,b,c)
 
     return area
 
-def _area_cell(xfield, formula = 'squares') : 
+def _area_cell(xfield, formula = 'triangles') : 
     """Function which estimate the area cell from bounds. This is done assuming 
-    trapezoidal or squared shape of the grids (can be useful for reduced grids_. 
+    making use of spherical triangels. 
     Working also on regular grids which does not have lon/lat bounds
-    via the guess_bounds function. Unstructured grids are not supported. 
+    via the guess_bounds function. Unstructured grids are not supported,
+    especially if with more with more than 4 vertices are not supported. 
     
     Args: 
     xfield: a generic xarray dataset
     formula: 'squares' or 'trapezoids' or 'triangles' equation for the area cell
-        'squares' is the default, 'triangles' uses the spherical triangles - same as 
-        used by CDO - but currently due to lack of vectorization is terribly slow
+        'triangles' is the default, uses the spherical triangles - same as 
+        used by CDO - and it is very accurate
     
     Returns:
     An xarray dataarray with the area for each grid point"""   
