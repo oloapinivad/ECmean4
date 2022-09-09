@@ -1,4 +1,4 @@
 __pycache__/
 config.yml
 test/table/*.txt
-docs/sphinx/build/html/*
+docs/sphinx/build/html/

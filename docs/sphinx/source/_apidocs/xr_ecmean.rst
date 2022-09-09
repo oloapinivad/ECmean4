@@ -1,5 +1,5 @@
-ecmean module
-=============
+xr_ecmean module
+================
 
 .. automodule:: xr_ecmean
    :members:
