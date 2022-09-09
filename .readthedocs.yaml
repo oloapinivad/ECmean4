@@ -21,13 +21,18 @@ build:
 sphinx:
    configuration: docs/sphinx/source/conf.py
 
-# If using Sphinx, optionally build your docs in additional formats such as PDF
-# formats:
-#    - pdf
-
 # Optionally declare the Python requirements required to build your docs
 python:
    install:
-      - requirements: docs/requirements.txt
-conda:
-   environment: docs/environment2.yml
+      - numpy
+      - netcdf4 
+      - dask
+      - xarray
+      - xesmf
+      - metpy
+      - tabulate
+      - cfgrib
+      - python-cdo
+
+
+
