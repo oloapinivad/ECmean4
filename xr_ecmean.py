@@ -288,46 +288,20 @@ def make_input_filename(var0, varlist, year1, year2, face, diag):
     return filename
 
 
-#####################
-# AVERAGE FUNCTIONS #
-#####################
+##########################
+# MASK-RELATED FUNCTIONS #
+##########################
 
-def masked_meansum(xfield, var, weights, mask_type, mask):
-    """Evaluate the weighted averaged for global varialbes and for 
-    required vars estimate the land-only or ocean only surface integral"""
+def masks_dictionary(component, maskatmfile, remap_dictionary = None) :
+    """Create a dictionary with atmospheric land-sea mask"""
 
-    #use generator expression
-    #for g in (t for t in ['time', 'time_counter'] if t in list(xfield.dims)) : 
-    tfield = xfield.mean(dim='time').to_dataset(name = var)
-
-    if mask_type == 'land':   
-        tfield['mask'] = (tuple(tfield.dims), mask.values)
-        out = tfield[var].where(tfield['mask'] >= 0.5).weighted(weights).sum().values
-    elif mask_type in ['sea', 'ocean']:
-        tfield['mask'] = (tuple(tfield.dims), mask.values)
-        out = tfield[var].where(tfield['mask'] < 0.5).weighted(weights).sum().values
-    else:
-        out = tfield[var].weighted(weights.fillna(0)).mean().values
-        
-    return float(out)
-
-##################################
-# AREA-WEIGHT AND MASK FUNCTIONS #
-##################################
-
-def util_dictionary(component, maskatmfile, atmareafile, oceareafile) : 
-    """Create a dictionary with atmospheric mask and 
-    atmospheric and oceanic area weights"""
-
-    util = {
-        'atm_mask' : _make_atm_masks(component['atm'], maskatmfile),
-        'atm_weights': _make_atm_areas(component['atm'], atmareafile),
-        'oce_weights': _make_oce_areas(component['oce'], oceareafile)
+    mask = {
+        'atm_mask' : _make_atm_masks(component['atm'], maskatmfile, remap_dictionary = remap_dictionary),
     }
-    
-    return util
 
-def _make_atm_masks(component, maskatmfile):
+    return(mask)
+
+def _make_atm_masks(component, maskatmfile, remap_dictionary = None):
     """Create land-sea masks for atmosphere model"""
     # prepare ATM LSM: this need to be improved, since it is clearly model dependent
     if component == 'oifs':
@@ -342,7 +316,66 @@ def _make_atm_masks(component, maskatmfile):
     else : 
         sys.exit("Mask undefined yet mismatch, this cannot be handled!")
 
+    if remap_dictionary is not None :
+        if remap_dictionary['atm_fix'] : 
+            mask = remap_dictionary['atm_fix'](mask, keep_attrs=True)
+        mask = remap_dictionary['atm_remap'](mask, keep_attrs=True)
+
     return mask
+
+def masked_meansum(xfield, var, weights, mask_type, mask):
+    """For global variables rvaluate the weighted averaged 
+    or weighted integral when required by the variable properties"""
+
+    # call the mask_field to mask where necessary 
+    masked = mask_field(xfield, var, mask_type, mask)
+  
+    if mask_type in ['global'] :
+        out = masked.weighted(weights.fillna(0)).mean().values
+    elif mask_type in ['land', 'ocean', 'sea']  : 
+        out = masked.weighted(weights.fillna(0)).sum().values
+    else : 
+        sys.exit("Mask undefined, this cannot be handled!")
+        
+    return float(out)
+
+def mask_field(xfield, var, mask_type, mask):
+    """Apply a land/sea mask on a xarray variable var"""
+
+    # nothing to be done
+    if mask_type == 'global' :
+        out = xfield
+
+    else : 
+        # convert from datarray to dataset and merge
+        xfield = xfield.to_dataset(name = var)
+        mask = mask.to_dataset(name = 'mask')
+        bfield = xr.merge([xfield, mask])
+    
+        # conditions
+        if mask_type == 'land':   
+            out = bfield[var].where(bfield['mask'] >= 0.5)
+        elif mask_type in ['sea', 'ocean']:
+            out = bfield[var].where(bfield['mask'] < 0.5)
+        else :
+            sys.exit("Mask undefined, this cannot be handled!")
+        
+    return out
+
+##################################
+# AREA-WEIGHT AND MASK FUNCTIONS #
+##################################
+
+
+def areas_dictionary(component, atmareafile, oceareafile) : 
+    """Create a dictionary with atmospheric and oceanic area weights"""
+
+    areas = {
+        'atm_areas': _make_atm_areas(component['atm'], atmareafile),
+        'oce_areas': _make_oce_areas(component['oce'], oceareafile)
+    }
+    
+    return areas
 
 def _make_atm_areas(component, atmareafile) : 
     "Create atmospheric weights for area operations"
@@ -676,9 +709,10 @@ def _make_atm_interp_weights(component, atmareafile, target_grid) :
     elif component == 'cmoratm':
         
         fix = None
-        xfield = xr.open_mfdataset(atmareafile, preprocess=xr_preproc)
-        xname = list(xfield.data_vars)[-1]
-        interp = xe.Regridder(xfield[xname].load(), target_grid, periodic = True, method = "bilinear")
+        xfield = xr.open_mfdataset(atmareafile, preprocess=xr_preproc).load()
+        #xname = list(xfield.data_vars)[-1]
+        interp = xe.Regridder(xfield, target_grid, periodic = True, method = "bilinear")
+        #interp = interp[xname]
 
     else : 
         sys.exit("Atm weights not defined for this component, this cannot be handled!")
@@ -700,7 +734,7 @@ def _make_oce_interp_weights(component, oceareafile, target_grid) :
         #final = xe.util.grid_global(target, target)
         # use grid distance as generic variable
         interp = xe.Regridder(xfield['e1t'], 
-            target_grid, method = "bilinear", ignore_degenerate=True)
+            target_grid, method = "bilinear", periodic=True, ignore_degenerate=True)
         
     elif component == 'cmoroce':
 
@@ -708,7 +742,7 @@ def _make_oce_interp_weights(component, oceareafile, target_grid) :
         xfield = xr.open_mfdataset(oceareafile, preprocess=xr_preproc)
         xname = list(xfield.data_vars)[-1]
         interp = xe.Regridder(xfield[xname].load(), target_grid, method = "bilinear",
-            ignore_degenerate=True)
+            ignore_degenerate=True, periodic=True)
 
     else : 
         sys.exit("Oce weights not defined for this component, this cannot be handled!")

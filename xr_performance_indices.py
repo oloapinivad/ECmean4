@@ -21,10 +21,10 @@ from tabulate import tabulate
 import xarray as xr
 from xr_ecmean import var_is_there, eval_formula, \
     get_inifiles, adjust_clim_file, get_clim_files, \
-    util_dictionary, remap_dictionary, guess_bounds, load_yaml, \
+    areas_dictionary, masks_dictionary, remap_dictionary, guess_bounds, load_yaml, \
     units_extra_definition, units_are_integrals, \
     units_converter, directions_match, chunks, \
-    Diagnostic, getdomain, make_input_filename, xr_preproc
+    Diagnostic, getdomain, make_input_filename, xr_preproc, mask_field
 
 import dask
 dask.config.set(scheduler="synchronous")
@@ -121,10 +121,8 @@ def pi_worker(util, piclim, face, diag, field_3d, varstat, varlist):
             # get filenames for climatology
             clim, vvvv = get_clim_files(piclim, var, diag)
 
-
+            # open file
             xfield = xr.open_mfdataset(infile, preprocess=xr_preproc)
-            #if vdom in 'oce' : 
-            #    xfield = xfield.rename({"nav_lon": "lon", "nav_lat": "lat"})
 
             if 'derived' in face['variables'][var].keys():
                 cmd = face['variables'][var]['derived']
@@ -171,8 +169,11 @@ def pi_worker(util, piclim, face, diag, field_3d, varstat, varlist):
             else :
 
                 # compute PI
-                outarray = (final - cfield)**2/vfield
-               
+                computation = (final - cfield)**2/vfield
+                
+                # reapply the land-sea mask
+                outarray = mask_field(computation, var, piclim[var]['mask'], util['atm_mask'])
+
             # latitude-based averaging
             weights = np.cos(np.deg2rad(outarray.lat))
             out = outarray.weighted(weights).mean().values
@@ -217,26 +218,24 @@ def main(argv):
 
     # new bunch of functions to set grids, create correction command, masks and areas
     comp = face['model']['component']  # Get component for each domain
-    
-    maskatmfile, atmareafile, oceareafile = get_inifiles(face, diag)
-    #print(oceareafile)
 
-    # all clim have the same grid, read from the first clim available
+    # all clim have the same grid, read from the first clim available and get target grid
     clim, vvvv = get_clim_files(piclim, 'tas', diag)
-    #print(clim)
-  
-    # create util dictionary including mask and weights for both atmosphere and ocean grids
-    util = util_dictionary(comp, maskatmfile, clim, clim)
-
-    # on which grid interpolate? read from climatology grid
-    target_grid = xr.open_dataset(clim).coords
-
+    target_remap_grid = xr.open_dataset(clim)
+    
+    # get file info files
+    maskatmfile, atmareafile, oceareafile = get_inifiles(face, diag)
 
     # create remap dictionary with atm and oce interpolators
-    remap = remap_dictionary(comp, atmareafile, oceareafile, target_grid)
+    remap = remap_dictionary(comp, atmareafile, oceareafile, target_remap_grid)
+
+    # create util dictionary including mask and weights for both atmosphere and ocean grids
+    # use the atmospheric remap dictionary to remap the mask file
+    areas = areas_dictionary(comp, atmareafile, oceareafile)
+    masks = masks_dictionary(comp, maskatmfile, remap_dictionary = remap)
 
     # join the two dictionaries
-    utildict = {**util, **remap}
+    util_dictionary = {**masks, **areas, **remap}
     
     # add missing unit definitions
     units_extra_definition()
@@ -270,7 +269,7 @@ def main(argv):
     # loop on the variables, create the parallel process
     for varlist in chunks(field_all, diag.numproc):
         p = Process(target=pi_worker,
-                    args=(utildict, piclim, face, diag, field_3d, varstat, varlist))
+                    args=(util_dictionary, piclim, face, diag, field_3d, varstat, varlist))
         p.start()
         processes.append(p)
 

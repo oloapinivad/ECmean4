@@ -24,7 +24,7 @@ import numpy as np
 import xarray as xr
 
 from xr_ecmean import var_is_there, eval_formula, \
-    util_dictionary, get_inifiles, load_yaml, \
+    masks_dictionary, areas_dictionary, get_inifiles, load_yaml, \
     units_extra_definition, units_are_integrals, \
     units_converter, directions_match, chunks, write_tuning_table, \
     Diagnostic, getdomain, make_input_filename, masked_meansum, \
@@ -87,7 +87,7 @@ def gm_worker(util, ref, face, diag, varmean, vartrend, varlist):
 
         # compute weights
         vdom =  getdomain(var, face)
-        weights = util[vdom + '_weights'] 
+        weights = util[vdom + '_areas'] 
 
         if 'derived' in face['variables'][var].keys():
             cmd = face['variables'][var]['derived']
@@ -136,7 +136,8 @@ def gm_worker(util, ref, face, diag, varmean, vartrend, varlist):
                 else:
                     outfield = xfield[var]
          
-                x = masked_meansum(outfield, var, weights, ref[var].get('total', 'global'), util['atm_mask'])
+                tfield = outfield.mean(dim = 'time')
+                x = masked_meansum(tfield, var, weights, ref[var].get('total', 'global'), util['atm_mask'])
                 a.append(x)
 
             varmean[var] = (mean(a) + offset) * factor
@@ -194,8 +195,10 @@ def main(argv):
     maskatmfile, atmareafile, oceareafile = get_inifiles(face, diag)
 
     # create util dictionary including mask and weights for both atmosphere and ocean grids
-    util = util_dictionary(comp, maskatmfile, atmareafile, oceareafile)
-    
+    areas = areas_dictionary(comp, atmareafile, oceareafile)
+    masks = masks_dictionary(comp, maskatmfile)
+    util_dictionary = {**areas, **masks}
+
     # add missing unit definition
     units_extra_definition()
 
@@ -210,7 +213,7 @@ def main(argv):
 
     # loop on the variables, create the parallel process
     for varlist in chunks(var_all, diag.numproc):
-        p = Process(target=gm_worker, args=(util, ref, face, diag,
+        p = Process(target=gm_worker, args=(util_dictionary, ref, face, diag,
                                          varmean, vartrend, varlist))
         p.start() 
         processes.append(p)
