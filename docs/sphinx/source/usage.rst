@@ -89,7 +89,7 @@ The default climatology is the RK08, but this will be replaced in the future.
 	A bug is known for sea surface salinity variance, as described on the correspondent `Github Issue <https://github.com/oloapinivad/ECmean4/issues/8>`_ Please be aware the this PI is affected. 
 
 CMOR compatibility
-==================
+------------------
 
 It is possible to use these tools also to analyze CMOR files for CMIP5 or CMIP6. This assumes a standard ESGF directory structure but you can change it by modifying the corresponding interface files ``interfaces/interface_CMIP6.yml`` and ``interfaces/interface_CMIP6.yml``.
 In order to allow masking you will need the `sftlf`, `sftof` and `areacello` variables for you experiment of interest too.
