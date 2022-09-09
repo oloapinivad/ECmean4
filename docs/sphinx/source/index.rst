@@ -13,6 +13,7 @@ Welcome to ECmean4's documentation!
    installation
    configuration
    usage
+   CDOusage
 
 ECmean4 code
 ^^^^^^^^^^^^^^^
