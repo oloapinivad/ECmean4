@@ -4,3 +4,5 @@ numpy==1.22.3
 PyYAML==6.0
 tabulate==0.8.9
 netCDF4==1.5.8
+xesmf
+

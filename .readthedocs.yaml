@@ -23,16 +23,8 @@ sphinx:
 
 # Optionally declare the Python requirements required to build your docs
 python:
-   install:
-      - numpy
-      - netcdf4 
-      - dask
-      - xarray
-      - xesmf
-      - metpy
-      - tabulate
-      - cfgrib
-      - python-cdo
+  install:
+    - requirements: docs/requirements.txt
 
 
 
