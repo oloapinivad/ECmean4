@@ -329,7 +329,7 @@ def masked_meansum(xfield, var, weights, mask_type, mask):
 
     # call the mask_field to mask where necessary 
     masked = mask_field(xfield, var, mask_type, mask)
-  
+
     if mask_type in ['global'] :
         out = masked.weighted(weights.fillna(0)).mean().values
     elif mask_type in ['land', 'ocean', 'sea']  : 
@@ -525,7 +525,7 @@ def _area_cell(xfield, formula = 'triangles') :
 
              # if dimension is not called bnds, rename it
             if 'bnds' not in  list(xfield.dims) : 
-                print('bnds not found, renaming it...')         
+                logging.debug('bnds not found, trying to rename it...')         
                 for g in (t for t in list(xfield.dims) if t not in ['lon', 'lat', 'time']) : 
                     bdim = g
                 xfield = xfield.rename_dims({bdim: "bnds"})
@@ -691,7 +691,7 @@ def _make_atm_interp_weights(component, atmareafile, target_grid) :
     if component == 'oifs':
 
         # this is to get lon and lat from the Equator
-        xfield = xr.open_dataset(atmareafile)
+        xfield = xr.open_mfdataset(atmareafile, preprocess=xr_preproc)
         m = xfield['tas'].isel(time_counter=0).load()
         g = sorted(list(set(m.lat.values)))
         f = sorted(list(m.sel(cell=m.lat==g[int(len(g)/2)]).lon.values))
@@ -724,7 +724,7 @@ def _make_oce_interp_weights(component, oceareafile, target_grid) :
 
     if component == 'nemo':
         fix = None
-        xfield = xr.open_dataset(oceareafile)
+        xfield = xr.open_mfdataset(oceareafile, preprocess=xr_preproc)
         # set coordinates which are missing
         xfield = xfield.set_coords(['nav_lon', 'nav_lat', 'nav_lev', 'time_counter'])
         # rename lon and lat for interpolation
@@ -770,6 +770,9 @@ def xr_preproc(ds) :
 
     if 'nav_lat' in list(ds.coords): 
         ds = ds.rename({"nav_lat": "lat"})
+
+    if 'values' in list(ds.dims): 
+        ds = ds.rename({"values": "cell"})
 
     return ds
 
