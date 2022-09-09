@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Xarray Scripts &mdash; ECmean4  documentation</title>
+  <title>CDO Scripts &mdash; ECmean4  documentation</title>
       <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
   <!--[if lt IE 9]>
@@ -18,8 +18,8 @@
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="CDO Scripts" href="CDOusage.html" />
-    <link rel="prev" title="Configuration" href="configuration.html" /> 
+    <link rel="next" title="ECmean4 autodoc" href="_apidocs/modules.html" />
+    <link rel="prev" title="Xarray Scripts" href="usage.html" /> 
 </head>
 
 <body class="wy-body-for-nav"> 
@@ -42,13 +42,15 @@
 <li class="toctree-l1"><a class="reference internal" href="intro.html">Introduction</a></li>
 <li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="configuration.html">Configuration</a></li>
-<li class="toctree-l1 current"><a class="current reference internal" href="#">Xarray Scripts</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="#xr-global-mean-py">xr_global_mean.py</a><ul>
+<li class="toctree-l1"><a class="reference internal" href="usage.html">Xarray Scripts</a></li>
+<li class="toctree-l1"><a class="reference internal" href="usage.html#cmor-compatibility">CMOR compatibility</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">CDO Scripts</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#global-mean-py">global_mean.py</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#main-concepts">Main concepts</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#usage">Usage</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="#xr-performance-indices-py">xr_performance_indices.py</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#performance-indices-py">performance_indices.py</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#id1">Main concepts</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#id2">Usage</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#climatology">Climatology</a></li>
@@ -56,8 +58,6 @@
 </li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="#cmor-compatibility">CMOR compatibility</a></li>
-<li class="toctree-l1"><a class="reference internal" href="CDOusage.html">CDO Scripts</a></li>
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="_apidocs/modules.html">ECmean4 autodoc</a></li>
@@ -77,9 +77,9 @@
           <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
       <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
-      <li>Xarray Scripts</li>
+      <li>CDO Scripts</li>
       <li class="wy-breadcrumbs-aside">
-            <a href="_sources/usage.rst.txt" rel="nofollow"> View page source</a>
+            <a href="_sources/CDOusage.rst.txt" rel="nofollow"> View page source</a>
       </li>
   </ul>
   <hr/>
@@ -87,20 +87,24 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  <div class="section" id="xarray-scripts">
-<h1>Xarray Scripts<a class="headerlink" href="#xarray-scripts" title="Permalink to this heading"></a></h1>
-<p>ECmean4 is based on two independent Python scripts which builts on the same set of functions and classes <code class="docutils literal notranslate"><span class="pre">xr_ecmean.py</span></code>.
+  <div class="section" id="cdo-scripts">
+<h1>CDO Scripts<a class="headerlink" href="#cdo-scripts" title="Permalink to this heading"></a></h1>
+<p>ECmean4 is based on two independent Python scripts which builts on the same set of functions and classes.
 They both produces takes care of all the computation and produces a .txt table:</p>
-<div class="section" id="xr-global-mean-py">
-<h2>xr_global_mean.py<a class="headerlink" href="#xr-global-mean-py" title="Permalink to this heading"></a></h2>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>The CDO version is no longer developed, and the documentation is not updated.</p>
+</div>
+<div class="section" id="global-mean-py">
+<h2>global_mean.py<a class="headerlink" href="#global-mean-py" title="Permalink to this heading"></a></h2>
 <div class="section" id="main-concepts">
 <h3>Main concepts<a class="headerlink" href="#main-concepts" title="Permalink to this heading"></a></h3>
-<p>The <code class="docutils literal notranslate"><span class="pre">xr_global_mean.py</span></code> script computes the global averages for many dynamical and physical fields. It compares the output against a set of climatological values defined in <code class="docutils literal notranslate"><span class="pre">gm_reference.yml</span></code>, including temperature, salinity, precipitation (over land and sea), radiative fluxes and other quantities useful for model tuning.</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">global_mean.py</span></code> script computes the global averages for many dynamical and physical fields. It compares the output against a set of climatological values defined in <code class="docutils literal notranslate"><span class="pre">gm_reference.yml</span></code>, including temperature, salinity, precipitation (over land and sea), radiative fluxes and other quantities useful for model tuning.</p>
 </div>
 <div class="section" id="usage">
 <h3>Usage<a class="headerlink" href="#usage" title="Permalink to this heading"></a></h3>
 <p>Running the global mean evaluation is rather simple</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">./</span><span class="n">xr_global_mean</span><span class="o">.</span><span class="n">py</span> <span class="n">EXP</span> <span class="n">Y1</span> <span class="n">Y2</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">./</span><span class="n">global_mean</span><span class="o">.</span><span class="n">py</span> <span class="n">EXP</span> <span class="n">Y1</span> <span class="n">Y2</span>
 </pre></div>
 </div>
 <p>Extra options are listed here below:</p>
@@ -137,16 +141,19 @@ Y2                    final year</p>
 <dt><kbd><span class="option">-e <var>ENSEMBLE</var></span>, <span class="option">--ensemble <var>ENSEMBLE</var></span></kbd></dt>
 <dd><p>variant label (ripf number for cmor)</p>
 </dd>
+<dt><kbd><span class="option">-d</span>, <span class="option">--debug</span></kbd></dt>
+<dd><p>activate cdo debugging</p>
+</dd>
 </dl>
 </dd>
 </dl>
 </div>
 </div>
-<div class="section" id="xr-performance-indices-py">
-<h2>xr_performance_indices.py<a class="headerlink" href="#xr-performance-indices-py" title="Permalink to this heading"></a></h2>
+<div class="section" id="performance-indices-py">
+<h2>performance_indices.py<a class="headerlink" href="#performance-indices-py" title="Permalink to this heading"></a></h2>
 <div class="section" id="id1">
 <h3>Main concepts<a class="headerlink" href="#id1" title="Permalink to this heading"></a></h3>
-<p>The <code class="docutils literal notranslate"><span class="pre">xr_performance_indices.py</span></code> script computes the <a class="reference external" href="https://journals.ametsoc.org/view/journals/bams/89/3/bams-89-3-303.xml">Reichler and Kim Performance Indices</a>. A few minor modification has been implemented in the original ECmean configuration so that it still work on a regular 2x2 grid (instead of using observation grid). and it is based on old climatological assessment present in the original ECmean. The climatology is defined by <code class="docutils literal notranslate"><span class="pre">pi_climatology.yml</span></code> script. Climatology for PI is still VERY outdated and it is being updated.</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">performance_indices.py</span></code> script computes the <a class="reference external" href="https://journals.ametsoc.org/view/journals/bams/89/3/bams-89-3-303.xml">Reichler and Kim Performance Indices</a>. A few minor modification has been implemented in the original ECmean configuration so that it still work on a regular 2x2 grid (instead of using observation grid). and it is based on old climatological assessment present in the original ECmean. The climatology is defined by <code class="docutils literal notranslate"><span class="pre">pi_climatology.yml</span></code> script. Climatology for PI is still VERY outdated and it is being updated.</p>
 </div>
 <div class="section" id="id2">
 <h3>Usage<a class="headerlink" href="#id2" title="Permalink to this heading"></a></h3>
@@ -179,14 +186,14 @@ Y2                    final year</p>
 <dt><kbd><span class="option">-e <var>ENSEMBLE</var></span>, <span class="option">--ensemble <var>ENSEMBLE</var></span></kbd></dt>
 <dd><p>variant label (ripf number for cmor)</p>
 </dd>
-<dt><kbd><span class="option">-d</span>, <span class="option">--debug</span></kbd></dt>
-<dd><p>activate cdo debugging</p>
-</dd>
 <dt><kbd><span class="option">-k <var>CLIMATOLOGY</var></span></kbd></dt>
 <dd><p>which climatology you want to use (EC22 or RK08)</p>
 </dd>
 <dt><kbd><span class="option">-r <var>RESOLUTION</var></span></kbd></dt>
 <dd><p>only EC22: resolution of the climatology (r180x90 or r360x180)</p>
+</dd>
+<dt><kbd><span class="option">-d</span>, <span class="option">--debug</span></kbd></dt>
+<dd><p>activate cdo debugging</p>
 </dd>
 </dl>
 </dd>
@@ -204,28 +211,13 @@ The default climatology is the RK08, but this will be replaced in the future.</p
 </div>
 </div>
 </div>
-<div class="section" id="cmor-compatibility">
-<h1>CMOR compatibility<a class="headerlink" href="#cmor-compatibility" title="Permalink to this heading"></a></h1>
-<p>It is possible to use these tools also to analyze CMOR files for CMIP5 or CMIP6. This assumes a standard ESGF directory structure but you can change it by modifying the corresponding interface files <code class="docutils literal notranslate"><span class="pre">interfaces/interface_CMIP6.yml</span></code> and <code class="docutils literal notranslate"><span class="pre">interfaces/interface_CMIP6.yml</span></code>.
-In order to allow masking you will need the <cite>sftlf</cite>, <cite>sftof</cite> and <cite>areacello</cite> variables for you experiment of interest too.</p>
-<p>Usage example for CMIP5:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">./</span><span class="n">xr_global_mean</span><span class="o">.</span><span class="n">py</span> <span class="n">historical</span> <span class="mi">1990</span> <span class="mi">1999</span> <span class="o">-</span><span class="n">j</span> <span class="mi">12</span> <span class="o">-</span><span class="n">m</span> <span class="n">EC</span><span class="o">-</span><span class="n">EARTH</span> <span class="o">-</span><span class="n">e</span> <span class="n">r1i1p1</span> <span class="o">-</span><span class="n">i</span> <span class="n">CMIP5</span>
-</pre></div>
-</div>
-<p>will compute performance indices for member r1i1p1 of the EC-EARTH model in the CMIP5 historical experiment.</p>
-<p>Usage example for CMIP6:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">./</span><span class="n">xr_performance_indices</span><span class="o">.</span><span class="n">py</span> <span class="n">historical</span> <span class="mi">1990</span> <span class="mi">1999</span> <span class="o">-</span><span class="n">j</span> <span class="mi">12</span> <span class="o">-</span><span class="n">m</span> <span class="n">EC</span><span class="o">-</span><span class="n">Earth3</span> <span class="o">-</span><span class="n">e</span> <span class="n">r1i1p1f1</span> <span class="o">-</span><span class="n">i</span> <span class="n">CMIP6</span> <span class="o">-</span><span class="n">k</span> <span class="n">EC22</span> <span class="o">-</span><span class="n">r</span> <span class="n">r360x180</span>
-</pre></div>
-</div>
-<p>The same as above, but for the CMIP6 EC-Earth3 model. In this case the comparison is with the newer EC22 climatology at high r360x180 resolution.</p>
-</div>
 
 
            </div>
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
-        <a href="configuration.html" class="btn btn-neutral float-left" title="Configuration" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
-        <a href="CDOusage.html" class="btn btn-neutral float-right" title="CDO Scripts" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="usage.html" class="btn btn-neutral float-left" title="Xarray Scripts" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="_apidocs/modules.html" class="btn btn-neutral float-right" title="ECmean4 autodoc" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>

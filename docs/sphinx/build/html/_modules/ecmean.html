@@ -13,6 +13,7 @@
         <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
         <script src="../_static/jquery.js"></script>
         <script src="../_static/underscore.js"></script>
+        <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
         <script src="../_static/doctools.js"></script>
     <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
@@ -38,10 +39,13 @@
               <ul>
 <li class="toctree-l1"><a class="reference internal" href="../intro.html">Introduction</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../installation.html">Installation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../usage.html">Running EC-Mean4</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../configuration.html">Configuration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../usage.html">Xarray Scripts</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../usage.html#cmor-compatibility">CMOR compatibility</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../CDOusage.html">CDO Scripts</a></li>
 </ul>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="../_apidocs/modules.html">ECmean4</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../_apidocs/modules.html">ECmean4 autodoc</a></li>
 </ul>
 
         </div>
@@ -90,6 +94,7 @@
 
 <div class="viewcode-block" id="Diagnostic"><a class="viewcode-back" href="../_apidocs/ecmean.html#ecmean.Diagnostic">[docs]</a><span class="k">class</span> <span class="nc">Diagnostic</span><span class="p">():</span>
     <span class="sd">&quot;&quot;&quot;General container class for common variables&quot;&quot;&quot;</span>
+
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">args</span><span class="p">,</span> <span class="n">cfg</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">expname</span> <span class="o">=</span> <span class="n">args</span><span class="o">.</span><span class="n">exp</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">year1</span> <span class="o">=</span> <span class="n">args</span><span class="o">.</span><span class="n">year1</span>
@@ -100,24 +105,33 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">debug</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">args</span><span class="p">,</span> <span class="s1">&#39;debug&#39;</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">numproc</span> <span class="o">=</span> <span class="n">args</span><span class="o">.</span><span class="n">numproc</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">modelname</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">args</span><span class="p">,</span> <span class="s1">&#39;model&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">climatology</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">args</span><span class="p">,</span> <span class="s1">&#39;climatology&#39;</span><span class="p">,</span> <span class="s1">&#39;RK08&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">interface</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">args</span><span class="p">,</span> <span class="s1">&#39;interface&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">resolution</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">args</span><span class="p">,</span> <span class="s1">&#39;resolution&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">modelname</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">modelname</span> <span class="o">=</span> <span class="n">cfg</span><span class="p">[</span><span class="s1">&#39;model&#39;</span><span class="p">][</span><span class="s1">&#39;name&#39;</span><span class="p">]</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">year1</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">year2</span><span class="p">:</span>  <span class="c1"># Ignore if only one year requested</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">ftrend</span> <span class="o">=</span> <span class="kc">False</span>
         <span class="c1">#  These are here in prevision of future expansion to CMOR</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">interface</span> <span class="o">=</span> <span class="n">cfg</span><span class="p">[</span><span class="s1">&#39;interface&#39;</span><span class="p">]</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">interface</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">interface</span> <span class="o">=</span> <span class="n">cfg</span><span class="p">[</span><span class="s1">&#39;interface&#39;</span><span class="p">]</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">frequency</span> <span class="o">=</span> <span class="s1">&#39;*mon&#39;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">ensemble</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">args</span><span class="p">,</span> <span class="s1">&#39;ensemble&#39;</span><span class="p">,</span> <span class="s1">&#39;r1i1p1f1&#39;</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">grid</span> <span class="o">=</span> <span class="s1">&#39;*&#39;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">version</span> <span class="o">=</span> <span class="s1">&#39;*&#39;</span>
 
         <span class="c1"># hard-coded resolution (due to climatological dataset)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">resolution</span> <span class="o">=</span> <span class="n">cfg</span><span class="p">[</span><span class="s1">&#39;PI&#39;</span><span class="p">][</span><span class="s1">&#39;resolution&#39;</span><span class="p">]</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">climatology</span> <span class="o">==</span> <span class="s1">&#39;RK08&#39;</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">resolution</span> <span class="o">=</span> <span class="s1">&#39;r180x91&#39;</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">resolution</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">resolution</span> <span class="o">=</span> <span class="n">cfg</span><span class="p">[</span><span class="s1">&#39;PI&#39;</span><span class="p">][</span><span class="s1">&#39;resolution&#39;</span><span class="p">]</span>
 
         <span class="c1"># Various input and output directories</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">ECEDIR</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">expandvars</span><span class="p">(</span><span class="n">cfg</span><span class="p">[</span><span class="s1">&#39;dirs&#39;</span><span class="p">][</span><span class="s1">&#39;exp&#39;</span><span class="p">]))</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">TABDIR</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">expandvars</span><span class="p">(</span><span class="n">cfg</span><span class="p">[</span><span class="s1">&#39;dirs&#39;</span><span class="p">][</span><span class="s1">&#39;tab&#39;</span><span class="p">]))</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">CLMDIR</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">expandvars</span><span class="p">(</span><span class="n">cfg</span><span class="p">[</span><span class="s1">&#39;dirs&#39;</span><span class="p">][</span><span class="s1">&#39;clm&#39;</span><span class="p">]),</span> <span class="bp">self</span><span class="o">.</span><span class="n">resolution</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">CLMDIR</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">expandvars</span><span class="p">(</span><span class="n">cfg</span><span class="p">[</span><span class="s1">&#39;dirs&#39;</span><span class="p">][</span><span class="s1">&#39;clm&#39;</span><span class="p">]),</span> <span class="bp">self</span><span class="o">.</span><span class="n">climatology</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">RESCLMDIR</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">CLMDIR</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">resolution</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">years_joined</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">linefile</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">TABDIR</span> <span class="o">/</span> <span class="s1">&#39;global_means.txt&#39;</span>
@@ -241,22 +255,22 @@
     <span class="sd">&quot;&quot;&quot;Expands a path (filename or dir) for var, expname, frequency, ensemble etc. and</span>
 <span class="sd">       environment variables.&quot;&quot;&quot;</span>
     <span class="k">return</span> <span class="n">Path</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">expandvars</span><span class="p">(</span><span class="n">fn</span><span class="p">))</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
-                             <span class="n">expname</span><span class="o">=</span><span class="n">diag</span><span class="o">.</span><span class="n">expname</span><span class="p">,</span>
-                             <span class="n">year1</span><span class="o">=</span><span class="n">year1</span><span class="p">,</span>
-                             <span class="n">year2</span><span class="o">=</span><span class="n">year2</span><span class="p">,</span>
-                             <span class="n">var</span><span class="o">=</span><span class="n">var</span><span class="p">,</span>
-                             <span class="n">frequency</span><span class="o">=</span><span class="n">diag</span><span class="o">.</span><span class="n">frequency</span><span class="p">,</span>
-                             <span class="n">ensemble</span><span class="o">=</span><span class="n">diag</span><span class="o">.</span><span class="n">ensemble</span><span class="p">,</span>
-                             <span class="n">grid</span><span class="o">=</span><span class="n">diag</span><span class="o">.</span><span class="n">grid</span><span class="p">,</span>
-                             <span class="n">model</span><span class="o">=</span><span class="n">diag</span><span class="o">.</span><span class="n">modelname</span><span class="p">,</span>
-                             <span class="n">version</span><span class="o">=</span><span class="n">diag</span><span class="o">.</span><span class="n">version</span>
-                            <span class="p">))</span>
+        <span class="n">expname</span><span class="o">=</span><span class="n">diag</span><span class="o">.</span><span class="n">expname</span><span class="p">,</span>
+        <span class="n">year1</span><span class="o">=</span><span class="n">year1</span><span class="p">,</span>
+        <span class="n">year2</span><span class="o">=</span><span class="n">year2</span><span class="p">,</span>
+        <span class="n">var</span><span class="o">=</span><span class="n">var</span><span class="p">,</span>
+        <span class="n">frequency</span><span class="o">=</span><span class="n">diag</span><span class="o">.</span><span class="n">frequency</span><span class="p">,</span>
+        <span class="n">ensemble</span><span class="o">=</span><span class="n">diag</span><span class="o">.</span><span class="n">ensemble</span><span class="p">,</span>
+        <span class="n">grid</span><span class="o">=</span><span class="n">diag</span><span class="o">.</span><span class="n">grid</span><span class="p">,</span>
+        <span class="n">model</span><span class="o">=</span><span class="n">diag</span><span class="o">.</span><span class="n">modelname</span><span class="p">,</span>
+        <span class="n">version</span><span class="o">=</span><span class="n">diag</span><span class="o">.</span><span class="n">version</span>
+    <span class="p">))</span>
 
 
 <span class="k">def</span> <span class="nf">_filter_filename_by_year</span><span class="p">(</span><span class="n">fname</span><span class="p">,</span> <span class="n">year</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Find filename containing a given year in a list of filenames&quot;&quot;&quot;</span>
     <span class="n">filenames</span> <span class="o">=</span> <span class="n">glob</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">fname</span><span class="p">))</span>
-    <span class="c1"># Assumes that the file name ends with 199001-199012.nc or 1990-1991.nc</span>
+    <span class="c1"># Assumes that the file name ends with 199001-199012.nc or 1990-1991.nc</span>
     <span class="n">year1</span> <span class="o">=</span> <span class="p">[</span><span class="nb">int</span><span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;_&#39;</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;-&#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">:</span><span class="mi">4</span><span class="p">])</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">filenames</span><span class="p">]</span>
     <span class="n">year2</span> <span class="o">=</span> <span class="p">[</span><span class="nb">int</span><span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;_&#39;</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;-&#39;</span><span class="p">)[</span><span class="mi">1</span><span class="p">][</span><span class="mi">0</span><span class="p">:</span><span class="mi">4</span><span class="p">])</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">filenames</span><span class="p">]</span>
     <span class="k">return</span> <span class="p">[</span><span class="n">filenames</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">year1</span><span class="p">))</span> <span class="k">if</span> <span class="n">year</span> <span class="o">&gt;=</span> <span class="n">year1</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="ow">and</span> <span class="n">year</span> <span class="o">&lt;=</span> <span class="n">year2</span><span class="p">[</span><span class="n">i</span><span class="p">]]</span>
@@ -267,9 +281,9 @@
 
     <span class="n">filetype</span> <span class="o">=</span> <span class="n">face</span><span class="p">[</span><span class="s1">&#39;variables&#39;</span><span class="p">][</span><span class="n">var0</span><span class="p">][</span><span class="s1">&#39;filetype&#39;</span><span class="p">]</span>
     <span class="n">filepath</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">diag</span><span class="o">.</span><span class="n">ECEDIR</span><span class="p">)</span> <span class="o">/</span> \
-               <span class="n">Path</span><span class="p">(</span><span class="n">face</span><span class="p">[</span><span class="s1">&#39;model&#39;</span><span class="p">][</span><span class="s1">&#39;basedir&#39;</span><span class="p">])</span> <span class="o">/</span> \
-               <span class="n">Path</span><span class="p">(</span><span class="n">face</span><span class="p">[</span><span class="s1">&#39;filetype&#39;</span><span class="p">][</span><span class="n">filetype</span><span class="p">][</span><span class="s1">&#39;dir&#39;</span><span class="p">])</span> <span class="o">/</span> \
-               <span class="n">Path</span><span class="p">(</span><span class="n">face</span><span class="p">[</span><span class="s1">&#39;filetype&#39;</span><span class="p">][</span><span class="n">filetype</span><span class="p">][</span><span class="s1">&#39;filename&#39;</span><span class="p">])</span>
+        <span class="n">Path</span><span class="p">(</span><span class="n">face</span><span class="p">[</span><span class="s1">&#39;model&#39;</span><span class="p">][</span><span class="s1">&#39;basedir&#39;</span><span class="p">])</span> <span class="o">/</span> \
+        <span class="n">Path</span><span class="p">(</span><span class="n">face</span><span class="p">[</span><span class="s1">&#39;filetype&#39;</span><span class="p">][</span><span class="n">filetype</span><span class="p">][</span><span class="s1">&#39;dir&#39;</span><span class="p">])</span> <span class="o">/</span> \
+        <span class="n">Path</span><span class="p">(</span><span class="n">face</span><span class="p">[</span><span class="s1">&#39;filetype&#39;</span><span class="p">][</span><span class="n">filetype</span><span class="p">][</span><span class="s1">&#39;filename&#39;</span><span class="p">])</span>
     <span class="c1"># if year1 is a list, loop over it (we cannot use curly brackets anymore, now we pass a list)</span>
     <span class="n">filename</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="c1"># Make an iterable even if year1 is not a list</span>
@@ -358,7 +372,7 @@
     <span class="k">return</span> <span class="n">factor</span></div>
 
 
-<div class="viewcode-block" id="write_tuning_table"><a class="viewcode-back" href="../_apidocs/ecmean.html#ecmean.write_tuning_table">[docs]</a><span class="k">def</span> <span class="nf">write_tuning_table</span><span class="p">(</span><span class="n">linefile</span><span class="p">,</span> <span class="n">varmean</span><span class="p">,</span> <span class="n">var_table</span><span class="p">,</span> <span class="n">diag</span><span class="p">,</span> <span class="n">face</span><span class="p">,</span> <span class="n">ref</span><span class="p">):</span>
+<div class="viewcode-block" id="write_tuning_table"><a class="viewcode-back" href="../_apidocs/ecmean.html#ecmean.write_tuning_table">[docs]</a><span class="k">def</span> <span class="nf">write_tuning_table</span><span class="p">(</span><span class="n">linefile</span><span class="p">,</span> <span class="n">varmean</span><span class="p">,</span> <span class="n">var_table</span><span class="p">,</span> <span class="n">diag</span><span class="p">,</span> <span class="n">ref</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Write results appending one line to a text file.</span>
 <span class="sd">       Write a tuning table: need to fix reference to face/ref&quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isfile</span><span class="p">(</span><span class="n">linefile</span><span class="p">):</span>
@@ -372,7 +386,8 @@
             <span class="nb">print</span><span class="p">(</span><span class="n">file</span><span class="o">=</span><span class="n">f</span><span class="p">)</span>
 
     <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">linefile</span><span class="p">,</span> <span class="s1">&#39;a&#39;</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s1">&#39;utf-8&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
-        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">diag</span><span class="o">.</span><span class="n">modelname</span><span class="si">}</span><span class="s1"> </span><span class="si">{</span><span class="n">diag</span><span class="o">.</span><span class="n">ensemble</span><span class="si">}</span><span class="s1"> </span><span class="si">{</span><span class="n">diag</span><span class="o">.</span><span class="n">expname</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">,</span> <span class="s1">&#39;</span><span class="si">{:4d}</span><span class="s1"> </span><span class="si">{:4d}</span><span class="s1"> &#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">diag</span><span class="o">.</span><span class="n">year1</span><span class="p">,</span> <span class="n">diag</span><span class="o">.</span><span class="n">year2</span><span class="p">),</span> <span class="n">end</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">file</span><span class="o">=</span><span class="n">f</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">diag</span><span class="o">.</span><span class="n">modelname</span><span class="si">}</span><span class="s1"> </span><span class="si">{</span><span class="n">diag</span><span class="o">.</span><span class="n">ensemble</span><span class="si">}</span><span class="s1"> </span><span class="si">{</span><span class="n">diag</span><span class="o">.</span><span class="n">expname</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">,</span>
+              <span class="s1">&#39;</span><span class="si">{:4d}</span><span class="s1"> </span><span class="si">{:4d}</span><span class="s1"> &#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">diag</span><span class="o">.</span><span class="n">year1</span><span class="p">,</span> <span class="n">diag</span><span class="o">.</span><span class="n">year2</span><span class="p">),</span> <span class="n">end</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">file</span><span class="o">=</span><span class="n">f</span><span class="p">)</span>
         <span class="k">for</span> <span class="n">var</span> <span class="ow">in</span> <span class="n">var_table</span><span class="p">:</span>
             <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">{:12.5f}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">varmean</span><span class="p">[</span><span class="n">var</span><span class="p">]</span> <span class="o">*</span> <span class="n">ref</span><span class="p">[</span><span class="n">var</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;factor&#39;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)),</span> <span class="n">end</span><span class="o">=</span><span class="s1">&#39; &#39;</span><span class="p">,</span> <span class="n">file</span><span class="o">=</span><span class="n">f</span><span class="p">)</span>
         <span class="nb">print</span><span class="p">(</span><span class="n">file</span><span class="o">=</span><span class="n">f</span><span class="p">)</span></div>
@@ -397,7 +412,10 @@
 
 
 <div class="viewcode-block" id="getinifiles"><a class="viewcode-back" href="../_apidocs/ecmean.html#ecmean.getinifiles">[docs]</a><span class="k">def</span> <span class="nf">getinifiles</span><span class="p">(</span><span class="n">face</span><span class="p">,</span> <span class="n">diag</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Return the inifiles from the interface, needs the component dictionary&quot;&quot;&quot;</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Return the inifiles from the interface, needs the component dictionary</span>
+<span class="sd">    Check if inifiles exist.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">dictcomp</span> <span class="o">=</span> <span class="n">face</span><span class="p">[</span><span class="s1">&#39;model&#39;</span><span class="p">][</span><span class="s1">&#39;component&#39;</span><span class="p">]</span>
 
     <span class="c1"># use a dictionary to create the list of initial files</span>
@@ -416,10 +434,14 @@
                                                           <span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">diag</span><span class="o">.</span><span class="n">year1</span><span class="p">,</span> <span class="n">diag</span><span class="o">.</span><span class="n">year1</span><span class="p">,</span> <span class="n">diag</span><span class="p">))</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="n">inifiles</span><span class="p">[</span><span class="n">filename</span><span class="p">]</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">diag</span><span class="o">.</span><span class="n">ECEDIR</span><span class="p">)</span> <span class="o">/</span> \
-                                 <span class="n">Path</span><span class="p">(</span><span class="n">face</span><span class="p">[</span><span class="s1">&#39;model&#39;</span><span class="p">][</span><span class="s1">&#39;basedir&#39;</span><span class="p">])</span> <span class="o">/</span> \
-                                 <span class="n">Path</span><span class="p">(</span><span class="n">inifile</span><span class="p">)</span>
+                    <span class="n">Path</span><span class="p">(</span><span class="n">face</span><span class="p">[</span><span class="s1">&#39;model&#39;</span><span class="p">][</span><span class="s1">&#39;basedir&#39;</span><span class="p">])</span> <span class="o">/</span> \
+                    <span class="n">Path</span><span class="p">(</span><span class="n">inifile</span><span class="p">)</span>
                 <span class="n">inifiles</span><span class="p">[</span><span class="n">filename</span><span class="p">]</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">_expand_filename</span><span class="p">(</span><span class="n">inifiles</span><span class="p">[</span><span class="n">filename</span><span class="p">],</span>
                                                           <span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">diag</span><span class="o">.</span><span class="n">year1</span><span class="p">,</span> <span class="n">diag</span><span class="o">.</span><span class="n">year1</span><span class="p">,</span> <span class="n">diag</span><span class="p">))</span>
+
+            <span class="c1"># safe check if inifile exist in the experiment folder</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">glob</span><span class="p">(</span><span class="n">inifiles</span><span class="p">[</span><span class="n">filename</span><span class="p">]):</span>
+                <span class="n">inifiles</span><span class="p">[</span><span class="n">filename</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">inifiles</span><span class="p">[</span><span class="n">filename</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
 

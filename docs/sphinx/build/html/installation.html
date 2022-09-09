@@ -1,8 +1,7 @@
 <!DOCTYPE html>
 <html class="writer-html5" lang="en" >
 <head>
-  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
-
+  <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Installation &mdash; ECmean4  documentation</title>
       <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
@@ -14,6 +13,7 @@
         <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
         <script src="_static/jquery.js"></script>
         <script src="_static/underscore.js"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
         <script src="_static/doctools.js"></script>
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
@@ -43,12 +43,16 @@
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Installation</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#prerequisites">Prerequisites</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#getting-the-code">Getting the code</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#install-in-a-python-virtual-environment">Install in a python virtual environment</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#xarray-version-install-with-conda-environment">Xarray version: Install with Conda environment</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#requirements">Requirements</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#cdo-version-install-in-a-python-virtual-environment">CDO version: Install in a python virtual environment</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#id1">Requirements</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="configuration.html">Configuration</a></li>
-<li class="toctree-l1"><a class="reference internal" href="usage.html">Scripts</a></li>
+<li class="toctree-l1"><a class="reference internal" href="usage.html">Xarray Scripts</a></li>
+<li class="toctree-l1"><a class="reference internal" href="usage.html#cmor-compatibility">CMOR compatibility</a></li>
+<li class="toctree-l1"><a class="reference internal" href="CDOusage.html">CDO Scripts</a></li>
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="_apidocs/modules.html">ECmean4 autodoc</a></li>
@@ -78,21 +82,37 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  <section id="installation">
-<h1>Installation<a class="headerlink" href="#installation" title="Permalink to this headline"></a></h1>
-<section id="prerequisites">
-<h2>Prerequisites<a class="headerlink" href="#prerequisites" title="Permalink to this headline"></a></h2>
+  <div class="section" id="installation">
+<h1>Installation<a class="headerlink" href="#installation" title="Permalink to this heading"></a></h1>
+<div class="section" id="prerequisites">
+<h2>Prerequisites<a class="headerlink" href="#prerequisites" title="Permalink to this heading"></a></h2>
 <p>Python 3.7+ is required.</p>
-</section>
-<section id="getting-the-code">
-<h2>Getting the code<a class="headerlink" href="#getting-the-code" title="Permalink to this headline"></a></h2>
+</div>
+<div class="section" id="getting-the-code">
+<h2>Getting the code<a class="headerlink" href="#getting-the-code" title="Permalink to this heading"></a></h2>
 <p>You can freely clone from the Github Repository</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">&gt;</span> <span class="n">git</span> <span class="n">clone</span> <span class="n">git</span><span class="nd">@github</span><span class="o">.</span><span class="n">com</span><span class="p">:</span><span class="n">oloapinivad</span><span class="o">/</span><span class="n">ECmean4</span><span class="o">.</span><span class="n">git</span>
 </pre></div>
 </div>
-</section>
-<section id="install-in-a-python-virtual-environment">
-<h2>Install in a python virtual environment<a class="headerlink" href="#install-in-a-python-virtual-environment" title="Permalink to this headline"></a></h2>
+</div>
+<div class="section" id="xarray-version-install-with-conda-environment">
+<h2>Xarray version: Install with Conda environment<a class="headerlink" href="#xarray-version-install-with-conda-environment" title="Permalink to this heading"></a></h2>
+<p>It is recommended to work into a Conda environment with a recent Python3 version, which can be created with the proper environment file:
+Once you set up Conda, ECmean4 can be easily installed with:</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>&gt; conda env --name ECmean4 create -f docs/environment.yml
+</pre></div>
+</div>
+<p>with <code class="docutils literal notranslate"><span class="pre">ECmean4</span></code> is just an arbitrary name. Then you can activate the environment with:</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>&gt; conda activate ECmean4
+</pre></div>
+</div>
+</div>
+<div class="section" id="requirements">
+<h2>Requirements<a class="headerlink" href="#requirements" title="Permalink to this heading"></a></h2>
+<p>The required packages are listed in <cite>docs/environment.yml`</cite></p>
+</div>
+<div class="section" id="cdo-version-install-in-a-python-virtual-environment">
+<h2>CDO version: Install in a python virtual environment<a class="headerlink" href="#cdo-version-install-in-a-python-virtual-environment" title="Permalink to this heading"></a></h2>
 <p>It is recommended to work into a Python virtual environment <cite>venv</cite>, which can be created with:</p>
 <div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>&gt; python -m venv .ECmean4
 </pre></div>
@@ -106,9 +126,9 @@ Then you can activate the environment with:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">alias</span> <span class="n">pyECmean4</span><span class="o">=</span><span class="s1">&#39;source .ECmean4/bin/activate&#39;</span>
 </pre></div>
 </div>
-</section>
-<section id="requirements">
-<h2>Requirements<a class="headerlink" href="#requirements" title="Permalink to this headline"></a></h2>
+</div>
+<div class="section" id="id1">
+<h2>Requirements<a class="headerlink" href="#id1" title="Permalink to this heading"></a></h2>
 <p>The required packages are listed in <code class="docutils literal notranslate"><span class="pre">docs/requirements.txt</span></code> and reported for completeness here below.
 They can be easily installed with pip.</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">cdo</span><span class="o">==</span><span class="mf">1.5.6</span>
@@ -119,8 +139,8 @@ They can be easily installed with pip.</p>
 </pre></div>
 </div>
 <p><cite>NetCDF4</cite> is also required to accessing the files although is not formally defined as a requirement.</p>
-</section>
-</section>
+</div>
+</div>
 
 
            </div>

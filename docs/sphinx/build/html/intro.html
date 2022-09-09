@@ -1,8 +1,7 @@
 <!DOCTYPE html>
 <html class="writer-html5" lang="en" >
 <head>
-  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
-
+  <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Introduction &mdash; ECmean4  documentation</title>
       <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
@@ -14,6 +13,7 @@
         <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
         <script src="_static/jquery.js"></script>
         <script src="_static/underscore.js"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
         <script src="_static/doctools.js"></script>
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
@@ -46,7 +46,9 @@
 </li>
 <li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="configuration.html">Configuration</a></li>
-<li class="toctree-l1"><a class="reference internal" href="usage.html">Scripts</a></li>
+<li class="toctree-l1"><a class="reference internal" href="usage.html">Xarray Scripts</a></li>
+<li class="toctree-l1"><a class="reference internal" href="usage.html#cmor-compatibility">CMOR compatibility</a></li>
+<li class="toctree-l1"><a class="reference internal" href="CDOusage.html">CDO Scripts</a></li>
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="_apidocs/modules.html">ECmean4 autodoc</a></li>
@@ -76,25 +78,61 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  <section id="introduction">
-<h1>Introduction<a class="headerlink" href="#introduction" title="Permalink to this headline"></a></h1>
-<p>ECmean4 is a lightweight parallelized tool for evaluation of basic properties of Global Climate Models, as global mean, pattern correlation and climate model performance indices.</p>
-<p>It builts on the original <a class="reference external" href="https://github.com/plesager/ece3-postproc/tree/master/ECmean">ECmean</a> which has been used for EC-Earth2 and EC-Earth3 evaluation, but it uses Python3 as a scripting language to perform lazy calls to CDO and makes use of YML configuration files.</p>
-<section id="under-the-hood">
-<h2>Under the hood<a class="headerlink" href="#under-the-hood" title="Permalink to this headline"></a></h2>
-<p>ECmean4 is built on a specific <cite>cdopipe.py</cite> class which is used to chain CDO operators serially as required and the execute them in a single or max two instances at the end of the script, exploiting paralellization on multiple variables. This allows to have a fast call to CDO without writing unnecessary files on disk and without opening NetCDF files in Python. Working with YML files allows for a more flexibile usage of different climatologies - currently under develpoment - and makes possible adding new climate models once a new interface file is developed.</p>
+  <div class="section" id="introduction">
+<h1>Introduction<a class="headerlink" href="#introduction" title="Permalink to this heading"></a></h1>
+<p>ECmean4 is a lightweight parallelized tool for evaluation of basic properties of Global Climate Models, as global mean, climate model performance indices and pattern correlation (under develpoment).</p>
+<p>It builts on the original <a class="reference external" href="https://github.com/plesager/ece3-postproc/tree/master/ECmean">ECmean</a> which has been used for EC-Earth2 and EC-Earth3 evaluation, but it uses Python3 use YML configuration files.
+While the original ECmean4 version has been developed via CDO lazy calls, the current version is based on Xarray+Dask.</p>
+<div class="section" id="under-the-hood">
+<h2>Under the hood<a class="headerlink" href="#under-the-hood" title="Permalink to this heading"></a></h2>
+<p>ECmean4 is built on a <a class="reference external" href="https://docs.xarray.dev/en/stable/">Xarray</a> + <a class="reference external" href="https://examples.dask.org/xarray.html">Dask</a> lazy calls which are executed in a single instance at the end of the script, exploiting paralellization on multiple variables.
+This allows to have a fast data analysis without writing unnecessary files on disk.
+Working with YML files allows for a more flexibile usage of two different climatologies and makes possible adding new climate models once a new interface file is developed.</p>
 <p>In order to assess that all the computation are correct, masks and area weights are pre-computed to provide robust global averages for all the different variables.</p>
 <p>ECmean4 also takes into account possible unit mismatch between the original dataset and the observational datasets, making using of the MetPY extension of the Pint python package. Heat and moisture flux sign convention is also assessed.</p>
 <p>For the performance indices, since interpolation is required, weights are pre-computed only once to increase efficiency. Although conservative interpolation would be the better option, so far bilinear interpolation is preferred since it ensures more consistent results.</p>
-</section>
-<section id="computational-performances">
-<h2>Computational performances<a class="headerlink" href="#computational-performances" title="Permalink to this headline"></a></h2>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
-<p>This section is draft</p>
+<p>So far two version of the code are available, one based on xarray and one based on CDO.
+The xarray version is expted to replace the CDO one, but the new code is completely backward compatible.
+The Xarray scripts have are prepended by <code class="docutils literal notranslate"><span class="pre">xr_</span></code> and their usage is actually the same</p>
 </div>
-</section>
-</section>
+</div>
+<div class="section" id="computational-performances">
+<h2>Computational performances<a class="headerlink" href="#computational-performances" title="Permalink to this heading"></a></h2>
+<p>This has been tested on a single login node of ECMWF Atos AA making use of 10 years of a coupled EC-Earth4 run at Tco95</p>
+<table class="colwidths-given docutils align-default" id="id1">
+<caption><span class="caption-text">ECmean4 single core performance</span><a class="headerlink" href="#id1" title="Permalink to this table"></a></caption>
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 33%" />
+<col style="width: 33%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>SCRIPT</p></th>
+<th class="head"><p>CDO version</p></th>
+<th class="head"><p>Xarray version</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Global Mean</p></td>
+<td><p>1m39s</p></td>
+<td><p>37s</p></td>
+</tr>
+<tr class="row-odd"><td><p>Performance Indices</p></td>
+<td><p>2m2s</p></td>
+<td><p>32s</p></td>
+</tr>
+</tbody>
+</table>
+<p>Scaling with multiple cores has been shown to be better for global mean than performance indices.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>So far we cannot exploit completely dask in the xarray version due to previous existence of the multiprocessing library which seems to be conflicting.
+The scheduler is thus set to synchronous with <code class="docutils literal notranslate"><span class="pre">dask.config.set(scheduler=&quot;synchronous&quot;)</span></code></p>
+</div>
+</div>
+</div>
 
 
            </div>

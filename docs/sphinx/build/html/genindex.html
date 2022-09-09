@@ -13,6 +13,7 @@
         <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
         <script src="_static/jquery.js"></script>
         <script src="_static/underscore.js"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
         <script src="_static/doctools.js"></script>
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="#" />
@@ -39,7 +40,9 @@
 <li class="toctree-l1"><a class="reference internal" href="intro.html">Introduction</a></li>
 <li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="configuration.html">Configuration</a></li>
-<li class="toctree-l1"><a class="reference internal" href="usage.html">Scripts</a></li>
+<li class="toctree-l1"><a class="reference internal" href="usage.html">Xarray Scripts</a></li>
+<li class="toctree-l1"><a class="reference internal" href="usage.html#cmor-compatibility">CMOR compatibility</a></li>
+<li class="toctree-l1"><a class="reference internal" href="CDOusage.html">CDO Scripts</a></li>
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="_apidocs/modules.html">ECmean4 autodoc</a></li>
@@ -165,10 +168,10 @@
 </li>
       <li><a href="_apidocs/ecmean.html#ecmean.getdomain">getdomain() (in module ecmean)</a>
 </li>
-      <li><a href="_apidocs/ecmean.html#ecmean.getinifiles">getinifiles() (in module ecmean)</a>
-</li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="_apidocs/ecmean.html#ecmean.getinifiles">getinifiles() (in module ecmean)</a>
+</li>
       <li>
     global_mean
 
@@ -176,8 +179,6 @@
         <li><a href="_apidocs/global_mean.html#module-global_mean">module</a>
 </li>
       </ul></li>
-      <li><a href="_apidocs/global_mean.html#global_mean.gm_main">gm_main() (in module global_mean)</a>
-</li>
       <li><a href="_apidocs/global_mean.html#global_mean.gm_worker">gm_worker() (in module global_mean)</a>
 </li>
   </ul></td>
@@ -212,6 +213,12 @@
 <h2 id="M">M</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="_apidocs/global_mean.html#global_mean.main">main() (in module global_mean)</a>
+
+      <ul>
+        <li><a href="_apidocs/performance_indices.html#performance_indices.main">(in module performance_indices)</a>
+</li>
+      </ul></li>
       <li><a href="_apidocs/cdopipe.html#cdopipe.CdoPipe.make_atm_masks">make_atm_masks() (cdopipe.CdoPipe method)</a>
 </li>
       <li><a href="_apidocs/cdopipe.html#cdopipe.CdoPipe.make_atm_remap_weights">make_atm_remap_weights() (cdopipe.CdoPipe method)</a>
@@ -222,10 +229,10 @@
 </li>
       <li><a href="_apidocs/cdopipe.html#cdopipe.CdoPipe.mask">mask() (cdopipe.CdoPipe method)</a>
 </li>
-      <li><a href="_apidocs/cdopipe.html#cdopipe.CdoPipe.masked_meansum">masked_meansum() (cdopipe.CdoPipe method)</a>
-</li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="_apidocs/cdopipe.html#cdopipe.CdoPipe.masked_meansum">masked_meansum() (cdopipe.CdoPipe method)</a>
+</li>
       <li>
     module
 
@@ -255,6 +262,14 @@
 <h2 id="P">P</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="_apidocs/global_mean.html#global_mean.parse_arguments">parse_arguments() (in module global_mean)</a>
+
+      <ul>
+        <li><a href="_apidocs/performance_indices.html#performance_indices.parse_arguments">(in module performance_indices)</a>
+</li>
+      </ul></li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li>
     performance_indices
 
@@ -262,10 +277,6 @@
         <li><a href="_apidocs/performance_indices.html#module-performance_indices">module</a>
 </li>
       </ul></li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="_apidocs/performance_indices.html#performance_indices.pi_main">pi_main() (in module performance_indices)</a>
-</li>
       <li><a href="_apidocs/performance_indices.html#performance_indices.pi_worker">pi_worker() (in module performance_indices)</a>
 </li>
   </ul></td>

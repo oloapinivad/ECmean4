@@ -1,8 +1,7 @@
 <!DOCTYPE html>
 <html class="writer-html5" lang="en" >
 <head>
-  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
-
+  <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>performance_indices module &mdash; ECmean4  documentation</title>
       <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
@@ -14,6 +13,7 @@
         <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
         <script src="../_static/jquery.js"></script>
         <script src="../_static/underscore.js"></script>
+        <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
         <script src="../_static/doctools.js"></script>
     <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
@@ -41,7 +41,9 @@
 <li class="toctree-l1"><a class="reference internal" href="../intro.html">Introduction</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../installation.html">Installation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../configuration.html">Configuration</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../usage.html">Scripts</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../usage.html">Xarray Scripts</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../usage.html#cmor-compatibility">CMOR compatibility</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../CDOusage.html">CDO Scripts</a></li>
 </ul>
 <ul class="current">
 <li class="toctree-l1 current"><a class="reference internal" href="modules.html">ECmean4 autodoc</a><ul class="current">
@@ -78,16 +80,22 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  <section id="module-performance_indices">
-<span id="performance-indices-module"></span><h1>performance_indices module<a class="headerlink" href="#module-performance_indices" title="Permalink to this headline"></a></h1>
+  <div class="section" id="module-performance_indices">
+<span id="performance-indices-module"></span><h1>performance_indices module<a class="headerlink" href="#module-performance_indices" title="Permalink to this heading"></a></h1>
 <p>python3 version of ECmean performance indices tool
 Using a reference file from yaml and cdo bindings</p>
 <p>&#64;author Paolo Davini (<a class="reference external" href="mailto:p&#46;davini&#37;&#52;&#48;isac&#46;cnr&#46;it">p<span>&#46;</span>davini<span>&#64;</span>isac<span>&#46;</span>cnr<span>&#46;</span>it</a>), 2022
 &#64;author Jost von Hardenberg (<a class="reference external" href="mailto:jost&#46;hardenberg&#37;&#52;&#48;polito&#46;it">jost<span>&#46;</span>hardenberg<span>&#64;</span>polito<span>&#46;</span>it</a>), 2022</p>
 <dl class="py function">
-<dt class="sig sig-object py" id="performance_indices.pi_main">
-<span class="sig-prename descclassname"><span class="pre">performance_indices.</span></span><span class="sig-name descname"><span class="pre">pi_main</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">args</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/performance_indices.html#pi_main"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#performance_indices.pi_main" title="Permalink to this definition"></a></dt>
+<dt class="sig sig-object py" id="performance_indices.main">
+<span class="sig-prename descclassname"><span class="pre">performance_indices.</span></span><span class="sig-name descname"><span class="pre">main</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">argv</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/performance_indices.html#main"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#performance_indices.main" title="Permalink to this definition"></a></dt>
 <dd><p>Main performance indices calculation</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="performance_indices.parse_arguments">
+<span class="sig-prename descclassname"><span class="pre">performance_indices.</span></span><span class="sig-name descname"><span class="pre">parse_arguments</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">args</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/performance_indices.html#parse_arguments"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#performance_indices.parse_arguments" title="Permalink to this definition"></a></dt>
+<dd><p>Parse CLI arguments</p>
 </dd></dl>
 
 <dl class="py function">
@@ -96,7 +104,7 @@ Using a reference file from yaml and cdo bindings</p>
 <dd><p>Main parallel diagnostic worker</p>
 </dd></dl>
 
-</section>
+</div>
 
 
            </div>
