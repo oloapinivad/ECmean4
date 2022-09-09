@@ -692,7 +692,7 @@ def _make_atm_interp_weights(component, atmareafile, target_grid) :
 
         # this is to get lon and lat from the Equator
         xfield = xr.open_mfdataset(atmareafile, preprocess=xr_preproc)
-        m = xfield['tas'].isel(time_counter=0).load()
+        m = xfield['tas'].isel(time=0).load()
         g = sorted(list(set(m.lat.values)))
         f = sorted(list(m.sel(cell=m.lat==g[int(len(g)/2)]).lon.values))
 
@@ -726,7 +726,7 @@ def _make_oce_interp_weights(component, oceareafile, target_grid) :
         fix = None
         xfield = xr.open_mfdataset(oceareafile, preprocess=xr_preproc)
         # set coordinates which are missing
-        xfield = xfield.set_coords(['nav_lon', 'nav_lat', 'nav_lev', 'time_counter'])
+        xfield = xfield.set_coords(['nav_lon', 'nav_lat', 'nav_lev', 'time'])
         # rename lon and lat for interpolation
         xfield = xfield.rename_dims({"z": "deptht"})
         xfield = xfield.rename({"nav_lon": "lon", "nav_lat": "lat",  "nav_lev": "deptht" })
@@ -759,6 +759,9 @@ def xr_preproc(ds) :
     names to a common format. To be called by xr.open_mf_dataset()"""
 
     #print(ds)
+    if 'time_counter' in list(ds.dims): 
+        ds = ds.rename({"time_counter": "time"})
+
     if 'time_counter' in list(ds.coords): 
         ds = ds.rename({"time_counter": "time"})
 
