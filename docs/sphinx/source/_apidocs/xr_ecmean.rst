@@ -1,7 +1,7 @@
-cdopipe class
-==============
+ecmean module
+=============
 
-.. automodule:: cdopipe
+.. automodule:: xr_ecmean
    :members:
    :undoc-members:
    :show-inheritance:
