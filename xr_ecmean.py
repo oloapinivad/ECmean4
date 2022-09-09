@@ -691,8 +691,9 @@ def _make_atm_interp_weights(component, atmareafile, target_grid) :
     if component == 'oifs':
 
         # this is to get lon and lat from the Equator
-        xfield = xr.open_mfdataset(atmareafile, preprocess=xr_preproc)
-        m = xfield['tas'].isel(time=0).load()
+        xfield = xr.open_mfdataset(atmareafile, preprocess=xr_preproc).load()
+        xname = list(xfield.data_vars)[-1]
+        m = xfield[xname].isel(time=0).load()
         g = sorted(list(set(m.lat.values)))
         f = sorted(list(m.sel(cell=m.lat==g[int(len(g)/2)]).lon.values))
 
@@ -700,11 +701,11 @@ def _make_atm_interp_weights(component, atmareafile, target_grid) :
         ds_out = xr.Dataset({"lon": (["lon"], f), "lat": (["lat"], g)})
 
         # use nearest neighbour to remap to gaussian regular
-        fix = xe.Regridder(xfield['tas'], ds_out, 
+        fix = xe.Regridder(xfield[xname], ds_out, 
             method = "nearest_s2d", locstream_in=True, periodic = True)
 
         # create bilinear interpolator
-        interp = xe.Regridder(fix(xfield['tas']), target_grid, periodic = True, method = "bilinear")
+        interp = xe.Regridder(fix(xfield[xname]), target_grid, periodic = True, method = "bilinear")
 
     elif component == 'cmoratm':
         
@@ -724,14 +725,13 @@ def _make_oce_interp_weights(component, oceareafile, target_grid) :
 
     if component == 'nemo':
         fix = None
-        xfield = xr.open_mfdataset(oceareafile, preprocess=xr_preproc)
+        xfield = xr.open_mfdataset(oceareafile, preprocess=xr_preproc).load()
         # set coordinates which are missing
-        xfield = xfield.set_coords(['nav_lon', 'nav_lat', 'nav_lev', 'time'])
-        # rename lon and lat for interpolation
+        xfield = xfield.set_coords(['nav_lon', 'nav_lat', 'nav_lev', 'time_counter'])
+        # rename dimensions and coordinates
         xfield = xfield.rename_dims({"z": "deptht"})
-        xfield = xfield.rename({"nav_lon": "lon", "nav_lat": "lat",  "nav_lev": "deptht" })
+        xfield = xfield.rename({"nav_lon": "lon", "nav_lat": "lat",  "nav_lev": "deptht", 'time_counter' : "time" })
 
-        #final = xe.util.grid_global(target, target)
         # use grid distance as generic variable
         interp = xe.Regridder(xfield['e1t'], 
             target_grid, method = "bilinear", periodic=True, ignore_degenerate=True)
