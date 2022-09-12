@@ -910,7 +910,7 @@ def xr_preproc(ds):
     if 'pressure_levels' in list(ds.coords):
         ds = ds.rename({"pressure_levels": "plev"})
     
-    if 'plevel' in list(ds.coords):
+    if 'plevel' in list(ds.dims):
         ds = ds.rename({"plevel": "plev"})
 
     if 'nav_lon' in list(ds.coords):
@@ -919,10 +919,10 @@ def xr_preproc(ds):
     if 'nav_lat' in list(ds.coords):
         ds = ds.rename({"nav_lat": "lat"})
 
-    if 'longitude' in list(ds.coords):
+    if 'longitude' in list(ds.dims):
         ds = ds.rename({"longitude": "lon"})
 
-    if 'latitude' in list(ds.coords):
+    if 'latitude' in list(ds.dims):
         ds = ds.rename({"latitude": "lat"})
 
     if 'values' in list(ds.dims):
