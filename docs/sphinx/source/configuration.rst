@@ -3,7 +3,8 @@ Configuration
 
 Configuration file
 ------------------
-A template configuration file is included in the repository, including the folder definition and all the details that can be manually adjusted You will need to copy the original template to create your own local configuration file ::
+A template configuration file is included in the repository, including the folder definition and all the details that can be manually adjusted. 
+You will need to copy the original template to create your own local configuration file ::
 
 .. code-block:: shell
 
@@ -20,7 +21,7 @@ dirs: exp
 dirs: tab
 	Where the output shoul be placed
 dirs: clm
-	Where the ECmean4 climatology is installed, i.e. the ECmean4/climatology folder
+	Where the ECmean4 climatology is installed, i.e. the `ECmean4/climatology` folder
 
 The configuration files defines also the variables which are assessed for the global fields an for the PIs, divided between oceanic and atmospheric variables. This should not be modifieds. 
 

@@ -11,24 +11,23 @@ Under the hood
 --------------
 
 ECmean4 is built on a `Xarray <https://docs.xarray.dev/en/stable/>`_ + `Dask <https://examples.dask.org/xarray.html>`_ lazy calls which are executed in a single instance at the end of the script, exploiting paralellization on multiple variables. 
-This allows to have a fast data analysis without writing unnecessary files on disk. 
+This allows to have a fast data analysis without writing unnecessary files on disk. Interpolation is carried out with `xESMF <https://xesmf.readthedocs.io/en/latest/>`_. 
 Working with YML files allows for a more flexibile usage of two different climatologies and makes possible adding new climate models once a new interface file is developed. 
 
-In order to assess that all the computation are correct, masks and area weights are pre-computed to provide robust global averages for all the different variables. 
+In order to assess that all the computations are correct, masks and area weights are pre-computed to provide robust global averages for all the different variables. 
 
 ECmean4 also takes into account possible unit mismatch between the original dataset and the observational datasets, making using of the MetPY extension of the Pint python package. Heat and moisture flux sign convention is also assessed.
 
 For the performance indices, since interpolation is required, weights are pre-computed only once to increase efficiency. Although conservative interpolation would be the better option, so far bilinear interpolation is preferred since it ensures more consistent results. 
 
 .. note ::
-	So far two version of the code are available, one based on xarray and one based on CDO. 
-	The xarray version is expted to replace the CDO one, but the new code is completely backward compatible. 
-	The Xarray scripts have are prepended by ``xr_`` and their usage is actually the same
-
+	The original code has been developed using on CDO, but it has been replaced with xarray due to computational and scalability reasons.
+	The new code is completely backward compatible, although some small differences in the computation are found due to interpolation. The older code is still available in the ``cdo`` subfolders. 
+	
 Computational performances
 --------------------------
 
-This has been tested on a single login node of ECMWF Atos AA making use of 10 years of a coupled EC-Earth4 run at Tco95
+This has been tested on a single login node of ECMWF Atos AA making use of 10 years of a coupled EC-Earth4 run at Tco95L95-ORCA1
 
 .. list-table:: ECmean4 single core performance
    :widths: 25 25 25

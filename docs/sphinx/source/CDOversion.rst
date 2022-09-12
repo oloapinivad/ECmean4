@@ -1,5 +1,44 @@
-CDO Scripts
+CDO ECmean4
 ===========
+
+An older version of the ECmean scripts based on CDO calls is still available, and it can be found in the ``CDO`` folder. 
+Here you can find the instruction to install it and run it. 
+
+Install in a python virtual environment
+---------------------------------------
+
+It is recommended to work into a Python virtual environment `venv`, which can be created with:
+
+.. code-block:: shell
+
+    > python -m venv .ECmean4
+
+The ``.ECmean4`` is just an arbitrary name, with the leading dot meaning that it is a hidden folder so that it does not mess up your $HOME.
+Then you can activate the environment with:
+
+.. code-block:: shell
+
+    > source .ECmean4/bin/activate
+
+Could be convenient to create an alias to activate the enviroment rapidly when required, adding in the ``.bash_profile.sh`` :: 
+
+    alias pyECmean4='source .ECmean4/bin/activate'
+
+
+Requirements
+------------
+
+The required packages are listed in ``docs/requirements.txt`` and reported for completeness here below. 
+They can be easily installed with pip. ::
+
+    cdo==1.5.6
+    MetPy==1.3.0
+    numpy==1.22.3
+    PyYAML==6.0
+    tabulate==0.8.9
+
+`NetCDF4` is also required to accessing the files although is not formally defined as a requirement.
+
 ECmean4 is based on two independent Python scripts which builts on the same set of functions and classes.
 They both produces takes care of all the computation and produces a .txt table:
 

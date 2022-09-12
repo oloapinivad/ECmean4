@@ -203,7 +203,7 @@ def main(argv):
     if args.config:
         cfg = load_yaml(args.config)
     else:
-        cfg = load_yaml(INDIR / 'config.yml')
+        cfg = load_yaml(INDIR / '../config.yml')
 
     # Setup all common variables, directories from arguments and config files
     diag = Diagnostic(args, cfg)
@@ -215,7 +215,7 @@ def main(argv):
     cdop = CdoPipe(debug=diag.debug)
 
     # loading the var-to-file interface
-    face = load_yaml(INDIR / Path('interfaces', f'interface_{diag.interface}.yml'))
+    face = load_yaml(INDIR / '..' / Path('interfaces', f'interface_{diag.interface}.yml'))
 
     # load the climatology reference data
     piclim = load_yaml(diag.CLMDIR / f'pi_climatology_{diag.climatology}.yml')
