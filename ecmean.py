@@ -748,10 +748,10 @@ def _make_oce_interp_weights(component, oceareafile, target_grid) :
         for cl in ['nav_lon', 'nav_lat', 'nav_lev', 'time_counter', 'x', 'y'] :
             if cl in xfield.data_vars :
                 xfield = xfield.set_coords([cl])
-        #print(xfield)
+        print(xfield)
         # rename dimensions and coordinates
-        xfield = xfield.rename_dims({"z": "deptht"})
-        xfield = xfield.rename({"nav_lon": "lon", "nav_lat": "lat",  "nav_lev": "deptht", 'time_counter' : "time" })
+        # xfield = xfield.rename_dims({"z": "deptht"})
+        xfield = xfield.rename({"nav_lon": "lon", "nav_lat": "lat",  "nav_lev": "deptht" })
         #xfield = xfield.rename({"nav_lon": "lon", "nav_lat": "lat", 'time_counter' : "time" })
 
         # use grid distance as generic variable
