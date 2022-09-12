@@ -271,7 +271,11 @@ def _filter_filename_by_year(fname, year):
     filenames = glob(str(fname))
     # Assumes that the file name ends with 199001-199012.nc or 1990-1991.nc
     year1 = [int(x.split('_')[-1].split('-')[0][0:4]) for x in filenames]
-    year2 = [int(x.split('_')[-1].split('-')[1][0:4]) for x in filenames]
+    try :
+        year2 = [int(x.split('_')[-1].split('-')[1][0:4]) for x in filenames]
+    except: 
+        # this is introduced to handle files which have only one year in their filename
+        year2 = year1
     return [filenames[i]
             for i in range(len(year1)) if year >= year1[i] and year <= year2[i]]
 
@@ -352,6 +356,10 @@ def _make_atm_masks(component, maskatmfile, remap_dictionary=None):
     elif component == 'cmoratm':
         mask = xr.open_mfdataset(maskatmfile, preprocess=xr_preproc)
         mask = mask['sftlf']
+    elif component == 'globo':
+        mask = xr.open_mfdataset(maskatmfile, preprocess=xr_preproc)
+        mask = mask['lsm'].mean(dim='time')
+        mask = abs(1-mask)
     else:
         sys.exit("Mask undefined yet mismatch, this cannot be handled!")
 
@@ -425,6 +433,9 @@ def _make_atm_areas(component, atmareafile):
         xfield = xr.open_mfdataset(atmareafile, preprocess=xr_preproc)
         area = _area_cell(xfield)
     elif component == 'cmoratm':
+        xfield = xr.open_mfdataset(atmareafile, preprocess=xr_preproc)
+        area = _area_cell(xfield)
+    elif component == 'globo':
         xfield = xr.open_mfdataset(atmareafile, preprocess=xr_preproc)
         area = _area_cell(xfield)
     else:
@@ -816,6 +827,19 @@ def _make_atm_interp_weights(component, atmareafile, target_grid):
             method="bilinear")
         #interp = interp[xname]
 
+    elif component == 'globo':
+
+        fix = None
+        xfield = xr.open_mfdataset(atmareafile, preprocess=xr_preproc).load()
+        #xname = list(xfield.data_vars)[-1]
+        interp = xe.Regridder(
+            xfield,
+            target_grid,
+            periodic=True,
+            ignore_degenerate=True,
+            method="bilinear")
+        #interp = interp[xname]
+
     else:
         sys.exit(
             "Atm weights not defined for this component, this cannot be handled!")
@@ -885,12 +909,21 @@ def xr_preproc(ds):
 
     if 'pressure_levels' in list(ds.coords):
         ds = ds.rename({"pressure_levels": "plev"})
+    
+    if 'plevel' in list(ds.coords):
+        ds = ds.rename({"plevel": "plev"})
 
     if 'nav_lon' in list(ds.coords):
         ds = ds.rename({"nav_lon": "lon"})
 
     if 'nav_lat' in list(ds.coords):
         ds = ds.rename({"nav_lat": "lat"})
+
+    if 'longitude' in list(ds.coords):
+        ds = ds.rename({"longitude": "lon"})
+
+    if 'latitude' in list(ds.coords):
+        ds = ds.rename({"latitude": "lat"})
 
     if 'values' in list(ds.dims):
         ds = ds.rename({"values": "cell"})
@@ -941,7 +974,6 @@ def units_converter(org_units, tgt_units):
     Some assumptions are done for precipitation field: must be extended to other vars.
     It will not work if BOTH factor and offset are required"""
 
-    print(units(org_units) / units(tgt_units))
     units_relation = (units(org_units) / units(tgt_units)).to_base_units()
     logging.debug(units_relation)
     if units_relation.magnitude != 1:

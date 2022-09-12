@@ -142,6 +142,7 @@ def gm_worker(util, ref, face, diag, varmean, vartrend, varlist):
                     outfield = xfield[var]
 
                 tfield = outfield.mean(dim='time')
+                #tfield.to_netcdf(var + '.nc')
                 x = masked_meansum(
                     tfield, var, weights, ref[var].get(
                         'total', 'global'), util['atm_mask'])
