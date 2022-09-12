@@ -1,23 +1,23 @@
 Usage
 =====
 
-ECmean4 is based on two independent Python scripts which builts on the same set of functions and classes ``xr_ecmean.py``.
+ECmean4 is based on two independent Python scripts which builts on the same set of functions and classes ``ecmean.py``.
 They both produces takes care of all the computation and produces a .txt table:
 
-xr_global_mean.py
+global_mean.py
 -----------------
 
 Main concepts
 ^^^^^^^^^^^^^
 
-The ``xr_global_mean.py`` script computes the global averages for many dynamical and physical fields. It compares the output against a set of climatological values defined in ``gm_reference.yml``, including temperature, salinity, precipitation (over land and sea), radiative fluxes and other quantities useful for model tuning.
+The ``global_mean.py`` script computes the global averages for many dynamical and physical fields. It compares the output against a set of climatological values defined in ``gm_reference.yml``, including temperature, salinity, precipitation (over land and sea), radiative fluxes and other quantities useful for model tuning.
 
 Usage
 ^^^^^
 
 Running the global mean evaluation is rather simple ::
 
-        ./xr_global_mean.py EXP Y1 Y2
+        ./global_mean.py EXP Y1 Y2
 
 Extra options are listed here below:
 
@@ -41,13 +41,13 @@ optional arguments:
   -e ENSEMBLE, --ensemble ENSEMBLE
                         variant label (ripf number for cmor)
 
-xr_performance_indices.py
+performance_indices.py
 -------------------------
 
 Main concepts
 ^^^^^^^^^^^^^
 
-The ``xr_performance_indices.py`` script computes the `Reichler and Kim Performance Indices <https://journals.ametsoc.org/view/journals/bams/89/3/bams-89-3-303.xml>`_. A few minor modification has been implemented in the original ECmean configuration so that it still work on a regular 2x2 grid (instead of using observation grid). and it is based on old climatological assessment present in the original ECmean. The climatology is defined by ``pi_climatology.yml`` script. Climatology for PI is still VERY outdated and it is being updated. 
+The ``performance_indices.py`` script computes the `Reichler and Kim Performance Indices <https://journals.ametsoc.org/view/journals/bams/89/3/bams-89-3-303.xml>`_. A few minor modification has been implemented in the original ECmean configuration so that it still work on a regular 2x2 grid (instead of using observation grid). and it is based on old climatological assessment present in the original ECmean. The climatology is defined by ``pi_climatology.yml`` script. Climatology for PI is still VERY outdated and it is being updated. 
 
 
 Usage
@@ -97,12 +97,12 @@ In order to allow masking you will need the `sftlf`, `sftof` and `areacello` var
 
 Usage example for CMIP5::
 
-        ./xr_global_mean.py historical 1990 1999 -j 12 -m EC-EARTH -e r1i1p1 -i CMIP5
+        ./global_mean.py historical 1990 1999 -j 12 -m EC-EARTH -e r1i1p1 -i CMIP5
 
 will compute performance indices for member r1i1p1 of the EC-EARTH model in the CMIP5 historical experiment.
 
 Usage example for CMIP6::
 
-        ./xr_performance_indices.py historical 1990 1999 -j 12 -m EC-Earth3 -e r1i1p1f1 -i CMIP6 -k EC22 -r r360x180
+        ./performance_indices.py historical 1990 1999 -j 12 -m EC-Earth3 -e r1i1p1f1 -i CMIP6 -k EC22 -r r360x180
 
 The same as above, but for the CMIP6 EC-Earth3 model. In this case the comparison is with the newer EC22 climatology at high r360x180 resolution.
