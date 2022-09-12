@@ -66,28 +66,29 @@ def parse_arguments(args):
 
     return parser.parse_args(args)
 
+
 def gm_worker(util, ref, face, diag, varmean, vartrend, varlist):
     """Main parallel diagnostic worker for global mean
-   
-    Args: 
-	util: the utility dictionary, including mask and weights
-	ref: the reference dictionary for the global mean
-	face: the interface to be used to access the data
-	diag: the diagnostic class object
-	varmean: the dictionary for the global mean (empty)
-	vartrend: the dictionary for the trends (empty)
-	varlist: the variable on which compute the global mean
+
+    Args:
+        util: the utility dictionary, including mask and weights
+        ref: the reference dictionary for the global mean
+        face: the interface to be used to access the data
+        diag: the diagnostic class object
+        varmean: the dictionary for the global mean (empty)
+        vartrend: the dictionary for the trends (empty)
+        varlist: the variable on which compute the global mean
 
     Returns:
-	vartrend and varmean under the form of a dictionaries
+        vartrend and varmean under the form of a dictionaries
 
     """
 
     for var in varlist:
 
         # compute weights
-        vdom =  getdomain(var, face)
-        weights = util[vdom + '_areas'] 
+        vdom = getdomain(var, face)
+        weights = util[vdom + '_areas']
 
         if 'derived' in face['variables'][var].keys():
             cmd = face['variables'][var]['derived']
@@ -95,14 +96,15 @@ def gm_worker(util, ref, face, diag, varmean, vartrend, varlist):
         else:
             dervars = [var]
 
-        infile = make_input_filename(var, dervars, diag.year1, diag.year1, face, diag)
+        infile = make_input_filename(
+            var, dervars, diag.year1, diag.year1, face, diag)
         isavail, varunit = var_is_there(infile, var, face['variables'])
 
         if not isavail:
-                varmean[var] = float("NaN")
-                vartrend[var] = float("NaN")
+            varmean[var] = float("NaN")
+            vartrend[var] = float("NaN")
         else:
-        
+
             # conversion debug
             logging.debug(var)
             logging.debug(varunit + ' ---> ' + ref[var]['units'])
@@ -114,18 +116,21 @@ def gm_worker(util, ref, face, diag, varmean, vartrend, varlist):
             offset, factor = units_converter(adjusted_units, ref[var]['units'])
 
             # sign adjustment (for heat fluxes)
-            factor = factor * directions_match(face['variables'][var], ref[var])
-            
+            factor = factor * \
+                directions_match(face['variables'][var], ref[var])
+
             # conversion debug
             logging.debug('Offset %f, Factor %f', offset, factor)
 
             a = []
             # loop on years: using xarray to perform the computations
-            # could be replaced by open_mfdataset but need to handle the time-mean
-            yrange = range(diag.year1, diag.year2+1)
+            # could be replaced by open_mfdataset but need to handle the
+            # time-mean
+            yrange = range(diag.year1, diag.year2 + 1)
             for year in yrange:
 
-                infile = make_input_filename(var, dervars, year, year, face, diag)
+                infile = make_input_filename(
+                    var, dervars, year, year, face, diag)
                 xfield = xr.open_mfdataset(infile, preprocess=xr_preproc)
 
                 # time selection for longer dataset!
@@ -135,9 +140,11 @@ def gm_worker(util, ref, face, diag, varmean, vartrend, varlist):
                     outfield = eval_formula(cmd, xfield)
                 else:
                     outfield = xfield[var]
-         
-                tfield = outfield.mean(dim = 'time')
-                x = masked_meansum(tfield, var, weights, ref[var].get('total', 'global'), util['atm_mask'])
+
+                tfield = outfield.mean(dim='time')
+                x = masked_meansum(
+                    tfield, var, weights, ref[var].get(
+                        'total', 'global'), util['atm_mask'])
                 a.append(x)
 
             varmean[var] = (mean(a) + offset) * factor
@@ -145,6 +152,7 @@ def gm_worker(util, ref, face, diag, varmean, vartrend, varlist):
                 vartrend[var] = np.polyfit(yrange, a, 1)[0]
             if diag.fverb:
                 print('Average', var, varmean[var])
+
 
 def main(argv):
     """The main ECmean4 global mean code"""
@@ -176,16 +184,24 @@ def main(argv):
     ref = load_yaml(INDIR / 'gm_reference.yml')
 
     # loading the var-to-file interface
-    face = load_yaml(INDIR / Path('interfaces', f'interface_{diag.interface}.yml'))
+    face = load_yaml(
+        INDIR /
+        Path(
+            'interfaces',
+            f'interface_{diag.interface}.yml'))
 
     # list of vars on which to work
     var_atm = cfg['global']['atm_vars']
     var_oce = cfg['global']['oce_vars']
     var_table = cfg['global']['tab_vars']
     # var_all = list(set(var_atm + var_table + var_oce))
-    var_all = list(dict.fromkeys(var_atm + var_table + var_oce))  # python 3.7+, preserve order
+    var_all = list(
+        dict.fromkeys(
+            var_atm +
+            var_table +
+            var_oce))  # python 3.7+, preserve order
 
-    # We need 
+    # We need
     # Can probably be cleaned up further
     comp = face['model']['component']  # Get component for each domain
 
@@ -194,7 +210,8 @@ def main(argv):
     # config file in order to be more portable
     maskatmfile, atmareafile, oceareafile = get_inifiles(face, diag)
 
-    # create util dictionary including mask and weights for both atmosphere and ocean grids
+    # create util dictionary including mask and weights for both atmosphere
+    # and ocean grids
     areas = areas_dictionary(comp, atmareafile, oceareafile)
     masks = masks_dictionary(comp, maskatmfile)
     util_dictionary = {**areas, **masks}
@@ -214,8 +231,8 @@ def main(argv):
     # loop on the variables, create the parallel process
     for varlist in chunks(var_all, diag.numproc):
         p = Process(target=gm_worker, args=(util_dictionary, ref, face, diag,
-                                         varmean, vartrend, varlist))
-        p.start() 
+                                            varmean, vartrend, varlist))
+        p.start()
         processes.append(p)
 
     # wait for the processes to finish
@@ -226,7 +243,7 @@ def main(argv):
 
     # evaluate tic-toc time  of execution
     if diag.fverb:
-        print('Done in {:.4f} seconds'.format(toc-tic))
+        print('Done in {:.4f} seconds'.format(toc - tic))
 
     # loop on the variables to create the output table
     global_table = []
@@ -249,7 +266,8 @@ def main(argv):
     head = head + ['Obs.', 'Dataset', 'Years']
 
     # write the file with tabulate: cool python feature
-    tablefile = diag.TABDIR / f'global_mean_{diag.expname}_{diag.modelname}_{diag.ensemble}_{diag.year1}_{diag.year2}.txt'
+    tablefile = diag.TABDIR / \
+        f'global_mean_{diag.expname}_{diag.modelname}_{diag.ensemble}_{diag.year1}_{diag.year2}.txt'
     if diag.fverb:
         print(tablefile)
     with open(tablefile, 'w', encoding='utf-8') as f:
@@ -260,6 +278,7 @@ def main(argv):
         if diag.fverb:
             print(diag.linefile)
         write_tuning_table(diag.linefile, varmean, var_table, diag, ref)
+
 
 if __name__ == "__main__":
 

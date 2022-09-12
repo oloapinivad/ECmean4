@@ -3,7 +3,7 @@
 '''
  Class to create pipes of cdo commands
 
- :Authors: 
+ :Authors:
  	Jost von Hardenberg (jost.hardenberg@polito.it), March 2022
 	Paolo Davini (p.davini@isac.cnr.it), March 2022
 
@@ -57,10 +57,12 @@ class CdoPipe:
 
     def _set_atm_fixgrid(self, component, atminifile):
         """Define the command require for correcting model grid"""
-        # this could improved using the modelname variable: if EC-Earth, do this...
+        # this could improved using the modelname variable: if EC-Earth, do
+        # this...
         if component == 'oifs':
             self.atmfix = f'-setgridtype,regular -setgrid,{self.ATMGRID}'
-            self.ATMGRIDAREA = self.cdo.gridarea(input=f'{self.atmfix} {atminifile}')
+            self.ATMGRIDAREA = self.cdo.gridarea(
+                input=f'{self.atmfix} {atminifile}')
         elif component == 'cmoratm':
             self.atmfix = ''
             self.ATMGRIDAREA = self.cdo.gridarea(input=f'{atminifile}')
@@ -71,9 +73,11 @@ class CdoPipe:
         """Define the command require for correcting model grid"""
 
         if ocegridfile:
-            # this could improved using the modelname variable: if EC-Earth, do this...
+            # this could improved using the modelname variable: if EC-Earth, do
+            # this...
             if component == 'nemo':
-                self.OCEGRIDAREA = self.cdo.expr('area=e1t*e2t', input=oceareafile)
+                self.OCEGRIDAREA = self.cdo.expr(
+                    'area=e1t*e2t', input=oceareafile)
                 self.ocefix = f'-setgridarea,{self.OCEGRIDAREA}'
             elif component == 'cmoroce':
                 self.ocefix = ''
@@ -81,11 +85,18 @@ class CdoPipe:
                     self.OCEGRIDAREA = str(glob(oceareafile)[0])
                     self.ocefix = f'-setgridarea,{self.OCEGRIDAREA}'
                 else:
-                    self.OCEGRIDAREA = self.cdo.gridarea(input=f'{ocegridfile}')
+                    self.OCEGRIDAREA = self.cdo.gridarea(
+                        input=f'{ocegridfile}')
             else:
                 sys.exit('Oceanic component not supported')
 
-    def set_gridfixes(self, atminifile, ocegridfile, oceareafile, atmcomp, ocecomp):
+    def set_gridfixes(
+            self,
+            atminifile,
+            ocegridfile,
+            oceareafile,
+            atmcomp,
+            ocecomp):
         """Create all internal grid files and set fixes for atm and oce grids"""
         self._set_grids(atminifile, ocegridfile)
         self._set_atm_fixgrid(atmcomp, atminifile)
@@ -93,16 +104,20 @@ class CdoPipe:
 
     def make_atm_masks(self, component, atminifile, extra=''):
         """Create land-sea masks for atmosphere model"""
-        # prepare ATM LSM: this need to be improved, since it is clearly model dependent
+        # prepare ATM LSM: this need to be improved, since it is clearly model
+        # dependent
         if component == 'oifs':
-            self.LANDMASK = self.cdo.selname('LSM',
-                                             input=f'-gec,0.5 {extra} {self.atmfix} {atminifile}',
-                                             options='-t ecmwf -f nc')
-            self.SEAMASK = self.cdo.mulc('-1', input=f'-subc,1 {self.LANDMASK}')
+            self.LANDMASK = self.cdo.selname(
+                'LSM',
+                input=f'-gec,0.5 {extra} {self.atmfix} {atminifile}',
+                options='-t ecmwf -f nc')
+            self.SEAMASK = self.cdo.mulc(
+                '-1', input=f'-subc,1 {self.LANDMASK}')
         elif component == 'cmoratm':
-            self.LANDMASK = self.cdo.selname('sftlf',
-                                             input=f'-gec,50 {extra} {self.atmfix} {atminifile}')
-            self.SEAMASK = self.cdo.mulc('-1', input=f'-subc,1 {self.LANDMASK}')
+            self.LANDMASK = self.cdo.selname(
+                'sftlf', input=f'-gec,50 {extra} {self.atmfix} {atminifile}')
+            self.SEAMASK = self.cdo.mulc(
+                '-1', input=f'-subc,1 {self.LANDMASK}')
 
     def make_atm_remap_weights(self, atminifile, remap_method, target):
         """Create atmosphere remap weights"""
@@ -112,7 +127,8 @@ class CdoPipe:
         themethod = getattr(self.cdo(), genweight)
 
         # self.ATMWEIGHTS = self.cdo.genbil(target, input=f'{self.atmfix} {atminifile}')
-        self.ATMWEIGHTS = themethod(target, input=f'{self.atmfix} {atminifile}')
+        self.ATMWEIGHTS = themethod(
+            target, input=f'{self.atmfix} {atminifile}')
         logging.debug("Atmosphere is remapping with %s method", genweight)
 
     def make_oce_remap_weights(self, ocegridfile, remap_method, target):
@@ -121,12 +137,16 @@ class CdoPipe:
             genweight = remap_method.replace('remap', 'gen')
             try:
                 themethod = getattr(self.cdo(), genweight)
-                self.OCEWEIGHTS = themethod(target, input=f'{self.ocefix} {ocegridfile}')
+                self.OCEWEIGHTS = themethod(
+                    target, input=f'{self.ocefix} {ocegridfile}')
                 logging.debug("Ocean is remapping with %s method", genweight)
-            except:
+            except BaseException:
                 themethod = getattr(self.cdo(), 'genbil')
-                self.OCEWEIGHTS = themethod(target, input=f'{self.ocefix} {ocegridfile}')
-                logging.warning("Ocean is remapping with genbil method because cannot do %s", genweight)
+                self.OCEWEIGHTS = themethod(
+                    target, input=f'{self.ocefix} {ocegridfile}')
+                logging.warning(
+                    "Ocean is remapping with genbil method because cannot do %s",
+                    genweight)
 
     def chain(self, cmd):
         """Adds a generic cdo operator"""
@@ -149,7 +169,8 @@ class CdoPipe:
             domain = self.domain
 
         if not domain:
-            sys.exit('You have to define a domain with the setdomain() method first')
+            sys.exit(
+                'You have to define a domain with the setdomain() method first')
 
         # this should be replaced for a more general "ocean" or "atmosphere"
         if domain == 'oce':
@@ -160,7 +181,8 @@ class CdoPipe:
     def mask(self, mask_type):
         if mask_type == 'land':
             if not self.LANDMASK:
-                sys.exit('Needed grid file not defined, call make_grids method first')
+                sys.exit(
+                    'Needed grid file not defined, call make_grids method first')
             self.ifthen(self.LANDMASK)
         elif mask_type in ['sea', 'ocean']:
             self.ifthen(self.SEAMASK)
@@ -168,7 +190,8 @@ class CdoPipe:
     def masked_meansum(self, mask_type):
         if mask_type == 'land':
             if not self.LANDMASK:
-                sys.exit('Needed grid file not defined, call make_grids method first')
+                sys.exit(
+                    'Needed grid file not defined, call make_grids method first')
             self.chain(f'fldsum -mul {self.ATMGRIDAREA} -mul {self.LANDMASK}')
         elif mask_type in ['sea', 'ocean']:
             self.chain(f'fldsum -mul {self.ATMGRIDAREA} -mul {self.SEAMASK}')

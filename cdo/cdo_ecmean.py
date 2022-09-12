@@ -55,7 +55,10 @@ class Diagnostic():
         # Various input and output directories
         self.ECEDIR = Path(os.path.expandvars(cfg['dirs']['exp']))
         self.TABDIR = Path(os.path.expandvars(cfg['dirs']['tab']))
-        self.CLMDIR = Path(os.path.expandvars(cfg['dirs']['clm']), self.climatology)
+        self.CLMDIR = Path(
+            os.path.expandvars(
+                cfg['dirs']['clm']),
+            self.climatology)
         self.RESCLMDIR = Path(self.CLMDIR, self.resolution)
         self.years_joined = ''
 
@@ -125,11 +128,13 @@ def var_is_there(infile, var, reference):
 
     # if file exists, check which variables are inside
     if isavail:
-        params = cdo.pardes(input=ffile)
+        params = cdo.vardes(input=ffile)
         # Extract list of vars and of units in infile
         vars_avail = [v.split()[1] for v in params]
-        # The following is a trick to obtain the units list (placing '' for missing ones)
-        units_avail = [(v.replace('[', ']').split(']')[1:2] or [''])[0] for v in params]
+        # The following is a trick to obtain the units list (placing '' for
+        # missing ones)
+        units_avail = [(v.replace('[', ']').split(']')[1:2] or [''])[0]
+                       for v in params]
         units_avail = dict(zip(vars_avail, units_avail))  # Transform into dict
 
         # if variable is derived, extract required vars
@@ -198,7 +203,8 @@ def _filter_filename_by_year(fname, year):
     # Assumes that the file name ends with 199001-199012.nc or 1990-1991.nc
     year1 = [int(x.split('_')[-1].split('-')[0][0:4]) for x in filenames]
     year2 = [int(x.split('_')[-1].split('-')[1][0:4]) for x in filenames]
-    return [filenames[i] for i in range(len(year1)) if year >= year1[i] and year <= year2[i]]
+    return [filenames[i]
+            for i in range(len(year1)) if year >= year1[i] and year <= year2[i]]
 
 
 def make_input_filename(var0, varlist, year1, year2, face, diag):
@@ -209,7 +215,8 @@ def make_input_filename(var0, varlist, year1, year2, face, diag):
         Path(face['model']['basedir']) / \
         Path(face['filetype'][filetype]['dir']) / \
         Path(face['filetype'][filetype]['filename'])
-    # if year1 is a list, loop over it (we cannot use curly brackets anymore, now we pass a list)
+    # if year1 is a list, loop over it (we cannot use curly brackets anymore,
+    # now we pass a list)
     filename = []
     # Make an iterable even if year1 is not a list
     yy = year1
@@ -247,7 +254,7 @@ def units_converter(org_units, tgt_units):
     Some assumptions are done for precipitation field: must be extended to other vars.
     It will not work if BOTH factor and offset are required"""
 
-    units_relation = (units(org_units)/units(tgt_units)).to_base_units()
+    units_relation = (units(org_units) / units(tgt_units)).to_base_units()
     logging.debug(units_relation)
     if units_relation.magnitude != 1:
         logging.info('Unit conversion required...')
@@ -265,7 +272,7 @@ def units_converter(org_units, tgt_units):
             logging.debug("Dividing by water density...")
             density_water = units('kg / m^3') * 1000
             offset = 0.
-            factor = (factor_standard/density_water).to(tgt_units).magnitude
+            factor = (factor_standard / density_water).to(tgt_units).magnitude
 
         else:
             logging.error(units_relation)
@@ -314,7 +321,14 @@ def write_tuning_table(linefile, varmean, var_table, diag, ref):
         print(f'{diag.modelname} {diag.ensemble} {diag.expname}',
               '{:4d} {:4d} '.format(diag.year1, diag.year2), end='', file=f)
         for var in var_table:
-            print('{:12.5f}'.format(varmean[var] * ref[var].get('factor', 1)), end=' ', file=f)
+            print(
+                '{:12.5f}'.format(
+                    varmean[var] *
+                    ref[var].get(
+                        'factor',
+                        1)),
+                end=' ',
+                file=f)
         print(file=f)
 
 
@@ -324,7 +338,8 @@ def getdomain(var, face):
        (the interface file specifies the component for each domain instead)"""
     comp = face['filetype'][face['variables'][var]['filetype']]['component']
     d = face['model']['component']
-    domain = dict(zip([list(d.values())[x] for x in range(len(d.values()))], d.keys()))
+    domain = dict(zip([list(d.values())[x]
+                  for x in range(len(d.values()))], d.keys()))
     return domain[comp]
 
 
@@ -332,7 +347,8 @@ def getcomponent(face):  # unused function
     """Return a dictionary providing the domain associated with a variable
        (the interface file specifies the domain for each component instead)"""
     d = face['component']
-    p = dict(zip([list(d.values())[x]['domain'] for x in range(len(d.values()))], d.keys()))
+    p = dict(zip([list(d.values())[x]['domain']
+             for x in range(len(d.values()))], d.keys()))
     return p
 
 
@@ -355,14 +371,24 @@ def getinifiles(face, diag):
         inifiles[filename] = ''
         if inifile:
             if inifile[0] == '/':
-                inifiles[filename] = str(_expand_filename(inifile,
-                                                          '', diag.year1, diag.year1, diag))
+                inifiles[filename] = str(
+                    _expand_filename(
+                        inifile,
+                        '',
+                        diag.year1,
+                        diag.year1,
+                        diag))
             else:
                 inifiles[filename] = Path(diag.ECEDIR) / \
                     Path(face['model']['basedir']) / \
                     Path(inifile)
-                inifiles[filename] = str(_expand_filename(inifiles[filename],
-                                                          '', diag.year1, diag.year1, diag))
+                inifiles[filename] = str(
+                    _expand_filename(
+                        inifiles[filename],
+                        '',
+                        diag.year1,
+                        diag.year1,
+                        diag))
 
             # safe check if inifile exist in the experiment folder
             if not glob(inifiles[filename]):

@@ -22,7 +22,7 @@ import copy
 from time import time
 from tabulate import tabulate
 import numpy as np
-from ecmean import var_is_there, load_yaml, \
+from cdo_ecmean import var_is_there, load_yaml, \
     make_input_filename, write_tuning_table, \
     units_extra_definition, units_are_integrals, \
     units_converter, directions_match, chunks, \
@@ -66,22 +66,23 @@ def parse_arguments(args):
 
 def gm_worker(cdopin, ref, face, diag, varmean, vartrend, varlist):
     """Main parallel diagnostic worker for global mean
-   
-    Args: 
-	cdopin: a cdo class object
-	ref: the reference dictionary for the global mean
-	face: the interface to be used to access the data
-	diag: the diagnostic class object
-	varmean: the dictionary for the global mean (empty)
-	vartrend: the dictionary for the trends (empty)
-	varlist: the variable on which compute the global mean
+
+    Args:
+        cdopin: a cdo class object
+        ref: the reference dictionary for the global mean
+        face: the interface to be used to access the data
+        diag: the diagnostic class object
+        varmean: the dictionary for the global mean (empty)
+        vartrend: the dictionary for the trends (empty)
+        varlist: the variable on which compute the global mean
 
     Returns:
-	vartrend and varmean under the form of a dictionaries
+        vartrend and varmean under the form of a dictionaries
 
     """
 
-    cdop = copy.copy(cdopin)  # Create a new local instance to avoid overlap of the cdo pipe
+    # Create a new local instance to avoid overlap of the cdo pipe
+    cdop = copy.copy(cdopin)
     for var in varlist:
 
         # check if required variables are there: use interface file
@@ -95,7 +96,8 @@ def gm_worker(cdopin, ref, face, diag, varmean, vartrend, varlist):
         else:
             dervars = [var]
 
-        infile = make_input_filename(var, dervars, diag.year1, diag.year1, face, diag)
+        infile = make_input_filename(
+            var, dervars, diag.year1, diag.year1, face, diag)
         isavail, varunit = var_is_there(infile, var, face['variables'])
 
         if not isavail:
@@ -116,7 +118,8 @@ def gm_worker(cdopin, ref, face, diag, varmean, vartrend, varlist):
             offset, factor = units_converter(adjusted_units, ref[var]['units'])
 
             # sign adjustment (for heat fluxes)
-            factor = factor * directions_match(face['variables'][var], ref[var])
+            factor = factor * \
+                directions_match(face['variables'][var], ref[var])
 
             # conversion debug
             logging.debug('Offset %f, Factor %f', offset, factor)
@@ -139,9 +142,10 @@ def gm_worker(cdopin, ref, face, diag, varmean, vartrend, varlist):
 
             a = []
             # loop on years: call CDO to perform all the computations
-            yrange = range(diag.year1, diag.year2+1)
+            yrange = range(diag.year1, diag.year2 + 1)
             for year in yrange:
-                infile = make_input_filename(var, dervars, year, year, face, diag)
+                infile = make_input_filename(
+                    var, dervars, year, year, face, diag)
                 x = cdop.output(infile, keep=True)
                 a.append(x)
 
@@ -154,7 +158,6 @@ def gm_worker(cdopin, ref, face, diag, varmean, vartrend, varlist):
 
 def main(argv):
     """The main ECmean4 global mean code"""
-
 
     assert sys.version_info >= (3, 7)
 
@@ -186,13 +189,23 @@ def main(argv):
     ref = load_yaml(INDIR / '../gm_reference.yml')
 
     # loading the var-to-file interface
-    face = load_yaml(INDIR / '..' / Path('interfaces', f'interface_{diag.interface}.yml'))
+    face = load_yaml(
+        INDIR /
+        '..' /
+        Path(
+            'interfaces',
+            f'interface_{diag.interface}.yml'))
 
     # New bunch of functions to set grids, create correction command, masks and areas
     # Can probably be cleaned up further
     comp = face['model']['component']  # Get component for each domain
     atminifile, ocegridfile, oceareafile = getinifiles(face, diag)
-    cdop.set_gridfixes(atminifile, ocegridfile, oceareafile, comp['atm'], comp['oce'])
+    cdop.set_gridfixes(
+        atminifile,
+        ocegridfile,
+        oceareafile,
+        comp['atm'],
+        comp['oce'])
     cdop.make_atm_masks(comp['atm'], atminifile)
 
     # list of vars on which to work
@@ -200,7 +213,11 @@ def main(argv):
     var_oce = cfg['global']['oce_vars']
     var_table = cfg['global']['tab_vars']
     # var_all = list(set(var_atm + var_table + var_oce))
-    var_all = list(dict.fromkeys(var_atm + var_table + var_oce))  # python 3.7+, preserve order
+    var_all = list(
+        dict.fromkeys(
+            var_atm +
+            var_table +
+            var_oce))  # python 3.7+, preserve order
 
     # add missing unit definition
     units_extra_definition()
@@ -217,7 +234,7 @@ def main(argv):
     # loop on the variables, create the parallel process
     for varlist in chunks(var_all, diag.numproc):
         p = Process(target=gm_worker, args=(cdop, ref, face, diag,
-                                         varmean, vartrend, varlist))
+                                            varmean, vartrend, varlist))
         p.start()
         processes.append(p)
 
@@ -229,7 +246,7 @@ def main(argv):
 
     # evaluate tic-toc time  of execution
     if diag.fverb:
-        print('Done in {:.4f} seconds'.format(toc-tic))
+        print('Done in {:.4f} seconds'.format(toc - tic))
 
     # loop on the variables to create the output table
     global_table = []
@@ -252,7 +269,8 @@ def main(argv):
     head = head + ['Obs.', 'Dataset', 'Years']
 
     # write the file with tabulate: cool python feature
-    tablefile = diag.TABDIR / f'global_mean_{diag.expname}_{diag.modelname}_{diag.ensemble}_{diag.year1}_{diag.year2}.txt'
+    tablefile = diag.TABDIR / \
+        f'cdo_global_mean_{diag.expname}_{diag.modelname}_{diag.ensemble}_{diag.year1}_{diag.year2}.txt'
     if diag.fverb:
         print(tablefile)
     with open(tablefile, 'w', encoding='utf-8') as f:

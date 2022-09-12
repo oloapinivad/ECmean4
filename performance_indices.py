@@ -48,8 +48,12 @@ def parse_arguments(args):
                         help='config file')
     parser.add_argument('-m', '--model', type=str, default='',
                         help='model name')
-    parser.add_argument('-k', '--climatology', type=str, default='RK08',
-                        help='climatology to be compared. default: RK08. Options: [RK08, EC22]')
+    parser.add_argument(
+        '-k',
+        '--climatology',
+        type=str,
+        default='RK08',
+        help='climatology to be compared. default: RK08. Options: [RK08, EC22]')
     parser.add_argument('-r', '--resolution', type=str, default='',
                         help='climatology resolution')
     parser.add_argument('-e', '--ensemble', type=str, default='r1i1p1f1',
@@ -60,27 +64,25 @@ def parse_arguments(args):
 
 
 def pi_worker(util, piclim, face, diag, field_3d, varstat, varlist):
-
     """Main parallel diagnostic worker for performance indices
-    
-    Args: 
-	util: the utility dictionary, including mask, area and remap weights
-	piclim: the reference climatology for the global mean
-	face: the interface to be used to access the data
-	diag: the diagnostic class object
-	field_3d: the list of 3d vars to be handled differently
-	varstat: the dictionary for the variable PI (empty)
-	varlist: the variable on which compute the global mean
+
+    Args:
+        util: the utility dictionary, including mask, area and remap weights
+        piclim: the reference climatology for the global mean
+        face: the interface to be used to access the data
+        diag: the diagnostic class object
+        field_3d: the list of 3d vars to be handled differently
+        varstat: the dictionary for the variable PI (empty)
+        varlist: the variable on which compute the global mean
 
     Returns:
-	vartrend under the form of a dictionaries
+        vartrend under the form of a dictionaries
 
     """
 
-
     for var in varlist:
 
-        vdom =  getdomain(var, face)
+        vdom = getdomain(var, face)
 
         if 'derived' in face['variables'][var].keys():
             cmd = face['variables'][var]['derived']
@@ -90,7 +92,8 @@ def pi_worker(util, piclim, face, diag, field_3d, varstat, varlist):
 
         # check if required variables are there: use interface file
         # check into first file, and load also model variable units
-        infile = make_input_filename(var, dervars, diag.year1, diag.year1, face, diag)
+        infile = make_input_filename(
+            var, dervars, diag.year1, diag.year1, face, diag)
         isavail, varunit = var_is_there(infile, var, face['variables'])
 
         # if var is not available, store a NaN for the table
@@ -106,17 +109,18 @@ def pi_worker(util, piclim, face, diag, field_3d, varstat, varlist):
 
             # adjust integrated quantities
             new_units = units_are_integrals(varunit, piclim[var])
-    
+
             # unit conversion (can be improved exploiting xarray)
             offset, factor = units_converter(new_units, piclim[var]['units'])
 
             # sign adjustment (for heat fluxes)
-            factor = factor * directions_match(face['variables'][var], piclim[var])
+            factor = factor * \
+                directions_match(face['variables'][var], piclim[var])
             logging.debug('Offset %f, Factor %f', offset, factor)
 
-
             # create a file list using bash wildcards
-            infile = make_input_filename(var, dervars, diag.years_joined, '????', face, diag)
+            infile = make_input_filename(
+                var, dervars, diag.years_joined, '????', face, diag)
 
             # get filenames for climatology
             clim, vvvv = get_clim_files(piclim, var, diag)
@@ -134,45 +138,49 @@ def pi_worker(util, piclim, face, diag, field_3d, varstat, varlist):
             tmean = outfield.mean(dim='time')
             tmean = tmean * factor + offset
 
-            # apply interpolation, if fixer is availble and with different grids
+            # apply interpolation, if fixer is availble and with different
+            # grids
             if vdom in 'atm':
-                if util['atm_fix'] : 
+                if util['atm_fix']:
                     tmean = util['atm_fix'](tmean, keep_attrs=True)
                 final = util['atm_remap'](tmean, keep_attrs=True)
             if vdom in 'oce':
-                if util['oce_fix'] : 
+                if util['oce_fix']:
                     tmean = util['oce_fix'](tmean, keep_attrs=True)
                 final = util['oce_remap'](tmean, keep_attrs=True)
 
             # open climatology files, fix their metadata
             cfield = adjust_clim_file(xr.open_dataset(clim))
-            vfield = adjust_clim_file(xr.open_dataset(vvvv), remove_zero = True)
+            vfield = adjust_clim_file(xr.open_dataset(vvvv), remove_zero=True)
 
             if var in field_3d:
-                
+
                 # xarray interpolation on plev, forcing to be in Pascal
                 final = final.metpy.convert_coordinate_units('plev', 'Pa')
-                interped = final.interp(plev = cfield['plev'].values)
-                zonal = interped.mean(dim = 'lon')
+                interped = final.interp(plev=cfield['plev'].values)
+                zonal = interped.mean(dim='lon')
 
                 # compute PI
                 complete = (zonal - cfield)**2 / vfield
 
                 # compute vertical bounds as weights
-                bounds_lev = guess_bounds(complete['plev'], name = 'plev')
-                bounds = abs(bounds_lev[:,0] - bounds_lev[:,1])
-                weights = xr.DataArray(bounds, coords=[complete['plev']], dims=['plev'])
-                
-                # vertical mean
-                outarray = complete.weighted(weights).mean(dim = 'plev')
+                bounds_lev = guess_bounds(complete['plev'], name='plev')
+                bounds = abs(bounds_lev[:, 0] - bounds_lev[:, 1])
+                weights = xr.DataArray(
+                    bounds, coords=[
+                        complete['plev']], dims=['plev'])
 
-            else :
+                # vertical mean
+                outarray = complete.weighted(weights).mean(dim='plev')
+
+            else:
 
                 # compute PI
-                computation = (final - cfield)**2/vfield
-                
+                computation = (final - cfield)**2 / vfield
+
                 # reapply the land-sea mask
-                outarray = mask_field(computation, var, piclim[var]['mask'], util['atm_mask'])
+                outarray = mask_field(
+                    computation, var, piclim[var]['mask'], util['atm_mask'])
 
             # latitude-based averaging
             weights = np.cos(np.deg2rad(outarray.lat))
@@ -182,9 +190,9 @@ def pi_worker(util, piclim, face, diag, field_3d, varstat, varlist):
             varstat[var] = float(out)
             if diag.fverb:
                 print('PI for ', var, varstat[var])
-            
-def main(argv):
 
+
+def main(argv):
     """Main performance indices calculation"""
 
     #assert sys.version_info >= (3, 7)
@@ -211,18 +219,24 @@ def main(argv):
     os.makedirs(diag.TABDIR, exist_ok=True)
 
     # loading the var-to-file interface
-    face = load_yaml(INDIR / Path('interfaces', f'interface_{diag.interface}.yml'))
+    face = load_yaml(
+        INDIR /
+        Path(
+            'interfaces',
+            f'interface_{diag.interface}.yml'))
 
     # load the climatology reference data
     piclim = load_yaml(diag.CLMDIR / f'pi_climatology_{diag.climatology}.yml')
 
-    # new bunch of functions to set grids, create correction command, masks and areas
+    # new bunch of functions to set grids, create correction command, masks
+    # and areas
     comp = face['model']['component']  # Get component for each domain
 
-    # all clim have the same grid, read from the first clim available and get target grid
+    # all clim have the same grid, read from the first clim available and get
+    # target grid
     clim, vvvv = get_clim_files(piclim, 'tas', diag)
     target_remap_grid = xr.open_dataset(clim)
-    
+
     # get file info files
     maskatmfile, atmareafile, oceareafile = get_inifiles(face, diag)
 
@@ -232,11 +246,11 @@ def main(argv):
     # create util dictionary including mask and weights for both atmosphere and ocean grids
     # use the atmospheric remap dictionary to remap the mask file
     areas = areas_dictionary(comp, atmareafile, oceareafile)
-    masks = masks_dictionary(comp, maskatmfile, remap_dictionary = remap)
+    masks = masks_dictionary(comp, maskatmfile, remap_dictionary=remap)
 
     # join the two dictionaries
     util_dictionary = {**masks, **areas, **remap}
-    
+
     # add missing unit definitions
     units_extra_definition()
 
@@ -256,7 +270,7 @@ def main(argv):
     #    diag.years_joined = '{' + diag.years_joined + '}'
 
     # We now use a list
-    diag.years_joined = list(range(diag.year1, diag.year2+1))
+    diag.years_joined = list(range(diag.year1, diag.year2 + 1))
 
     # main loop: manager is required for shared variables
     mgr = Manager()
@@ -268,8 +282,16 @@ def main(argv):
 
     # loop on the variables, create the parallel process
     for varlist in chunks(field_all, diag.numproc):
-        p = Process(target=pi_worker,
-                    args=(util_dictionary, piclim, face, diag, field_3d, varstat, varlist))
+        p = Process(
+            target=pi_worker,
+            args=(
+                util_dictionary,
+                piclim,
+                face,
+                diag,
+                field_3d,
+                varstat,
+                varlist))
         p.start()
         processes.append(p)
 
@@ -280,7 +302,7 @@ def main(argv):
     toc = time()
     # evaluate tic-toc time  of execution
     if diag.fverb:
-        print('Done in {:.4f} seconds'.format(toc-tic))
+        print('Done in {:.4f} seconds'.format(toc - tic))
 
     # # define options for the output table
     head = ['Var', 'PI', 'Domain', 'Dataset', 'CMIP3', 'Ratio to CMIP3']
@@ -288,13 +310,21 @@ def main(argv):
 
     # loop on the variables
     for var in field_all:
-        out_sequence = [var, varstat[var], piclim[var]['mask'], piclim[var]
-                        ['dataset'], piclim[var]['cmip3'], varstat[var]/float(piclim[var]['cmip3'])]
+        out_sequence = [
+            var,
+            varstat[var],
+            piclim[var]['mask'],
+            piclim[var]['dataset'],
+            piclim[var]['cmip3'],
+            varstat[var] /
+            float(
+                piclim[var]['cmip3'])]
         global_table.append(out_sequence)
 
     # nice loop on dictionary to get the partial and total pi
     partial_pi = np.nanmean([varstat[k] for k in field_2d + field_3d])
-    total_pi = np.nanmean([varstat[k] for k in field_2d + field_3d + field_oce + field_ice])
+    total_pi = np.nanmean([varstat[k]
+                          for k in field_2d + field_3d + field_oce + field_ice])
 
     # write the file  with tabulate: cool python feature
     tablefile = diag.TABDIR / \
@@ -302,8 +332,14 @@ def main(argv):
     if diag.fverb:
         print(tablefile)
     with open(tablefile, 'w', encoding='utf-8') as f:
-        f.write(tabulate(global_table, headers=head, tablefmt='orgtbl', floatfmt=".2f"))
-        f.write('\n\nPartial PI (atm only) is   : ' + str(round(partial_pi, 3)))
+        f.write(
+            tabulate(
+                global_table,
+                headers=head,
+                tablefmt='orgtbl',
+                floatfmt=".2f"))
+        f.write('\n\nPartial PI (atm only) is   : ' +
+                str(round(partial_pi, 3)))
         f.write('\nTotal Performance Index is : ' + str(round(total_pi, 3)))
 
 
