@@ -25,7 +25,7 @@ jobs:
         python-version: "3.9"
     - name: Install dependencies
       run: |
-        if [ -f environment.yml ] $CONDA/bin/conda env update --file environment.yml --name base ; fi
+        $CONDA/bin/conda env update --file environment.yml --name base
     - name: Lint with flake8
       run: |
         # stop the build if there are Python syntax errors or undefined names
