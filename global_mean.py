@@ -23,7 +23,7 @@ from tabulate import tabulate
 import numpy as np
 import xarray as xr
 
-from xr_ecmean import var_is_there, eval_formula, \
+from ecmean import var_is_there, eval_formula, \
     masks_dictionary, areas_dictionary, get_inifiles, load_yaml, \
     units_extra_definition, units_are_integrals, \
     units_converter, directions_match, chunks, write_tuning_table, \
@@ -249,7 +249,7 @@ def main(argv):
     head = head + ['Obs.', 'Dataset', 'Years']
 
     # write the file with tabulate: cool python feature
-    tablefile = diag.TABDIR / f'xr_global_mean_{diag.expname}_{diag.modelname}_{diag.ensemble}_{diag.year1}_{diag.year2}.txt'
+    tablefile = diag.TABDIR / f'global_mean_{diag.expname}_{diag.modelname}_{diag.ensemble}_{diag.year1}_{diag.year2}.txt'
     if diag.fverb:
         print(tablefile)
     with open(tablefile, 'w', encoding='utf-8') as f:

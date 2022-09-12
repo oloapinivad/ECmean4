@@ -19,7 +19,7 @@ from multiprocessing import Process, Manager
 import numpy as np
 from tabulate import tabulate
 import xarray as xr
-from xr_ecmean import var_is_there, eval_formula, \
+from ecmean import var_is_there, eval_formula, \
     get_inifiles, adjust_clim_file, get_clim_files, \
     areas_dictionary, masks_dictionary, remap_dictionary, guess_bounds, load_yaml, \
     units_extra_definition, units_are_integrals, \
@@ -298,7 +298,7 @@ def main(argv):
 
     # write the file  with tabulate: cool python feature
     tablefile = diag.TABDIR / \
-        f'xr_PI4_{diag.climatology}_{diag.expname}_{diag.modelname}_{diag.ensemble}_{diag.year1}_{diag.year2}.txt'
+        f'PI4_{diag.climatology}_{diag.expname}_{diag.modelname}_{diag.ensemble}_{diag.year1}_{diag.year2}.txt'
     if diag.fverb:
         print(tablefile)
     with open(tablefile, 'w', encoding='utf-8') as f:

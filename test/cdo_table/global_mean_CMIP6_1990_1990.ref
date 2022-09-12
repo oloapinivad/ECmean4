@@ -1,4 +1,4 @@
 | Variable   | Longname      | Units   |   EC-Earth3 |    Obs. | Dataset   | Years     |
 |------------+---------------+---------+-------------+---------+-----------+-----------|
 | pr         | Precipitation | mm/day  |     2.89216 | 2.92552 | ERA5      | 1990-2019 |
-| tos        | SST           | degC    |    19.0103  | 0       |           |           |
+| tos        | SST           | degC    |    19.0102  | 0       |           |           |

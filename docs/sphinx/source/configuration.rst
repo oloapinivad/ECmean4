@@ -4,7 +4,7 @@ Configuration
 Configuration file
 ------------------
 A template configuration file is included in the repository, including the folder definition and all the details that can be manually adjusted. 
-You will need to copy the original template to create your own local configuration file ::
+You will need to copy the original template to create your own local configuration file :
 
 .. code-block:: shell
 
