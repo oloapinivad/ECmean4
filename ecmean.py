@@ -125,11 +125,12 @@ def var_is_there(flist, var, reference):
         xfield = xr.open_mfdataset(flist, preprocess=xr_preproc)
         vars_avail = [i for i in xfield.data_vars]
         units_avail ={}
+        # if I don't know the unit, assuming is a fraction
         for i in vars_avail :
             try: 
                 k = xfield[i].units
             except : 
-                k = "None"
+                k = 'frac'
             units_avail[i] = k
 
         # if variable is derived, extract required vars
@@ -748,7 +749,7 @@ def _make_oce_interp_weights(component, oceareafile, target_grid) :
         for cl in ['nav_lon', 'nav_lat', 'nav_lev', 'time_counter', 'x', 'y'] :
             if cl in xfield.data_vars :
                 xfield = xfield.set_coords([cl])
-        print(xfield)
+
         # rename dimensions and coordinates
         # xfield = xfield.rename_dims({"z": "deptht"})
         xfield = xfield.rename({"nav_lon": "lon", "nav_lat": "lat",  "nav_lev": "deptht" })
@@ -842,6 +843,7 @@ def units_converter(org_units, tgt_units):
     Some assumptions are done for precipitation field: must be extended to other vars.
     It will not work if BOTH factor and offset are required"""
 
+    print(units(org_units)/units(tgt_units))
     units_relation = (units(org_units)/units(tgt_units)).to_base_units()
     logging.debug(units_relation)
     if units_relation.magnitude != 1:

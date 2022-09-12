@@ -106,7 +106,7 @@ def pi_worker(util, piclim, face, diag, field_3d, varstat, varlist):
 
             # adjust integrated quantities
             new_units = units_are_integrals(varunit, piclim[var])
-
+    
             # unit conversion (can be improved exploiting xarray)
             offset, factor = units_converter(new_units, piclim[var]['units'])
 
