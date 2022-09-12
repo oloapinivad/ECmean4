@@ -1,18 +1,18 @@
 | Var     |     PI | Domain   | Dataset   |   CMIP3 |   Ratio to CMIP3 |
 |---------+--------+----------+-----------+---------+------------------|
-| net_sfc |  20.32 | ocean    | OAFLUX    |   14.24 |             1.43 |
-| tas     |  15.64 | land     | CRU       |   25.13 |             0.62 |
-| psl     |   2.82 | global   | COADS     |   11.69 |             0.24 |
-| pr      |  30.10 | global   | CMAP      |   38.87 |             0.77 |
-| tauu    |  10.72 | ocean    | DASILVA   |    4.03 |             2.66 |
+| net_sfc |  20.41 | ocean    | OAFLUX    |   14.24 |             1.43 |
+| tas     |  16.20 | land     | CRU       |   25.13 |             0.64 |
+| psl     |   2.83 | global   | COADS     |   11.69 |             0.24 |
+| pr      |  30.32 | global   | CMAP      |   38.87 |             0.78 |
+| tauu    |  10.86 | ocean    | DASILVA   |    4.03 |             2.69 |
 | tauv    |   6.58 | ocean    | DASILVA   |    3.10 |             2.12 |
 | ta      |  15.56 | global   | ERA40     |   38.89 |             0.40 |
 | ua      |   4.10 | global   | ERA40     |   12.07 |             0.34 |
-| va      |   2.68 | global   | ERA40     |    8.25 |             0.33 |
-| hus     |  14.40 | global   | ERA40     |   29.41 |             0.49 |
+| va      |   2.72 | global   | ERA40     |    8.25 |             0.33 |
+| hus     |  14.39 | global   | ERA40     |   29.41 |             0.49 |
 | tos     | nan    | ocean    | GISS      |   17.21 |           nan    |
 | sos     | nan    | ocean    | levitus   |    0.22 |           nan    |
 | siconc  | nan    | ocean    | GISS      |    0.34 |           nan    |
 
-Partial PI (atm only) is   : 12.291
-Total Performance Index is : 12.291
+Partial PI (atm only) is   : 12.397
+Total Performance Index is : 12.397

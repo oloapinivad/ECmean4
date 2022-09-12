@@ -505,13 +505,29 @@ def _area_cell(xfield, formula = 'triangles') :
 
     # this is a nightmare, so far working only for ECE4 gaussian reduced
     if not regular_grid :
-        
+
+        logging.debug('Unstructured grid, tryin to get grid info...')
+
+        blondim = None
+        blatdim = None
+        # trying to find bounderies
+        for g in (t for t in list(xfield.data_vars) if t in ['lon_bnds', 'bounds_lon']) : 
+            blondim = g
+        for g in (t for t in list(xfield.data_vars) if t in ['lat_bnds', 'bounds_lat']) : 
+            blatdim = g
+
+        # checking
+        if blondim is None and blatdim is None : 
+            sys.exit("Can't find any lon/lat boundaries and grid is unstructured, need some help!")
+
+
         logging.debug('Unstructured grid, special ECE4 treatment...')
+        # ATTENTION: this is a very specific ECE4 definition, it won't work with other unstructured grids
         # the assumption of the vertex position is absolutely random, need to generalized
-        bounds_lon = np.column_stack((xfield['bounds_lon'].isel(nvertex=1), 
-            xfield['bounds_lon'].isel(nvertex=2)))
-        bounds_lat = np.column_stack((xfield['bounds_lat'].isel(nvertex=2), 
-            xfield['bounds_lat'].isel(nvertex=3)))
+        bounds_lon = np.column_stack((xfield[blondim].isel(nvertex=1), 
+            xfield[blondim].isel(nvertex=2)))
+        bounds_lat = np.column_stack((xfield[blatdim].isel(nvertex=2), 
+            xfield[blatdim].isel(nvertex=3)))
         area_dims = 'cell'
         # set full lat
         full_lat = xfield['lat'].values
@@ -726,11 +742,17 @@ def _make_oce_interp_weights(component, oceareafile, target_grid) :
     if component == 'nemo':
         fix = None
         xfield = xr.open_mfdataset(oceareafile, preprocess=xr_preproc).load()
+
+
         # set coordinates which are missing
-        xfield = xfield.set_coords(['nav_lon', 'nav_lat', 'nav_lev', 'time_counter'])
+        for cl in ['nav_lon', 'nav_lat', 'nav_lev', 'time_counter', 'x', 'y'] :
+            if cl in xfield.data_vars :
+                xfield = xfield.set_coords([cl])
+        #print(xfield)
         # rename dimensions and coordinates
         xfield = xfield.rename_dims({"z": "deptht"})
         xfield = xfield.rename({"nav_lon": "lon", "nav_lat": "lat",  "nav_lev": "deptht", 'time_counter' : "time" })
+        #xfield = xfield.rename({"nav_lon": "lon", "nav_lat": "lat", 'time_counter' : "time" })
 
         # use grid distance as generic variable
         interp = xe.Regridder(xfield['e1t'], 
