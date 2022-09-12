@@ -1,5 +1,6 @@
-Xarray Scripts
-==============
+Usage
+=====
+
 ECmean4 is based on two independent Python scripts which builts on the same set of functions and classes ``xr_ecmean.py``.
 They both produces takes care of all the computation and produces a .txt table:
 
