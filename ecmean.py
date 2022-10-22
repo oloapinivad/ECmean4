@@ -67,12 +67,12 @@ class Diagnostic():
         self.RESCLMDIR = Path(self.CLMDIR, self.resolution)
         self.years_joined = ''
 
-        self.linefile = self.TABDIR / 'global_means.txt'
-
-        # check if output attribute exists
-        if hasattr(args, 'output'):
+        if args.output:
             self.linefile = args.output
             self.ftable = True
+        else:
+            self.linefile = self.TABDIR / 'global_means.txt'
+            
 
 
 ##################
