@@ -3,8 +3,6 @@
 Shared functions for XArray ECmean4
 '''
 
-import numpy as np
-import xarray as xr
 import os
 import re
 import logging
@@ -12,15 +10,18 @@ import operator
 import sys
 from pathlib import Path
 from glob import glob
+import itertools
+import numpy as np
+import xarray as xr
 import xesmf as xe
 from metpy.units import units
 import yaml
-import itertools
 
 
 ####################
 # DIAGNOSTIC CLASS #
 ####################
+
 
 class Diagnostic():
     """General container class for common variables"""
@@ -72,15 +73,16 @@ class Diagnostic():
             self.ftable = True
         else:
             self.linefile = self.TABDIR / 'global_means.txt'
-            
 
 
 ##################
 # HELP FUNCTIONS #
 ##################
 
+
 def is_number(s):
     """Check if input is a float type"""
+
     try:
         float(s)
         return True
@@ -90,7 +92,8 @@ def is_number(s):
 
 def chunks(iterable, num):
     """Generate num adjacent chunks of data from a list iterable
-       Split lists in a convenient way for a parallel process"""
+    Split lists in a convenient way for a parallel process"""
+
     size = int(np.ceil(len(iterable) / num))
     it = iter(iterable)
     return iter(lambda: tuple(itertools.islice(it, size)), ())
@@ -98,8 +101,9 @@ def chunks(iterable, num):
 
 def getdomain(var, face):
     """Given a variable var extract its domain (oce or atm) from the interface.
-       To do so it creates a dictionary providing the domain associated with a component.
-       (the interface file specifies the component for each domain instead)"""
+    To do so it creates a dictionary providing the domain associated with a component.
+    (the interface file specifies the component for each domain instead)"""
+
     comp = face['filetype'][face['variables'][var]['filetype']]['component']
     d = face['model']['component']
     domain = dict(zip([list(d.values())[x]
@@ -109,11 +113,13 @@ def getdomain(var, face):
 
 def getcomponent(face):  # unused function
     """Return a dictionary providing the domain associated with a variable
-       (the interface file specifies the domain for each component instead)"""
+    (the interface file specifies the domain for each component instead)"""
+
     d = face['component']
     p = dict(zip([list(d.values())[x]['domain']
              for x in range(len(d.values()))], d.keys()))
     return p
+
 
 ##################
 # FILE FUNCTIONS #
@@ -121,7 +127,7 @@ def getcomponent(face):  # unused function
 
 
 def var_is_there(flist, var, reference):
-    """Check if a variable is available in the input file and provide its units."""
+    """Check if a variable is available in the input file and provide its units"""
 
     # we expect a list obtained by glob
     isavail = True
@@ -202,10 +208,9 @@ def get_clim_files(piclim, var, diag):
 
 
 def get_inifiles(face, diag):
-    """
-    Return the inifiles from the interface, needs the component dictionary
-    Check if inifiles exist.
-    """
+    """Return the inifiles from the interface, needs the component dictionary.
+    Check if inifiles exist."""
+
     dictcomp = face['model']['component']
 
     # use a dictionary to create the list of initial files
@@ -250,8 +255,8 @@ def get_inifiles(face, diag):
 
 
 def _expand_filename(fn, var, year1, year2, diag):
-    """Expands a path (filename or dir) for var, expname, frequency, ensemble etc. and
-       environment variables."""
+    """Expands a path (filename or dir) for var, expname, frequency, ensemble etc.
+    and environment variables."""
 
     return Path(str(os.path.expandvars(fn)).format(
         expname=diag.expname,
@@ -268,12 +273,13 @@ def _expand_filename(fn, var, year1, year2, diag):
 
 def _filter_filename_by_year(fname, year):
     """Find filename containing a given year in a list of filenames"""
+
     filenames = glob(str(fname))
     # Assumes that the file name ends with 199001-199012.nc or 1990-1991.nc
     year1 = [int(x.split('_')[-1].split('-')[0][0:4]) for x in filenames]
-    try :
+    try:
         year2 = [int(x.split('_')[-1].split('-')[1][0:4]) for x in filenames]
-    except: 
+    except IndexError:
         # this is introduced to handle files which have only one year in their filename
         year2 = year1
     return [filenames[i]
@@ -282,6 +288,7 @@ def _filter_filename_by_year(fname, year):
 
 def load_yaml(infile):
     """Load generic yaml file"""
+
     try:
         with open(infile, 'r', encoding='utf-8') as file:
             cfg = yaml.load(file, Loader=yaml.FullLoader)
@@ -316,8 +323,6 @@ def make_input_filename(var0, varlist, year1, year2, face, diag):
             filename = filename + filename1
         else:
             filename = filename + filename1
-    # if len(filename) == 1:  # glob always returns a list, return str if only one
-    #    filename = filename[0]
     logging.debug("Filenames: %s", filename)
     return filename
 
@@ -325,6 +330,7 @@ def make_input_filename(var0, varlist, year1, year2, face, diag):
 ##########################
 # MASK-RELATED FUNCTIONS #
 ##########################
+
 
 def masks_dictionary(component, maskatmfile, remap_dictionary=None):
     """Create a dictionary with atmospheric land-sea mask"""
@@ -336,16 +342,18 @@ def masks_dictionary(component, maskatmfile, remap_dictionary=None):
             remap_dictionary=remap_dictionary),
     }
 
-    return (mask)
+    return mask
 
 
 def _make_atm_masks(component, maskatmfile, remap_dictionary=None):
     """Create land-sea masks for atmosphere model"""
-    # prepare ATM LSM: this need to be improved, since it is clearly model
+
+    # prepare ATM LSM: this needs to be improved, since it is clearly model
     # dependent
     if component == 'oifs':
-        # create mask: opening a grib and loading only lsm to avoid inconsistencies in the grib
-        # structure -> see here https://github.com/ecmwf/cfgrib/issues/13
+        # create mask: opening a grib and loading only lsm to avoid
+        # inconsistencies # in the grib structure ->
+        # see here https://github.com/ecmwf/cfgrib/issues/13
         mask = xr.open_mfdataset(
             maskatmfile,
             engine="cfgrib",
@@ -411,6 +419,7 @@ def mask_field(xfield, var, mask_type, mask):
 
     return out
 
+
 ##################################
 # AREA-WEIGHT AND MASK FUNCTIONS #
 ##################################
@@ -429,6 +438,7 @@ def areas_dictionary(component, atmareafile, oceareafile):
 
 def _make_atm_areas(component, atmareafile):
     "Create atmospheric weights for area operations"
+
     if component == 'oifs':
         xfield = xr.open_mfdataset(atmareafile, preprocess=xr_preproc)
         area = _area_cell(xfield)
@@ -445,6 +455,7 @@ def _make_atm_areas(component, atmareafile):
 
 def _make_oce_areas(component, oceareafile):
     "Create atmospheric weights for area operations"
+
     if oceareafile:
         if component == 'nemo':
             xfield = xr.open_mfdataset(oceareafile, preprocess=xr_preproc)
@@ -466,11 +477,11 @@ def _make_oce_areas(component, oceareafile):
 
 
 def guess_bounds(axis, name='lon'):
-    # inspired by
-    # https://gist.github.com/dennissergeev/60bf7b03443f1b2c8eb96ce0b1880150
     """Basic function that estimates the boundaries for lon and lat if they are not
     available. Works only with regular grids.
     It also avoid having values larger than 90N/90S as well as 0 and 10^5 Pa"""
+    # inspired by
+    # https://gist.github.com/dennissergeev/60bf7b03443f1b2c8eb96ce0b1880150
 
     # this define the proportion of the bounds, assumed to half of the levels
     bound_position = 0.5
@@ -490,36 +501,40 @@ def guess_bounds(axis, name='lon'):
         min_bounds[0] = 0
         max_bounds[-1] = 100000
 
-    # should we a xarray object instead of a numpy?
+    # should we use a xarray object instead of a numpy?
     bounds = np.array([min_bounds, max_bounds]).transpose()
-    return (bounds)
+    return bounds
 
 
 def _lonlat_to_sphere(lon, lat):
     """Convert from lon lat coordinates to a 3d sphere of unity radius"""
+
     vec = np.array([
         np.cos(np.deg2rad(lon)) * np.cos(np.deg2rad(lat)),
         np.sin(np.deg2rad(lon)) * np.cos(np.deg2rad(lat)),
         np.sin(np.deg2rad(lat))
     ])
-    return (vec)
+    return vec
 
 
 def _huilier(a, b, c):
-    """Apply the L'Huilier theorem from the three side of the spherical triangle obtaining
-    the spherical excess, i.e. the solid angle of the triangle, i.e. the area of the spherical surface"""
+    """Apply the L'Huilier theorem from the three side of the spherical triangle
+    obtaining the spherical excess, i.e. the solid angle of the triangle,
+    i.e. the area of the spherical surface"""
     # More info at https://mathworld.wolfram.com/LHuiliersTheorem.html
+
     s = (a + b + c) * 0.5
     t = np.tan(s * 0.5) * np.tan((s - a) * 0.5) * \
         np.tan((s - b) * 0.5) * np.tan((s - c) * 0.5)
     area = abs(4. * np.arctan(np.sqrt(abs(t))))
-    return (area)
+    return area
 
 
 def _vector_spherical_triangle(p1, p2, p3):
-    """Given the coordinates of three points on a sphere, estimate the length of their vectors
-    a,b,c connecting to the centre of the spere. Then using L'Huilier formula derive the solid angle
-    among the three vectors, which is multiplied by squared Earth Radius is
+    """Given the coordinates of three points on a sphere, estimate the length
+    of their vectors a,b,c connecting to the centre of the spere.
+    Then using L'Huilier formula derive the solid angle among the three
+    vectors, which is multiplied by squared Earth Radius is
     exactly the surface of the corresponding spherical triangle. """
     # This is inspired by CDO code found at
     # https://code.mpimet.mpg.de/projects/cdo/repository/cdo/revisions/331ab3f7fd18295cf6a433fb799034c7589a4a61/entry/src/grid_area.cc
@@ -529,12 +544,12 @@ def _vector_spherical_triangle(p1, p2, p3):
     c = np.arcsin(np.linalg.norm(np.cross(p3, p2), axis=1))
 
     area = _huilier(a, b, c)
-
     return area
 
 
 def _area_cell(xfield, formula='triangles'):
-    """Function which estimate the area cell from bounds. This is done assuming
+    """
+    Function which estimate the area cell from bounds. This is done assuming
     making use of spherical triangels.
     Working also on regular grids which does not have lon/lat bounds
     via the guess_bounds function. Unstructured grids are not supported,
@@ -547,9 +562,10 @@ def _area_cell(xfield, formula='triangles'):
         used by CDO - and it is very accurate
 
     Returns:
-    An xarray dataarray with the area for each grid point"""
+    An xarray dataarray with the area for each grid point
+    """
 
-    Earth_Radius = 6371000.
+    earth_radius = 6371000.
 
     # some check to starts
     if all(x in xfield.dims for x in ['lon', 'lat']):
@@ -591,9 +607,9 @@ def _area_cell(xfield, formula='triangles'):
                 "Can't find any lon/lat boundaries and grid is unstructured, need some help!")
 
         logging.debug('Unstructured grid, special ECE4 treatment...')
-        # ATTENTION: this is a very specific ECE4 definition, it won't work with other unstructured grids
-        # the assumption of the vertex position is absolutely random, need to
-        # generalized
+        # ATTENTION: this is a very specific ECE4 definition, it will not work
+        # with other unstructured grids. The assumption of the vertex position
+        # is absolutely random. Needs to be generalized.
         bounds_lon = np.column_stack((xfield[blondim].isel(nvertex=1),
                                       xfield[blondim].isel(nvertex=2)))
         bounds_lat = np.column_stack((xfield[blatdim].isel(nvertex=2),
@@ -658,7 +674,7 @@ def _area_cell(xfield, formula='triangles'):
         p4 = _lonlat_to_sphere(bounds_lon[:, 1], bounds_lat[:, 0]).transpose()
         area_cell = _vector_spherical_triangle(
             p1, p2, p3) + _vector_spherical_triangle(p1, p4, p3)
-        area_cell = area_cell * Earth_Radius**2
+        area_cell = area_cell * earth_radius**2
     else:
         # cell dimension
         dlon = abs(bounds_lon[:, 0] - bounds_lon[:, 1])
@@ -667,18 +683,18 @@ def _area_cell(xfield, formula='triangles'):
         # safe check on cosine of 90 included:
         # assume a trapezoid or a squared cell
         if formula == 'trapezoids':
-            arclon1 = Earth_Radius * \
+            arclon1 = earth_radius * \
                 abs(np.cos(abs(np.deg2rad(bounds_lat[:, 0])))) * np.deg2rad(dlon)
-            arclon2 = Earth_Radius * \
+            arclon2 = earth_radius * \
                 abs(np.cos(abs(np.deg2rad(bounds_lat[:, 1])))) * np.deg2rad(dlon)
         if formula == 'squares':
             full_lat = np.repeat(
                 xfield['lat'].values, len(
                     xfield['lon']), axis=0)
-            arclon1 = arclon2 = Earth_Radius * \
+            arclon1 = arclon2 = earth_radius * \
                 abs(np.cos(abs(np.deg2rad(full_lat)))) * np.deg2rad(dlon)
 
-        arclat = Earth_Radius * np.deg2rad(dlat)
+        arclat = earth_radius * np.deg2rad(dlat)
 
         # trapezoid area
         area_cell = (arclon1 + arclon2) * arclat / 2
@@ -690,8 +706,8 @@ def _area_cell(xfield, formula='triangles'):
     xfield['area'] = (area_dims, area_cell)
 
     # check the total area
-    logging.debug('Total Earth Surface: ' +
-                  str(xfield['area'].sum().values / 10**6) + ' Km2')
+    logging.debug('Total Earth Surface: %s Km2',
+                  str(xfield['area'].sum().values / 10**6))
 
     return xfield['area']
 
@@ -700,22 +716,22 @@ def _area_cell(xfield, formula='triangles'):
 # FORMULA FUNCTIONS #
 #####################
 
-# this is a tool to parse CDO-based formula into mathematical operatos
-# there might exists something more intelligent as pyparsing package
+
+# this is a tool to parse a CDO-based formula into mathematical operatos
+# there might exists something more intelligent such as the pyparsing package
+
 def eval_formula(mystring, xdataset):
     """Evaluate the cmd string provided by the yaml file
     producing a parsing for the derived variables"""
 
     # Tokenize the original string
     token = [i for i in re.split('(\\W+)', mystring) if i]
-    if (len(token) > 1):
+    if len(token) > 1:
         # Use order of operations
         out = _operation(token, xdataset)
     else:
         out = xdataset[token[0]]
     return out
-
-# core of the parsing operation, using dictionaries and operator package
 
 
 def _operation(token, xdataset):
@@ -733,31 +749,29 @@ def _operation(token, xdataset):
     }
 
     # use a dictionary to store xarray field and call them easily
-    dict = {}
+    dct = {}
     for k in token:
         if k not in ops:
             if not is_number(k):
-                dict[k] = xdataset[k]
+                dct[k] = xdataset[k]
             else:
-                dict[k] = float(k)
+                dct[k] = float(k)
 
     # apply operators to all occurrences, from top priority
     # so far this is not parsing parenthesis
     code = 0
     for p in ops:
-
         while p in token:
             code += 1
             # print(token)
             x = token.index(p)
             name = 'op' + str(code)
-            replacer = ops.get(p)(dict[token[x - 1]], dict[token[x + 1]])
-            # print(replacer)
-            dict[name] = replacer
+            replacer = ops.get(p)(dct[token[x - 1]], dct[token[x + 1]])
+            dct[name] = replacer
             token[x - 1] = name
             del token[x:x + 2]
-            # print(token)
     return replacer
+
 
 ###########################
 # INTERPOLATION FUNCTIONS #
@@ -766,8 +780,8 @@ def _operation(token, xdataset):
 
 def remap_dictionary(component, atmareafile, oceareafile, target_grid):
     """Create a dicitionary with atmospheric and oceanic weights for
-    interpolation. There is an option of fix grid before the real interpolation:
-    this is used for gaussian reduced grids"""
+    interpolation. There is an option of fix grid before the real
+    interpolation: this is used for Gaussian reduced grids"""
 
     atmfix, atmremap = _make_atm_interp_weights(
         component['atm'], atmareafile, target_grid)
@@ -789,7 +803,7 @@ def remap_dictionary(component, atmareafile, oceareafile, target_grid):
 
 
 def _make_atm_interp_weights(component, atmareafile, target_grid):
-    """"Create atmospheric interpolator"""
+    """Create atmospheric interpolator"""
 
     if component == 'oifs':
 
@@ -819,26 +833,22 @@ def _make_atm_interp_weights(component, atmareafile, target_grid):
 
         fix = None
         xfield = xr.open_mfdataset(atmareafile, preprocess=xr_preproc).load()
-        #xname = list(xfield.data_vars)[-1]
         interp = xe.Regridder(
             xfield,
             target_grid,
             periodic=True,
             method="bilinear")
-        #interp = interp[xname]
 
     elif component == 'globo':
 
         fix = None
         xfield = xr.open_mfdataset(atmareafile, preprocess=xr_preproc).load()
-        #xname = list(xfield.data_vars)[-1]
         interp = xe.Regridder(
             xfield,
             target_grid,
             periodic=True,
             ignore_degenerate=True,
             method="bilinear")
-        #interp = interp[xname]
 
     else:
         sys.exit(
@@ -848,7 +858,7 @@ def _make_atm_interp_weights(component, atmareafile, target_grid):
 
 
 def _make_oce_interp_weights(component, oceareafile, target_grid):
-    """"Create oceanic interpolator weights"""
+    """Create oceanic interpolator weights"""
 
     if component == 'nemo':
         fix = None
@@ -860,10 +870,8 @@ def _make_oce_interp_weights(component, oceareafile, target_grid):
                 xfield = xfield.set_coords([cl])
 
         # rename dimensions and coordinates
-        # xfield = xfield.rename_dims({"z": "deptht"})
         xfield = xfield.rename(
-            {"nav_lon": "lon", "nav_lat": "lat", "nav_lev": "deptht"})
-        #xfield = xfield.rename({"nav_lon": "lon", "nav_lat": "lat", 'time_counter' : "time" })
+            {"nav_lon": "lon", "nav_lat": "lat", "nav_lev": "depth"})
 
         # use grid distance as generic variable
         interp = xe.Regridder(
@@ -896,6 +904,7 @@ def _make_oce_interp_weights(component, oceareafile, target_grid):
 # FILE FORMAT FUNCTIONS #
 #########################
 
+
 def xr_preproc(ds):
     """Preprocessing functuon to adjust coordinate and dimensions
     names to a common format. To be called by xr.open_mf_dataset()"""
@@ -909,7 +918,7 @@ def xr_preproc(ds):
 
     if 'pressure_levels' in list(ds.coords):
         ds = ds.rename({"pressure_levels": "plev"})
-    
+
     if 'plevel' in list(ds.dims):
         ds = ds.rename({"plevel": "plev"})
 
@@ -954,6 +963,7 @@ def adjust_clim_file(cfield, remove_zero=False):
 
     return field
 
+
 #############################
 # UNIT ADJUSTMENT FUNCTIONS #
 #############################
@@ -971,8 +981,8 @@ def units_extra_definition():
 def units_converter(org_units, tgt_units):
     """Units conversion using metpy and pint.
     From a org_units convert to tgt_units providing offset and factor.
-    Some assumptions are done for precipitation field: must be extended to other vars.
-    It will not work if BOTH factor and offset are required"""
+    Some assumptions are done for precipitation field: must be extended
+    to other vars. It will not work if BOTH factor and offset are required"""
 
     units_relation = (units(org_units) / units(tgt_units)).to_base_units()
     logging.debug(units_relation)
@@ -1006,6 +1016,7 @@ def units_converter(org_units, tgt_units):
 
 def units_are_integrals(org_units, ref_var):
     """Check functions for spatially integrated variables"""
+
     if 'total' in ref_var.keys():
         new_units = str((units(org_units) * units('m^2')).units)
     else:
@@ -1015,6 +1026,7 @@ def units_are_integrals(org_units, ref_var):
 
 def directions_match(org, dst):
     """Check function for fluxes direction: they should match. Default is down"""
+
     direction_org = org.get('direction', 'down')
     direction_dst = dst.get('direction', 'down')
     if direction_org != direction_dst:
@@ -1022,6 +1034,7 @@ def directions_match(org, dst):
     else:
         factor = 1.
     return factor
+
 
 ####################
 # OUTPUT FUNCTIONS #
@@ -1031,6 +1044,7 @@ def directions_match(org, dst):
 def write_tuning_table(linefile, varmean, var_table, diag, ref):
     """Write results appending one line to a text file.
        Write a tuning table: need to fix reference to face/ref"""
+
     if not os.path.isfile(linefile):
         with open(linefile, 'w', encoding='utf-8') as f:
             print('%model  ens  exp from   to ', end='', file=f)

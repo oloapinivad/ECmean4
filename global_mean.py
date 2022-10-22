@@ -22,14 +22,14 @@ from time import time
 from tabulate import tabulate
 import numpy as np
 import xarray as xr
-
+import dask
 from ecmean import var_is_there, eval_formula, \
     masks_dictionary, areas_dictionary, get_inifiles, load_yaml, \
     units_extra_definition, units_are_integrals, \
     units_converter, directions_match, chunks, write_tuning_table, \
     Diagnostic, getdomain, make_input_filename, masked_meansum, \
     xr_preproc
-import dask
+
 dask.config.set(scheduler="synchronous")
 
 
@@ -142,7 +142,6 @@ def gm_worker(util, ref, face, diag, varmean, vartrend, varlist):
                     outfield = xfield[var]
 
                 tfield = outfield.mean(dim='time')
-                #tfield.to_netcdf(var + '.nc')
                 x = masked_meansum(
                     tfield, var, weights, ref[var].get(
                         'total', 'global'), util['atm_mask'])
@@ -158,7 +157,7 @@ def gm_worker(util, ref, face, diag, varmean, vartrend, varlist):
 def main(argv):
     """The main ECmean4 global mean code"""
 
-    #assert sys.version_info >= (3, 7)
+    # assert sys.version_info >= (3, 7)
 
     args = parse_arguments(argv)
     # log level with logging
@@ -207,7 +206,8 @@ def main(argv):
     comp = face['model']['component']  # Get component for each domain
 
     # this required a change from the original file requirements of CDO version
-    # now we have a mask file and two area files: need to be fixed and organized in the
+    # now we have a mask file and two area files:
+    # needs to be fixed and organized in the
     # config file in order to be more portable
     maskatmfile, atmareafile, oceareafile = get_inifiles(face, diag)
 

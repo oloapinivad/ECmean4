@@ -19,14 +19,14 @@ from multiprocessing import Process, Manager
 import numpy as np
 from tabulate import tabulate
 import xarray as xr
+import dask
 from ecmean import var_is_there, eval_formula, \
     get_inifiles, adjust_clim_file, get_clim_files, \
-    areas_dictionary, masks_dictionary, remap_dictionary, guess_bounds, load_yaml, \
-    units_extra_definition, units_are_integrals, \
+    areas_dictionary, masks_dictionary, remap_dictionary, guess_bounds, \
+    load_yaml, units_extra_definition, units_are_integrals, \
     units_converter, directions_match, chunks, \
     Diagnostic, getdomain, make_input_filename, xr_preproc, mask_field
 
-import dask
 dask.config.set(scheduler="synchronous")
 
 
@@ -102,7 +102,8 @@ def pi_worker(util, piclim, face, diag, field_3d, varstat, varlist):
         else:
             # unit conversion: from original data to data required by PI
             # using metpy avoid the definition of operations inside the dataset
-            # use offset and factor separately (e.g. will not work with Fahrenait)
+            # use offset and factor separately
+            # (e.g. will not work with Fahreneit)
             # now in functions.py
             logging.debug(var)
             logging.debug(varunit + ' ---> ' + piclim[var]['units'])
@@ -195,7 +196,7 @@ def pi_worker(util, piclim, face, diag, field_3d, varstat, varlist):
 def main(argv):
     """Main performance indices calculation"""
 
-    #assert sys.version_info >= (3, 7)
+    # assert sys.version_info >= (3, 7)
 
     args = parse_arguments(argv)
     # log level with logging
@@ -234,7 +235,7 @@ def main(argv):
 
     # all clim have the same grid, read from the first clim available and get
     # target grid
-    clim, vvvv = get_clim_files(piclim, 'tas', diag)
+    clim, _ = get_clim_files(piclim, 'tas', diag)
     target_remap_grid = xr.open_dataset(clim)
 
     # get file info files
@@ -243,7 +244,8 @@ def main(argv):
     # create remap dictionary with atm and oce interpolators
     remap = remap_dictionary(comp, atmareafile, oceareafile, target_remap_grid)
 
-    # create util dictionary including mask and weights for both atmosphere and ocean grids
+    # create util dictionary including mask and weights for both
+    # atmosphere and ocean grids
     # use the atmospheric remap dictionary to remap the mask file
     areas = areas_dictionary(comp, atmareafile, oceareafile)
     masks = masks_dictionary(comp, maskatmfile, remap_dictionary=remap)
@@ -262,7 +264,8 @@ def main(argv):
     field_all = field_2d + field_3d + field_oce + field_ice
 
     # trick to avoid the loop on years
-    # define required years with a {year1,year2} and then use cdo select feature
+    # define required years with a {year1,year2} and then use
+    # cdo select feature
     # years_list = [str(element) for element in range(diag.year1, diag.year2+1)]
     # diag.years_joined = ','.join(years_list)
     # special treatment to exploit bash wild cards on multiple years
