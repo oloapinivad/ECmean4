@@ -67,7 +67,7 @@ class Diagnostic():
         self.RESCLMDIR = Path(self.CLMDIR, self.resolution)
         self.years_joined = ''
 
-        if args.output:
+        if hasattr(args, 'output') and args.output:
             self.linefile = args.output
             self.ftable = True
         else:
