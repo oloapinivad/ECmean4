@@ -70,7 +70,7 @@ class Diagnostic():
         self.linefile = self.TABDIR / 'global_means.txt'
 
         # check if output attribute exists
-        if hasattr(self, 'output'):
+        if hasattr(args, 'output'):
             self.linefile = args.output
             self.ftable = True
 
