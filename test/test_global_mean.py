@@ -1,6 +1,5 @@
-import pytest
-from global_mean import main
 from filecmp import cmp
+from global_mean import main
 
 
 def test_global_mean_coupled():
