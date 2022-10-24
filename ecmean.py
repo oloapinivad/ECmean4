@@ -137,7 +137,8 @@ def var_is_there(flist, var, reference):
 
     if isavail:
         xfield = xr.open_mfdataset(flist, preprocess=xr_preproc)
-        vars_avail = [i for i in xfield.data_vars]
+        #vars_avail = [i for i in xfield.data_vars]
+        vars_avail = xfield.data_vars
         units_avail = {}
         # if I don't know the unit, assuming is a fraction
         for i in vars_avail:

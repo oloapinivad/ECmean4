@@ -1,4 +1,3 @@
-# For developers only:
 # Create the ECmean4 environment:
 #   conda env create -f environment.yml
 
