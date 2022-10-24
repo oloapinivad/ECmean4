@@ -872,7 +872,7 @@ def _make_oce_interp_weights(component, oceareafile, target_grid):
 
         # rename dimensions and coordinates
         xfield = xfield.rename(
-            {"nav_lon": "lon", "nav_lat": "lat", "nav_lev": "depth"})
+            {"nav_lon": "lon", "nav_lat": "lat", "nav_lev": "deptht"})
 
         # use grid distance as generic variable
         interp = xe.Regridder(
