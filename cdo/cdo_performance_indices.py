@@ -14,20 +14,16 @@ import re
 import argparse
 from pathlib import Path
 import logging
+import copy
 from time import time
 from multiprocessing import Process, Manager
 import numpy as np
 from tabulate import tabulate
-import xarray as xr
-import dask
-from ecmean import var_is_there, eval_formula, \
-    get_inifiles, adjust_clim_file, get_clim_files, \
-    areas_dictionary, masks_dictionary, remap_dictionary, guess_bounds, \
-    load_yaml, units_extra_definition, units_are_integrals, \
+from cdo_ecmean import var_is_there, load_yaml, make_input_filename, \
+    get_levels, units_extra_definition, units_are_integrals, \
     units_converter, directions_match, chunks, \
-    Diagnostic, getdomain, make_input_filename, xr_preproc, mask_field
-
-dask.config.set(scheduler="synchronous")
+    Diagnostic, getinifiles, getdomain
+from cdopipe import CdoPipe
 
 
 def parse_arguments(args):
@@ -58,31 +54,19 @@ def parse_arguments(args):
                         help='climatology resolution')
     parser.add_argument('-e', '--ensemble', type=str, default='r1i1p1f1',
                         help='variant label (ripf number for cmor)')
+    parser.add_argument('-d', '--debug', action='store_true',
+                        help='activate cdo debugging')
     parser.add_argument('-i', '--interface', type=str, default='',
                         help='interface (overrides config.yml)')
     return parser.parse_args(args)
 
 
-def pi_worker(util, piclim, face, diag, field_3d, varstat, varlist):
-    """Main parallel diagnostic worker for performance indices
+def pi_worker(cdopin, piclim, face, diag, field_3d, varstat, varlist):
+    """Main parallel diagnostic worker"""
 
-    Args:
-        util: the utility dictionary, including mask, area and remap weights
-        piclim: the reference climatology for the global mean
-        face: the interface to be used to access the data
-        diag: the diagnostic class object
-        field_3d: the list of 3d vars to be handled differently
-        varstat: the dictionary for the variable PI (empty)
-        varlist: the variable on which compute the global mean
-
-    Returns:
-        vartrend under the form of a dictionaries
-
-    """
+    cdop = copy.copy(cdopin)  # Create a new local instance
 
     for var in varlist:
-
-        vdom = getdomain(var, face)
 
         if 'derived' in face['variables'][var].keys():
             cmd = face['variables'][var]['derived']
@@ -102,16 +86,14 @@ def pi_worker(util, piclim, face, diag, field_3d, varstat, varlist):
         else:
             # unit conversion: from original data to data required by PI
             # using metpy avoid the definition of operations inside the dataset
-            # use offset and factor separately
-            # (e.g. will not work with Fahreneit)
+            # use offset and factor separately (e.g. will not work with Fahrenait)
             # now in functions.py
             logging.debug(var)
             logging.debug(varunit + ' ---> ' + piclim[var]['units'])
-
             # adjust integrated quantities
             new_units = units_are_integrals(varunit, piclim[var])
 
-            # unit conversion (can be improved exploiting xarray)
+            # unit conversion
             offset, factor = units_converter(new_units, piclim[var]['units'])
 
             # sign adjustment (for heat fluxes)
@@ -119,76 +101,100 @@ def pi_worker(util, piclim, face, diag, field_3d, varstat, varlist):
                 directions_match(face['variables'][var], piclim[var])
             logging.debug('Offset %f, Factor %f', offset, factor)
 
+            # extract info from pi_climatology.yml
+            # reference dataset and reference varname
+            # as well as years when available
+            dataref = piclim[var]['dataset']
+            dataname = piclim[var]['dataname']
+            datayear1 = piclim[var].get('year1', 'nan')
+            datayear2 = piclim[var].get('year2', 'nan')
+
+            # get files for climatology
+            if diag.climatology == 'RK08':
+                clim = str(diag.RESCLMDIR / f'climate_{dataref}_{dataname}.nc')
+                vvvv = str(
+                    diag.RESCLMDIR /
+                    f'variance_{dataref}_{dataname}.nc')
+            elif diag.climatology == 'EC22':
+                clim = str(
+                    diag.RESCLMDIR /
+                    f'climate_{dataname}_{dataref}_{diag.resolution}_{datayear1}-{datayear2}.nc')
+                vvvv = str(
+                    diag.RESCLMDIR /
+                    f'variance_{dataname}_{dataref}_{diag.resolution}_{datayear1}-{datayear2}.nc')
+
             # create a file list using bash wildcards
             infile = make_input_filename(
                 var, dervars, diag.years_joined, '????', face, diag)
 
-            # get filenames for climatology
-            clim, vvvv = get_clim_files(piclim, var, diag)
+            # Start fresh pipe
+            # This leaves the input file undefined for now. It can be set later with
+            # cdop.set_infile(infile) or by specifying input=infile
+            # cdop.execute
+            cdop.start()
 
-            # open file
-            xfield = xr.open_mfdataset(infile, preprocess=xr_preproc)
+            # set input file
+            cdop.set_infile(infile)
 
+            # check if var is derived
+            # if this is the case, get the derived expression and select
+            # the set of variables you need
+            # otherwise, use only select (this avoid loop)
+            # WARNING: it may scale badly with high-resolution centennial runs
             if 'derived' in face['variables'][var].keys():
                 cmd = face['variables'][var]['derived']
-                outfield = eval_formula(cmd, xfield)
+#                dervars = (",".join(re.findall("[a-zA-Z]+", cmd)))
+                cdop.selectname(",".join(dervars))
+                cdop.expr(var, cmd)
             else:
-                outfield = xfield[var]
+                cdop.selectname(var)
 
-            # mean over time and fixing of the units
-            tmean = outfield.mean(dim='time')
-            tmean = tmean * factor + offset
+            # fix grids and set domain making use component key from interface
+            # file
+            domain = getdomain(var, face)
+            cdop.fixgrid(domain=domain)
+            cdop.timmean()
 
-            # apply interpolation, if fixer is availble and with different
-            # grids
-            if vdom in 'atm':
-                if util['atm_fix']:
-                    tmean = util['atm_fix'](tmean, keep_attrs=True)
-                final = util['atm_remap'](tmean, keep_attrs=True)
-            if vdom in 'oce':
-                if util['oce_fix']:
-                    tmean = util['oce_fix'](tmean, keep_attrs=True)
-                final = util['oce_remap'](tmean, keep_attrs=True)
+            # use convert() of cdopipe class to convert units
+            cdop.convert(offset, factor)
 
-            # open climatology files, fix their metadata
-            cfield = adjust_clim_file(xr.open_dataset(clim))
-            vfield = adjust_clim_file(xr.open_dataset(vvvv), remove_zero=True)
+            # temporarily using remapbil instead of remapcon due to NEMO grid missing corner
+            # outfile = cdop.execute('remapbil', diag.resolution)
+            if getdomain(var, face) in 'atm':
+                outfile = cdop.execute(
+                    'remap', diag.resolution, cdop.ATMWEIGHTS)
+            elif getdomain(var, face) in 'oce' + 'ice':
+                outfile = cdop.execute(
+                    'remap', diag.resolution, cdop.OCEWEIGHTS)
 
+            # special treatment which includes vertical interpolation
             if var in field_3d:
 
-                # xarray interpolation on plev, forcing to be in Pascal
-                final = final.metpy.convert_coordinate_units('plev', 'Pa')
-                interped = final.interp(plev=cfield['plev'].values)
-                zonal = interped.mean(dim='lon')
+                # extract the vertical levels from the file
+                format_vlevels = get_levels(clim)
 
-                # compute PI
-                complete = (zonal - cfield)**2 / vfield
-
-                # compute vertical bounds as weights
-                bounds_lev = guess_bounds(complete['plev'], name='plev')
-                bounds = abs(bounds_lev[:, 0] - bounds_lev[:, 1])
-                weights = xr.DataArray(
-                    bounds, coords=[
-                        complete['plev']], dims=['plev'])
-
-                # vertical mean
-                outarray = complete.weighted(weights).mean(dim='plev')
+                cdop.chain(f'intlevelx,{format_vlevels}')
+                cdop.zonmean()
+                # cdop.invertlat()
+                cdop.sub(clim)
+                cdop.sqr()
+                cdop.div(vvvv)
+                cdop.chain('vertmean -genlevelbounds,zbot=0,ztop=100000')
 
             else:
+                # cdop.invertlat()
+                cdop.sub(clim)
+                cdop.sqr()
+                cdop.div(vvvv)
+                # apply same mask as in climatology
+                cdop.mask(piclim[var]['mask'])
 
-                # compute PI
-                computation = (final - cfield)**2 / vfield
-
-                # reapply the land-sea mask
-                outarray = mask_field(
-                    computation, var, piclim[var]['mask'], util['atm_mask'])
-
-            # latitude-based averaging
-            weights = np.cos(np.deg2rad(outarray.lat))
-            out = outarray.weighted(weights).mean().values
+            # execute command
+            x = np.squeeze(cdop.execute('fldmean', input=outfile,
+                                        returnCdf=True).variables[var])
 
             # store the PI
-            varstat[var] = float(out)
+            varstat[var] = float(x)
             if diag.fverb:
                 print('PI for ', var, varstat[var])
 
@@ -196,7 +202,7 @@ def pi_worker(util, piclim, face, diag, field_3d, varstat, varlist):
 def main(argv):
     """Main performance indices calculation"""
 
-    # assert sys.version_info >= (3, 7)
+    assert sys.version_info >= (3, 7)
 
     args = parse_arguments(argv)
     # log level with logging
@@ -211,7 +217,7 @@ def main(argv):
     if args.config:
         cfg = load_yaml(args.config)
     else:
-        cfg = load_yaml(INDIR / 'config.yml')
+        cfg = load_yaml(INDIR / '../config.yml')
 
     # Setup all common variables, directories from arguments and config files
     diag = Diagnostic(args, cfg)
@@ -219,9 +225,13 @@ def main(argv):
     # Create missing folders
     os.makedirs(diag.TABDIR, exist_ok=True)
 
+    # Init CdoPipe object to use in the following
+    cdop = CdoPipe(debug=diag.debug)
+
     # loading the var-to-file interface
     face = load_yaml(
         INDIR /
+        '..' /
         Path(
             'interfaces',
             f'interface_{diag.interface}.yml'))
@@ -232,26 +242,21 @@ def main(argv):
     # new bunch of functions to set grids, create correction command, masks
     # and areas
     comp = face['model']['component']  # Get component for each domain
+    atminifile, ocegridfile, oceareafile = getinifiles(face, diag)
+    cdop.set_gridfixes(
+        atminifile,
+        ocegridfile,
+        oceareafile,
+        comp['atm'],
+        comp['oce'])
+    cdop.make_atm_masks(
+        comp['atm'],
+        atminifile,
+        extra=f'-remapbil,{diag.resolution}')
 
-    # all clim have the same grid, read from the first clim available and get
-    # target grid
-    clim, _ = get_clim_files(piclim, 'tas', diag)
-    target_remap_grid = xr.open_dataset(clim)
-
-    # get file info files
-    maskatmfile, atmareafile, oceareafile = get_inifiles(face, diag)
-
-    # create remap dictionary with atm and oce interpolators
-    remap = remap_dictionary(comp, atmareafile, oceareafile, target_remap_grid)
-
-    # create util dictionary including mask and weights for both
-    # atmosphere and ocean grids
-    # use the atmospheric remap dictionary to remap the mask file
-    areas = areas_dictionary(comp, atmareafile, oceareafile)
-    masks = masks_dictionary(comp, maskatmfile, remap_dictionary=remap)
-
-    # join the two dictionaries
-    util_dictionary = {**masks, **areas, **remap}
+    # create interpolation weights
+    cdop.make_atm_remap_weights(atminifile, 'remapbil', diag.resolution)
+    cdop.make_oce_remap_weights(ocegridfile, 'remapbil', diag.resolution)
 
     # add missing unit definitions
     units_extra_definition()
@@ -264,8 +269,7 @@ def main(argv):
     field_all = field_2d + field_3d + field_oce + field_ice
 
     # trick to avoid the loop on years
-    # define required years with a {year1,year2} and then use
-    # cdo select feature
+    # define required years with a {year1,year2} and then use cdo select feature
     # years_list = [str(element) for element in range(diag.year1, diag.year2+1)]
     # diag.years_joined = ','.join(years_list)
     # special treatment to exploit bash wild cards on multiple years
@@ -288,7 +292,7 @@ def main(argv):
         p = Process(
             target=pi_worker,
             args=(
-                util_dictionary,
+                cdop,
                 piclim,
                 face,
                 diag,
@@ -307,7 +311,7 @@ def main(argv):
     if diag.fverb:
         print('Done in {:.4f} seconds'.format(toc - tic))
 
-    # # define options for the output table
+    # define options for the output table
     head = ['Var', 'PI', 'Domain', 'Dataset', 'CMIP3', 'Ratio to CMIP3']
     global_table = []
 
@@ -331,7 +335,7 @@ def main(argv):
 
     # write the file  with tabulate: cool python feature
     tablefile = diag.TABDIR / \
-        f'PI4_{diag.climatology}_{diag.expname}_{diag.modelname}_{diag.ensemble}_{diag.year1}_{diag.year2}.txt'
+        f'cdo_PI4_{diag.climatology}_{diag.expname}_{diag.modelname}_{diag.ensemble}_{diag.year1}_{diag.year2}.txt'
     if diag.fverb:
         print(tablefile)
     with open(tablefile, 'w', encoding='utf-8') as f:
@@ -344,6 +348,9 @@ def main(argv):
         f.write('\n\nPartial PI (atm only) is   : ' +
                 str(round(partial_pi, 3)))
         f.write('\nTotal Performance Index is : ' + str(round(total_pi, 3)))
+
+    # Make sure al temp files have been removed
+    cdop.cdo.cleanTempDir()
 
 
 if __name__ == '__main__':

@@ -1,11 +1,52 @@
-Usage
-=====
+CDO ECmean4
+===========
 
-ECmean4 is based on two independent Python scripts which builts on the same set of functions and classes ``ecmean.py``.
+An older version of the ECmean scripts based on CDO calls is still available, and it can be found in the ``CDO`` folder. 
+Here you can find the instruction to install it and run it. 
+
+Install in a python virtual environment
+---------------------------------------
+
+It is recommended to work into a Python virtual environment `venv`, which can be created with:
+
+.. code-block:: shell
+
+    > python -m venv .ECmean4
+
+The ``.ECmean4`` is just an arbitrary name, with the leading dot meaning that it is a hidden folder so that it does not mess up your $HOME.
+Then you can activate the environment with:
+
+.. code-block:: shell
+
+    > source .ECmean4/bin/activate
+
+Could be convenient to create an alias to activate the enviroment rapidly when required, adding in the ``.bash_profile.sh`` :: 
+
+    alias pyECmean4='source .ECmean4/bin/activate'
+
+
+Requirements
+------------
+
+The required packages are listed in ``docs/requirements.txt`` and reported for completeness here below. 
+They can be easily installed with pip. ::
+
+    cdo==1.5.6
+    MetPy==1.3.0
+    numpy==1.22.3
+    PyYAML==6.0
+    tabulate==0.8.9
+
+`NetCDF4` is also required to accessing the files although is not formally defined as a requirement.
+
+ECmean4 is based on two independent Python scripts which builts on the same set of functions and classes.
 They both produces takes care of all the computation and produces a .txt table:
 
+.. warning::
+  The CDO version is no longer developed, and the documentation is not updated. 
+
 global_mean.py
------------------
+--------------
 
 Main concepts
 ^^^^^^^^^^^^^
@@ -40,9 +81,10 @@ optional arguments:
   -j NUMPROC            number of processors to use
   -e ENSEMBLE, --ensemble ENSEMBLE
                         variant label (ripf number for cmor)
+  -d, --debug           activate cdo debugging
 
 performance_indices.py
--------------------------
+----------------------
 
 Main concepts
 ^^^^^^^^^^^^^
@@ -74,10 +116,9 @@ optional arguments:
                         model name
   -e ENSEMBLE, --ensemble ENSEMBLE
                         variant label (ripf number for cmor)
-  -d, --debug           activate cdo debugging
   -k CLIMATOLOGY        which climatology you want to use (EC22 or RK08)
   -r RESOLUTION         only EC22: resolution of the climatology (r180x90 or r360x180)
-
+  -d, --debug           activate cdo debugging
 
 Climatology
 ^^^^^^^^^^^
@@ -89,20 +130,5 @@ The default climatology is the RK08, but this will be replaced in the future.
 .. warning::
 	A bug is known for sea surface salinity variance, as described on the correspondent `Github Issue <https://github.com/oloapinivad/ECmean4/issues/8>`_ Please be aware the this PI is affected. 
 
-CMOR compatibility
-------------------
 
-It is possible to use these tools also to analyze CMOR files for CMIP5 or CMIP6. This assumes a standard ESGF directory structure but you can change it by modifying the corresponding interface files ``interfaces/interface_CMIP6.yml`` and ``interfaces/interface_CMIP6.yml``.
-In order to allow masking you will need the `sftlf`, `sftof` and `areacello` variables for you experiment of interest too.
 
-Usage example for CMIP5::
-
-        ./global_mean.py historical 1990 1999 -j 12 -m EC-EARTH -e r1i1p1 -i CMIP5
-
-will compute performance indices for member r1i1p1 of the EC-EARTH model in the CMIP5 historical experiment.
-
-Usage example for CMIP6::
-
-        ./performance_indices.py historical 1990 1999 -j 12 -m EC-Earth3 -e r1i1p1f1 -i CMIP6 -k EC22 -r r360x180
-
-The same as above, but for the CMIP6 EC-Earth3 model. In this case the comparison is with the newer EC22 climatology at high r360x180 resolution.

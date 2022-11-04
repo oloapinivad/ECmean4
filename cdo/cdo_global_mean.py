@@ -2,35 +2,32 @@
 # -*- coding: utf-8 -*-
 """
    python3 version of ECmean global mean tool.
-   Using a reference file from yaml and Xarray
+   Using a reference file from yaml and cdo bindings
 
-   @author Paolo Davini (p.davini@isac.cnr.it), Sep 2022.
-   @author Jost von Hardenberg (jost.hardenberg@polito.it), Sep 2022
+   @author Paolo Davini (p.davini@isac.cnr.it), March 2022.
+   @author Jost von Hardenberg (jost.hardenberg@polito.it), March 2022
 """
 
-__author__ = "Paolo Davini (p.davini@isac.cnr.it), Sep 2022."
+__author__ = "Paolo Davini (p.davini@isac.cnr.it), March 2022."
 
 import os
 import sys
 import re
 import argparse
+from statistics import mean
 from pathlib import Path
 import logging
 from multiprocessing import Process, Manager
-from statistics import mean
+import copy
 from time import time
 from tabulate import tabulate
 import numpy as np
-import xarray as xr
-import dask
-from ecmean import var_is_there, eval_formula, \
-    masks_dictionary, areas_dictionary, get_inifiles, load_yaml, \
+from cdo_ecmean import var_is_there, load_yaml, \
+    make_input_filename, write_tuning_table, \
     units_extra_definition, units_are_integrals, \
-    units_converter, directions_match, chunks, write_tuning_table, \
-    Diagnostic, getdomain, make_input_filename, masked_meansum, \
-    xr_preproc
-
-dask.config.set(scheduler="synchronous")
+    units_converter, directions_match, chunks, \
+    Diagnostic, getinifiles, getdomain
+from cdopipe import CdoPipe
 
 
 def parse_arguments(args):
@@ -67,11 +64,11 @@ def parse_arguments(args):
     return parser.parse_args(args)
 
 
-def gm_worker(util, ref, face, diag, varmean, vartrend, varlist):
+def gm_worker(cdopin, ref, face, diag, varmean, vartrend, varlist):
     """Main parallel diagnostic worker for global mean
 
     Args:
-        util: the utility dictionary, including mask and weights
+        cdopin: a cdo class object
         ref: the reference dictionary for the global mean
         face: the interface to be used to access the data
         diag: the diagnostic class object
@@ -84,11 +81,14 @@ def gm_worker(util, ref, face, diag, varmean, vartrend, varlist):
 
     """
 
+    # Create a new local instance to avoid overlap of the cdo pipe
+    cdop = copy.copy(cdopin)
     for var in varlist:
 
-        # compute weights
-        vdom = getdomain(var, face)
-        weights = util[vdom + '_areas']
+        # check if required variables are there: use interface file
+        # check into first file, and load also model variable units
+        # with this implementation, files are accessed multiple times for each variables
+        # this is simpler but might slow down the code
 
         if 'derived' in face['variables'][var].keys():
             cmd = face['variables'][var]['derived']
@@ -104,6 +104,8 @@ def gm_worker(util, ref, face, diag, varmean, vartrend, varlist):
             varmean[var] = float("NaN")
             vartrend[var] = float("NaN")
         else:
+            # Refresh cdo pipe
+            cdop.start()
 
             # conversion debug
             logging.debug(var)
@@ -122,29 +124,29 @@ def gm_worker(util, ref, face, diag, varmean, vartrend, varlist):
             # conversion debug
             logging.debug('Offset %f, Factor %f', offset, factor)
 
+            if 'derived' in face['variables'][var].keys():
+                cmd = face['variables'][var]['derived']
+#                dervars = (",".join(re.findall("[a-zA-Z]+", cmd)))
+                cdop.selectname(",".join(dervars))
+                cdop.expr(var, cmd)
+            else:
+                cdop.selectname(var)
+
+            # Introduce grid fixes specifying type of file (atm or oce)
+            domain = getdomain(var, face)
+            cdop.fixgrid(domain=domain)
+
+            # land/sea variables
+            cdop.masked_meansum(ref[var].get('total', 'global'))
+            cdop.timmean()
+
             a = []
-            # loop on years: using xarray to perform the computations
-            # could be replaced by open_mfdataset but need to handle the
-            # time-mean
+            # loop on years: call CDO to perform all the computations
             yrange = range(diag.year1, diag.year2 + 1)
             for year in yrange:
-
                 infile = make_input_filename(
                     var, dervars, year, year, face, diag)
-                xfield = xr.open_mfdataset(infile, preprocess=xr_preproc)
-
-                # time selection for longer dataset!
-                xfield = xfield.sel(time=(xfield.time.dt.year == year))
-                if 'derived' in face['variables'][var].keys():
-                    cmd = face['variables'][var]['derived']
-                    outfield = eval_formula(cmd, xfield)
-                else:
-                    outfield = xfield[var]
-
-                tfield = outfield.mean(dim='time')
-                x = masked_meansum(
-                    tfield, var, weights, ref[var].get(
-                        'total', 'global'), util['atm_mask'])
+                x = cdop.output(infile, keep=True)
                 a.append(x)
 
             varmean[var] = (mean(a) + offset) * factor
@@ -157,7 +159,7 @@ def gm_worker(util, ref, face, diag, varmean, vartrend, varlist):
 def main(argv):
     """The main ECmean4 global mean code"""
 
-    # assert sys.version_info >= (3, 7)
+    assert sys.version_info >= (3, 7)
 
     args = parse_arguments(argv)
     # log level with logging
@@ -172,7 +174,7 @@ def main(argv):
     if args.config:
         cfg = load_yaml(args.config)
     else:
-        cfg = load_yaml(INDIR / 'config.yml')
+        cfg = load_yaml(INDIR / '../config.yml')
 
     # Setup all common variables, directories from arguments and config files
     diag = Diagnostic(args, cfg)
@@ -180,15 +182,31 @@ def main(argv):
     # Create missing folders
     os.makedirs(diag.TABDIR, exist_ok=True)
 
+    # Init CdoPipe object to use in the following
+    cdop = CdoPipe(debug=diag.debug)
+
     # load reference data
-    ref = load_yaml(INDIR / 'gm_reference.yml')
+    ref = load_yaml(INDIR / '../gm_reference.yml')
 
     # loading the var-to-file interface
     face = load_yaml(
         INDIR /
+        '..' /
         Path(
             'interfaces',
             f'interface_{diag.interface}.yml'))
+
+    # New bunch of functions to set grids, create correction command, masks and areas
+    # Can probably be cleaned up further
+    comp = face['model']['component']  # Get component for each domain
+    atminifile, ocegridfile, oceareafile = getinifiles(face, diag)
+    cdop.set_gridfixes(
+        atminifile,
+        ocegridfile,
+        oceareafile,
+        comp['atm'],
+        comp['oce'])
+    cdop.make_atm_masks(comp['atm'], atminifile)
 
     # list of vars on which to work
     var_atm = cfg['global']['atm_vars']
@@ -200,21 +218,6 @@ def main(argv):
             var_atm +
             var_table +
             var_oce))  # python 3.7+, preserve order
-
-    # Can probably be cleaned up further
-    comp = face['model']['component']  # Get component for each domain
-
-    # this required a change from the original file requirements of CDO version
-    # now we have a mask file and two area files:
-    # needs to be fixed and organized in the
-    # config file in order to be more portable
-    maskatmfile, atmareafile, oceareafile = get_inifiles(face, diag)
-
-    # create util dictionary including mask and weights for both atmosphere
-    # and ocean grids
-    areas = areas_dictionary(comp, atmareafile, oceareafile)
-    masks = masks_dictionary(comp, maskatmfile)
-    util_dictionary = {**areas, **masks}
 
     # add missing unit definition
     units_extra_definition()
@@ -230,7 +233,7 @@ def main(argv):
 
     # loop on the variables, create the parallel process
     for varlist in chunks(var_all, diag.numproc):
-        p = Process(target=gm_worker, args=(util_dictionary, ref, face, diag,
+        p = Process(target=gm_worker, args=(cdop, ref, face, diag,
                                             varmean, vartrend, varlist))
         p.start()
         processes.append(p)
@@ -267,7 +270,7 @@ def main(argv):
 
     # write the file with tabulate: cool python feature
     tablefile = diag.TABDIR / \
-        f'global_mean_{diag.expname}_{diag.modelname}_{diag.ensemble}_{diag.year1}_{diag.year2}.txt'
+        f'cdo_global_mean_{diag.expname}_{diag.modelname}_{diag.ensemble}_{diag.year1}_{diag.year2}.txt'
     if diag.fverb:
         print(tablefile)
     with open(tablefile, 'w', encoding='utf-8') as f:
@@ -278,6 +281,9 @@ def main(argv):
         if diag.fverb:
             print(diag.linefile)
         write_tuning_table(diag.linefile, varmean, var_table, diag, ref)
+
+    # clean
+    cdop.cdo.cleanTempDir()
 
 
 if __name__ == "__main__":

@@ -51,6 +51,7 @@ filetype:
 component:
   oifs:
     inifile: 'ICMGG{expname}INIT'
+    atmfile: 'output/oifs/{expname}_atm_cmip6_1m_{year1}-{year2}.nc'
   nemo:
     gridfile: nemo-initial-state.nc
     areafile: domain_cfg.nc

@@ -24,15 +24,15 @@ model:
 # Each variable belongs to a filetype
 filetype: 
   atm2d:
-    filename: '{var}_{frequency}_{model}_{expname}_{ensemble}_{grid}_{year1}01-{year2}12.nc'
+    filename: '{var}_A{frequency}_{model}_{expname}_{ensemble}_{grid}_{year1}01-{year2}12.nc'
     dir: '{ensemble}/{frequency}/{var}/{grid}/{version}'
     component: cmoratm
   atm3d:
-    filename: '{var}_{frequency}_{model}_{expname}_{ensemble}_{grid}_{year1}01-{year2}12.nc'
+    filename: '{var}_A{frequency}_{model}_{expname}_{ensemble}_{grid}_{year1}01-{year2}12.nc'
     dir: '{ensemble}/{frequency}/{var}/{grid}/{version}'
     component: cmoratm
   oce2d:
-    filename: '{var}_{frequency}_{model}_{expname}_{ensemble}_{grid}_{year1}01-{year2}12.nc'
+    filename: '{var}_O{frequency}_{model}_{expname}_{ensemble}_{grid}_{year1}01-{year2}12.nc'
     dir: '{ensemble}/{frequency}/{var}/{grid}/{version}'
     component: cmoroce
   ice:
@@ -48,6 +48,7 @@ filetype:
 component:
   cmoratm:
     inifile: 'r1i1p1f1/fx/sftlf/*/*/sftlf_fx_{model}_{expname}_r1i1p1f1_{grid}.nc'
+    atmfile: 'r1i1p1f1/fx/sftlf/*/*/sftlf_fx_{model}_{expname}_r1i1p1f1_{grid}.nc'
   cmoroce:
     gridfile: 'r1i1p1f1/Ofx/sftof/*/*/sftof_Ofx_{model}_{expname}_r1i1p1f1_{grid}.nc'
     areafile: 'r1i1p1f1/Ofx/areacello/*/*/areacello_Ofx_{model}_{expname}_r1i1p1f1_{grid}.nc'
