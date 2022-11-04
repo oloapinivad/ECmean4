@@ -9,9 +9,9 @@ dirs:
    clm: /home/paolo/ECmean4/climatology
 
 global:
-  atm_vars: [tas, psl]
-  oce_vars: [tos]
-  tab_vars: [tas, tos, psl]
+  atm_vars: [tas]
+  oce_vars: []
+  tab_vars: [tas]
 
 
 PI:

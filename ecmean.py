@@ -319,11 +319,10 @@ def make_input_filename(var0, varlist, year1, year2, face, diag):
             fname = _expand_filename(filepath, var, '*', '*', diag)
             fname = _filter_filename_by_year(fname, year)
             filename1 = filename1 + fname
-        filename1 = list(dict.fromkeys(filename1))  # Filter unique ones
-        if len(filename1) <= 1:
-            filename = filename + filename1
-        else:
-            filename = filename + filename1
+        #filename1 = list(dict.fromkeys(filename1))  
+        filename = filename + filename1
+    filename = list(dict.fromkeys(filename)) # Filter unique ones
+    #print(filename)
     logging.debug("Filenames: %s", filename)
     return filename
 

@@ -193,7 +193,7 @@ def pi_worker(util, piclim, face, diag, field_3d, varstat, varlist):
                 print('PI for ', var, varstat[var])
 
 
-def main(argv):
+def pi_main(argv):
     """Main performance indices calculation"""
 
     # assert sys.version_info >= (3, 7)
@@ -348,4 +348,4 @@ def main(argv):
 
 if __name__ == '__main__':
 
-    sys.exit(main(sys.argv[1:]))
+    sys.exit(pi_main(sys.argv[1:]))

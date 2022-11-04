@@ -154,13 +154,13 @@ def gm_worker(util, ref, face, diag, varmean, vartrend, varlist):
                 print('Average', var, varmean[var])
 
 
-def main(argv):
+def gm_main(argv):
     """The main ECmean4 global mean code"""
 
     # assert sys.version_info >= (3, 7)
 
     args = parse_arguments(argv)
-    # log level with logging
+     # log level with logging
     # currently basic definition trought the text
     numeric_level = getattr(logging, args.loglevel.upper(), None)
     if not isinstance(numeric_level, int):
@@ -282,4 +282,4 @@ def main(argv):
 
 if __name__ == "__main__":
 
-    sys.exit(main(sys.argv[1:]))
+    sys.exit(gm_main(sys.argv[1:]))
