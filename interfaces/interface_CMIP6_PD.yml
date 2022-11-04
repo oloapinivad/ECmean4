@@ -48,6 +48,7 @@ filetype:
 component:
   cmoratm:
     inifile: 'r1i1p1f1/sftlf/sftlf_fx_{model}_{expname}_r1i1p1f1_{grid}.nc'
+    atmfile: 'r1i1p1f1/sftlf/sftlf_fx_{model}_{expname}_r1i1p1f1_{grid}.nc'
   cmoroce:
     gridfile: 'r1i1p1f1/sftof/sftof_Ofx_{model}_{expname}_r1i1p1f1_{grid}.nc'
     areafile: 'r1i1p1f1/areacello/areacello_Ofx_{model}_{expname}_r1i1p1f1_{grid}.nc'

@@ -201,7 +201,6 @@ def main(argv):
             var_table +
             var_oce))  # python 3.7+, preserve order
 
-    # We need
     # Can probably be cleaned up further
     comp = face['model']['component']  # Get component for each domain
 
