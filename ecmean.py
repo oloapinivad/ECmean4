@@ -16,6 +16,9 @@ import xarray as xr
 import xesmf as xe
 from metpy.units import units
 import yaml
+import matplotlib.pyplot as plt
+import seaborn as sns
+import pandas as pd
 
 
 ####################
@@ -1088,3 +1091,21 @@ def write_tuning_table(linefile, varmean, var_table, diag, ref):
                 end=' ',
                 file=f)
         print(file=f)
+
+##################
+# PLOT FUNCTIONS #
+##################
+
+def heatmap_comparison(global_table, diag, filemap) : 
+
+    data = pd.DataFrame (global_table, 
+        columns = ['Variable', 'PI', 'Domain', 'Dataset', 'CMIP6', 'Ratio to CMIP6']) 
+
+    clean = data[['Ratio to CMIP6']]
+    clean.index = data['Variable']
+    print(clean)
+    ax = plt.axes()
+    sns.heatmap(clean, cmap = 'RdYlGn_r', vmin=0, vmax = 2, center = 1, ax = ax)
+    ax.set_title(diag.modelname)
+    plt.savefig(filemap)
+

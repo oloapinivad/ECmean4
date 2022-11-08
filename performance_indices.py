@@ -25,7 +25,8 @@ from ecmean import var_is_there, eval_formula, \
     areas_dictionary, masks_dictionary, remap_dictionary, guess_bounds, \
     load_yaml, units_extra_definition, units_are_integrals, \
     units_converter, directions_match, chunks, \
-    Diagnostic, getdomain, make_input_filename, xr_preproc, mask_field
+    Diagnostic, getdomain, make_input_filename, xr_preproc, mask_field, \
+    heatmap_comparison
 
 dask.config.set(scheduler="synchronous")
 
@@ -308,7 +309,7 @@ def pi_main(argv):
         print('Done in {:.4f} seconds'.format(toc - tic))
 
     # # define options for the output table
-    head = ['Var', 'PI', 'Domain', 'Dataset', 'CMIP3', 'Ratio to CMIP3']
+    head = ['Var', 'PI', 'Domain', 'Dataset', 'CMIP6', 'Ratio to CMIP6']
     global_table = []
 
     # loop on the variables
@@ -318,10 +319,10 @@ def pi_main(argv):
             varstat[var],
             piclim[var]['mask'],
             piclim[var]['dataset'],
-            piclim[var]['cmip3'],
+            piclim[var]['cmip6'],
             varstat[var] /
             float(
-                piclim[var]['cmip3'])]
+                piclim[var]['cmip6'])]
         global_table.append(out_sequence)
 
     # nice loop on dictionary to get the partial and total pi
@@ -344,6 +345,10 @@ def pi_main(argv):
         f.write('\n\nPartial PI (atm only) is   : ' +
                 str(round(partial_pi, 3)))
         f.write('\nTotal Performance Index is : ' + str(round(total_pi, 3)))
+ 
+    # call the heatmap routine for a plot
+    filemap = 'file.pdf'
+    heatmap_comparison(global_table, diag, filemap)
 
 
 if __name__ == '__main__':

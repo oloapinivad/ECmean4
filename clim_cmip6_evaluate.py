@@ -19,18 +19,17 @@ import yaml
 year1 = 1981
 year2 = 2010
 expname = 'historical'
-do_compute = True
-do_create_clim = False
+do_compute = False
+do_create_clim = True
 
 # an initial list of ten working models
-#'AWI-CM-1-1-MR': crash in interpolation
 #'CESM2': conflicting values for variable 'lat_bnds' on objects to be combined. You can skip this check by specifying compat='override'.
 #'GFDL-CM4': Resulting object does not have monotonic global indexes along dimension lon
 #'ACCESS-CM2':ValueError: The horizontal shape of input data is (145, 192), different from that of the regridder (144, 192)!
 models = ['EC-Earth3', 'FGOALS-g3', 'IPSL-CM6A-LR', 'TaiESM1','CanESM5',
-    'CMCC-CM2-SR5', 'MIROC6', 'MPI-ESM1-2-HR', 'NorESM2-MM']
+    'CMCC-CM2-SR5', 'MIROC6', 'MPI-ESM1-2-HR', 'NorESM2-MM', 'AWI-CM-1-1-MR']
 
-models = ['CanESM5']
+#models = ['MIROC6']
 
 # call the loop of global mean on all the models
 if do_compute : 
@@ -65,14 +64,14 @@ if do_create_clim :
         dict[var] = floater.mean()
 
     pifile = os.path.join(cfg['dirs']['clm'], 'RK08', 'pi_climatology_RK08.yml')
-    update_pifile = os.path.join(cfg['dirs']['clm'], 'RK08', 'pi_climatology_RK08_update.yml')
+    #update_pifile = os.path.join(cfg['dirs']['clm'], 'RK08', 'pi_climatology_RK08_update.yml')
     piclim = load_yaml(pifile)
 
 
     for var in varlist : 
-        piclim[var]['cmip6'] = float(dict[var])
+        piclim[var]['cmip6'] = round(float(dict[var]),2)
 
     print(piclim)
 
-    with open(update_pifile, 'w') as file:
+    with open(pifile, 'w') as file:
         yaml.dump(piclim, file, sort_keys=False)
