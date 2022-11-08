@@ -127,7 +127,7 @@ def pi_worker(util, piclim, face, diag, field_3d, varstat, varlist):
             clim, vvvv = get_clim_files(piclim, var, diag)
 
             # open file
-            xfield = xr.open_mfdataset(infile, preprocess=xr_preproc)
+            xfield = xr.open_mfdataset(infile, preprocess=xr_preproc, chunks={'time': 12})
 
             if 'derived' in face['variables'][var].keys():
                 cmd = face['variables'][var]['derived']

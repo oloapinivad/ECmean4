@@ -131,7 +131,7 @@ def gm_worker(util, ref, face, diag, varmean, vartrend, varlist):
 
                 infile = make_input_filename(
                     var, dervars, year, year, face, diag)
-                xfield = xr.open_mfdataset(infile, preprocess=xr_preproc)
+                xfield = xr.open_mfdataset(infile, preprocess=xr_preproc, chunks={'time': 12})
 
                 # time selection for longer dataset!
                 xfield = xfield.sel(time=(xfield.time.dt.year == year))

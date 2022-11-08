@@ -404,10 +404,17 @@ def mask_field(xfield, var, mask_type, mask):
         out = xfield
 
     else:
+
+        # check that we are receiving a dataset and not a datarray
+        if isinstance(xfield, xr.DataArray) : 
+            xfield = xfield.to_dataset(name=var)
+
         # convert from datarray to dataset and merge
-        xfield = xfield.to_dataset(name=var)
         mask = mask.to_dataset(name='mask')
-        bfield = xr.merge([xfield, mask])
+
+        # the compat='override' option forces the merging. some CMIP6 data might 
+        # have different float type, this simplies the handling
+        bfield = xr.merge([xfield, mask], compat = 'override')
 
         # conditions
         if mask_type == 'land':
@@ -886,12 +893,25 @@ def _make_oce_interp_weights(component, oceareafile, target_grid):
         fix = None
         xfield = xr.open_mfdataset(oceareafile, preprocess=xr_preproc)
         xname = list(xfield.data_vars)[-1]
-        interp = xe.Regridder(
-            xfield[xname].load(),
-            target_grid,
-            method="bilinear",
-            ignore_degenerate=True,
-            periodic=True)
+
+        # check if oceanic grid is regular
+        if not all(x in xfield.dims for x in ['lon', 'lat']) and (len(xfield.dims) < 3) : 
+
+            print("Detecting a unstructured grid, using nearest neighbour!")
+            interp = xe.Regridder(
+                xfield[xname].load(),
+                target_grid,
+                method="nearest_s2d",
+                locstream_in=True,
+                periodic=True)
+        else :
+            print("Detecting regular or curvilinear grid, using bilinear!")
+            interp = xe.Regridder(
+                xfield[xname].load(),
+                target_grid,
+                method="bilinear",
+                ignore_degenerate=True,
+                periodic=True)
 
     else:
         sys.exit(
