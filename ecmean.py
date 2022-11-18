@@ -64,6 +64,7 @@ class Diagnostic():
         # Various input and output directories
         self.ECEDIR = Path(os.path.expandvars(cfg['dirs']['exp']))
         self.TABDIR = Path(os.path.expandvars(cfg['dirs']['tab']))
+        self.FIGDIR = Path(os.path.expandvars(cfg['dirs']['fig']))
         self.CLMDIR = Path(
             os.path.expandvars(
                 cfg['dirs']['clm']),
@@ -430,6 +431,24 @@ def mask_field(xfield, var, mask_type, mask):
     return out
 
 
+def select_region(xfield, region) :
+    """Trivial function to convert region definition to xarray
+    sliced array to compute the PIs or global means on selected regions"""
+
+    if region == 'Global':
+        slicearray = xfield
+    elif region == 'North Midlat' : 
+        slicearray = xfield.sel(lat=slice(30, 90))
+    elif region == 'South Midlat' : 
+        slicearray = xfield.sel(lat=slice(-90, -30))
+    elif region == 'Tropical' : 
+        slicearray = xfield.sel(lat=slice(-30, 30))
+    else :
+        sys.exit(region + "region not supported!!!")
+
+    return slicearray
+
+
 ##################################
 # AREA-WEIGHT AND MASK FUNCTIONS #
 ##################################
@@ -562,7 +581,7 @@ def _area_cell(xfield, formula='triangles'):
     Function which estimate the area cell from bounds. This is done assuming
     making use of spherical triangels.
     Working also on regular grids which does not have lon/lat bounds
-    via the guess_bounds function. Unstructured grids are not supported,
+    via the guess_bounds function. Curvilinear/unstructured grids are not supported,
     especially if with more with more than 4 vertices are not supported.
 
     Args:
@@ -593,7 +612,7 @@ def _area_cell(xfield, formula='triangles'):
     # this is a nightmare, so far working only for ECE4 gaussian reduced
     if not regular_grid:
 
-        logging.debug('Unstructured grid, tryin to get grid info...')
+        logging.debug('Curvilinear/Unstructured grid, tryin to get grid info...')
 
         blondim = None
         blatdim = None
@@ -896,9 +915,12 @@ def _make_oce_interp_weights(component, oceareafile, target_grid):
         fix = None
         xfield = xr.open_mfdataset(oceareafile, preprocess=xr_preproc)
         xname = list(xfield.data_vars)[-1]
+        #print(xfield.dims)
+        #print(len(xfield.coords['lon'].shape))
 
-        # check if oceanic grid is regular
-        if not all(x in xfield.dims for x in ['lon', 'lat']) and (len(xfield.dims) < 3) : 
+        # check if oceanic grid is regular: lon/lat dims should be 1d
+        #if not all(x in xfield.dims for x in ['lon', 'lat']) and (len(xfield.dims) < 3) : 
+        if len(xfield.coords['lon'].shape) == 1 and len(xfield.coords['lat'].shape) == 1 :
 
             print("Detecting a unstructured grid, using nearest neighbour!")
             interp = xe.Regridder(
@@ -926,7 +948,6 @@ def _make_oce_interp_weights(component, oceareafile, target_grid):
 #########################
 # FILE FORMAT FUNCTIONS #
 #########################
-
 
 def xr_preproc(ds):
     """Preprocessing functuon to adjust coordinate and dimensions
@@ -956,6 +977,13 @@ def xr_preproc(ds):
 
     if 'latitude' in list(ds.dims):
         ds = ds.rename({"latitude": "lat"})
+
+    if 'longitude' in list(ds.coords):
+        ds = ds.rename({"longitude": "lon"})
+
+    if 'latitude' in list(ds.coords):
+        ds = ds.rename({"latitude": "lat"})
+
 
     if 'values' in list(ds.dims):
         ds = ds.rename({"values": "cell"})
@@ -1097,15 +1125,21 @@ def write_tuning_table(linefile, varmean, var_table, diag, ref):
 ##################
 
 def heatmap_comparison(global_table, diag, filemap) : 
+    """Minimal function to produce a heatmap for Performance Indices
+    based on CMIP6 ratio"""
 
-    data = pd.DataFrame (global_table, 
-        columns = ['Variable', 'PI', 'Domain', 'Dataset', 'CMIP6', 'Ratio to CMIP6']) 
+    # get only columns with CMIP6 ratio, and remove the name for convenience
+    ratio_col = [col for col in global_table.columns if 'Ratio' in col]
+    clean = global_table[ratio_col]
+    clean.columns = clean.columns.str.replace('CMIP6 Ratio', '')
+    clean.index = global_table['Variable']
 
-    clean = data[['Ratio to CMIP6']]
-    clean.index = data['Variable']
-    print(clean)
+    # real plot
     ax = plt.axes()
+    plt.subplots_adjust(bottom=0.2) 
     sns.heatmap(clean, cmap = 'RdYlGn_r', vmin=0, vmax = 2, center = 1, ax = ax)
-    ax.set_title(diag.modelname)
+    ax.set_title(f'{diag.modelname} {diag.year1} {diag.year2}')
+    names = list(clean.columns)
+    ax.set_xticks([x+0.5 for x in range(len(names))], names, rotation=45, ha='center')
     plt.savefig(filemap)
 

@@ -47,11 +47,11 @@ filetype:
 # If a relative path is used this is attached to $ECEDIR/$basedir
 component:
   cmoratm:
-    inifile: 'r1i1p1f1/sftlf/sftlf_fx_{model}_{expname}_r1i1p1f1_{grid}.nc'
-    atmfile: 'r1i1p1f1/sftlf/sftlf_fx_{model}_{expname}_r1i1p1f1_{grid}.nc'
+    inifile: 'r1i1p1f*/sftlf/sftlf_fx_{model}_{expname}_r1i1p1f*_{grid}.nc'
+    atmfile: 'r1i1p1f*/sftlf/sftlf_fx_{model}_{expname}_r1i1p1f*_{grid}.nc'
   cmoroce:
-    gridfile: 'r1i1p1f1/sftof/sftof_Ofx_{model}_{expname}_r1i1p1f1_{grid}.nc'
-    areafile: 'r1i1p1f1/areacello/areacello_Ofx_{model}_{expname}_r1i1p1f1_{grid}.nc'
+    gridfile: 'r1i1p1f*/sftof/sftof_Ofx_{model}_{expname}_r1i1p1f*_{grid}.nc'
+    areafile: 'r1i1p1f*/areacello/areacello_Ofx_{model}_{expname}_r1i1p1f*_{grid}.nc'
 
 # Definition of individual variables
 variables:
