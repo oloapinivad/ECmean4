@@ -53,7 +53,7 @@ def parse_arguments(args):
                         help='model name')
     parser.add_argument('-c', '--config', type=str, default='',
                         help='config file')
-    parser.add_argument('-v', '--loglevel', type=str, default='ERROR',
+    parser.add_argument('-v', '--loglevel', type=str, default='WARNING',
                         help='define the level of logging.')
     parser.add_argument('-j', dest="numproc", type=int, default=1,
                         help='number of processors to use')

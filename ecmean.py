@@ -160,14 +160,14 @@ def var_is_there(flist, var, reference):
             # check of unit is specified in the interface file
             varunit = reference[var].get('units')
             if not varunit:
-                logging.warning('%s is a derived var, assuming unit '
+                logging.info('%s is a derived var, assuming unit '
                                 'as the first of its term', var)
                 varunit = units_avail.get(var_req[0])
         else:
             var_req = [var]
             varunit = units_avail.get(var)
 
-            # check if all required variables are in model output
+        # check if all required variables are in model output
         isavail = True
         for x in var_req:
             if x not in vars_avail:
@@ -176,8 +176,8 @@ def var_is_there(flist, var, reference):
                                 "available in the model output!", x, var)
     else:
         varunit = None
-        print(f'Not available: {var} File: {flist}')
-        logging.warning("Requested file %s is not available.", flist)
+        #print(f'Not available: {var} File: {flist}')
+        logging.warning("No data found for variable %s. Ignoring it.", var)
 
     return isavail, varunit
 
@@ -973,7 +973,7 @@ def adjust_clim_file(cfield, remove_zero=False):
 def units_extra_definition():
     """Add units to the pint registry required by ECMean4"""
 
-    # special units definition, need to be moved in another placce
+    # special units definition
     units.define('fraction = [] = frac')
     units.define('psu = 1e-3 frac')
     units.define('Sv = 1e+6 m^3/s')  # Replace Sievert with Sverdrup
