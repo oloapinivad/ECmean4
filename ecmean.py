@@ -467,7 +467,7 @@ def _make_oce_areas(component, oceareafile):
 
     logging.debug('Oceareafile is ' + oceareafile)
     if not oceareafile : 
-        sys.exit("ERROR: Ocereafile cannot be found")
+        logging.warning("Ocereafile cannot be found, assuming this is an AMIP run")
 
     if oceareafile:
         if component == 'nemo':
