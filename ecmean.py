@@ -351,6 +351,10 @@ def _make_atm_masks(component, maskatmfile, remap_dictionary=None):
 
     # prepare ATM LSM: this needs to be improved, since it is clearly model
     # dependent
+    logging.debug('maskatmfile is' + maskatmfile)
+    if not maskatmfile: 
+        sys.exit("ERROR: maskatmfile cannot be found")
+
     if component == 'oifs':
         # create mask: opening a grib and loading only lsm to avoid
         # inconsistencies # in the grib structure ->
@@ -440,6 +444,10 @@ def areas_dictionary(component, atmareafile, oceareafile):
 def _make_atm_areas(component, atmareafile):
     "Create atmospheric weights for area operations"
 
+    logging.debug('Atmareafile is ' + atmareafile)
+    if not atmareafile : 
+        sys.exit("ERROR: Atmareafile cannot be found")
+
     if component == 'oifs':
         xfield = xr.open_mfdataset(atmareafile, preprocess=xr_preproc)
         area = _area_cell(xfield)
@@ -450,13 +458,17 @@ def _make_atm_areas(component, atmareafile):
         xfield = xr.open_mfdataset(atmareafile, preprocess=xr_preproc)
         area = _area_cell(xfield)
     else:
-        sys.exit("Area for this configuration cannot be handled!")
+        sys.exit("ERROR: Area for this configuration cannot be handled!")
     return area
 
 
 def _make_oce_areas(component, oceareafile):
     "Create atmospheric weights for area operations"
 
+    logging.debug('Oceareafile is ' + oceareafile)
+    if not oceareafile : 
+        sys.exit("ERROR: Ocereafile cannot be found")
+        
     if oceareafile:
         if component == 'nemo':
             xfield = xr.open_mfdataset(oceareafile, preprocess=xr_preproc)
@@ -806,6 +818,10 @@ def remap_dictionary(component, atmareafile, oceareafile, target_grid):
 def _make_atm_interp_weights(component, atmareafile, target_grid):
     """Create atmospheric interpolator"""
 
+    logging.debug('Atmareafile is ' + atmareafile)
+    if not atmareafile : 
+        sys.exit("ERROR: Atmareafile cannot be found")
+
     if component == 'oifs':
 
         # this is to get lon and lat from the Equator
@@ -860,6 +876,10 @@ def _make_atm_interp_weights(component, atmareafile, target_grid):
 
 def _make_oce_interp_weights(component, oceareafile, target_grid):
     """Create oceanic interpolator weights"""
+
+    logging.debug('Oceareafile is ' + oceareafile)
+    if not oceareafile : 
+        sys.exit("ERROR: Oceareafile cannot be found")
 
     if component == 'nemo':
         fix = None
