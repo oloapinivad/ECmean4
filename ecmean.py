@@ -943,11 +943,19 @@ def xr_preproc(ds):
     if 'plevel' in list(ds.dims):
         ds = ds.rename({"plevel": "plev"})
 
-    if 'nav_lon' in list(ds.coords):
-        ds = ds.rename({"nav_lon": "lon"})
+    # fix for NEMO eORCA grid (nav_lon, nav_lat)
+    for h in ['lon', 'lat'] : 
+        for f in ['', 'grid_T'] :
+            g = 'nav_'+ h + '_' + f 
+            if g in list(ds.coords):
+                ds = ds.rename({g: h})
 
-    if 'nav_lat' in list(ds.coords):
-        ds = ds.rename({"nav_lat": "lat"})
+    # fix for NEMO eORCA grid (x_grid_T, etc.)
+    for h in ['x', 'y'] :
+        for f in ['grid_T'] :
+            g = h + '_'+ f 
+            if g in list(ds.dims):
+                ds = ds.rename({g: h})
 
     if 'longitude' in list(ds.dims):
         ds = ds.rename({"longitude": "lon"})
