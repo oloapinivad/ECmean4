@@ -172,8 +172,8 @@ def var_is_there(flist, var, reference):
         for x in var_req:
             if x not in vars_avail:
                 isavail = False
-                logging.warning("Variable %s needed by %s is not "
-                                "available in the model output!", x, var)
+                logging.warning("Variable %s requires %s which is not "
+                                "available in the model output. Ignoring it.", var, x)
     else:
         varunit = None
         #print(f'Not available: {var} File: {flist}')
