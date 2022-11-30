@@ -10,6 +10,9 @@
 
 ECmean4 is a lightweight parallelized tool for evaluation of basic properties of Global Climate Models, such as global mean, pattern correlation and climate model performance indices.
 
-It builts on the original ECmean which has been used for EC-Earth2 and EC-Earth3 evaluation, but it uses Python3 as a scripting language to perform lazy calls to CDO and makes use of YML configuration files. It works both on raw EC-Earth4 output and on CMOR model output from CMIP5 and CMIP6.
+It builts on the original ECmean which has been used for EC-Earth2 and EC-Earth3 evaluation, but it uses Python3 as a scripting language to perform lazy calls with Xarray+Dask and makes use of YML configuration files, with parallelization support with Multiprocess. 
+It works both on raw EC-Earth4 output and on CMOR model output from CMIP5 and CMIP6.
+
+ECmean4 is under development, so please use it with caution!
 
 A complete [ReadTheDocs Documentation](https://ecmean4.readthedocs.io/en/latest/index.html) is being developed, please refer to this.
