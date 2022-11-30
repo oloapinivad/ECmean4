@@ -294,7 +294,7 @@ def load_yaml(infile):
         with open(infile, 'r', encoding='utf-8') as file:
             cfg = yaml.load(file, Loader=yaml.FullLoader)
     except IOError:
-        sys.exit(f'{infile} not found: you need to have this configuration file!')
+        sys.exit(f'ERROR: {infile} not found: you need to have this configuration file!')
     return cfg
 
 
@@ -374,7 +374,7 @@ def _make_atm_masks(component, maskatmfile, remap_dictionary=None):
         mask = mask['lsm'].mean(dim='time')
         mask = abs(1-mask)
     else:
-        sys.exit("Mask undefined yet mismatch, this cannot be handled!")
+        sys.exit("ERROR: Mask undefined yet mismatch, this cannot be handled!")
 
     if remap_dictionary is not None:
         if remap_dictionary['atm_fix']:
@@ -396,7 +396,7 @@ def masked_meansum(xfield, var, weights, mask_type, mask):
     elif mask_type in ['land', 'ocean', 'sea']:
         out = masked.weighted(weights.fillna(0)).sum().values
     else:
-        sys.exit("Mask undefined, this cannot be handled!")
+        sys.exit("ERROR: Mask undefined, this cannot be handled!")
 
     return float(out)
 
@@ -420,7 +420,7 @@ def mask_field(xfield, var, mask_type, mask):
         elif mask_type in ['sea', 'ocean']:
             out = bfield[var].where(bfield['mask'] < 0.5)
         else:
-            sys.exit("Mask undefined, this cannot be handled!")
+            sys.exit("ERROR: Mask undefined, this cannot be handled!")
 
     return out
 
@@ -468,7 +468,7 @@ def _make_oce_areas(component, oceareafile):
     logging.debug('Oceareafile is ' + oceareafile)
     if not oceareafile : 
         sys.exit("ERROR: Ocereafile cannot be found")
-        
+
     if oceareafile:
         if component == 'nemo':
             xfield = xr.open_mfdataset(oceareafile, preprocess=xr_preproc)
@@ -483,7 +483,7 @@ def _make_oce_areas(component, oceareafile):
             else:
                 area = _area_cell(xfield)
         else:
-            sys.exit("Area for this configuration cannot be handled!")
+            sys.exit("ERROR: Area for this configuration cannot be handled!")
     else:
         area = None
     return area
@@ -617,7 +617,7 @@ def _area_cell(xfield, formula='triangles'):
         # checking
         if blondim is None and blatdim is None:
             sys.exit(
-                "Can't find any lon/lat boundaries and grid is unstructured, need some help!")
+                "ERROR: Can't find any lon/lat boundaries and grid is unstructured, need some help!")
 
         logging.debug('Unstructured grid, special ECE4 treatment...')
         # ATTENTION: this is a very specific ECE4 definition, it will not work
@@ -869,7 +869,7 @@ def _make_atm_interp_weights(component, atmareafile, target_grid):
 
     else:
         sys.exit(
-            "Atm weights not defined for this component, this cannot be handled!")
+            "ERROR: Atm weights not defined for this component, this cannot be handled!")
 
     return fix, interp
 
@@ -916,7 +916,7 @@ def _make_oce_interp_weights(component, oceareafile, target_grid):
 
     else:
         sys.exit(
-            "Oce weights not defined for this component, this cannot be handled!")
+            "ERROR: Oce weights not defined for this component, this cannot be handled!")
 
     return fix, interp
 
@@ -1027,7 +1027,7 @@ def units_converter(org_units, tgt_units):
 
         else:
             logging.error(units_relation)
-            sys.exit("Units mismatch, this cannot be handled!")
+            sys.exit("ERROR: Units mismatch, this cannot be handled!")
     else:
         offset = 0.
         factor = 1.
