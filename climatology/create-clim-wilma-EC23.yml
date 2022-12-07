@@ -29,13 +29,13 @@ ua:
   dir: "/work/datasets/obs/{dataset}/u_component_of_wind/mon/{dataset}_*.nc"
 va: 
   dataset: ERA5
-  varname: var132
+  varname: v
   units: m s-1  
   remap: remapbil
   dir: "/work/datasets/obs/{dataset}/v_component_of_wind/mon/{dataset}_*.nc"
 ta: 
   dataset: ERA5
-  varname: var130
+  varname: t
   remap: remapbil
   units: K
   dir: "/work/datasets/obs/{dataset}/temperature/mon/{dataset}_*.nc"
@@ -46,7 +46,7 @@ psl:
   dir: "/work/datasets/obs/{dataset}/mean_sea_level_pressure/mon/{dataset}_*.nc"
 hus: 
   dataset: ERA5
-  varname: var133
+  varname: q
   remap: remapbil
   units: kg kg-1
   dir: "/work/datasets/obs/{dataset}/specific_humidity/mon/{dataset}_*.nc"
@@ -57,7 +57,7 @@ sos:
   dir: "{datadir}/{dataset}/data/{varname}*.nc"
 tauu: 
   dataset: ORAS5
-  varname: sometaux
+  varname: sozotaux
   remap: remapbil
   dir: "{datadir}/{dataset}/data/{varname}*.nc"
 tauv: 

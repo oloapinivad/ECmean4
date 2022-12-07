@@ -1,0 +1,96 @@
+net_sfc:
+  dataset: NOCS
+  dataname: net_sfc
+  remap: remapcon
+  mask: ocean
+  units: W m-2
+  year1: 1990
+  year2: 2014
+tas:
+  dataset: CRU
+  dataname: tmp
+  remap: remapbil
+  mask: land
+  units: degrees Celsius
+  year1: 1990
+  year2: 2019
+pr:
+  dataset: MSWEP
+  dataname: precipitation
+  remap: remapcon
+  mask: global
+  units: mm month-1
+  year1: 1990
+  year2: 2019
+tauu:
+  dataset: ORAS5
+  dataname: sozotaux
+  remap: remapbil
+  mask: ocean
+  units: N/m2
+  year1: 1990
+  year2: 2019
+tauv:
+  dataset: ORAS5
+  dataname: sometauy
+  remap: remapbil
+  mask: ocean
+  units: N/m2
+  year1: 1990
+  year2: 2019
+ua:
+  dataset: ERA5
+  dataname: var131
+  remap: remapbil
+  mask: global
+  units: m s-1
+  year1: 1990
+  year2: 2019
+va:
+  dataset: ERA5
+  dataname: v
+  remap: remapbil
+  mask: global
+  units: m s**-1
+  year1: 1990
+  year2: 2019
+ta:
+  dataset: ERA5
+  dataname: t
+  remap: remapbil
+  mask: global
+  units: K
+  year1: 1990
+  year2: 2019
+hus:
+  dataset: ERA5
+  dataname: q
+  remap: remapbil
+  mask: global
+  units: kg kg**-1
+  year1: 1990
+  year2: 2019
+tos:
+  dataset: ESA-CCI-L4
+  dataname: analysed_sst
+  remap: remapbil
+  mask: ocean
+  units: kelvin
+  year1: 1990
+  year2: 2019
+sos:
+  dataset: ORAS5
+  dataname: sosaline
+  remap: remapbil
+  mask: ocean
+  units: PSU
+  year1: 1990
+  year2: 2019
+sic:
+  dataset: ESA-CCI-L4
+  dataname: sea_ice_fraction
+  remap: remapbil
+  mask: ocean
+  units: '1'
+  year1: 1990
+  year2: 2019

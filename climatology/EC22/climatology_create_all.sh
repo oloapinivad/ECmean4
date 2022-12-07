@@ -11,9 +11,10 @@ set -e
 year1=1990
 year2=2019
 vars="tas precipitation mean_sea_level_pressure specific_humidity v_component_of_wind u_component_of_wind temperature sosaline sowaflup sozotaux sometauy net_sfc snow_cover analysed_sst sea_ice_fraction"
+vars="u_component_of_wind"
 
 # cdo details
-cdo=cdo205
+cdo=cdo
 cdozip="$cdo -f nc4 -z zip"
 
 # targets resolution and years

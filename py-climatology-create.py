@@ -37,7 +37,7 @@ clim_info = '/home/paolo/ECmean4/climatology/create-clim-wilma-EC23.yml'
 grids = ['r360x180']
 
 # number of dask workes
-workers = 4
+workers = 8
 
 # some dataset show very low variance in some grid point: this might create
 # irrealistic high values of PI due to the  division by variance performend
