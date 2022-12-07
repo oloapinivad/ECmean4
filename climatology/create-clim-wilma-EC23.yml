@@ -14,11 +14,13 @@ dirs:
 tas: 
   dataset: CRU
   varname: tmp
+  units: degC
   remap: remapbil
   dir: "{datadir}/{dataset}/data/*.nc" 
 pr:
   dataset: MSWEP
   varname: precipitation
+  units: mm/month
   remap: remapcon
   dir: "{datadir}/{dataset}/data/*.nc"
 ua: 
@@ -43,12 +45,13 @@ psl:
   dataset: ERA5
   varname: msl
   remap: remapbil
+  units: Pa
   dir: "/work/datasets/obs/{dataset}/mean_sea_level_pressure/mon/{dataset}_*.nc"
 hus: 
   dataset: ERA5
   varname: q
   remap: remapbil
-  units: kg kg-1
+  units: '' 
   dir: "/work/datasets/obs/{dataset}/specific_humidity/mon/{dataset}_*.nc"
 sos: 
   dataset: ORAS5
@@ -69,11 +72,13 @@ tos:
   dataset: ESA-CCI-L4
   varname: analysed_sst
   remap: remapbil
+  units: K
   dir: "/work/datasets/obs/{dataset}/day/{varname}/*{varname}*.nc"
-sic: 
+siconc: 
   dataset: ESA-CCI-L4
   varname: sea_ice_fraction
   remap: remapbil
+  units: ''
   dir: "/work/datasets/obs/{dataset}/day/{varname}/*{varname}*.nc"
 net_sfc:
   dataset: NOCS

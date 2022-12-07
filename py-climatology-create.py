@@ -37,7 +37,8 @@ clim_info = '/home/paolo/ECmean4/climatology/create-clim-wilma-EC23.yml'
 grids = ['r360x180']
 
 # number of dask workes
-workers = 8
+workers = 4
+threads = 2
 
 # some dataset show very low variance in some grid point: this might create
 # irrealistic high values of PI due to the  division by variance performend
@@ -55,9 +56,11 @@ def variance_threshold(xvariance) :
 def mask_from_field(xfield) :
     ratio = float(xfield.count() / np.prod(np.array(xfield.shape)))
     logging.info(ratio)
-    if 0.2 < ratio < 0.3 :
+    if ratio < 0.2 : # this is a special case for ice, need to be double checked
+        mask = 'ocean'
+    elif 0.2 < ratio < 0.3 :
         mask = 'land'
-    elif 0.3 < ratio < 0.8 : 
+    elif 0.6 < ratio < 0.7 : 
         mask = 'ocean'
     elif ratio > 0.95 : 
         mask = 'global'
@@ -150,7 +153,7 @@ def main() :
             interpolator = getattr(cdo,  info[var]['remap'])
             yfield = interpolator(grid, input = tmpout, returnXArray = var)
             #yfield = cdo.remapbil(grid, input = tmpout, returnXArray = info[var]['varname'])
-            #os.remove(tmpout)
+            os.remove(tmpout)
 
             # create empty lists
             d1 = []
@@ -163,7 +166,6 @@ def main() :
                 # select the season 
                 gfield = yfield.sel(time=yfield.time.dt.season.isin(season))
       
-
                 # zonal averaging for 3D fields
                 if 'plev' in gfield.coords :
                     gfield = gfield.mean(dim = 'lon') 
@@ -182,8 +184,8 @@ def main() :
                 logging.info(high)
 
                 # clean according to thresholds
-                #yvar = yvar.where((yvar >= low) & (yvar <= high))
-                #ymean = ymean.where((yvar >= low) & (yvar <= high))
+                yvar = yvar.where((yvar >= low) & (yvar <= high))
+                ymean = ymean.where((yvar >= low) & (yvar <= high))
 
                 # add a reference time
                 ymean = ymean.assign_coords({"time": ("time",  [reftime])})
@@ -201,7 +203,7 @@ def main() :
             compression = {var: {"zlib": True, '_FillValue': -999.0}, 'time': {'dtype': 'f8'}}
 
             # save
-            suffix = var + '_' + info[var]['dataset'] + '_' + grid + '_' +  str(year1) + '_' + str(year2) + '.nc'
+            suffix = var + '_' + info[var]['dataset'] + '_' + grid + '_' +  str(real_year1) + '_' + str(real_year2) + '.nc'
             variance.to_netcdf(os.path.join(tgtdir, grid, 'variance_' + suffix), encoding = compression)
             mean.to_netcdf(os.path.join(tgtdir, grid, 'climate_' + suffix), encoding = compression)
 
@@ -237,7 +239,7 @@ def main() :
 if __name__ == "__main__":
 
     # set up clusters
-    cluster = LocalCluster(threads_per_worker=1, n_workers = workers)
+    cluster = LocalCluster(threads_per_worker=threads, n_workers = workers)
     client = Client(cluster)
     logging.warning(client)
     main()

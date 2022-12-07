@@ -201,13 +201,20 @@ def get_clim_files(piclim, var, diag):
     if diag.climatology == 'RK08':
         clim = str(diag.RESCLMDIR / f'climate_{dataref}_{dataname}.nc')
         vvvv = str(diag.RESCLMDIR / f'variance_{dataref}_{dataname}.nc')
-    elif diag.climatology == 'EC22':
+    elif diag.climatology in 'EC22':
         clim = str(
             diag.RESCLMDIR /
             f'climate_{dataname}_{dataref}_{diag.resolution}_{datayear1}-{datayear2}.nc')
         vvvv = str(
             diag.RESCLMDIR /
             f'variance_{dataname}_{dataref}_{diag.resolution}_{datayear1}-{datayear2}.nc')
+    elif diag.climatology in 'EC23':
+        clim = str(
+            diag.RESCLMDIR /
+            f'climate_{var}_{dataref}_{diag.resolution}_{datayear1}_{datayear2}.nc')
+        vvvv = str(
+            diag.RESCLMDIR /
+            f'variance_{var}_{dataref}_{diag.resolution}_{datayear1}_{datayear2}.nc')
 
     return clim, vvvv
 
@@ -1026,8 +1033,8 @@ def units_extra_definition():
     # special units definition, need to be moved in another placce
     units.define('fraction = [] = frac')
     units.define('psu = 1e-3 frac')
+    units.define('PSU = 1e-3 frac')
     units.define('Sv = 1e+6 m^3/s')  # Replace Sievert with Sverdrup
-
 
 def units_converter(org_units, tgt_units):
     """Units conversion using metpy and pint.
@@ -1049,8 +1056,8 @@ def units_converter(org_units, tgt_units):
                 factor = 1.
 
         elif units_relation.units == units('kg / m^3'):
-            logging.debug("Assuming this as a water flux! Am I correct?")
-            logging.debug("Dividing by water density...")
+            logging.info("Assuming this as a water flux! Am I correct?")
+            logging.info("Dividing by water density...")
             density_water = units('kg / m^3') * 1000
             offset = 0.
             factor = (factor_standard / density_water).to(tgt_units).magnitude
@@ -1062,6 +1069,8 @@ def units_converter(org_units, tgt_units):
         offset = 0.
         factor = 1.
 
+    logging.info('Offset is ' + str(offset))
+    logging.info('Factor is ' + str(factor))
     return offset, factor
 
 
@@ -1129,17 +1138,18 @@ def heatmap_comparison(global_table, diag, filemap) :
     based on CMIP6 ratio"""
 
     # get only columns with CMIP6 ratio, and remove the name for convenience
-    ratio_col = [col for col in global_table.columns if 'Ratio' in col]
-    clean = global_table[ratio_col]
-    clean.columns = clean.columns.str.replace('CMIP6 Ratio', '')
-    clean.index = global_table['Variable']
+    #ratio_col = [col for col in global_table.columns if 'Ratio' in col]
+    #clean = global_table[ratio_col]
+    #clean.columns = clean.columns.str.replace('CMIP6 Ratio', '')
+    #clean.index = global_table['Variable']
+    clean = global_table
 
     # real plot
     ax = plt.axes()
     plt.subplots_adjust(bottom=0.2) 
     sns.heatmap(clean, cmap = 'RdYlGn_r', vmin=0, vmax = 2, center = 1, ax = ax)
     ax.set_title(f'{diag.modelname} {diag.year1} {diag.year2}')
-    names = list(clean.columns)
-    ax.set_xticks([x+0.5 for x in range(len(names))], names, rotation=45, ha='center')
+    names = [ ' '.join(x) for x in clean.columns ]
+    ax.set_xticks([x+0.5 for x in range(len(names))], names, rotation=90, ha='center')
     plt.savefig(filemap)
 

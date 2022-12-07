@@ -11,7 +11,7 @@ tas:
   dataname: tmp
   remap: remapbil
   mask: land
-  units: degrees Celsius
+  units: degC
   year1: 1990
   year2: 2019
 pr:
@@ -19,7 +19,7 @@ pr:
   dataname: precipitation
   remap: remapcon
   mask: global
-  units: mm month-1
+  units: mm/month
   year1: 1990
   year2: 2019
 tauu:
@@ -67,7 +67,7 @@ hus:
   dataname: q
   remap: remapbil
   mask: global
-  units: kg kg**-1
+  units: ''
   year1: 1990
   year2: 2019
 tos:
@@ -75,7 +75,7 @@ tos:
   dataname: analysed_sst
   remap: remapbil
   mask: ocean
-  units: kelvin
+  units: K
   year1: 1990
   year2: 2019
 sos:
@@ -87,6 +87,22 @@ sos:
   year1: 1990
   year2: 2019
 sic:
+  dataset: ESA-CCI-L4
+  dataname: sea_ice_fraction
+  remap: remapbil
+  mask: undefined
+  units: ''
+  year1: 1990
+  year2: 2019
+psl:
+  dataset: ERA5
+  dataname: msl
+  remap: remapbil
+  mask: global
+  units: Pa
+  year1: 1990
+  year2: 2019
+siconc:
   dataset: ESA-CCI-L4
   dataname: sea_ice_fraction
   remap: remapbil
