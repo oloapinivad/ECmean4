@@ -66,6 +66,7 @@ def mask_from_field(xfield) :
         mask = 'global'
     else : 
         mask = 'undefined'
+        sys.exit('ERROR: cant recognize mask')
 
     logging.info(mask)
     return mask
@@ -120,11 +121,10 @@ def main() :
             logging.warning("Final year different from what expected: " + str(real_year2))
 
         # check existence of unit, then apply from file
-        if not hasattr(cfield, 'units') :
-            if info[var]['units'] : 
-                cfield.attrs['units'] = info[var]['units']
-            else : 
-                sys.exit('ERROR: no unit found or defined!')
+        if 'units' in info[var] : 
+            cfield.attrs['units'] = info[var]['units']
+        elif not hasattr(cfield, 'units') :
+            sys.exit('ERROR: no unit found or defined!')
 
         print(cfield)
 
@@ -160,12 +160,15 @@ def main() :
             d2 = []
 
             # loop on seasons
-            for season in ['DJF', 'MAM', 'JJA', 'SON'] :
+            for season in ['ALL', 'DJF', 'MAM', 'JJA', 'SON'] :
                 print(season)
 
-                # select the season 
-                gfield = yfield.sel(time=yfield.time.dt.season.isin(season))
-      
+                # select the season
+                if season == 'ALL' :
+                    gfield = yfield.resample(time='AS').mean('time')
+                else :
+                    gfield = yfield.sel(time=yfield.time.dt.season.isin(season))
+
                 # zonal averaging for 3D fields
                 if 'plev' in gfield.coords :
                     gfield = gfield.mean(dim = 'lon') 
@@ -196,16 +199,24 @@ def main() :
                 d2.append(yvar)
 
             # merge into a single dataarray
-            mean = xr.concat(d1, dim = 'time')
-            variance = xr.concat(d2, dim = 'time')
+            season_mean = xr.concat(d1[1:], dim = 'time')
+            season_variance = xr.concat(d2[1:], dim = 'time')
+            full_mean = d1[0]
+            full_variance = d2[0]
             
             # define compression and dtype for time
             compression = {var: {"zlib": True, '_FillValue': -999.0}, 'time': {'dtype': 'f8'}}
 
-            # save
+            # define file suffix
             suffix = var + '_' + info[var]['dataset'] + '_' + grid + '_' +  str(real_year1) + '_' + str(real_year2) + '.nc'
-            variance.to_netcdf(os.path.join(tgtdir, grid, 'variance_' + suffix), encoding = compression)
-            mean.to_netcdf(os.path.join(tgtdir, grid, 'climate_' + suffix), encoding = compression)
+
+            # save full - standard format
+            full_variance.to_netcdf(os.path.join(tgtdir, grid, 'variance_' + suffix), encoding = compression)
+            full_mean.to_netcdf(os.path.join(tgtdir, grid, 'climate_' + suffix), encoding = compression)
+
+             # save season - 4 season format
+            season_variance.to_netcdf(os.path.join(tgtdir, grid, 'seasons_variance_' + suffix), encoding = compression)
+            season_mean.to_netcdf(os.path.join(tgtdir, grid, 'seasons_climate_' + suffix), encoding = compression)
 
             toc = time()
             print('Processing in {:.4f} seconds'.format(toc - tic))
@@ -224,8 +235,8 @@ def main() :
             dclim[var]['dataset'] = info[var]['dataset']
             dclim[var]['dataname'] = info[var]['varname']
             dclim[var]['remap'] = info[var]['remap']
-            dclim[var]['mask'] = mask_from_field(mean)
-            dclim[var]['units'] = mean.attrs['units']
+            dclim[var]['mask'] = mask_from_field(full_mean)
+            dclim[var]['units'] = full_mean.attrs['units']
             dclim[var]['year1'] = int(real_year1)
             dclim[var]['year2'] = int(real_year2)
 

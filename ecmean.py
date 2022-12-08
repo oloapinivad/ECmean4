@@ -42,6 +42,8 @@ class Diagnostic():
         self.climatology = getattr(args, 'climatology', 'RK08')
         self.interface = getattr(args, 'interface', '')
         self.resolution = getattr(args, 'resolution', '')
+        self.regions = cfg['PI']['regions']
+        self.seasons = cfg['PI']['seasons']
         if not self.modelname:
             self.modelname = cfg['model']['name']
         if self.year1 == self.year2:  # Ignore if only one year requested
@@ -56,10 +58,16 @@ class Diagnostic():
 
         # hard-coded resolution (due to climatological dataset)
         if self.climatology == 'RK08':
+            logging.warning('RK08 can work only with r180x91 grid')
             self.resolution = 'r180x91'
         else:
             if not self.resolution:
                 self.resolution = cfg['PI']['resolution']
+
+        # hard-coded seasons (due to climatological dataset)
+        if self.climatology in ['EC22', 'RK08'] :
+            logging.warning('only EC23 climatology support multiple seasons! Keeping only yearly seasons!')
+            self.seasons = ['ALL'] 
 
         # Various input and output directories
         self.ECEDIR = Path(os.path.expandvars(cfg['dirs']['exp']))
@@ -186,7 +194,7 @@ def var_is_there(flist, var, reference):
     return isavail, varunit
 
 
-def get_clim_files(piclim, var, diag):
+def get_clim_files(piclim, var, diag, season):
     """Function to extra names for the climatology files"""
 
     # extract info from pi_climatology.yml
@@ -209,12 +217,20 @@ def get_clim_files(piclim, var, diag):
             diag.RESCLMDIR /
             f'variance_{dataname}_{dataref}_{diag.resolution}_{datayear1}-{datayear2}.nc')
     elif diag.climatology in 'EC23':
-        clim = str(
-            diag.RESCLMDIR /
-            f'climate_{var}_{dataref}_{diag.resolution}_{datayear1}_{datayear2}.nc')
-        vvvv = str(
-            diag.RESCLMDIR /
-            f'variance_{var}_{dataref}_{diag.resolution}_{datayear1}_{datayear2}.nc')
+        if season == 'ALL' :
+            clim = str(
+                diag.RESCLMDIR /
+                f'climate_{var}_{dataref}_{diag.resolution}_{datayear1}_{datayear2}.nc')
+            vvvv = str(
+                diag.RESCLMDIR /
+                f'variance_{var}_{dataref}_{diag.resolution}_{datayear1}_{datayear2}.nc')
+        else : 
+            clim = str(
+                diag.RESCLMDIR /
+                f'seasons_climate_{var}_{dataref}_{diag.resolution}_{datayear1}_{datayear2}.nc')
+            vvvv = str(
+                diag.RESCLMDIR /
+                f'seasons_variance_{var}_{dataref}_{diag.resolution}_{datayear1}_{datayear2}.nc') 
 
     return clim, vvvv
 

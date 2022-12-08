@@ -75,7 +75,7 @@ tos:
   dataname: analysed_sst
   remap: remapbil
   mask: ocean
-  units: K
+  units: kelvin
   year1: 1990
   year2: 2019
 sos:

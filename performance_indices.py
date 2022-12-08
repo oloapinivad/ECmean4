@@ -45,8 +45,8 @@ def parse_arguments(args):
     parser.add_argument('year2', metavar='Y2', type=int, help='final year')
     parser.add_argument('-s', '--silent', action='store_true',
                         help='do not print anything to std output')
-    parser.add_argument('-v', '--loglevel', type=str, default='ERROR',
-                        help='define the level of logging. default: error')
+    parser.add_argument('-v', '--loglevel', type=str, default='WARNING',
+                        help='define the level of logging. default: warning')
     parser.add_argument('-j', dest="numproc", type=int, default=1,
                         help='number of processors to use')
     parser.add_argument('-c', '--config', type=str, default='',
@@ -68,7 +68,7 @@ def parse_arguments(args):
     return parser.parse_args(args)
 
 
-def pi_worker(util, piclim, face, diag, field_3d, regions, seasons, varstat, varlist):
+def pi_worker(util, piclim, face, diag, field_3d, varstat, varlist):
     """Main parallel diagnostic worker for performance indices
 
     Args:
@@ -76,8 +76,6 @@ def pi_worker(util, piclim, face, diag, field_3d, regions, seasons, varstat, var
         piclim: the reference climatology for the global mean
         face: the interface to be used to access the data
         diag: the diagnostic class object
-        regions: domain on which to compute the PI
-        seasons: season on which compute the PI ('ALL' for yearly averages)
         field_3d: the list of 3d vars to be handled differently
         varstat: the dictionary for the variable PI (empty)
         varlist: the variable on which compute the global mean
@@ -127,8 +125,6 @@ def pi_worker(util, piclim, face, diag, field_3d, regions, seasons, varstat, var
             infile = make_input_filename(
                 var, dervars, diag.years_joined, '????', face, diag)
 
-            # get filenames for climatology
-            clim, vvvv = get_clim_files(piclim, var, diag)
 
             # open file: chunking on time only, might be improved
             xfield = xr.open_mfdataset(infile, preprocess=xr_preproc, chunks={'time': 12})
@@ -143,7 +139,10 @@ def pi_worker(util, piclim, face, diag, field_3d, regions, seasons, varstat, var
                 outfield = xfield[var]
 
             # mean over time and fixing of the units
-            for season in seasons : 
+            for season in diag.seasons : 
+
+                # get filenames for climatology
+                clim, vvvv = get_clim_files(piclim, var, diag, season)
 
                 logging.info(season)
 
@@ -160,8 +159,11 @@ def pi_worker(util, piclim, face, diag, field_3d, regions, seasons, varstat, var
 
                 # averaging 
                 tmean = tmean.mean(dim='time')
-                cfield = cfield.mean(dim='time')
-                vfield = vfield.mean(dim='time')
+
+                # safe check for old RK08 which has a different format
+                if diag.climatology != 'RK08' :
+                    cfield = cfield.mean(dim='time')
+                    vfield = vfield.mean(dim='time')
 
                 tmean = tmean * factor + offset
 
@@ -208,7 +210,7 @@ def pi_worker(util, piclim, face, diag, field_3d, regions, seasons, varstat, var
                 computed = outarray.load()
 
                 # loop on different regions
-                for region in regions : 
+                for region in diag.regions : 
 
                     slicearray = select_region(computed, region)
 
@@ -272,7 +274,7 @@ def pi_main(argv):
 
     # all clim have the same grid, read from the first clim available and get
     # target grid
-    clim, _ = get_clim_files(piclim, 'tas', diag)
+    clim, _ = get_clim_files(piclim, 'tas', diag, 'ALL')
     target_remap_grid = xr.open_dataset(clim)
 
     # get file info files
@@ -299,8 +301,6 @@ def pi_main(argv):
     field_oce = cfg['PI']['oce_vars']['field']
     field_ice = cfg['PI']['ice_vars']['field']
     field_all = field_2d + field_3d + field_oce + field_ice
-    regions = cfg['PI']['regions']
-    seasons = cfg['PI']['seasons']
 
     # We now use a list
     diag.years_joined = list(range(diag.year1, diag.year2 + 1))
@@ -327,8 +327,6 @@ def pi_main(argv):
                 face,
                 diag,
                 field_3d,
-                regions,
-                seasons,
                 varstat,
                 varlist))
         p.start()
@@ -344,7 +342,7 @@ def pi_main(argv):
         print('Done in {:.4f} seconds'.format(toc - tic) + ' with ' + str(diag.numproc) + ' processors')
 
     # # define options for the output table
-    head = ['Variable', 'Domain', 'Dataset'] + regions + [s + ' CMIP6 Ratio' for s in regions]
+    head = ['Variable', 'Domain', 'Dataset'] + diag.regions + [s + ' CMIP6 Ratio' for s in diag.regions]
     global_table = []
 
     # loop on the variables
@@ -354,9 +352,9 @@ def pi_main(argv):
             piclim[var]['mask'],
             piclim[var]['dataset']]
 
-        for region in regions : 
+        for region in diag.regions : 
             out_sequence = out_sequence + [varstat[var]['ALL'][region]]
-        for region in regions : 
+        for region in diag.regions : 
             #out_sequence = out_sequence + [float(varstat[var]['ALL'][region]) / float(piclim[var]['cmip6'][region])]
             out_sequence = out_sequence + [1]
            
