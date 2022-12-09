@@ -51,7 +51,7 @@ hus:
   dataset: ERA5
   varname: q
   remap: remapbil
-  units: '' 
+  units: 'kg kg-1' 
   dir: "/work/datasets/obs/{dataset}/specific_humidity/mon/{dataset}_*.nc"
 sos: 
   dataset: ORAS5
@@ -78,7 +78,7 @@ siconc:
   dataset: ESA-CCI-L4
   varname: sea_ice_fraction
   remap: remapbil
-  units: ''
+  units: fraction
   dir: "/work/datasets/obs/{dataset}/day/{varname}/*{varname}*.nc"
 net_sfc:
   dataset: NOCS

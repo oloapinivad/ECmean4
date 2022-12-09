@@ -51,7 +51,7 @@ va:
   dataname: v
   remap: remapbil
   mask: global
-  units: m s**-1
+  units: m s-1
   year1: 1990
   year2: 2019
 ta:
@@ -67,7 +67,7 @@ hus:
   dataname: q
   remap: remapbil
   mask: global
-  units: ''
+  units: kg kg-1
   year1: 1990
   year2: 2019
 tos:
@@ -75,7 +75,7 @@ tos:
   dataname: analysed_sst
   remap: remapbil
   mask: ocean
-  units: kelvin
+  units: K
   year1: 1990
   year2: 2019
 sos:
@@ -107,6 +107,6 @@ siconc:
   dataname: sea_ice_fraction
   remap: remapbil
   mask: ocean
-  units: '1'
+  units: fraction
   year1: 1990
   year2: 2019
