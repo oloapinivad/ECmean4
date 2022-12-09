@@ -16,15 +16,16 @@ import pandas as pd
 import logging
 from time import time
 from dask.distributed import Client, LocalCluster, progress
-from ecmean import xr_preproc, load_yaml
+from ecmean import xr_preproc, load_yaml, units_extra_definition
 cdo = Cdo()
 
 # set default logging
 logging.basicConfig(level=logging.INFO)
 
 # variable list
-variables = ['tas', 'pr', 'net_sfc', 'tauu', 'tauv',
-    'ua', 'va', 'ta', 'hus', 'tos', 'sos', 'sic']
+variables = ['tas', 'pr', 'net_sfc', 'tauu', 'tauv', 'psl'
+    'ua', 'va', 'ta', 'hus', 'tos', 'sos', 'siconc']
+variables = ['psl']
 
 # to set: time period (default, can be shorter if data are missing) #WARNING MISSING
 year1 = 1990
@@ -33,7 +34,7 @@ year2 = 2019
 # yml file to get information on dataset on some machine
 clim_info = '/home/paolo/ECmean4/climatology/create-clim-wilma-EC23.yml'
 
-# targets resolution and years
+# targets resolutio
 grids = ['r360x180']
 
 # number of dask workes
@@ -70,6 +71,9 @@ def mask_from_field(xfield) :
 
     logging.info(mask)
     return mask
+
+# add other units
+units_extra_definition()
 
 # to exploit of dask we need a main function 
 def main() : 

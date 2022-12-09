@@ -21,7 +21,6 @@ from tabulate import tabulate
 import xarray as xr
 import pandas as pd
 import yaml
-from collections import defaultdict
 from ecmean import var_is_there, eval_formula, \
     get_inifiles, adjust_clim_file, get_clim_files, \
     areas_dictionary, masks_dictionary, remap_dictionary, guess_bounds, \
@@ -85,6 +84,7 @@ def pi_worker(util, piclim, face, diag, field_3d, varstat, varlist):
 
     """
 
+    print(varlist)
     for var in varlist:
 
         vdom = getdomain(var, face)
@@ -102,7 +102,12 @@ def pi_worker(util, piclim, face, diag, field_3d, varstat, varlist):
         isavail, varunit = var_is_there(infile, var, face['variables'])
 
         # store NaN in a default dict
-        result = defaultdict(lambda: defaultdict(lambda : float('NaN')))
+        #result = defaultdict(lambda: defaultdict(lambda : float('NaN')))
+        result = {}
+        for season in diag.seasons : 
+            result[season] = {}
+            for region in diag.regions :
+                result[season][region] = float('NaN')
 
         # if the variable is available
         if isavail : 
@@ -125,7 +130,6 @@ def pi_worker(util, piclim, face, diag, field_3d, varstat, varlist):
             infile = make_input_filename(
                 var, dervars, diag.years_joined, '????', face, diag)
 
-
             # open file: chunking on time only, might be improved
             xfield = xr.open_mfdataset(infile, preprocess=xr_preproc, chunks={'time': 12})
 
@@ -138,18 +142,21 @@ def pi_worker(util, piclim, face, diag, field_3d, varstat, varlist):
             else:
                 outfield = xfield[var]
 
+            # copy of the full field
+            tmean = outfield.copy(deep=True)
+
             # mean over time and fixing of the units
             for season in diag.seasons : 
+                
+                logging.info(season)
 
                 # get filenames for climatology
                 clim, vvvv = get_clim_files(piclim, var, diag, season)
 
-                logging.info(season)
 
                 # open climatology files, fix their metadata
                 cfield = adjust_clim_file(xr.open_dataset(clim))
                 vfield = adjust_clim_file(xr.open_dataset(vvvv), remove_zero=True)
-                tmean = outfield.copy(deep=True)
 
                 # season selection
                 if season != 'ALL' :
@@ -186,28 +193,28 @@ def pi_worker(util, piclim, face, diag, field_3d, varstat, varlist):
                     interped = final.interp(plev=cfield['plev'].values)
                     final = interped.mean(dim='lon')
 
-                # compute PI
-                complete = (final - cfield)**2 / vfield
-
-                # vertical averageing
-                if var in field_3d:
+                    # compute PI
+                    complete = (final - cfield)**2 / vfield
+   
                     # compute vertical bounds as weights
                     bounds_lev = guess_bounds(complete['plev'], name='plev')
                     bounds = abs(bounds_lev[:, 0] - bounds_lev[:, 1])
-                    weights = xr.DataArray(
+                    ww = xr.DataArray(
                         bounds, coords=[
                             complete['plev']], dims=['plev'])
 
                     # vertical mean
-                    outarray = complete.weighted(weights).mean(dim='plev')
+                    outarray = complete.weighted(ww).mean(dim='plev')
 
                 # horizontal averaging with land-sea mask
                 else:
+
+                    complete = (final - cfield)**2 / vfield
                     outarray = mask_field(
                         complete, var, piclim[var]['mask'], util['atm_mask'])
 
                 # run the computation before doing each region
-                computed = outarray.load()
+                computed = outarray.compute()
 
                 # loop on different regions
                 for region in diag.regions : 
@@ -227,8 +234,9 @@ def pi_worker(util, piclim, face, diag, field_3d, varstat, varlist):
                 
 
         # nested dictionary, to be redifend as a dict to remove lambdas
-        new_result = {k: dict(v) for k, v in result.items()}
-        varstat[var] = new_result
+        #new_result = {k: dict(v) for k, v in result.items()}
+        #varstat[var] = new_result
+        varstat[var] = result
 
 def pi_main(argv):
     """Main performance indices calculation"""
