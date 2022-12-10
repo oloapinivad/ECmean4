@@ -27,7 +27,7 @@ from ecmean import var_is_there, eval_formula, \
     load_yaml, units_extra_definition, units_are_integrals, \
     units_converter, directions_match, chunks, \
     Diagnostic, getdomain, make_input_filename, xr_preproc, mask_field, \
-    heatmap_comparison, select_region
+    heatmap_comparison, select_region, dict_to_dataframe
 
 # temporary disabling the scheduler
 import dask
@@ -84,7 +84,6 @@ def pi_worker(util, piclim, face, diag, field_3d, varstat, varlist):
 
     """
 
-    print(varlist)
     for var in varlist:
 
         vdom = getdomain(var, face)
@@ -101,7 +100,7 @@ def pi_worker(util, piclim, face, diag, field_3d, varstat, varlist):
             var, dervars, diag.year1, diag.year1, face, diag)
         isavail, varunit = var_is_there(infile, var, face['variables'])
 
-        # store NaN in a default dict
+        # store NaN in dict (can't use defaultdict due to multiprocessing)
         #result = defaultdict(lambda: defaultdict(lambda : float('NaN')))
         result = {}
         for season in diag.seasons : 
@@ -142,13 +141,13 @@ def pi_worker(util, piclim, face, diag, field_3d, varstat, varlist):
             else:
                 outfield = xfield[var]
 
-            # copy of the full field
-            tmean = outfield.copy(deep=True)
-
             # mean over time and fixing of the units
             for season in diag.seasons : 
                 
                 logging.info(season)
+
+                # copy of the full field
+                tmean = outfield.copy(deep=True)
 
                 # get filenames for climatology
                 clim, vvvv = get_clim_files(piclim, var, diag, season)
@@ -173,6 +172,11 @@ def pi_worker(util, piclim, face, diag, field_3d, varstat, varlist):
                     vfield = vfield.mean(dim='time')
 
                 tmean = tmean * factor + offset
+
+                # this computation is required to ensure that file access is
+                # done in a correct way. resource errors found if disabled in some 
+                # specific configuration
+                tmean = tmean.compute()
 
                 # apply interpolation, if fixer is availble and with different
                 # grids
@@ -213,13 +217,10 @@ def pi_worker(util, piclim, face, diag, field_3d, varstat, varlist):
                     outarray = mask_field(
                         complete, var, piclim[var]['mask'], util['atm_mask'])
 
-                # run the computation before doing each region
-                computed = outarray.compute()
-
                 # loop on different regions
                 for region in diag.regions : 
 
-                    slicearray = select_region(computed, region)
+                    slicearray = select_region(outarray, region)
 
                     # latitude-based averaging
                     weights = np.cos(np.deg2rad(slicearray.lat))
@@ -234,8 +235,6 @@ def pi_worker(util, piclim, face, diag, field_3d, varstat, varlist):
                 
 
         # nested dictionary, to be redifend as a dict to remove lambdas
-        #new_result = {k: dict(v) for k, v in result.items()}
-        #varstat[var] = new_result
         varstat[var] = result
 
 def pi_main(argv):
@@ -349,6 +348,8 @@ def pi_main(argv):
     if diag.fverb:
         print('Done in {:.4f} seconds'.format(toc - tic) + ' with ' + str(diag.numproc) + ' processors')
 
+    tic = time()
+
     # # define options for the output table
     head = ['Variable', 'Domain', 'Dataset'] + diag.regions + [s + ' CMIP6 Ratio' for s in diag.regions]
     global_table = []
@@ -379,15 +380,8 @@ def pi_main(argv):
     with open(yamlfile, 'w') as file:
         yaml.safe_dump(varstat.copy(), file, default_flow_style=False, sort_keys=False)
 
-    # very clumsy conversion of the dictionary to a pd.dataframe: NEED TO BE IMPROVED
-    data_table = {}
-    for i in varstat.keys(): 
-        pippo = {}
-        for outerKey, innerDict in varstat[i].items():
-            for innerKey, values in innerDict.items():
-                pippo[(outerKey, innerKey)] = values
-        data_table[i] = pippo
-    data_table = pd.DataFrame(data_table).T
+    # convert output dictionary to pandas dataframe
+    data_table = dict_to_dataframe(varstat)
 
     # write the file with tabulate only for yearly mean
     tablefile = diag.TABDIR / \
@@ -407,6 +401,12 @@ def pi_main(argv):
     mapfile = diag.FIGDIR / \
         f'PI4_{diag.climatology}_{diag.expname}_{diag.modelname}_r1i1p1f1_{diag.year1}_{diag.year2}.pdf'
     heatmap_comparison(data_table, diag, mapfile)
+
+    toc = time()
+    # evaluate tic-toc time of postprocessing
+    if diag.fverb:
+        print('Postproc done in {:.4f} seconds'.format(toc - tic))
+
 
 if __name__ == '__main__':
 

@@ -1116,6 +1116,18 @@ def directions_match(org, dst):
 # OUTPUT FUNCTIONS #
 ####################
 
+def dict_to_dataframe(varstat) : 
+    """very clumsy conversion of the nested 3-level dictionary 
+    to a pd.dataframe: NEED TO BE IMPROVED"""
+    data_table = {}
+    for i in varstat.keys(): 
+        pippo = {}
+        for outerKey, innerDict in varstat[i].items():
+            for innerKey, values in innerDict.items():
+                pippo[(outerKey, innerKey)] = values
+        data_table[i] = pippo
+    data_table = pd.DataFrame(data_table).T
+    return data_table
 
 def write_tuning_table(linefile, varmean, var_table, diag, ref):
     """Write results appending one line to a text file.
