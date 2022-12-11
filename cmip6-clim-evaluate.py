@@ -2,17 +2,17 @@
 # -*- coding: utf-8 -*-
 
 """"
-    global mean evaluation of CMIP6 climatology 
+    Global mean evaluation of CMIP6 climatology
+    It runs and then reads the output of the cmip6 models to provide an assessment of the 
+    climatology for CMIP6 models to be stored 
 """
 
 __author__ = "Paolo Davini (p.davini@isac.cnr.it), Sep 2022."
 
-from global_mean import gm_main
 from performance_indices import pi_main, parse_arguments
 from ecmean import load_yaml
 import os
 import sys
-import pandas as pd
 import yaml
 import warnings
 import glob
@@ -41,7 +41,7 @@ else :
         'MIROC6', 'MPI-ESM1-2-HR', 'AWI-CM-1-1-MR']
 
     # models with issue in the grid shape for siconc
-    models= ['CMCC-CM2-SR5', 'NorESM2-MM', 'ACCESS-CM2']
+    #models= ['CMCC-CM2-SR5', 'NorESM2-MM', 'ACCESS-CM2']
 
     # models which have not all the data
     #models=['UKESM1-0-LL']
@@ -71,15 +71,16 @@ if do_create_clim :
     args = parse_arguments(sys.argv)
     cfg = load_yaml(args.config)
 
+    # dictionary with all elements
     full = {}
     for model in models:
         print(model)
         filein = glob.glob(os.path.join(cfg['dirs']['tab'], 'PI4_' + refclim + '_' + expname + 
             '_' + model + '_r1i1p1f*_' + str(year1) + '_' + str(year2) + '.yml'))
-
         full[model] = load_yaml(filein[0])
 
-            #full = {key:{key2:{key3:val1+data[key][key2][key3] for key3,val1 in subdic2.items()} for key2,subdic2 in subdic.items()} for key,subdic in full.items()}
+    # alternative to do sum on nested dictionary
+    #full = {key:{key2:{key3:val1+data[key][key2][key3] for key3,val1 in subdic2.items()} for key2,subdic2 in subdic.items()} for key,subdic in full.items()}
 
 
     # idiot averaging
@@ -91,26 +92,34 @@ if do_create_clim :
             out[var][season] = {}
             for region in full[m0][var][season].keys() :
                 element = []
-                melement = []
                 for model in full.keys() :
                     if var in full[model] :
                         element.append(full[model][var][season][region])
                 out[var][season][region] =  np.nanmean(element)
-   
+
+    # clumsy way to get the models for each var
+    mout = {}
+    for var in full[m0].keys() :
+        melement = []
+        for model in full.keys() :
+            if var in full[model] :
+                melement.append(model)
+        mout[var] = melement
+    
+    # clim files
     pifile = os.path.join(cfg['dirs']['clm'], refclim, 'pi_climatology_' + refclim + '.yml')
-    update_pifile = os.path.join(cfg['dirs']['clm'], refclim, 'pi_climatology_' + refclim + '_update.yml')
-    #update_pifile = os.path.join(cfg['dirs']['clm'], refclim, 'pi_climatology_' + refclim + '.yml')
+    #update_pifile = os.path.join(cfg['dirs']['clm'], refclim, 'pi_climatology_' + refclim + '_update.yml')
+    update_pifile = os.path.join(cfg['dirs']['clm'], refclim, 'pi_climatology_' + refclim + '.yml')
     piclim = load_yaml(pifile)
 
-    print(out)
-
+    #update the climatology
     for var in out.keys() :  
         piclim[var]['cmip6'] = {}
         for season in out[var].keys() :
             piclim[var]['cmip6'][season] = {}
             for region in out[var][season].keys() : 
                 piclim[var]['cmip6'][season][region] = float(out[var][season][region])
-        piclim[var]['cmip6']['models'] = models
+        piclim[var]['cmip6']['models'] = mout[var]
         piclim[var]['cmip6']['year1'] = year1
         piclim[var]['cmip6']['year2'] = year2
        
