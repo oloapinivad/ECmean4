@@ -58,7 +58,7 @@ class Diagnostic():
 
         # hard-coded resolution (due to climatological dataset)
         if self.climatology == 'RK08':
-            logging.warning('RK08 can work only with r180x91 grid')
+            logging.error('RK08 can work only with r180x91 grid')
             self.resolution = 'r180x91'
         else:
             if not self.resolution:
@@ -66,7 +66,7 @@ class Diagnostic():
 
         # hard-coded seasons (due to climatological dataset)
         if self.climatology in ['EC22', 'RK08'] :
-            logging.warning('only EC23 climatology support multiple seasons! Keeping only yearly seasons!')
+            logging.error('only EC23 climatology support multiple seasons! Keeping only yearly seasons!')
             self.seasons = ['ALL'] 
 
         # Various input and output directories
