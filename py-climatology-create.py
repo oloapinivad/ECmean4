@@ -15,6 +15,7 @@ import numpy as np
 import pandas as pd
 import logging
 from time import time
+import matplotlib.pyplot as plt
 from dask.distributed import Client, LocalCluster, progress
 from ecmean import xr_preproc, load_yaml, units_extra_definition
 cdo = Cdo()
@@ -23,9 +24,8 @@ cdo = Cdo()
 logging.basicConfig(level=logging.INFO)
 
 # variable list
-variables = ['tas', 'pr', 'net_sfc', 'tauu', 'tauv', 'psl'
+variables = ['tas', 'pr', 'net_sfc', 'tauu', 'tauv', 'psl',
     'ua', 'va', 'ta', 'hus', 'tos', 'sos', 'siconc']
-variables = ['psl']
 
 # to set: time period (default, can be shorter if data are missing) #WARNING MISSING
 year1 = 1990
@@ -52,6 +52,36 @@ def variance_threshold(xvariance) :
     low = 10**(m-5*s)
     high = 10**(m+5*s)
     return low, high
+
+# function to set absurd value from a specific dataset
+def fix_specific_dataset(var, dataset, field) : 
+    if var == 'tos' and dataset == 'ESA-CCI-L4' : 
+        field = field.where((field<0 and field > 5*10**-3))
+    
+    return field
+
+def check_histogram(ymean, yvar, yvar_filtered, figname, n_bins = 50) :
+
+    fig, axs = plt.subplots(4,1, sharey=True, tight_layout=True, figsize=(20, 10))
+    
+    # We can set the number of bins with the *bins* keyword argument.
+    ymean.plot.hist(ax=axs[0], bins=n_bins, yscale = 'log')
+    axs[0].title.set_text('Original mean ' + yvar.name)
+    yvar.plot.hist(ax=axs[1], bins=n_bins, yscale = 'log')
+    axs[1].title.set_text('Original variance ' + yvar.name)
+    f = np.log10(yvar.where(yvar>0))
+    f.plot.hist(ax=axs[2], bins=n_bins, yscale = 'log', xlim =[np.min(f), np.max(f)])
+    axs[2].title.set_text('Original variance log1 ' + yvar.name)
+    g = np.log10(yvar_filtered.where(yvar>0))
+    g.plot.hist(ax=axs[3], bins=n_bins, yscale = 'log', color = 'red', xlim = [np.min(f), np.max(f)])
+    axs[3].title.set_text('Filtered variance log10 ' + yvar.name)
+    for k in [2,3] : 
+        axs[k].axvline(f.mean(), color='k', linewidth=1)
+        axs[k].axvline(f.mean()-5*f.std(), color='k', linestyle='dashed', linewidth=1)
+        axs[k].axvline(f.mean()+5*f.std(), color='k', linestyle='dashed', linewidth=1)
+
+    plt.savefig(figname)
+ 
 
 # get domain of the variable from the fraction of NaN: UNDER TESTING
 def mask_from_field(xfield) :
@@ -117,6 +147,9 @@ def main() :
         xfield = xfield.rename({info[var]['varname']: var})
         cfield = xfield[var].sel(time=xfield.time.dt.year.isin(years))
 
+        # specific fixer for each varialbe
+        cfield = fix_specific_dataset(var, info[var]['dataset'], cfield)
+
         real_year1 = np.min(cfield.time.dt.year.values)
         real_year2 = np.max(cfield.time.dt.year.values)
         if (real_year1 != year1) :
@@ -132,9 +165,9 @@ def main() :
 
         print(cfield)
 
-        # season average using resample/pandas
+        # monthly average using resample/pandas
         print("resampling...")
-        zfield = cfield.resample(time="Q-NOV").mean('time')
+        zfield = cfield.resample(time='1MS').mean('time')
 
         print("computation...")
         zfield = zfield.persist()
@@ -169,9 +202,18 @@ def main() :
 
                 # select the season
                 if season == 'ALL' :
+                    # yearly average
                     gfield = yfield.resample(time='AS').mean('time')
+                    gfield.to_netcdf(var + '_yearly_mean.nc')
                 else :
-                    gfield = yfield.sel(time=yfield.time.dt.season.isin(season))
+                    # season average
+                    gfield = yfield.resample(time="Q-NOV").mean('time')
+                    gfield = gfield.sel(time=gfield.time.dt.season.isin(season))
+                    # for winter, we drop first and last to have only complete season. 
+                    # this reduces the sample by one but it is safer especially for variance
+                    if season == 'DJF' :
+                        gfield = gfield.drop_isel(time=[0, gfield.sizes['time']-1])
+                    print(gfield.shape)
 
                 # zonal averaging for 3D fields
                 if 'plev' in gfield.coords :
@@ -182,17 +224,22 @@ def main() :
                     str(gfield.time.dt.month.values[0]) + '-15')
 
                 # compute mean and variance
-                ymean = gfield.mean('time', keepdims=True)
-                yvar = gfield.var('time', skipna=True, keepdims=True)
-
+                ymean0 = gfield.mean('time', keepdims=True)
+                yvar0 = gfield.var('time', skipna=True, keepdims=True)
+                
                 # define the variance threshold
-                low, high = variance_threshold(yvar)
+                low, high = variance_threshold(yvar0)
                 logging.info(low)
                 logging.info(high)
 
                 # clean according to thresholds
-                yvar = yvar.where((yvar >= low) & (yvar <= high))
-                ymean = ymean.where((yvar >= low) & (yvar <= high))
+                yvar = yvar0.where((yvar0 >= low) & (yvar0 <= high))
+                ymean = ymean0.where((yvar0 >= low) & (yvar0 <= high))
+
+                if season == 'ALL' : 
+                    figname = '/work/users/paolo/figures/ecmean_variances/' + var + '_variances.pdf'
+                    check_histogram(ymean0, yvar0, yvar, figname)
+
 
                 # add a reference time
                 ymean = ymean.assign_coords({"time": ("time",  [reftime])})
