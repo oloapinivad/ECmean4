@@ -18,6 +18,7 @@ from time import time
 import matplotlib.pyplot as plt
 from dask.distributed import Client, LocalCluster, progress
 from ecmean import xr_preproc, load_yaml, units_extra_definition
+import tempfile
 cdo = Cdo()
 
 # set default logging
@@ -33,6 +34,10 @@ year2 = 2019
 
 # yml file to get information on dataset on some machine
 clim_info = '/home/paolo/ECmean4/climatology/create-clim-wilma-EC23.yml'
+
+# figures : some diagnostic figures can be saved to check the consistency of mean and variance fields
+do_figures = True
+figdir = '/work/users/paolo/figures/ecmean-py-variances/'
 
 # targets resolutio
 grids = ['r360x180']
@@ -56,29 +61,41 @@ def variance_threshold(xvariance) :
 # function to set absurd value from a specific dataset
 def fix_specific_dataset(var, dataset, field) : 
     if var == 'tos' and dataset == 'ESA-CCI-L4' : 
-        field = field.where((field<0 and field > 5*10**-3))
+        field = field.where(field > 5*10**-3)
     
     return field
 
 def check_histogram(ymean, yvar, yvar_filtered, figname, n_bins = 50) :
 
     fig, axs = plt.subplots(4,1, sharey=True, tight_layout=True, figsize=(20, 10))
+
+    # log 10 fields
+    f = np.log10(yvar.where(yvar>0))
+    g = np.log10(yvar_filtered.where(yvar>0))
+
+    # stats
+    avg = f.mean()
+    sss = 5*f.std()
+    left = avg - sss
+    right = avg + sss
+    mmm = np.min(f)
+    xxx = np.max(f)
     
-    # We can set the number of bins with the *bins* keyword argument.
+    # mean and variance field 
     ymean.plot.hist(ax=axs[0], bins=n_bins, yscale = 'log')
-    axs[0].title.set_text('Original mean ' + yvar.name)
+    axs[0].title.set_text('Original Mean ' + yvar.name)
     yvar.plot.hist(ax=axs[1], bins=n_bins, yscale = 'log')
     axs[1].title.set_text('Original variance ' + yvar.name)
-    f = np.log10(yvar.where(yvar>0))
-    f.plot.hist(ax=axs[2], bins=n_bins, yscale = 'log', xlim =[np.min(f), np.max(f)])
-    axs[2].title.set_text('Original variance log1 ' + yvar.name)
-    g = np.log10(yvar_filtered.where(yvar>0))
-    g.plot.hist(ax=axs[3], bins=n_bins, yscale = 'log', color = 'red', xlim = [np.min(f), np.max(f)])
+
+    # log10 plots
+    f.plot.hist(ax=axs[2], bins=n_bins, yscale = 'log', xlim =[np.min([left, mmm]), np.max([right, xxx])])
+    axs[2].title.set_text('Original variance log10 ' + yvar.name)
+    g.plot.hist(ax=axs[3], bins=n_bins, yscale = 'log', color = 'red', xlim = [np.min([left, mmm]), np.max([right, xxx])])
     axs[3].title.set_text('Filtered variance log10 ' + yvar.name)
     for k in [2,3] : 
-        axs[k].axvline(f.mean(), color='k', linewidth=1)
-        axs[k].axvline(f.mean()-5*f.std(), color='k', linestyle='dashed', linewidth=1)
-        axs[k].axvline(f.mean()+5*f.std(), color='k', linestyle='dashed', linewidth=1)
+        axs[k].axvline(avg, color='k', linewidth=1)
+        axs[k].axvline(left, color='k', linestyle='dashed', linewidth=1)
+        axs[k].axvline(right, color='k', linestyle='dashed', linewidth=1)
 
     plt.savefig(figname)
  
@@ -163,7 +180,7 @@ def main() :
         elif not hasattr(cfield, 'units') :
             sys.exit('ERROR: no unit found or defined!')
 
-        print(cfield)
+        logging.info(cfield)
 
         # monthly average using resample/pandas
         print("resampling...")
@@ -176,7 +193,8 @@ def main() :
         
         # dump the netcdf file to disk
         print("new file...") 
-        tmpout = os.path.join(tmpdir, 'tmp.nc')
+        temp_name = next(tempfile._get_candidate_names()) + '.nc'
+        tmpout = os.path.join(tmpdir, temp_name)
         zfield.to_netcdf(tmpout)
 
         # loop on grids
@@ -189,7 +207,6 @@ def main() :
             print("interpolation..") 
             interpolator = getattr(cdo,  info[var]['remap'])
             yfield = interpolator(grid, input = tmpout, returnXArray = var)
-            #yfield = cdo.remapbil(grid, input = tmpout, returnXArray = info[var]['varname'])
             os.remove(tmpout)
 
             # create empty lists
@@ -204,7 +221,6 @@ def main() :
                 if season == 'ALL' :
                     # yearly average
                     gfield = yfield.resample(time='AS').mean('time')
-                    gfield.to_netcdf(var + '_yearly_mean.nc')
                 else :
                     # season average
                     gfield = yfield.resample(time="Q-NOV").mean('time')
@@ -213,7 +229,8 @@ def main() :
                     # this reduces the sample by one but it is safer especially for variance
                     if season == 'DJF' :
                         gfield = gfield.drop_isel(time=[0, gfield.sizes['time']-1])
-                    print(gfield.shape)
+                
+                logging.info(gfield.shape)
 
                 # zonal averaging for 3D fields
                 if 'plev' in gfield.coords :
@@ -236,9 +253,11 @@ def main() :
                 yvar = yvar0.where((yvar0 >= low) & (yvar0 <= high))
                 ymean = ymean0.where((yvar0 >= low) & (yvar0 <= high))
 
-                if season == 'ALL' : 
-                    figname = '/work/users/paolo/figures/ecmean_variances/' + var + '_variances.pdf'
-                    check_histogram(ymean0, yvar0, yvar, figname)
+                if do_figures: 
+                    figname = var + '_' + info[var]['dataset'] + '_' + grid + '_' +  str(real_year1) + '_' + str(real_year2) + '_' + season + '.pdf'
+                    os.makedirs(os.path.join(figdir, var), exist_ok=True)
+                    file = os.path.join(figdir, var, figname)
+                    check_histogram(ymean0, yvar0, yvar, file)
 
 
                 # add a reference time
@@ -295,7 +314,7 @@ def main() :
             with open(clim_file, 'w') as file:
                 yaml.safe_dump(dclim, file, sort_keys=False)
             
-            print(dclim)
+            logging.debug(dclim)
 
 # setting up dask
 if __name__ == "__main__":
