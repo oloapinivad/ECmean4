@@ -65,6 +65,13 @@ def fix_specific_dataset(var, dataset, field) :
     
     return field
 
+def full_histogram(field, figname, n_bins = 100) : 
+
+    fig, axs = plt.subplots(1,1, sharey=True, tight_layout=True, figsize=(15, 5))
+    field.plot.hist(ax=axs, bins=n_bins, yscale = 'log')
+    axs.title.set_text('Complete original values ' + field.name)
+    plt.savefig(figname)
+
 def check_histogram(ymean, yvar, yvar_filtered, figname, n_bins = 50) :
 
     fig, axs = plt.subplots(4,1, sharey=True, tight_layout=True, figsize=(20, 10))
@@ -157,15 +164,14 @@ def main() :
             varname = info[var]['varname'])
         logging.info(filedata)
 
-
         # load data and time select
         print("Loading multiple files...")
         xfield = xr.open_mfdataset(filedata, chunks='auto', preprocess=xr_preproc)
         xfield = xfield.rename({info[var]['varname']: var})
-        cfield = xfield[var].sel(time=xfield.time.dt.year.isin(years))
+        mfield = xfield[var].sel(time=xfield.time.dt.year.isin(years))
 
         # specific fixer for each varialbe
-        cfield = fix_specific_dataset(var, info[var]['dataset'], cfield)
+        cfield = fix_specific_dataset(var, info[var]['dataset'], mfield)
 
         real_year1 = np.min(cfield.time.dt.year.values)
         real_year2 = np.max(cfield.time.dt.year.values)
@@ -173,6 +179,12 @@ def main() :
             logging.warning("Initial year different from what expected: " + str(real_year1))
         if (real_year2 != year2) :
             logging.warning("Final year different from what expected: " + str(real_year2))
+
+        if do_figures: 
+            figname = 'values_' + var + '_' + info[var]['dataset'] + '_' +  str(real_year1) + '_' + str(real_year2) + '.pdf'
+            os.makedirs(os.path.join(figdir, var), exist_ok=True)
+            file = os.path.join(figdir, var, figname)
+            full_histogram(mfield, file)
 
         # check existence of unit, then apply from file
         if 'units' in info[var] : 
@@ -278,15 +290,15 @@ def main() :
             compression = {var: {"zlib": True, '_FillValue': -999.0}, 'time': {'dtype': 'f8'}}
 
             # define file suffix
-            suffix = var + '_' + info[var]['dataset'] + '_' + grid + '_' +  str(real_year1) + '_' + str(real_year2) + '.nc'
+            suffix = var + '_' + info[var]['dataset'] + '_' + grid + '_' +  str(real_year1) + '-' + str(real_year2) + '.nc'
 
             # save full - standard format
-            full_variance.to_netcdf(os.path.join(tgtdir, grid, 'variance_' + suffix), encoding = compression)
-            full_mean.to_netcdf(os.path.join(tgtdir, grid, 'climate_' + suffix), encoding = compression)
+            full_variance.to_netcdf(os.path.join(tgtdir, grid, 'climate_variance_' + suffix), encoding = compression)
+            full_mean.to_netcdf(os.path.join(tgtdir, grid, 'climate_average_' + suffix), encoding = compression)
 
              # save season - 4 season format
             season_variance.to_netcdf(os.path.join(tgtdir, grid, 'seasons_variance_' + suffix), encoding = compression)
-            season_mean.to_netcdf(os.path.join(tgtdir, grid, 'seasons_climate_' + suffix), encoding = compression)
+            season_mean.to_netcdf(os.path.join(tgtdir, grid, 'seasons_average_' + suffix), encoding = compression)
 
             toc = time()
             print('Processing in {:.4f} seconds'.format(toc - tic))
@@ -303,7 +315,7 @@ def main() :
 
             # assign to the dictionary the required info
             dclim[var]['dataset'] = info[var]['dataset']
-            dclim[var]['dataname'] = info[var]['varname']
+            #dclim[var]['dataname'] = info[var]['varname']
             dclim[var]['remap'] = info[var]['remap']
             dclim[var]['mask'] = mask_from_field(full_mean)
             dclim[var]['units'] = full_mean.attrs['units']

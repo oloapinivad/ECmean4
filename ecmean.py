@@ -220,17 +220,17 @@ def get_clim_files(piclim, var, diag, season):
         if season == 'ALL' :
             clim = str(
                 diag.RESCLMDIR /
-                f'climate_{var}_{dataref}_{diag.resolution}_{datayear1}_{datayear2}.nc')
+                f'climate_average_{var}_{dataref}_{diag.resolution}_{datayear1}-{datayear2}.nc')
             vvvv = str(
                 diag.RESCLMDIR /
-                f'variance_{var}_{dataref}_{diag.resolution}_{datayear1}_{datayear2}.nc')
+                f'climate_variance_{var}_{dataref}_{diag.resolution}_{datayear1}-{datayear2}.nc')
         else : 
             clim = str(
                 diag.RESCLMDIR /
-                f'seasons_climate_{var}_{dataref}_{diag.resolution}_{datayear1}_{datayear2}.nc')
+                f'seasons_average_{var}_{dataref}_{diag.resolution}_{datayear1}-{datayear2}.nc')
             vvvv = str(
                 diag.RESCLMDIR /
-                f'seasons_variance_{var}_{dataref}_{diag.resolution}_{datayear1}_{datayear2}.nc') 
+                f'seasons_variance_{var}_{dataref}_{diag.resolution}_{datayear1}-{datayear2}.nc') 
 
     return clim, vvvv
 
