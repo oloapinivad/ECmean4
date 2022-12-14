@@ -17,9 +17,10 @@ import logging
 from time import time
 import matplotlib.pyplot as plt
 from dask.distributed import Client, LocalCluster, progress
+import dask.array as da
 from ecmean import xr_preproc, load_yaml, units_extra_definition
 import tempfile
-cdo = Cdo()
+cdo = Cdo(logging=True)
 
 # set default logging
 logging.basicConfig(level=logging.INFO)
@@ -27,6 +28,7 @@ logging.basicConfig(level=logging.INFO)
 # variable list
 variables = ['tas', 'pr', 'net_sfc', 'tauu', 'tauv', 'psl',
     'ua', 'va', 'ta', 'hus', 'tos', 'sos', 'siconc']
+variables = ['tos', 'sos', 'siconc', 'hus', 'tos']
 
 # to set: time period (default, can be shorter if data are missing) #WARNING MISSING
 year1 = 1990
@@ -42,9 +44,9 @@ figdir = '/work/users/paolo/figures/ecmean-py-variances/'
 # targets resolutio
 grids = ['r360x180']
 
-# number of dask workes
-workers = 4
-threads = 2
+# number of dask workers and threads
+workers = 8
+threads = 1
 
 # some dataset show very low variance in some grid point: this might create
 # irrealistic high values of PI due to the  division by variance performend
@@ -67,12 +69,22 @@ def fix_specific_dataset(var, dataset, field) :
 
 def full_histogram(field, figname, n_bins = 100) : 
 
+    
     fig, axs = plt.subplots(1,1, sharey=True, tight_layout=True, figsize=(15, 5))
-    field.plot.hist(ax=axs, bins=n_bins, yscale = 'log')
+    
+    # test using underlying dask array
+    mmm = da.nanmin(field.data).compute()
+    xxx = da.nanmax(field.data).compute()
+    extra = (xxx - mmm) / 20
+    hist, bins = da.histogram(field.data, bins=100, range=[mmm - extra, xxx + extra])
+    #hist_c = hist.compute()
+    x = 0.5 * (bins[1:] + bins[:-1])
+    width = np.diff(bins)
+    axs.bar(x, hist.compute(), width,  log = True)
     axs.title.set_text('Complete original values ' + field.name)
     plt.savefig(figname)
 
-def check_histogram(ymean, yvar, yvar_filtered, figname, n_bins = 50) :
+def check_histogram(ymean, yvar, yvar_filtered, figname, n_bins = 100) :
 
     fig, axs = plt.subplots(4,1, sharey=True, tight_layout=True, figsize=(20, 10))
 
@@ -83,26 +95,26 @@ def check_histogram(ymean, yvar, yvar_filtered, figname, n_bins = 50) :
     # stats
     avg = f.mean()
     sss = 5*f.std()
-    left = avg - sss
-    right = avg + sss
-    mmm = np.min(f)
-    xxx = np.max(f)
+    left = np.min([avg - sss, f.min(skipna=True)])
+    right = np.max([avg + sss, f.max(skipna=True)])
+    extra = abs(left - right) / 20
+    #print([avg, sss, left, right, left - extra, right - extra])
     
     # mean and variance field 
-    ymean.plot.hist(ax=axs[0], bins=n_bins, yscale = 'log')
+    ymean.plot.hist(ax=axs[0], bins=n_bins, yscale = 'log', color = "goldenrod")
     axs[0].title.set_text('Original Mean ' + yvar.name)
     yvar.plot.hist(ax=axs[1], bins=n_bins, yscale = 'log')
     axs[1].title.set_text('Original variance ' + yvar.name)
 
     # log10 plots
-    f.plot.hist(ax=axs[2], bins=n_bins, yscale = 'log', xlim =[np.min([left, mmm]), np.max([right, xxx])])
+    f.plot.hist(ax=axs[2], bins=n_bins, yscale = 'log', xlim =[left - extra, right + extra])
     axs[2].title.set_text('Original variance log10 ' + yvar.name)
-    g.plot.hist(ax=axs[3], bins=n_bins, yscale = 'log', color = 'red', xlim = [np.min([left, mmm]), np.max([right, xxx])])
+    g.plot.hist(ax=axs[3], bins=n_bins, yscale = 'log', color = 'red', xlim = [left - extra, right + extra])
     axs[3].title.set_text('Filtered variance log10 ' + yvar.name)
     for k in [2,3] : 
         axs[k].axvline(avg, color='k', linewidth=1)
-        axs[k].axvline(left, color='k', linestyle='dashed', linewidth=1)
-        axs[k].axvline(right, color='k', linestyle='dashed', linewidth=1)
+        axs[k].axvline(avg - sss, color='k', linestyle='dashed', linewidth=1)
+        axs[k].axvline(avg + sss, color='k', linestyle='dashed', linewidth=1)
 
     plt.savefig(figname)
  
@@ -110,7 +122,7 @@ def check_histogram(ymean, yvar, yvar_filtered, figname, n_bins = 50) :
 # get domain of the variable from the fraction of NaN: UNDER TESTING
 def mask_from_field(xfield) :
     ratio = float(xfield.count() / np.prod(np.array(xfield.shape)))
-    logging.info(ratio)
+    logging.debug(ratio)
     if ratio < 0.2 : # this is a special case for ice, need to be double checked
         mask = 'ocean'
     elif 0.2 < ratio < 0.3 :
@@ -123,7 +135,7 @@ def mask_from_field(xfield) :
         mask = 'undefined'
         sys.exit('ERROR: cant recognize mask')
 
-    logging.info(mask)
+    logging.debug(mask)
     return mask
 
 # add other units
@@ -166,7 +178,9 @@ def main() :
 
         # load data and time select
         print("Loading multiple files...")
-        xfield = xr.open_mfdataset(filedata, chunks='auto', preprocess=xr_preproc)
+        # unable to operate with Parallel=True
+        xfield = xr.open_mfdataset(filedata, chunks='auto', 
+            parallel=False, preprocess=xr_preproc, engine='netcdf4')
         xfield = xfield.rename({info[var]['varname']: var})
         mfield = xfield[var].sel(time=xfield.time.dt.year.isin(years))
 
@@ -181,6 +195,7 @@ def main() :
             logging.warning("Final year different from what expected: " + str(real_year2))
 
         if do_figures: 
+            print("Full histogram...")
             figname = 'values_' + var + '_' + info[var]['dataset'] + '_' +  str(real_year1) + '_' + str(real_year2) + '.pdf'
             os.makedirs(os.path.join(figdir, var), exist_ok=True)
             file = os.path.join(figdir, var, figname)
@@ -197,11 +212,9 @@ def main() :
         # monthly average using resample/pandas
         print("resampling...")
         zfield = cfield.resample(time='1MS').mean('time')
-
-        print("computation...")
         zfield = zfield.persist()
         progress(zfield)
-        zfield.compute()
+        #zfield.compute()
         
         # dump the netcdf file to disk
         print("new file...") 
@@ -225,24 +238,28 @@ def main() :
             d1 = []
             d2 = []
 
+            # compute the yearly mean and the season mean
+            print("Averaging...")
+            gfield1 = yfield.resample(time='AS').mean('time') 
+            gfield2 = yfield.resample(time="Q-NOV").mean('time') 
+
             # loop on seasons
             for season in ['ALL', 'DJF', 'MAM', 'JJA', 'SON'] :
                 print(season)
 
                 # select the season
                 if season == 'ALL' :
-                    # yearly average
-                    gfield = yfield.resample(time='AS').mean('time')
+                    gfield = gfield1
                 else :
-                    # season average
-                    gfield = yfield.resample(time="Q-NOV").mean('time')
-                    gfield = gfield.sel(time=gfield.time.dt.season.isin(season))
+                    gfield = gfield2.sel(time=gfield2.time.dt.season.isin(season))
                     # for winter, we drop first and last to have only complete season. 
                     # this reduces the sample by one but it is safer especially for variance
                     if season == 'DJF' :
                         gfield = gfield.drop_isel(time=[0, gfield.sizes['time']-1])
                 
                 logging.info(gfield.shape)
+
+
 
                 # zonal averaging for 3D fields
                 if 'plev' in gfield.coords :
@@ -266,6 +283,7 @@ def main() :
                 ymean = ymean0.where((yvar0 >= low) & (yvar0 <= high))
 
                 if do_figures: 
+                    print("Mean and variance histograms...")
                     figname = var + '_' + info[var]['dataset'] + '_' + grid + '_' +  str(real_year1) + '_' + str(real_year2) + '_' + season + '.pdf'
                     os.makedirs(os.path.join(figdir, var), exist_ok=True)
                     file = os.path.join(figdir, var, figname)
