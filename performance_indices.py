@@ -19,7 +19,6 @@ from multiprocessing import Process, Manager
 import numpy as np
 from tabulate import tabulate
 import xarray as xr
-import pandas as pd
 import yaml
 from ecmean import var_is_there, eval_formula, \
     get_inifiles, adjust_clim_file, get_clim_files, \
@@ -154,8 +153,8 @@ def pi_worker(util, piclim, face, diag, field_3d, varstat, varlist):
 
 
                 # open climatology files, fix their metadata
-                cfield = adjust_clim_file(xr.open_dataset(clim))
-                vfield = adjust_clim_file(xr.open_dataset(vvvv), remove_zero=True)
+                cfield = adjust_clim_file(xr.open_mfdataset(clim, preprocess=xr_preproc))
+                vfield = adjust_clim_file(xr.open_mfdataset(vvvv, preprocess=xr_preproc), remove_zero=True)
 
                 # season selection
                 if season != 'ALL' :
@@ -396,17 +395,27 @@ def pi_main(argv):
         f.write('\n\nPartial PI (atm only) is   : ' +
                 str(round(partial_pi, 3)))
         f.write('\nTotal Performance Index is : ' + str(round(total_pi, 3)))
+
+    # uniform dictionaries
+    filt_piclim = {}
+    for k in piclim.keys() :
+        filt_piclim [k] = piclim[k]['cmip6']
+        for f in ['models','year1', 'year2']:
+            del filt_piclim[k][f]
+    
+    # relative 
+    cmip6_table = data_table / dict_to_dataframe(filt_piclim)
  
     # call the heatmap routine for a plot
     mapfile = diag.FIGDIR / \
         f'PI4_{diag.climatology}_{diag.expname}_{diag.modelname}_r1i1p1f1_{diag.year1}_{diag.year2}.pdf'
-    heatmap_comparison(data_table, diag, mapfile)
+    #heatmap_comparison_old(data_table, diag, mapfile)
+    heatmap_comparison(data_table, cmip6_table, diag, mapfile)
 
     toc = time()
     # evaluate tic-toc time of postprocessing
     if diag.fverb:
         print('Postproc done in {:.4f} seconds'.format(toc - tic))
-
 
 if __name__ == '__main__':
 

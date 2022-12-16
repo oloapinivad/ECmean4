@@ -28,6 +28,7 @@ refclim = 'EC23'
 nprocs = 4
 do_compute = False
 do_create_clim = True
+do_definitive = True
 
 # models on which we can build the clim
 if do_create_clim : 
@@ -108,8 +109,10 @@ if do_create_clim :
     
     # clim files
     pifile = os.path.join(cfg['dirs']['clm'], refclim, 'pi_climatology_' + refclim + '.yml')
-    #update_pifile = os.path.join(cfg['dirs']['clm'], refclim, 'pi_climatology_' + refclim + '_update.yml')
-    update_pifile = os.path.join(cfg['dirs']['clm'], refclim, 'pi_climatology_' + refclim + '.yml')
+    if not do_definitive : 
+        update_pifile = os.path.join(cfg['dirs']['clm'], refclim, 'pi_climatology_' + refclim + '_update.yml')
+    else: 
+        update_pifile = os.path.join(cfg['dirs']['clm'], refclim, 'pi_climatology_' + refclim + '.yml')
     piclim = load_yaml(pifile)
 
     #update the climatology

@@ -73,13 +73,13 @@ tos:
   varname: analysed_sst
   remap: remapbil
   units: K
-  dir: "/work/datasets/obs/{dataset}/day/{varname}/*{varname}*.nc"
+  dir: "/work/datasets/obs/{dataset}/mon/{varname}/*{varname}*.nc"
 siconc: 
   dataset: ESA-CCI-L4
   varname: sea_ice_fraction
   remap: remapbil
   units: fraction
-  dir: "/work/datasets/obs/{dataset}/day/{varname}/*{varname}*.nc"
+  dir: "/work/datasets/obs/{dataset}/mon/{varname}/*{varname}*.nc"
 net_sfc:
   dataset: NOCS
   varname: net_sfc

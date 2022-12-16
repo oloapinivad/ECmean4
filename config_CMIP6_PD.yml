@@ -28,7 +28,7 @@ PI:
     field: [tos, sos]
   ice_vars:
     field: [siconc]
-  regions: ['Global', 'North Midlat', 'South Midlat', 'Tropical']
+  regions: ['Global', 'North Midlat', 'Tropical', 'South Midlat']
   seasons: ['ALL', 'DJF', 'JJA']
   resolution: r360x180
 

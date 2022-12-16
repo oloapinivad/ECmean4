@@ -19,6 +19,7 @@ import yaml
 import matplotlib.pyplot as plt
 import seaborn as sns
 import pandas as pd
+from matplotlib.colors import TwoSlopeNorm
 
 
 ####################
@@ -201,15 +202,16 @@ def get_clim_files(piclim, var, diag, season):
     # reference dataset and reference varname
     # as well as years when available
     dataref = piclim[var]['dataset']
-    dataname = piclim[var]['dataname']
     datayear1 = piclim[var].get('year1', 'nan')
     datayear2 = piclim[var].get('year2', 'nan')
 
     # get files for climatology
     if diag.climatology == 'RK08':
+        dataname = piclim[var]['dataname']
         clim = str(diag.RESCLMDIR / f'climate_{dataref}_{dataname}.nc')
         vvvv = str(diag.RESCLMDIR / f'variance_{dataref}_{dataname}.nc')
     elif diag.climatology in 'EC22':
+        dataname = piclim[var]['dataname']
         clim = str(
             diag.RESCLMDIR /
             f'climate_{dataname}_{dataref}_{diag.resolution}_{datayear1}-{datayear2}.nc')
@@ -1161,7 +1163,7 @@ def write_tuning_table(linefile, varmean, var_table, diag, ref):
 # PLOT FUNCTIONS #
 ##################
 
-def heatmap_comparison(global_table, diag, filemap) : 
+def heatmap_comparison_old(global_table, diag, filemap) : 
     """Minimal function to produce a heatmap for Performance Indices
     based on CMIP6 ratio"""
 
@@ -1181,3 +1183,44 @@ def heatmap_comparison(global_table, diag, filemap) :
     ax.set_xticks([x+0.5 for x in range(len(names))], names, rotation=90, ha='center')
     plt.savefig(filemap)
 
+def heatmap_comparison(absolute_table, relative_table, diag, filemap) :
+    """Function to produce a heatmap - seaborn based - for Performance Indices
+    based on CMIP6 ratio"""
+
+    nplots = 1
+    # real plot
+    fig, axs = plt.subplots(nplots,1, sharey=True, tight_layout=True, figsize=(15, nplots*8))
+
+    for k in range(nplots) : 
+        if k == 0 :
+            thr = [0,1,5]
+            tictoc = [0, 0.25, 0.5, 0.75, 1, 2, 3, 4, 5]
+            title = 'CMIP6 RELATIVE PI'
+            myfield = relative_table
+        elif k == 1 :
+            thr = [0,10,20]
+            tictoc = list(range(0,20,2))
+            title = 'ABSOLUTE PI'
+            myfield = absolute_table
+
+        #axs.subplots_adjust(bottom=0.2) 
+        #pal = sns.diverging_palette(h_neg=130, h_pos=10, s=99, l=55, sep=3, as_cmap=True)
+        divnorm = TwoSlopeNorm(vmin=thr[0], vcenter=thr[1], vmax=thr[2])
+        pal = sns.color_palette("Spectral_r", as_cmap=True)
+        #pal = sns.diverging_palette(220, 20, as_cmap=True)
+        chart = sns.heatmap(myfield, norm = divnorm, cmap=pal, 
+            cbar_kws={"ticks": tictoc, 'label': title},
+            ax = axs, annot = True, linewidth=0.5, 
+            annot_kws={'fontsize':11, 'fontweight':'bold'})
+        chart = chart.set_facecolor('whitesmoke')
+        axs.set_title(f'{title} {diag.modelname} {diag.year1} {diag.year2}', fontsize = 25)
+        axs.vlines([4, 8, 12], ymin = -1, ymax = 13, colors = 'k')
+        names = [ ' '.join(x) for x in myfield.columns ]
+        if (k == (nplots-1)) :
+            axs.set_xticks([x+.5 for x in range(len(names))], names, rotation=45, ha='right', fontsize = 15)
+        else : 
+            axs.set_xticks([])
+        axs.set_yticks([x+.5 for x in range(len(myfield.index))], myfield.index, rotation = 0, fontsize=18)
+        axs.set(xlabel=None)
+    
+    plt.savefig(filemap)
