@@ -369,9 +369,9 @@ def pi_main(argv):
     #    global_table.append(out_sequence)
 
     # nice loop on dictionary to get the partial and total pi
-    partial_pi = np.nanmean([varstat[k]['ALL']['Global'] for k in field_2d + field_3d])
-    total_pi = np.nanmean([varstat[k]['ALL']['Global']
-                          for k in field_2d + field_3d + field_oce + field_ice])
+    #partial_pi = np.nanmean([varstat[k]['ALL']['Global'] for k in field_2d + field_3d])
+    #total_pi = np.nanmean([varstat[k]['ALL']['Global']
+    #                      for k in field_2d + field_3d + field_oce + field_ice])
 
     # order according to the original request the fields in the yaml file
     ordered = {}
@@ -383,9 +383,6 @@ def pi_main(argv):
         f'PI4_{diag.climatology}_{diag.expname}_{diag.modelname}_r1i1p1f1_{diag.year1}_{diag.year2}.yml'
     with open(yamlfile, 'w') as file:
         yaml.safe_dump(ordered, file, default_flow_style=False, sort_keys=False)
-
-    # convert output dictionary to pandas dataframe
-    data_table = dict_to_dataframe(varstat)
 
     # write the file with tabulate only for yearly mean
     # tablefile = diag.TABDIR / \
@@ -402,7 +399,10 @@ def pi_main(argv):
     #     f.write('\nTotal Performance Index is : ' + str(round(total_pi, 3)))
 
     # to this date, only EC23 support comparison with CMIP6 data
-    if clim == 'EC23' : 
+    if diag.climatology == 'EC23' : 
+
+        # convert output dictionary to pandas dataframe
+        data_table = dict_to_dataframe(varstat)
 
         # uniform dictionaries
         filt_piclim = {}
@@ -411,9 +411,16 @@ def pi_main(argv):
             for f in ['models','year1', 'year2']:
                 del filt_piclim[k][f]
         
-        # relative 
-        cmip6_table = data_table / dict_to_dataframe(filt_piclim)
-    
+        # relative pi with re-ordering of rows
+        cmip6_table = data_table.div(dict_to_dataframe(filt_piclim).reindex(field_all))
+
+        # compute the total PI mean
+        cmip6_table.loc['Total PI'] = cmip6_table.mean()
+
+        # reordering columns
+        lll = [(x,y) for x in diag.seasons for y in diag.regions]
+        cmip6_table = cmip6_table[lll]
+
         # call the heatmap routine for a plot
         mapfile = diag.FIGDIR / \
             f'PI4_{diag.climatology}_{diag.expname}_{diag.modelname}_r1i1p1f1_{diag.year1}_{diag.year2}.pdf'

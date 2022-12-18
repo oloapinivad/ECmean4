@@ -3,4 +3,5 @@ cdo/__pycache__/
 config.yml
 test/table/*.txt
 test/table/*.yml
+test/figures
 docs/sphinx/build/

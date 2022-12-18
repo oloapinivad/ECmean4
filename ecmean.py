@@ -1163,26 +1163,6 @@ def write_tuning_table(linefile, varmean, var_table, diag, ref):
 # PLOT FUNCTIONS #
 ##################
 
-def heatmap_comparison_old(global_table, diag, filemap) : 
-    """Minimal function to produce a heatmap for Performance Indices
-    based on CMIP6 ratio"""
-
-    # get only columns with CMIP6 ratio, and remove the name for convenience
-    #ratio_col = [col for col in global_table.columns if 'Ratio' in col]
-    #clean = global_table[ratio_col]
-    #clean.columns = clean.columns.str.replace('CMIP6 Ratio', '')
-    #clean.index = global_table['Variable']
-    clean = global_table
-
-    # real plot
-    ax = plt.axes()
-    plt.subplots_adjust(bottom=0.2) 
-    sns.heatmap(clean, cmap = 'RdYlGn_r', vmin=0, vmax = 2, center = 1, ax = ax)
-    ax.set_title(f'{diag.modelname} {diag.year1} {diag.year2}')
-    names = [ ' '.join(x) for x in clean.columns ]
-    ax.set_xticks([x+0.5 for x in range(len(names))], names, rotation=90, ha='center')
-    plt.savefig(filemap)
-
 def heatmap_comparison(absolute_table, relative_table, diag, filemap) :
     """Function to produce a heatmap - seaborn based - for Performance Indices
     based on CMIP6 ratio"""
@@ -1205,6 +1185,8 @@ def heatmap_comparison(absolute_table, relative_table, diag, filemap) :
 
         #axs.subplots_adjust(bottom=0.2) 
         #pal = sns.diverging_palette(h_neg=130, h_pos=10, s=99, l=55, sep=3, as_cmap=True)
+        tot = (len(myfield.columns))
+        sss = (len(set([tup[1] for tup in myfield.columns])))
         divnorm = TwoSlopeNorm(vmin=thr[0], vcenter=thr[1], vmax=thr[2])
         pal = sns.color_palette("Spectral_r", as_cmap=True)
         #pal = sns.diverging_palette(220, 20, as_cmap=True)
@@ -1214,7 +1196,8 @@ def heatmap_comparison(absolute_table, relative_table, diag, filemap) :
             annot_kws={'fontsize':11, 'fontweight':'bold'})
         chart = chart.set_facecolor('whitesmoke')
         axs.set_title(f'{title} {diag.modelname} {diag.year1} {diag.year2}', fontsize = 25)
-        axs.vlines([4, 8, 12], ymin = -1, ymax = 13, colors = 'k')
+        axs.vlines(list(range(sss,tot+sss,sss)) , ymin = -1, ymax = len(myfield.index), colors = 'k')
+        axs.hlines(len(myfield.index)-1, xmin = -1, xmax = len(myfield.columns), colors = 'purple', lw = 0.8)
         names = [ ' '.join(x) for x in myfield.columns ]
         if (k == (nplots-1)) :
             axs.set_xticks([x+.5 for x in range(len(names))], names, rotation=45, ha='right', fontsize = 15)
