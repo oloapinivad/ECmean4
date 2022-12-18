@@ -226,7 +226,7 @@ def pi_worker(util, piclim, face, diag, field_3d, varstat, varlist):
                     out = slicearray.weighted(weights).mean().values
 
                     # store the PI
-                    result[season][region] = float(out)
+                    result[season][region] = round(float(out), 3)
 
                     # diagnostic
                     if diag.fverb and region == 'Global':
@@ -350,67 +350,75 @@ def pi_main(argv):
     tic = time()
 
     # # define options for the output table
-    head = ['Variable', 'Domain', 'Dataset'] + diag.regions + [s + ' CMIP6 Ratio' for s in diag.regions]
-    global_table = []
+    #head = ['Variable', 'Domain', 'Dataset'] + diag.regions + [s + ' CMIP6 Ratio' for s in diag.regions]
+    #global_table = []
 
     # loop on the variables
-    for var in field_all:
-        out_sequence = [
-            var,
-            piclim[var]['mask'],
-            piclim[var]['dataset']]
-
-        for region in diag.regions : 
-            out_sequence = out_sequence + [varstat[var]['ALL'][region]]
-        for region in diag.regions : 
-            #out_sequence = out_sequence + [float(varstat[var]['ALL'][region]) / float(piclim[var]['cmip6'][region])]
-            out_sequence = out_sequence + [1]
-           
-        global_table.append(out_sequence)
+    #for var in field_all:
+    #    out_sequence = [
+    #        var,
+    #        piclim[var]['mask'],
+    #        piclim[var]['dataset']]
+    #
+    #    for region in diag.regions : 
+    #        out_sequence = out_sequence + [varstat[var]['ALL'][region]]
+    #    for region in diag.regions : 
+    #    #    out_sequence = out_sequence + [float(varstat[var]['ALL'][region]) / float(piclim[var]['cmip6'][region])]
+    #        #out_sequence = out_sequence + [1]
+    #       
+    #    global_table.append(out_sequence)
 
     # nice loop on dictionary to get the partial and total pi
     partial_pi = np.nanmean([varstat[k]['ALL']['Global'] for k in field_2d + field_3d])
     total_pi = np.nanmean([varstat[k]['ALL']['Global']
                           for k in field_2d + field_3d + field_oce + field_ice])
 
+    # order according to the original request the fields in the yaml file
+    ordered = {}
+    for item in field_all:
+        ordered[item] = varstat[item]
+
     # dump the yaml file for PI, including all the seasons (need to copy to avoid mess)
     yamlfile = diag.TABDIR / \
         f'PI4_{diag.climatology}_{diag.expname}_{diag.modelname}_r1i1p1f1_{diag.year1}_{diag.year2}.yml'
     with open(yamlfile, 'w') as file:
-        yaml.safe_dump(varstat.copy(), file, default_flow_style=False, sort_keys=False)
+        yaml.safe_dump(ordered, file, default_flow_style=False, sort_keys=False)
 
     # convert output dictionary to pandas dataframe
     data_table = dict_to_dataframe(varstat)
 
     # write the file with tabulate only for yearly mean
-    tablefile = diag.TABDIR / \
-        f'PI4_{diag.climatology}_{diag.expname}_{diag.modelname}_r1i1p1f1_{diag.year1}_{diag.year2}.txt'
-    with open(tablefile, 'w', encoding='utf-8') as f:
-        f.write(
-            tabulate(
-                global_table,
-                headers=head,
-                tablefmt='orgtbl',
-                floatfmt=".2f"))
-        f.write('\n\nPartial PI (atm only) is   : ' +
-                str(round(partial_pi, 3)))
-        f.write('\nTotal Performance Index is : ' + str(round(total_pi, 3)))
+    # tablefile = diag.TABDIR / \
+    #     f'PI4_{diag.climatology}_{diag.expname}_{diag.modelname}_r1i1p1f1_{diag.year1}_{diag.year2}.txt'
+    # with open(tablefile, 'w', encoding='utf-8') as f:
+    #     f.write(
+    #         tabulate(
+    #             global_table,
+    #             headers=head,
+    #             tablefmt='orgtbl',
+    #             floatfmt=".2f"))
+    #     f.write('\n\nPartial PI (atm only) is   : ' +
+    #             str(round(partial_pi, 3)))
+    #     f.write('\nTotal Performance Index is : ' + str(round(total_pi, 3)))
 
-    # uniform dictionaries
-    filt_piclim = {}
-    for k in piclim.keys() :
-        filt_piclim [k] = piclim[k]['cmip6']
-        for f in ['models','year1', 'year2']:
-            del filt_piclim[k][f]
+    # to this date, only EC23 support comparison with CMIP6 data
+    if clim == 'EC23' : 
+
+        # uniform dictionaries
+        filt_piclim = {}
+        for k in piclim.keys() :
+            filt_piclim [k] = piclim[k]['cmip6']
+            for f in ['models','year1', 'year2']:
+                del filt_piclim[k][f]
+        
+        # relative 
+        cmip6_table = data_table / dict_to_dataframe(filt_piclim)
     
-    # relative 
-    cmip6_table = data_table / dict_to_dataframe(filt_piclim)
- 
-    # call the heatmap routine for a plot
-    mapfile = diag.FIGDIR / \
-        f'PI4_{diag.climatology}_{diag.expname}_{diag.modelname}_r1i1p1f1_{diag.year1}_{diag.year2}.pdf'
-    #heatmap_comparison_old(data_table, diag, mapfile)
-    heatmap_comparison(data_table, cmip6_table, diag, mapfile)
+        # call the heatmap routine for a plot
+        mapfile = diag.FIGDIR / \
+            f'PI4_{diag.climatology}_{diag.expname}_{diag.modelname}_r1i1p1f1_{diag.year1}_{diag.year2}.pdf'
+        #heatmap_comparison_old(data_table, diag, mapfile)
+        heatmap_comparison(data_table, cmip6_table, diag, mapfile)
 
     toc = time()
     # evaluate tic-toc time of postprocessing
