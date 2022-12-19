@@ -4,10 +4,10 @@
 name: Conda PyTest
 
 on:
-  push:
-    branches: [ main ]
-  pull_request:
-    branches: [ main ]
+  #push:
+  #  branches: [ main ]
+  #pull_request:
+  #  branches: [ main ]
 
 permissions:
   contents: read

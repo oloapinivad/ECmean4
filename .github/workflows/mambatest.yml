@@ -27,7 +27,6 @@ jobs:
         extra-specs: |
             python=3.9
     - name: List installed package versions (conda)
-        if: matrix.environment-type == 'conda'
         shell: bash -l {0}  # necessary for conda env to be active
         run: micromamba list
     - name: Lint with flake8
