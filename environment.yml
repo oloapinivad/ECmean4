@@ -12,7 +12,7 @@ dependencies:
   - xarray
   - xesmf
   - esmpy=8.3.1 #temporary
-  - matplotlib>3.5
+  - matplotlib-base=3.6.2
   - metpy
   - tabulate
   - cfgrib
