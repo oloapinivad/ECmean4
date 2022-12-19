@@ -20,8 +20,8 @@ You can freely clone from the Github Repository ::
     please check the `procedure on the Github website <https://docs.github.com/en/authentication/connecting-to-github-with-ssh/adding-a-new-ssh-key-to-your-github-account>`_ .
 
 
-Xarray version: Install with Conda environment
-----------------------------------------------
+Install with Conda environment
+------------------------------
 
 It is recommended to work into a Conda environment with a recent Python3 version, which can be created with the proper environment file:
 Once you set up Conda, ECmean4 can be easily installed with:
@@ -36,11 +36,15 @@ with ``ECmean4`` is just an arbitrary name. Then you can activate the environmen
 
     > conda activate ECmean4
 
+
 Requirements
 ------------
 
 The required packages are listed in `environment.yml`. 
 A secondary environment available in  `dev_environment.yml` can be used for development. 
+
+.. note::
+	Python >=3.8 is requested, but Python 3.11 is so far not supported
 
 
 

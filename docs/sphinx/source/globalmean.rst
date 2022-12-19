@@ -40,3 +40,13 @@ Output
 ^^^^^^
 
 A txt table including the comparison with some predefined dataset.
+
+
+Example
+^^^^^^^
+
+Usage example for CMIP5::
+
+        ./global_mean.py historical 1990 1999 -j 12 -m EC-EARTH -e r1i1p1 -i CMIP5
+
+will compute performance indices for member r1i1p1 of the EC-EARTH model in the CMIP5 historical experiment.

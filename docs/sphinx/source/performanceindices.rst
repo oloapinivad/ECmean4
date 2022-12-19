@@ -45,9 +45,9 @@ Example
 
 Usage example for CMIP6::
 
-        ./performance_indices.py historical 1990 1999 -j 12 -m EC-Earth3 -e r1i1p1f1 -i CMIP6 -k EC22 -r r360x180
+        ./performance_indices.py historical 1990 1999 -j 12 -m EC-Earth3 -e r1i1p1f1 -i CMIP6 
 
-The same as above, but for the CMIP6 EC-Earth3 model. In this case the comparison is with the newer EC22 climatology at high r360x180 resolution.
+Performance indices for CMIP6 EC-Earth3 model. In this case the comparison is with the newer EC22 climatology at high r360x180 resolution.
 
 
 Output
@@ -74,11 +74,11 @@ Climatology
 ^^^^^^^^^^^
 
 The performance indices built on the comparison between model data and a previously computed climatology of several variables.
-The original ECmean climatology was the defined as RK08. However, a new has been developed with high-resolution data and is now defined as EC23. 
-The default climatology is the EC23. An intermadiate versio knowns as EC22 is available but not recommended and will be removed soon.
+The original ECmean climatology was the defined as RK08, and although still available, is not reccmmented for use. 
 
-.. warning::
-	A bug is known for sea surface salinity variance, as described on the correspondent `Github Issue <https://github.com/oloapinivad/ECmean4/issues/8>`_ Please be aware the this PI is affected. 
+A new climatology has been developed with high-resolution data and is now defined as EC23, using a 1x1 deg resolution and being the new deafault. 
+An intermadiate version knowns as EC22 is available but not recommended and will be removed soon.
+
 
 Climatology is computed by the `py-climatology-create.py` script, which is included in the repository for documentation.
 It is based on a basic YAML file which is based on the machine where the climatology has been developed and it is used to identifiy all the required data folder and names. 

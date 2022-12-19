@@ -37,3 +37,11 @@ New interface files can be developed exploiting of the flexible file handling in
 .. note::
 	It is not necessary to modify this, but it could be required if - for example - your CMIP5/6 directory tree does not reflect exactly the one available on ESGF. 
 
+
+CMOR compatibility
+------------------
+
+It is possible to use these tools also to analyze CMOR files for CMIP5 or CMIP6. This assumes a standard ESGF directory structure but you can change it by modifying the corresponding interface files ``interfaces/interface_CMIP6.yml`` and ``interfaces/interface_CMIP6.yml``.
+In order to allow masking you will need the `sftlf`, `sftof` and `areacello` variables for you experiment of interest too.
+
+
