@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 """"
-    Tool to create a new ECmean4 climatology. 
+    Tool to create a new ECmean4 climatology.
 """
 
 import tempfile
@@ -146,7 +146,7 @@ def check_histogram(ymean, yvar, yvar_filtered, figname, n_bins=100):
 
 # get domain of the variable from the fraction of NaN: UNDER TESTING
 def mask_from_field(xfield):
-    """get the domain to be passed to the climatology .yml file from the number of 
+    """get the domain to be passed to the climatology .yml file from the number of
     missing point. Special treatment for sea ice. Use with caution."""
     ratio = float(xfield.count() / np.prod(np.array(xfield.shape)))
     logging.info(ratio)
@@ -373,7 +373,7 @@ def main():
                 dclim = {}
 
             # initialize variable if not exists
-            if not var in dclim:
+            if var not in dclim:
                 dclim[var] = {}
 
             # assign to the dictionary the required info

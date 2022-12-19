@@ -1119,7 +1119,7 @@ def directions_match(org, dst):
 ####################
 
 def dict_to_dataframe(varstat):
-    """very clumsy conversion of the nested 3-level dictionary 
+    """very clumsy conversion of the nested 3-level dictionary
     to a pd.dataframe: NEED TO BE IMPROVED"""
     data_table = {}
     for i in varstat.keys():

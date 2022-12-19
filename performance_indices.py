@@ -17,7 +17,6 @@ import logging
 from time import time
 from multiprocessing import Process, Manager
 import numpy as np
-from tabulate import tabulate
 import xarray as xr
 import yaml
 from ecmean import var_is_there, eval_formula, \

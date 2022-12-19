@@ -3,8 +3,8 @@
 
 """"
     Global mean evaluation of CMIP6 climatology
-    It runs and then reads the output of the cmip6 models to provide an assessment of the 
-    climatology for CMIP6 models to be stored 
+    It runs and then reads the output of the cmip6 models to provide an assessment of the
+    climatology for CMIP6 models to be stored
 """
 
 __author__ = "Paolo Davini (p.davini@isac.cnr.it), Sep 2022."
@@ -81,7 +81,8 @@ if do_create_clim:
         full[model] = load_yaml(filein[0])
 
     # alternative to do sum on nested dictionary
-    # full = {key:{key2:{key3:val1+data[key][key2][key3] for key3,val1 in subdic2.items()} for key2,subdic2 in subdic.items()} for key,subdic in full.items()}
+    # full = {key:{key2:{key3:val1+data[key][key2][key3] for key3,val1 in subdic2.items()}
+    #   for key2,subdic2 in subdic.items()} for key,subdic in full.items()}
 
     # idiot averaging
     m0 = models[0]
