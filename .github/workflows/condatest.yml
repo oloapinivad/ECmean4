@@ -23,13 +23,11 @@ jobs:
     - uses: actions/checkout@v3
     - uses: conda-incubator/setup-miniconda@v2
       with:
-        activate-environment: anaconda-client-env
+        activate-environment: ECmean4
         python-version: 3.9
+        channels: conda-forge
         environment-file: environment.yml
         auto-activate-base: false
-    - name: Install dependencies
-      run: |
-        conda env update --file environment.yml --name base
     - name: Lint with flake8
       run: |
         conda install flake8
