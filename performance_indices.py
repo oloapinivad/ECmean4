@@ -100,15 +100,15 @@ def pi_worker(util, piclim, face, diag, field_3d, varstat, varlist):
         isavail, varunit = var_is_there(infile, var, face['variables'])
 
         # store NaN in dict (can't use defaultdict due to multiprocessing)
-        #result = defaultdict(lambda: defaultdict(lambda : float('NaN')))
+        # result = defaultdict(lambda: defaultdict(lambda : float('NaN')))
         result = {}
-        for season in diag.seasons : 
+        for season in diag.seasons:
             result[season] = {}
-            for region in diag.regions :
+            for region in diag.regions:
                 result[season][region] = float('NaN')
 
         # if the variable is available
-        if isavail : 
+        if isavail:
 
             logging.debug(var)
             logging.debug(varunit + ' ---> ' + piclim[var]['units'])
@@ -141,8 +141,8 @@ def pi_worker(util, piclim, face, diag, field_3d, varstat, varlist):
                 outfield = xfield[var]
 
             # mean over time and fixing of the units
-            for season in diag.seasons : 
-                
+            for season in diag.seasons:
+
                 logging.info(season)
 
                 # copy of the full field
@@ -151,29 +151,28 @@ def pi_worker(util, piclim, face, diag, field_3d, varstat, varlist):
                 # get filenames for climatology
                 clim, vvvv = get_clim_files(piclim, var, diag, season)
 
-
                 # open climatology files, fix their metadata
                 cfield = adjust_clim_file(xr.open_mfdataset(clim, preprocess=xr_preproc))
                 vfield = adjust_clim_file(xr.open_mfdataset(vvvv, preprocess=xr_preproc), remove_zero=True)
 
                 # season selection
-                if season != 'ALL' :
+                if season != 'ALL':
                     tmean = tmean.sel(time=tmean.time.dt.season.isin(season))
                     cfield = cfield.sel(time=cfield.time.dt.season.isin(season))
                     vfield = vfield.sel(time=vfield.time.dt.season.isin(season))
 
-                # averaging 
+                # averaging
                 tmean = tmean.mean(dim='time')
 
                 # safe check for old RK08 which has a different format
-                if diag.climatology != 'RK08' :
+                if diag.climatology != 'RK08':
                     cfield = cfield.mean(dim='time')
                     vfield = vfield.mean(dim='time')
 
                 tmean = tmean * factor + offset
 
                 # this computation is required to ensure that file access is
-                # done in a correct way. resource errors found if disabled in some 
+                # done in a correct way. resource errors found if disabled in some
                 # specific configuration
                 tmean = tmean.compute()
 
@@ -198,7 +197,7 @@ def pi_worker(util, piclim, face, diag, field_3d, varstat, varlist):
 
                     # compute PI
                     complete = (final - cfield)**2 / vfield
-   
+
                     # compute vertical bounds as weights
                     bounds_lev = guess_bounds(complete['plev'], name='plev')
                     bounds = abs(bounds_lev[:, 0] - bounds_lev[:, 1])
@@ -217,7 +216,7 @@ def pi_worker(util, piclim, face, diag, field_3d, varstat, varlist):
                         complete, var, piclim[var]['mask'], util['atm_mask'])
 
                 # loop on different regions
-                for region in diag.regions : 
+                for region in diag.regions:
 
                     slicearray = select_region(outarray, region)
 
@@ -231,10 +230,10 @@ def pi_worker(util, piclim, face, diag, field_3d, varstat, varlist):
                     # diagnostic
                     if diag.fverb and region == 'Global':
                         print('PI for', region, season, var, result[season][region])
-                
 
         # nested dictionary, to be redifend as a dict to remove lambdas
         varstat[var] = result
+
 
 def pi_main(argv):
     """Main performance indices calculation"""
@@ -350,27 +349,27 @@ def pi_main(argv):
     tic = time()
 
     # # define options for the output table
-    #head = ['Variable', 'Domain', 'Dataset'] + diag.regions + [s + ' CMIP6 Ratio' for s in diag.regions]
-    #global_table = []
+    # head = ['Variable', 'Domain', 'Dataset'] + diag.regions + [s + ' CMIP6 Ratio' for s in diag.regions]
+    # global_table = []
 
     # loop on the variables
-    #for var in field_all:
+    # for var in field_all:
     #    out_sequence = [
     #        var,
     #        piclim[var]['mask'],
     #        piclim[var]['dataset']]
     #
-    #    for region in diag.regions : 
+    #    for region in diag.regions :
     #        out_sequence = out_sequence + [varstat[var]['ALL'][region]]
-    #    for region in diag.regions : 
+    #    for region in diag.regions :
     #    #    out_sequence = out_sequence + [float(varstat[var]['ALL'][region]) / float(piclim[var]['cmip6'][region])]
     #        #out_sequence = out_sequence + [1]
-    #       
+    #
     #    global_table.append(out_sequence)
 
     # nice loop on dictionary to get the partial and total pi
-    #partial_pi = np.nanmean([varstat[k]['ALL']['Global'] for k in field_2d + field_3d])
-    #total_pi = np.nanmean([varstat[k]['ALL']['Global']
+    # partial_pi = np.nanmean([varstat[k]['ALL']['Global'] for k in field_2d + field_3d])
+    # total_pi = np.nanmean([varstat[k]['ALL']['Global']
     #                      for k in field_2d + field_3d + field_oce + field_ice])
 
     # order according to the original request the fields in the yaml file
@@ -399,18 +398,18 @@ def pi_main(argv):
     #     f.write('\nTotal Performance Index is : ' + str(round(total_pi, 3)))
 
     # to this date, only EC23 support comparison with CMIP6 data
-    if diag.climatology == 'EC23' : 
+    if diag.climatology == 'EC23':
 
         # convert output dictionary to pandas dataframe
         data_table = dict_to_dataframe(varstat)
 
         # uniform dictionaries
         filt_piclim = {}
-        for k in piclim.keys() :
-            filt_piclim [k] = piclim[k]['cmip6']
-            for f in ['models','year1', 'year2']:
+        for k in piclim.keys():
+            filt_piclim[k] = piclim[k]['cmip6']
+            for f in ['models', 'year1', 'year2']:
                 del filt_piclim[k][f]
-        
+
         # relative pi with re-ordering of rows
         cmip6_table = data_table.div(dict_to_dataframe(filt_piclim).reindex(field_all))
 
@@ -418,19 +417,20 @@ def pi_main(argv):
         cmip6_table.loc['Total PI'] = cmip6_table.mean()
 
         # reordering columns
-        lll = [(x,y) for x in diag.seasons for y in diag.regions]
+        lll = [(x, y) for x in diag.seasons for y in diag.regions]
         cmip6_table = cmip6_table[lll]
 
         # call the heatmap routine for a plot
         mapfile = diag.FIGDIR / \
             f'PI4_{diag.climatology}_{diag.expname}_{diag.modelname}_r1i1p1f1_{diag.year1}_{diag.year2}.pdf'
-        #heatmap_comparison_old(data_table, diag, mapfile)
+        # heatmap_comparison_old(data_table, diag, mapfile)
         heatmap_comparison(data_table, cmip6_table, diag, mapfile)
 
     toc = time()
     # evaluate tic-toc time of postprocessing
     if diag.fverb:
         print('Postproc done in {:.4f} seconds'.format(toc - tic))
+
 
 if __name__ == '__main__':
 

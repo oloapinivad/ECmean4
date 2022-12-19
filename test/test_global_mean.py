@@ -14,4 +14,5 @@ def test_global_mean_amip():
 
 def test_global_mean_CMIP6():
     gm_main(['historical', '1990', '1990', '-j', '2', '-c', 'test/config_CMIP6.yml'])
-    assert cmp('test/table/global_mean_historical_EC-Earth3_r1i1p1f1_1990_1990.txt', 'test/table/global_mean_CMIP6_1990_1990.ref')
+    assert cmp('test/table/global_mean_historical_EC-Earth3_r1i1p1f1_1990_1990.txt',
+               'test/table/global_mean_CMIP6_1990_1990.ref')

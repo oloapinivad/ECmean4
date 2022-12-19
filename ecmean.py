@@ -66,9 +66,9 @@ class Diagnostic():
                 self.resolution = cfg['PI']['resolution']
 
         # hard-coded seasons (due to climatological dataset)
-        if self.climatology in ['EC22', 'RK08'] :
+        if self.climatology in ['EC22', 'RK08']:
             logging.error('only EC23 climatology support multiple seasons! Keeping only yearly seasons!')
-            self.seasons = ['ALL'] 
+            self.seasons = ['ALL']
 
         # Various input and output directories
         self.ECEDIR = Path(os.path.expandvars(cfg['dirs']['exp']))
@@ -150,7 +150,7 @@ def var_is_there(flist, var, reference):
 
     if isavail:
         xfield = xr.open_mfdataset(flist, preprocess=xr_preproc)
-        #vars_avail = [i for i in xfield.data_vars]
+        # vars_avail = [i for i in xfield.data_vars]
         vars_avail = xfield.data_vars
         units_avail = {}
         # if I don't know the unit, assuming is a fraction
@@ -219,20 +219,20 @@ def get_clim_files(piclim, var, diag, season):
             diag.RESCLMDIR /
             f'variance_{dataname}_{dataref}_{diag.resolution}_{datayear1}-{datayear2}.nc')
     elif diag.climatology in 'EC23':
-        if season == 'ALL' :
+        if season == 'ALL':
             clim = str(
                 diag.RESCLMDIR /
                 f'climate_average_{var}_{dataref}_{diag.resolution}_{datayear1}-{datayear2}.nc')
             vvvv = str(
                 diag.RESCLMDIR /
                 f'climate_variance_{var}_{dataref}_{diag.resolution}_{datayear1}-{datayear2}.nc')
-        else : 
+        else:
             clim = str(
                 diag.RESCLMDIR /
                 f'seasons_average_{var}_{dataref}_{diag.resolution}_{datayear1}-{datayear2}.nc')
             vvvv = str(
                 diag.RESCLMDIR /
-                f'seasons_variance_{var}_{dataref}_{diag.resolution}_{datayear1}-{datayear2}.nc') 
+                f'seasons_variance_{var}_{dataref}_{diag.resolution}_{datayear1}-{datayear2}.nc')
 
     return clim, vvvv
 
@@ -348,10 +348,10 @@ def make_input_filename(var0, varlist, year1, year2, face, diag):
             fname = _expand_filename(filepath, var, '*', '*', diag)
             fname = _filter_filename_by_year(fname, year)
             filename1 = filename1 + fname
-        #filename1 = list(dict.fromkeys(filename1))  
+        # filename1 = list(dict.fromkeys(filename1))
         filename = filename + filename1
-    filename = list(dict.fromkeys(filename)) # Filter unique ones
-    #print(filename)
+    filename = list(dict.fromkeys(filename))  # Filter unique ones
+    # print(filename)
     logging.debug("Filenames: %s", filename)
     return filename
 
@@ -435,15 +435,15 @@ def mask_field(xfield, var, mask_type, mask):
     else:
 
         # check that we are receiving a dataset and not a datarray
-        if isinstance(xfield, xr.DataArray) : 
+        if isinstance(xfield, xr.DataArray):
             xfield = xfield.to_dataset(name=var)
 
         # convert from datarray to dataset and merge
         mask = mask.to_dataset(name='mask')
 
-        # the compat='override' option forces the merging. some CMIP6 data might 
+        # the compat='override' option forces the merging. some CMIP6 data might
         # have different float type, this simplies the handling
-        bfield = xr.merge([xfield, mask], compat = 'override')
+        bfield = xr.merge([xfield, mask], compat='override')
 
         # conditions
         if mask_type == 'land':
@@ -456,19 +456,19 @@ def mask_field(xfield, var, mask_type, mask):
     return out
 
 
-def select_region(xfield, region) :
+def select_region(xfield, region):
     """Trivial function to convert region definition to xarray
     sliced array to compute the PIs or global means on selected regions"""
 
     if region == 'Global':
         slicearray = xfield
-    elif region == 'North Midlat' : 
+    elif region == 'North Midlat':
         slicearray = xfield.sel(lat=slice(30, 90))
-    elif region == 'South Midlat' : 
+    elif region == 'South Midlat':
         slicearray = xfield.sel(lat=slice(-90, -30))
-    elif region == 'Tropical' : 
+    elif region == 'Tropical':
         slicearray = xfield.sel(lat=slice(-30, 30))
-    else :
+    else:
         sys.exit(region + "region not supported!!!")
 
     return slicearray
@@ -940,12 +940,12 @@ def _make_oce_interp_weights(component, oceareafile, target_grid):
         fix = None
         xfield = xr.open_mfdataset(oceareafile, preprocess=xr_preproc)
         xname = list(xfield.data_vars)[-1]
-        #print(xfield.dims)
-        #print(len(xfield.coords['lon'].shape))
+        # print(xfield.dims)
+        # print(len(xfield.coords['lon'].shape))
 
         # check if oceanic grid is regular: lon/lat dims should be 1d
-        #if not all(x in xfield.dims for x in ['lon', 'lat']) and (len(xfield.dims) < 3) : 
-        if len(xfield.coords['lon'].shape) == 1 and len(xfield.coords['lat'].shape) == 1 :
+        # if not all(x in xfield.dims for x in ['lon', 'lat']) and (len(xfield.dims) < 3) :
+        if len(xfield.coords['lon'].shape) == 1 and len(xfield.coords['lat'].shape) == 1:
 
             print("Detecting a unstructured grid, using nearest neighbour!")
             interp = xe.Regridder(
@@ -954,7 +954,7 @@ def _make_oce_interp_weights(component, oceareafile, target_grid):
                 method="nearest_s2d",
                 locstream_in=True,
                 periodic=True)
-        else :
+        else:
             print("Detecting regular or curvilinear grid, using bilinear!")
             interp = xe.Regridder(
                 xfield[xname].load(),
@@ -1009,7 +1009,6 @@ def xr_preproc(ds):
     if 'latitude' in list(ds.coords):
         ds = ds.rename({"latitude": "lat"})
 
-
     if 'values' in list(ds.dims):
         ds = ds.rename({"values": "cell"})
 
@@ -1053,6 +1052,7 @@ def units_extra_definition():
     units.define('psu = 1e-3 frac')
     units.define('PSU = 1e-3 frac')
     units.define('Sv = 1e+6 m^3/s')  # Replace Sievert with Sverdrup
+
 
 def units_converter(org_units, tgt_units):
     """Units conversion using metpy and pint.
@@ -1118,11 +1118,11 @@ def directions_match(org, dst):
 # OUTPUT FUNCTIONS #
 ####################
 
-def dict_to_dataframe(varstat) : 
+def dict_to_dataframe(varstat):
     """very clumsy conversion of the nested 3-level dictionary 
     to a pd.dataframe: NEED TO BE IMPROVED"""
     data_table = {}
-    for i in varstat.keys(): 
+    for i in varstat.keys():
         pippo = {}
         for outerKey, innerDict in varstat[i].items():
             for innerKey, values in innerDict.items():
@@ -1130,6 +1130,7 @@ def dict_to_dataframe(varstat) :
         data_table[i] = pippo
     data_table = pd.DataFrame(data_table).T
     return data_table
+
 
 def write_tuning_table(linefile, varmean, var_table, diag, ref):
     """Write results appending one line to a text file.
@@ -1163,47 +1164,48 @@ def write_tuning_table(linefile, varmean, var_table, diag, ref):
 # PLOT FUNCTIONS #
 ##################
 
-def heatmap_comparison(absolute_table, relative_table, diag, filemap) :
+
+def heatmap_comparison(absolute_table, relative_table, diag, filemap):
     """Function to produce a heatmap - seaborn based - for Performance Indices
     based on CMIP6 ratio"""
 
     nplots = 1
     # real plot
-    fig, axs = plt.subplots(nplots,1, sharey=True, tight_layout=True, figsize=(15, nplots*8))
+    fig, axs = plt.subplots(nplots, 1, sharey=True, tight_layout=True, figsize=(15, nplots*8))
 
-    for k in range(nplots) : 
-        if k == 0 :
-            thr = [0,1,5]
+    for k in range(nplots):
+        if k == 0:
+            thr = [0, 1, 5]
             tictoc = [0, 0.25, 0.5, 0.75, 1, 2, 3, 4, 5]
             title = 'CMIP6 RELATIVE PI'
             myfield = relative_table
-        elif k == 1 :
-            thr = [0,10,20]
-            tictoc = list(range(0,20,2))
+        elif k == 1:
+            thr = [0, 10, 20]
+            tictoc = list(range(0, 20, 2))
             title = 'ABSOLUTE PI'
             myfield = absolute_table
 
-        #axs.subplots_adjust(bottom=0.2) 
-        #pal = sns.diverging_palette(h_neg=130, h_pos=10, s=99, l=55, sep=3, as_cmap=True)
+        # axs.subplots_adjust(bottom=0.2)
+        # pal = sns.diverging_palette(h_neg=130, h_pos=10, s=99, l=55, sep=3, as_cmap=True)
         tot = (len(myfield.columns))
         sss = (len(set([tup[1] for tup in myfield.columns])))
         divnorm = TwoSlopeNorm(vmin=thr[0], vcenter=thr[1], vmax=thr[2])
         pal = sns.color_palette("Spectral_r", as_cmap=True)
-        #pal = sns.diverging_palette(220, 20, as_cmap=True)
-        chart = sns.heatmap(myfield, norm = divnorm, cmap=pal, 
-            cbar_kws={"ticks": tictoc, 'label': title},
-            ax = axs, annot = True, linewidth=0.5, 
-            annot_kws={'fontsize':11, 'fontweight':'bold'})
+        # pal = sns.diverging_palette(220, 20, as_cmap=True)
+        chart = sns.heatmap(myfield, norm=divnorm, cmap=pal,
+                            cbar_kws={"ticks": tictoc, 'label': title},
+                            ax=axs, annot=True, linewidth=0.5,
+                            annot_kws={'fontsize': 11, 'fontweight': 'bold'})
         chart = chart.set_facecolor('whitesmoke')
-        axs.set_title(f'{title} {diag.modelname} {diag.year1} {diag.year2}', fontsize = 25)
-        axs.vlines(list(range(sss,tot+sss,sss)) , ymin = -1, ymax = len(myfield.index), colors = 'k')
-        axs.hlines(len(myfield.index)-1, xmin = -1, xmax = len(myfield.columns), colors = 'purple', lw = 0.8)
-        names = [ ' '.join(x) for x in myfield.columns ]
-        if (k == (nplots-1)) :
-            axs.set_xticks([x+.5 for x in range(len(names))], names, rotation=45, ha='right', fontsize = 15)
-        else : 
+        axs.set_title(f'{title} {diag.modelname} {diag.year1} {diag.year2}', fontsize=25)
+        axs.vlines(list(range(sss, tot+sss, sss)), ymin=-1, ymax=len(myfield.index), colors='k')
+        axs.hlines(len(myfield.index)-1, xmin=-1, xmax=len(myfield.columns), colors='purple', lw=0.8)
+        names = [' '.join(x) for x in myfield.columns]
+        if (k == (nplots-1)):
+            axs.set_xticks([x+.5 for x in range(len(names))], names, rotation=45, ha='right', fontsize=15)
+        else:
             axs.set_xticks([])
-        axs.set_yticks([x+.5 for x in range(len(myfield.index))], myfield.index, rotation = 0, fontsize=18)
+        axs.set_yticks([x+.5 for x in range(len(myfield.index))], myfield.index, rotation=0, fontsize=18)
         axs.set(xlabel=None)
-    
+
     plt.savefig(filemap)

@@ -160,7 +160,7 @@ def gm_main(argv):
     # assert sys.version_info >= (3, 7)
 
     args = parse_arguments(argv)
-     # log level with logging
+    # log level with logging
     # currently basic definition trought the text
     numeric_level = getattr(logging, args.loglevel.upper(), None)
     if not isinstance(numeric_level, int):
