@@ -15,6 +15,9 @@ permissions:
 jobs:
   build:
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.7", "3.8", "3.9", "3.10"]
     defaults:
       run:
         shell: bash -el {0}
@@ -24,7 +27,7 @@ jobs:
     - uses: conda-incubator/setup-miniconda@v2
       with:
         activate-environment: ECmean4
-        python-version: 3.9
+        python-version: ${{ matrix.python-version }}
         channels: conda-forge
         environment-file: environment.yml
         auto-activate-base: false
