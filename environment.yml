@@ -12,6 +12,8 @@ dependencies:
   - dask
   - xarray
   - xesmf
+  - esmpy=8.3.1 #temporary
+  - matplotlib>3.5
   - metpy
   - tabulate
   - cfgrib
