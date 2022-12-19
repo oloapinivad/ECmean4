@@ -16,3 +16,4 @@ dependencies:
   - metpy
   - tabulate
   - cfgrib
+  - seaborn

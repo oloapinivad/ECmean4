@@ -14,7 +14,7 @@ dependencies:
   - xesmf
   - metpy
   - esmpy=8.3.1 #temporary
-  - matplotlib>3.5
+  - matplotlib-base>=3.5.0
   - tabulate
   - cfgrib
   - pytest

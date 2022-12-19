@@ -12,7 +12,8 @@ Welcome to ECmean4's documentation!
    intro
    installation
    configuration
-   usage
+   performanceindices
+   globalmean
    CDOversion
 
 ECmean4 code
@@ -22,9 +23,6 @@ ECmean4 code
    :maxdepth: 1
 
    _apidocs/modules
-
-
-
 
 
 Indices and tables

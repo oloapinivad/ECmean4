@@ -19,7 +19,7 @@ build:
   #  - cdo
 
 conda:
-  environment: docs/docs_environment.yml
+  environment: environment.yml
 
 # Build documentation in the docs/ directory with Sphinx
 sphinx:

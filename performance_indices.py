@@ -54,8 +54,8 @@ def parse_arguments(args):
         '-k',
         '--climatology',
         type=str,
-        default='RK08',
-        help='climatology to be compared. default: RK08. Options: [RK08, EC22]')
+        default='EC23',
+        help='climatology to be compared. default: EC23. Options: [RK08, EC22, EC23]')
     parser.add_argument('-r', '--resolution', type=str, default='',
                         help='climatology resolution')
     parser.add_argument('-e', '--ensemble', type=str, default='r1i1p1f1',
