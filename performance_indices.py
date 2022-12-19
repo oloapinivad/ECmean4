@@ -42,7 +42,7 @@ def parse_arguments(args):
     parser.add_argument('year2', metavar='Y2', type=int, help='final year')
     parser.add_argument('-s', '--silent', action='store_true',
                         help='do not print anything to std output')
-    parser.add_argument('-v', '--loglevel', type=str, default='ERROR',
+    parser.add_argument('-v', '--loglevel', type=str, default='WARNING',
                         help='define the level of logging. default: error')
     parser.add_argument('-j', dest="numproc", type=int, default=1,
                         help='number of processors to use')

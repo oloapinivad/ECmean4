@@ -53,14 +53,12 @@ def parse_arguments(args):
                         help='model name')
     parser.add_argument('-c', '--config', type=str, default='',
                         help='config file')
-    parser.add_argument('-v', '--loglevel', type=str, default='ERROR',
+    parser.add_argument('-v', '--loglevel', type=str, default='WARNING',
                         help='define the level of logging.')
     parser.add_argument('-j', dest="numproc", type=int, default=1,
                         help='number of processors to use')
     parser.add_argument('-e', '--ensemble', type=str, default='r1i1p1f1',
                         help='variant label (ripf number for cmor)')
-    parser.add_argument('-d', '--debug', action='store_true',
-                        help='activate cdo debugging')
     parser.add_argument('-i', '--interface', type=str, default='',
                         help='interface (overrides config.yml)')
 

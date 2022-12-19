@@ -29,14 +29,18 @@ positional arguments:
 optional arguments:
   -h, --help            show this help message and exit
   -s, --silent          do not print anything to std output
-  -t, --trend           compute trends
+  -t, --trend           compute trends on multiple years
   -l, --line            appends also single line to a table
+  -c config.yml, --config config.yml
+                        set up a specific configuration file (config.yml is default)
+  -i INTERFACE, --interface INTERFACE
+                        set up a specific interface file (override config.yml)
   -o FILE, --output FILE
                         path of output one-line table
   -m MODEL, --model MODEL
-                        model name
+                        model name (override config.yml)
   -v LOGLEVEL, --loglevel LOGLEVEL
-                        define the level of logging.
+                        define the level of logging. Default is warning.
   -j NUMPROC            number of processors to use
   -e ENSEMBLE, --ensemble ENSEMBLE
                         variant label (ripf number for cmor)
@@ -47,7 +51,10 @@ performance_indices.py
 Main concepts
 ^^^^^^^^^^^^^
 
-The ``performance_indices.py`` script computes the `Reichler and Kim Performance Indices <https://journals.ametsoc.org/view/journals/bams/89/3/bams-89-3-303.xml>`_. A few minor modification has been implemented in the original ECmean configuration so that it still work on a regular 2x2 grid (instead of using observation grid). and it is based on old climatological assessment present in the original ECmean. The climatology is defined by ``pi_climatology.yml`` script. Climatology for PI is still VERY outdated and it is being updated. 
+The ``performance_indices.py`` script computes the `Reichler and Kim Performance Indices <https://journals.ametsoc.org/view/journals/bams/89/3/bams-89-3-303.xml>`_. 
+A few minor modification has been implemented in the original ECmean configuration so that it still work on a regular 2x2 grid (instead of using observation grid). 
+It is based on old climatological assessment present in the original ECmean. The default climatology is defined by ``climttology/RK08/RK08_pi_climatology.yml`` script. 
+Climatology for PI is VERY outdated and it is being updated: a new version under testing can be found in ``climttology/EC22/EC22_pi_climatology.yml``
 
 
 Usage
@@ -70,12 +77,16 @@ optional arguments:
   -v LOGLEVEL, --loglevel LOGLEVEL
                         define the level of logging. default: error
   -j NUMPROC            number of processors to use
+  -c config.yml, --config config.yml
+                        set up a specific configuration file (config.yml is default)
+  -i INTERFACE, --interface INTERFACE
+                        set up a specific interface file (override config.yml)
   -m MODEL, --model MODEL
                         model name
   -e ENSEMBLE, --ensemble ENSEMBLE
                         variant label (ripf number for cmor)
   -d, --debug           activate cdo debugging
-  -k CLIMATOLOGY        which climatology you want to use (EC22 or RK08)
+  -k CLIMATOLOGY        which climatology you want to use (RK08: default, EC22 alternative under update)
   -r RESOLUTION         only EC22: resolution of the climatology (r180x90 or r360x180)
 
 

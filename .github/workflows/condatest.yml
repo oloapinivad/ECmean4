@@ -1,4 +1,4 @@
-# This workflow will install Python dependencies, run tests and lint with a single version of Python
+# This workflow will install Python dependencies using Conda, run tests and lint with a single version of Python
 # For more information see: https://autobencoder.com/2020-08-24-conda-actions/
 
 name: Conda PyTest

@@ -173,24 +173,24 @@ def var_is_there(flist, var, reference):
             # check of unit is specified in the interface file
             varunit = reference[var].get('units')
             if not varunit:
-                logging.warning('%s is a derived var, assuming unit '
+                logging.info('%s is a derived var, assuming unit '
                                 'as the first of its term', var)
                 varunit = units_avail.get(var_req[0])
         else:
             var_req = [var]
             varunit = units_avail.get(var)
 
-            # check if all required variables are in model output
+        # check if all required variables are in model output
         isavail = True
         for x in var_req:
             if x not in vars_avail:
                 isavail = False
-                logging.warning("Variable %s needed by %s is not "
-                                "available in the model output!", x, var)
+                logging.warning("Variable %s requires %s which is not "
+                                "available in the model output. Ignoring it.", var, x)
     else:
         varunit = None
-        print(f'Not available: {var} File: {flist}')
-        logging.warning("Requested file %s is not available.", flist)
+        #print(f'Not available: {var} File: {flist}')
+        logging.warning("No data found for variable %s. Ignoring it.", var)
 
     return isavail, varunit
 
@@ -323,7 +323,7 @@ def load_yaml(infile):
         with open(infile, 'r', encoding='utf-8') as file:
             cfg = yaml.load(file, Loader=yaml.FullLoader)
     except IOError:
-        sys.exit(f'{infile} not found: you need to have this configuration file!')
+        sys.exit(f'ERROR: {infile} not found: you need to have this configuration file!')
     return cfg
 
 
@@ -379,6 +379,10 @@ def _make_atm_masks(component, maskatmfile, remap_dictionary=None):
 
     # prepare ATM LSM: this needs to be improved, since it is clearly model
     # dependent
+    logging.debug('maskatmfile is' + maskatmfile)
+    if not maskatmfile: 
+        sys.exit("ERROR: maskatmfile cannot be found")
+
     if component == 'oifs':
         # create mask: opening a grib and loading only lsm to avoid
         # inconsistencies # in the grib structure ->
@@ -398,7 +402,7 @@ def _make_atm_masks(component, maskatmfile, remap_dictionary=None):
         mask = mask['lsm'].mean(dim='time')
         mask = abs(1-mask)
     else:
-        sys.exit("Mask undefined yet mismatch, this cannot be handled!")
+        sys.exit("ERROR: Mask undefined yet mismatch, this cannot be handled!")
 
     if remap_dictionary is not None:
         if remap_dictionary['atm_fix']:
@@ -420,7 +424,7 @@ def masked_meansum(xfield, var, weights, mask_type, mask):
     elif mask_type in ['land', 'ocean', 'sea']:
         out = masked.weighted(weights.fillna(0)).sum().values
     else:
-        sys.exit("Mask undefined, this cannot be handled!")
+        sys.exit("ERROR: Mask undefined, this cannot be handled!")
 
     return float(out)
 
@@ -451,7 +455,7 @@ def mask_field(xfield, var, mask_type, mask):
         elif mask_type in ['sea', 'ocean']:
             out = bfield[var].where(bfield['mask'] < 0.5)
         else:
-            sys.exit("Mask undefined, this cannot be handled!")
+            sys.exit("ERROR: Mask undefined, this cannot be handled!")
 
     return out
 
@@ -493,6 +497,10 @@ def areas_dictionary(component, atmareafile, oceareafile):
 def _make_atm_areas(component, atmareafile):
     "Create atmospheric weights for area operations"
 
+    logging.debug('Atmareafile is ' + atmareafile)
+    if not atmareafile : 
+        sys.exit("ERROR: Atmareafile cannot be found")
+
     if component == 'oifs':
         xfield = xr.open_mfdataset(atmareafile, preprocess=xr_preproc)
         area = _area_cell(xfield)
@@ -503,12 +511,16 @@ def _make_atm_areas(component, atmareafile):
         xfield = xr.open_mfdataset(atmareafile, preprocess=xr_preproc)
         area = _area_cell(xfield)
     else:
-        sys.exit("Area for this configuration cannot be handled!")
+        sys.exit("ERROR: Area for this configuration cannot be handled!")
     return area
 
 
 def _make_oce_areas(component, oceareafile):
     "Create atmospheric weights for area operations"
+
+    logging.debug('Oceareafile is ' + oceareafile)
+    if not oceareafile : 
+        logging.warning("Ocereafile cannot be found, assuming this is an AMIP run")
 
     if oceareafile:
         if component == 'nemo':
@@ -524,7 +536,7 @@ def _make_oce_areas(component, oceareafile):
             else:
                 area = _area_cell(xfield)
         else:
-            sys.exit("Area for this configuration cannot be handled!")
+            sys.exit("ERROR: Area for this configuration cannot be handled!")
     else:
         area = None
     return area
@@ -658,7 +670,7 @@ def _area_cell(xfield, formula='triangles'):
         # checking
         if blondim is None and blatdim is None:
             sys.exit(
-                "Can't find any lon/lat boundaries and grid is unstructured, need some help!")
+                "ERROR: Can't find any lon/lat boundaries and grid is unstructured, need some help!")
 
         logging.debug('Unstructured grid, special ECE4 treatment...')
         # ATTENTION: this is a very specific ECE4 definition, it will not work
@@ -859,6 +871,10 @@ def remap_dictionary(component, atmareafile, oceareafile, target_grid):
 def _make_atm_interp_weights(component, atmareafile, target_grid):
     """Create atmospheric interpolator"""
 
+    logging.debug('Atmareafile is ' + atmareafile)
+    if not atmareafile : 
+        sys.exit("ERROR: Atmareafile cannot be found")
+
     if component == 'oifs':
 
         # this is to get lon and lat from the Equator
@@ -906,13 +922,17 @@ def _make_atm_interp_weights(component, atmareafile, target_grid):
 
     else:
         sys.exit(
-            "Atm weights not defined for this component, this cannot be handled!")
+            "ERROR: Atm weights not defined for this component, this cannot be handled!")
 
     return fix, interp
 
 
 def _make_oce_interp_weights(component, oceareafile, target_grid):
     """Create oceanic interpolator weights"""
+
+    logging.debug('Oceareafile is ' + oceareafile)
+    if not oceareafile : 
+        sys.exit("ERROR: Oceareafile cannot be found")
 
     if component == 'nemo':
         fix = None
@@ -965,7 +985,7 @@ def _make_oce_interp_weights(component, oceareafile, target_grid):
 
     else:
         sys.exit(
-            "Oce weights not defined for this component, this cannot be handled!")
+            "ERROR: Oce weights not defined for this component, this cannot be handled!")
 
     return fix, interp
 
@@ -991,11 +1011,19 @@ def xr_preproc(ds):
     if 'plevel' in list(ds.dims):
         ds = ds.rename({"plevel": "plev"})
 
-    if 'nav_lon' in list(ds.coords):
-        ds = ds.rename({"nav_lon": "lon"})
+    # fix for NEMO eORCA grid (nav_lon, nav_lat)
+    for h in ['lon', 'lat'] : 
+        for f in ['', 'grid_T'] :
+            g = 'nav_'+ h + '_' + f 
+            if g in list(ds.coords):
+                ds = ds.rename({g: h})
 
-    if 'nav_lat' in list(ds.coords):
-        ds = ds.rename({"nav_lat": "lat"})
+    # fix for NEMO eORCA grid (x_grid_T, etc.)
+    for h in ['x', 'y'] :
+        for f in ['grid_T'] :
+            g = h + '_'+ f 
+            if g in list(ds.dims):
+                ds = ds.rename({g: h})
 
     if 'longitude' in list(ds.dims):
         ds = ds.rename({"longitude": "lon"})
@@ -1047,7 +1075,7 @@ def adjust_clim_file(cfield, remove_zero=False):
 def units_extra_definition():
     """Add units to the pint registry required by ECMean4"""
 
-    # special units definition, need to be moved in another placce
+    # special units definition
     units.define('fraction = [] = frac')
     units.define('psu = 1e-3 frac')
     units.define('PSU = 1e-3 frac')
@@ -1082,7 +1110,7 @@ def units_converter(org_units, tgt_units):
 
         else:
             logging.error(units_relation)
-            sys.exit("Units mismatch, this cannot be handled!")
+            sys.exit("ERROR: Units mismatch, this cannot be handled!")
     else:
         offset = 0.
         factor = 1.
