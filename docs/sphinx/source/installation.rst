@@ -1,11 +1,6 @@
 Installation
 ============
 
-Prerequisites
--------------
-
-Python 3.7+ is required. 
-
 Getting the code
 ----------------
 
@@ -28,7 +23,7 @@ Once you set up Conda, ECmean4 can be easily installed with:
 
 .. code-block:: shell
 
-    > conda env --name ECmean4 create -f environment.yml
+    > conda env create --name ECmean4 -f environment.yml
 
 with ``ECmean4`` is just an arbitrary name. Then you can activate the environment with:
 
@@ -43,8 +38,8 @@ Requirements
 The required packages are listed in `environment.yml`. 
 A secondary environment available in  `dev_environment.yml` can be used for development. 
 
-.. note::
-	Python >=3.8 is requested, but Python 3.11 is so far not supported
+.. warning::
+	Python >=3.8 is requested, but Python 3.11 is so far not supported due to conflicting packages
 
 
 
