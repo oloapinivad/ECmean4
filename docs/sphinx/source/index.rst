@@ -7,7 +7,7 @@ Welcome to ECmean4's documentation!
 ===================================
 
 .. toctree::
-   :maxdepth: 1
+   :maxdepth: 2
 
    intro
    installation
@@ -20,7 +20,7 @@ ECmean4 code
 ^^^^^^^^^^^^^^^
 
 .. toctree::
-   :maxdepth: 1
+   :maxdepth: 2
 
    _apidocs/modules
 

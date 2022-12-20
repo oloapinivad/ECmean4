@@ -5,7 +5,9 @@ Main concepts
 ^^^^^^^^^^^^^
 
 The ``global_mean.py`` script computes the global averages for many dynamical and physical fields. 
-It compares the output against a set of climatological values defined in ``gm_reference.yml``, including temperature, salinity, precipitation (integrals over land and sea), radiative fluxes and other quantities useful for model tuning.
+It compares the output against a set of pre-computed climatological values defined in ``gm_reference.yml``, including the most important dynamical and physical fields for both the atmosphere and the ocean (e.g. temperature, salinity, etc.).
+Most importantly, it provides estimate for the radiative budget (including clouds radiative forcing) and for the hydrological cycle (including integrals over land and ocean) 
+and other quantities useful for fast model assessment and for model tuning.
 
 Usage
 ^^^^^
@@ -14,20 +16,24 @@ Running the global mean evaluation is rather simple ::
 
         ./global_mean.py EXP Y1 Y2
 
-Extra options are listed here below:
+- `Positional arguments`:
 
-positional arguments:
-  EXP                   experiment ID
-  Y1                    starting year
-  Y2                    final year
+  EXP                   
+    experiment identification
 
-optional arguments:
-  -h, --help            show this help message and exit
-  -s, --silent          do not print anything to std output
-  -t, --trend           compute trends on multiple years
-  -l, --line            appends also single line to a table
-  -c config.yml, --config       
-                        config.yml set up a specific configuration file (config.yml is default)
+  Y1                    
+    starting year of analysis
+
+  Y2                   
+    final year of analysis
+
+- `Optional arguments`:
+
+  -h, --help            	show this help message and exit
+  -s, --silent          	do not print anything to std output
+  -t, --trend           	compute trends on multiple years
+  -l, --line            	appends also single line to a table
+  -c CONFIG, --config CONFIG	set up a specific configuration file (config.yml is default)
   -i INTERFACE, --interface INTERFACE   set up a specific interface file (override config.yml)
   -o FILE, --output FILE        path of output one-line table
   -m MODEL, --model MODEL       model name (override config.yml)
@@ -40,6 +46,13 @@ Output
 ^^^^^^
 
 A txt table including the comparison with some predefined dataset.
+
+.. figure:: _static/globaltesttable.png
+   :align: center
+   :width: 600px
+   :alt: Global mean for EC-Earth3
+
+   An example for a single year of the EC-Earth3 historical r1i1p1f1 simulation.
 
 
 Example

@@ -15,20 +15,25 @@ Running the performance indices evaluation is rather simple ::
 
         ./performance_indices.py EXP Y1 Y2
 
-Extra options are listed here below:
+- `Positional arguments`:
 
-positional arguments:
-  EXP                   experiment ID
-  Y1                    starting year
-  Y2                    final year
+  EXP                   
+    experiment identification
 
-optional arguments:
+  Y1                    
+    starting year of analysis
+
+  Y2                   
+    final year of analysis
+
+- `Optional arguments`:
+
   -h, --help            show this help message and exit
   -s, --silent          do not print anything to std output
   -v LOGLEVEL, --loglevel LOGLEVEL
                         define the level of logging. default: error
   -j NUMPROC            number of processors to use
-  -c config.yml, --config config.yml
+  -c CONFIG, --config CONFIG
                         set up a specific configuration file (config.yml is default)
   -i INTERFACE, --interface INTERFACE
                         set up a specific interface file (override config.yml)
@@ -45,11 +50,11 @@ Example
 
 Usage example for CMIP6 (running on 12 cores for EC-Earth3 historical)::
 
-        ./performance_indices.py historical 1990 1999 -j 12 -m EC-Earth3 -e r1i1p1f1 -i CMIP6 
+  > ./performance_indices.py historical 1990 1999 -j 12 -m EC-Earth3 -e r1i1p1f1 -i CMIP6 
 
 Usage example for EC-Earth4 (running on 4 corese for EC-Earth4 experment ABC1)::
 
-        ./performance_indices.py ABC1 1990 1999 -j 4
+  > ./performance_indices.py ABC1 1990 1999 -j 4
 
 
 Output
@@ -60,7 +65,7 @@ Most importantly, a figure is produced showing a score card for the different re
 This is computed as the ratio between the model PI and the average value estimated over the (precomputed) ensemble of CMIP6 models. 
 An example of the the output for a single year of the EC-Earth3 historical simulation is shown here below.
 
-.. figure:: pitestfigure.png
+.. figure:: _static/pitestfigure.png
    :align: center
    :width: 600px
    :alt: PI for ECearth3
