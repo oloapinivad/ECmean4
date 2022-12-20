@@ -38,7 +38,7 @@ Since parallelization is done along variables, it does not make sense (especiall
 This has been tested on a single core machine for 30 years of a coupled EC-Earth3 CMIP6 historical run (i.e. TL255L91, about 0.7x0.7 deg), using the default ``config.yml`` (for performance indices evaluating on 3 seasons and 4 regions).
 
 .. list-table:: ECmean4 Performance Indices performances
-  :widths: 25 25 25
+  :widths: 25 25 25 25
   :header-rows: 1
 
   * - SCRIPT
@@ -54,7 +54,6 @@ This has been tested on a single core machine for 30 years of a coupled EC-Earth
     - 164s
     - 116s
 
-
 .. note ::
 	So far we cannot exploit completely dask in the xarray version due to previous existence of the multiprocessing library which is partially conflicting. 
-  This issue will be addressed in future release, but so far dask scheduler is thus set to synchronous with ``dask.config.set(scheduler="synchronous")``
+  This issue will be addressed in future release, but so far dask scheduler is thus set to synchronous with ``dask.config.set(scheduler="synchronous")``.
