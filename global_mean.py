@@ -26,7 +26,7 @@ import dask
 from ecmean import var_is_there, eval_formula, \
     masks_dictionary, areas_dictionary, get_inifiles, load_yaml, \
     units_extra_definition, units_are_integrals, \
-    units_converter, directions_match, chunks, write_tuning_table, \
+    units_converter, directions_match, weight_split, write_tuning_table, \
     Diagnostic, getdomain, make_input_filename, masked_meansum, \
     xr_preproc
 
@@ -227,7 +227,7 @@ def gm_main(argv):
     tic = time()
 
     # loop on the variables, create the parallel process
-    for varlist in chunks(var_all, diag.numproc):
+    for varlist in weight_split(var_all, diag.numproc):
         p = Process(target=gm_worker, args=(util_dictionary, ref, face, diag,
                                             varmean, vartrend, varlist))
         p.start()

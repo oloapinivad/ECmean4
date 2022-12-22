@@ -23,7 +23,7 @@ from ecmean import var_is_there, eval_formula, \
     get_inifiles, adjust_clim_file, get_clim_files, \
     areas_dictionary, masks_dictionary, remap_dictionary, guess_bounds, \
     load_yaml, units_extra_definition, units_are_integrals, \
-    units_converter, directions_match, chunks, \
+    units_converter, directions_match, weight_split, \
     Diagnostic, getdomain, make_input_filename, xr_preproc, mask_field, \
     heatmap_comparison, select_region, dict_to_dataframe
 
@@ -322,7 +322,8 @@ def pi_main(argv):
     tic = time()
 
     # loop on the variables, create the parallel process
-    for varlist in chunks(field_all, diag.numproc):
+    for varlist in weight_split(field_all, diag.numproc):
+        
         p = Process(
             target=pi_worker,
             args=(

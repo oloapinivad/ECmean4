@@ -33,16 +33,19 @@ Computational performances
 
 ECmean4 can process many years and multiple variables in less than 10 minutes (assuming that output is provided from monthly means). 
 Performance indices are implicitly slower than global mean, but with a few cores available both can be completed in a couple of minutes.
-Since parallelization is done along variables, it does not make sense (especially for performance indices) to use more than 6 cores. 
+Since parallelization is done along variables, it does not make sense (especially for performance indices) to use more than 6 cores due to the limited number of variables. 
 
-This has been tested on a single core machine for 30 years of a coupled EC-Earth3 CMIP6 historical run (i.e. TL255L91, about 0.7x0.7 deg), using the default ``config.yml`` (for performance indices evaluating on 3 seasons and 4 regions).
+This has been tested on a Xeon 16-Core 6130 2,1Ghz machine, analysing EC-Earth3 CMIP6 historical run (i.e. TL255L91, about 0.7x0.7 deg), using the default ``config.yml`` (i.e. for performance indices evaluating on 3 seasons and 4 regions).
 
 .. figure:: _static/benchmark.png
    :align: center
    :width: 600px
    :alt: Benchmark for EC-Earth3
 
-   A multi-core benchmarking for Global Mean and Performance Indices over 10 year of CMIP6 EC-Earth3 data
+   A multi-core (upper panel) and multi-year (lower-panel) benchmarking for Global Mean and Performance Indices for CMIP6 EC-Earth3 historical data
 
 .. note ::
 	So far we cannot exploit completely dask in the xarray version due to previous existence of the multiprocessing library which is partially conflicting. This issue will be addressed in future release, but so far dask scheduler is thus set to synchronous with ``dask.config.set(scheduler="synchronous")``.
+
+.. warning ::
+	Do not use more core than available variables: this might result in crash due to bad handling of multiprocessing. See the corresponding `GitHub issue <https://github.com/oloapinivad/ECmean4/issues/54>`_ .

@@ -103,13 +103,55 @@ def is_number(s):
         return False
 
 
-def chunks(iterable, num):
-    """Generate num adjacent chunks of data from a list iterable
-    Split lists in a convenient way for a parallel process"""
+# def chunks(iterable, num):
+#     """Generate num adjacent chunks of data from a list iterable
+#     Split lists in a convenient way for a parallel process"""
 
-    size = int(np.ceil(len(iterable) / num))
-    it = iter(iterable)
-    return iter(lambda: tuple(itertools.islice(it, size)), ())
+#     size = int(np.ceil(len(iterable) / num))
+#     it = iter(iterable)
+#     return iter(lambda: tuple(itertools.islice(it, size)), ())
+
+# def split(iterable, num):
+#     k, m = divmod(len(iterable), num)
+#     return (iterable[i*k+min(i, m):(i+1)*k+min(i+1, m)] for i in range(num))
+
+def runtime_weights(varlist) : 
+    """Define the weights to estimate the best repartition of the cores
+    This is done a-priori, considering that 1) compound variables are more difficult to compute 
+    2) 3d variables requires more evaluation"""
+
+    w = {}
+    for k in varlist : 
+        if k in ['ua', 'ta', 'va', 'hus'] :
+            t = 8
+        elif k in ['pme', 'net_sfc_nosn', 'net_sfc', 'toamsfc_nosn', 'toamsfc', 
+            'pr_oce', 'pme_oce', 'pr_land', 'pme_land', 'net_toa'] :
+            t = 3
+        else :
+            t = 1
+        w[k] = t 
+
+    return w
+
+
+def weight_split(a, n) : 
+    """use the weights by runtime_weights to provide a number of n chunks based on the
+    minimum possible value of each chunk computing time. Then, provide the list of variables
+    to be used in the multiprocessing routine"""
+
+    ws = sorted(runtime_weights(a).items(), key=lambda x:x[1], reverse=True)
+    ordered = dict(ws)
+
+    elists = [ [0] for _ in range(n) ]
+    olists = [ [] for _ in range(n) ]
+    
+    count=0
+    for f in ordered.keys() : 
+        elists[count].append(ordered[f])
+        olists[count].append(f)
+        count=elists.index(min(elists)) 
+        
+    return olists
 
 
 def getdomain(var, face):
@@ -960,7 +1002,6 @@ def _make_oce_interp_weights(component, oceareafile, target_grid):
         fix = None
         xfield = xr.open_mfdataset(oceareafile, preprocess=xr_preproc)
         xname = list(xfield.data_vars)[-1]
-        # print(xfield.dims)
         # print(len(xfield.coords['lon'].shape))
 
         # check if oceanic grid is regular: lon/lat dims should be 1d
@@ -1034,8 +1075,14 @@ def xr_preproc(ds):
     if 'longitude' in list(ds.coords):
         ds = ds.rename({"longitude": "lon"})
 
+    if 'nav_lon' in list(ds.coords):
+        ds = ds.rename({"nav_lon": "lon"})
+
     if 'latitude' in list(ds.coords):
         ds = ds.rename({"latitude": "lat"})
+
+    if 'nav_lat' in list(ds.coords):
+        ds = ds.rename({"nav_lat": "lat"})
 
     if 'values' in list(ds.dims):
         ds = ds.rename({"values": "cell"})
@@ -1236,4 +1283,6 @@ def heatmap_comparison(absolute_table, relative_table, diag, filemap):
         axs.set_yticks([x+.5 for x in range(len(myfield.index))], myfield.index, rotation=0, fontsize=18)
         axs.set(xlabel=None)
 
+    # save and close
     plt.savefig(filemap)
+    plt.cla()
