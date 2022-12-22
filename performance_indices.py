@@ -401,7 +401,8 @@ def pi_main(argv):
     if diag.climatology == 'EC23':
 
         # convert output dictionary to pandas dataframe
-        data_table = dict_to_dataframe(varstat)
+        data_table = dict_to_dataframe(ordered)
+        logging.info(data_table)
 
         # uniform dictionaries
         filt_piclim = {}
@@ -424,7 +425,7 @@ def pi_main(argv):
         mapfile = diag.FIGDIR / \
             f'PI4_{diag.climatology}_{diag.expname}_{diag.modelname}_r1i1p1f1_{diag.year1}_{diag.year2}.pdf'
         # heatmap_comparison_old(data_table, diag, mapfile)
-        heatmap_comparison(data_table, cmip6_table, diag, mapfile)
+        heatmap_comparison(cmip6_table, diag, mapfile)
 
     toc = time()
     # evaluate tic-toc time of postprocessing

@@ -20,12 +20,14 @@ global:
 
 PI:
   2d_vars:
-    field: [net_sfc, tas, psl, pr, tauu, tauv, snc]
+    field: [net_sfc, tas, psl, pr, tauu, tauv]
   3d_vars:
     field: [ta, ua, va, hus]
   oce_vars:
     field: [tos, sos]
   ice_vars:
     field: [siconc]
-  resolution: r180x90
+  regions: ['Global', 'North Midlat', 'Tropical', 'South Midlat']
+  seasons: ['ALL', 'DJF', 'JJA']
+  resolution: r360x180
 
