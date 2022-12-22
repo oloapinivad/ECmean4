@@ -537,7 +537,8 @@ def areas_dictionary(component, atmareafile, oceareafile):
 
 
 def _make_atm_areas(component, atmareafile):
-    "Create atmospheric weights for area operations"
+    """Create atmospheric weights for area operations. Load once defined to allow
+    for parallel computation."""
 
     logging.debug('Atmareafile is ' + atmareafile)
     if not atmareafile : 
@@ -554,11 +555,13 @@ def _make_atm_areas(component, atmareafile):
         area = _area_cell(xfield)
     else:
         sys.exit("ERROR: Area for this configuration cannot be handled!")
-    return area
+    return area.load()
 
 
 def _make_oce_areas(component, oceareafile):
-    "Create atmospheric weights for area operations"
+    """Create atmospheric weights for area operations. Load once defined to allow
+    for parallel computation
+    """
 
     logging.debug('Oceareafile is ' + oceareafile)
     if not oceareafile : 
@@ -579,6 +582,8 @@ def _make_oce_areas(component, oceareafile):
                 area = _area_cell(xfield)
         else:
             sys.exit("ERROR: Area for this configuration cannot be handled!")
+
+        area = area.load()
     else:
         area = None
     return area
