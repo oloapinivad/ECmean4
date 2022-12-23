@@ -1,7 +1,7 @@
 # This workflow will install Python dependencies using Conda, run tests and lint with a single version of Python
 # For more information see: https://autobencoder.com/2020-08-24-conda-actions/
 
-name: Conda PyTest
+name: Mamba PyTest
 
 on:
   push:
@@ -19,7 +19,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python-version: ["3.10"]
+        python-version: ["3.8", "3.9", "3.10"]
     defaults:
       run:
         shell: bash -el {0}
