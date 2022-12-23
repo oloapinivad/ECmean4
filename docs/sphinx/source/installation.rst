@@ -10,8 +10,8 @@ You can freely clone from the Github Repository ::
     
 .. note ::
 
-    Please note that if you clone with HTTPS you will not be able to contribuite to the code, even if you are listed as collaborator.
-    If you want to be a developer you should clone with SSH and you shoud add your own SSH key on the GitHub portal: 
+    Please note that if you clone with HTTPS you will not be able to contribute to the code, even if you are listed as collaborator.
+    If you want to be a developer you should clone with SSH and you should add your own SSH key on the GitHub portal: 
     please check the `procedure on the Github website <https://docs.github.com/en/authentication/connecting-to-github-with-ssh/adding-a-new-ssh-key-to-your-github-account>`_ .
 
 
