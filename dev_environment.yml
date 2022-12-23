@@ -6,21 +6,21 @@ name : ECmean4
 channels:
   - conda-forge
 dependencies:
-  - python=3.9 
+  - python>=3.8,<3.11
   - numpy
   - netcdf4 
   - dask
   - xarray
+  - cfgrib
   - xesmf
-  - metpy
   - esmpy=8.3.1 #temporary
   - matplotlib-base>=3.5.0
+  - metpy
+  - seaborn
   - tabulate
-  - cfgrib
   - pytest
   - flake8
   - autopep8
   - sphinx
   - sphinx_rtd_theme
   - ipykernel
-  - seaborn
