@@ -18,20 +18,21 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python-version: ["3.8", "3.9", "3.10"]
+        python-version: ["3.10"]
     defaults:
       run:
         shell: bash -el {0}
 
     steps:
     - uses: actions/checkout@v3
-    - uses: conda-incubator/setup-miniconda@v2
+    - name: provision-with-micromamba
+      uses: mamba-org/provision-with-micromamba@v14
       with:
-        activate-environment: ECmean4
-        python-version: ${{ matrix.python-version }}
-        channels: conda-forge
         environment-file: environment.yml
-        auto-activate-base: false
+        environment-name: ECmean4
+        cache-downloads: true
+        extra-specs: |
+            python=${{ matrix.python-version }}
     - name: Lint with flake8
       run: |
         conda install flake8
@@ -41,5 +42,4 @@ jobs:
         flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
     - name: Test with pytest
       run: |
-         #conda install pytest
          python -m pytest
