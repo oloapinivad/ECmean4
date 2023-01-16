@@ -371,7 +371,7 @@ def _make_atm_masks(component, maskatmfile, remap_dictionary=None):
         mask = mask['sftlf']
     elif component == 'globo':
         mask = xr.open_mfdataset(maskatmfile, preprocess=xr_preproc)
-        mask = mask['lsm'].mean(dim='time')
+        mask = mask['lsm']
         mask = abs(1-mask)
     else:
         sys.exit("ERROR: Mask undefined yet mismatch, this cannot be handled!")

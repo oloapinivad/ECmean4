@@ -4,9 +4,9 @@ model:
    name: GLOBONE
 
 dirs:
-   exp: /work/users/davini
-   tab: /work/users/davini/ecmean_globo
-   clm: /work/users/davini/ECmean4/climatology
+   exp: /ec/res4/scratch/ccff/globone
+   tab: /lus/h2resw01/scratch/ccpd/globo
+   clm: /perm/ccpd/ecearth4/ECmean4
 
 global:
   atm_vars: [tas, psl, pr, evspsbl, pme, clt,

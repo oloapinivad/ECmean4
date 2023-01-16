@@ -15,7 +15,7 @@
 
 # Definition of model name and components belonging to it
 model:
-  basedir: 'globone/runtime/{expname}'
+  basedir: '{expname}'
   component:
     atm: globo
     oce: fesom
@@ -24,7 +24,7 @@ model:
 # Each variable belongs to a filetype
 filetype: 
   atm_6hrs:
-    filename: '{model}_atm_6hrs_{year1}.nc'
+    filename: 'GLOBONE_atm_6hrs_{year1}.nc'
     dir: ''
     component: globo
 
@@ -35,8 +35,8 @@ filetype:
 # If a relative path is used this is attached to $ECEDIR/$basedir
 component:
   globo:
-    inifile: '{model}_atm_6hrs_{year1}.nc'
-    atmfile: '{model}_atm_6hrs_{year1}.nc'
+    inifile: 'GLOBONE_BCs.nc'
+    atmfile: 'GLOBONE_atm_6hrs_{year1}.nc'
   fesom:
     inifile: None
     areafile: None
