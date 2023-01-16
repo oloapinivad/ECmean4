@@ -32,3 +32,5 @@
 | sos          | SSS                            | psu       |    nan         |      0        |            |           |
 | zos          | SSH                            | m         |    nan         |      0        |            |           |
 | wfo          | Net Water Flux into ocean      | m/century |    nan         |      0        |            |           |
+| siconc_north | Sea-ice Concentration          | km^2      |    nan         |      0        |            |           |
+| siconc_south | Sea-ice Concentration          | km^2      |    nan         |      0        |            |           |

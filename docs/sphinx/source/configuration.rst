@@ -41,7 +41,10 @@ atm_vars:
 	the list of atmospheric fields to be processed
 
 oce_vars: 
-	the list of oceanic/sea-ice fields to be processed
+	the list of oceanic fields to be processed
+
+ice_vars:
+        the list of sea-ice fields to be processed
 
 tab_vars: 
 	the list of fields to be reported in the output table

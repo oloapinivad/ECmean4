@@ -194,3 +194,11 @@ variables:
     varname: 'Precip. minus evap. (ocean)'
     derived: 'pr-evspsbl'
     filetype: atm2d
+  siconc_north:
+    varname: 'Sea-ice Concentration'
+    derived: siconc
+    filetype: ice
+  siconc_south:
+    varname: 'Sea-ice Concentration'
+    derived: siconc
+    filetype: ice
