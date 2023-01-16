@@ -444,7 +444,7 @@ def _make_atm_masks(component, maskatmfile, remap_dictionary=None):
         mask = mask['lsm'].mean(dim='time')
         mask = abs(1-mask)
     else:
-        sys.exit("ERROR: Mask undefined yet mismatch, this cannot be handled!")
+        sys.exit("ERROR: _make_atm_masks -> Mask undefined yet mismatch, this cannot be handled!")
 
     if remap_dictionary is not None:
         if remap_dictionary['atm_fix']:
@@ -455,18 +455,21 @@ def _make_atm_masks(component, maskatmfile, remap_dictionary=None):
 
 
 def masked_meansum(xfield, var, weights, mask_type, mask):
-    """For global variables rvaluate the weighted averaged
+    """For global variables evaluate the weighted averaged
     or weighted integral when required by the variable properties"""
 
     # call the mask_field to mask where necessary
+    # the mask field is area
     masked = mask_field(xfield, var, mask_type, mask)
 
+    # global mean
     if mask_type in ['global']:
         out = masked.weighted(weights.fillna(0)).mean().values
-    elif mask_type in ['land', 'ocean', 'sea']:
+    # global integrals
+    elif mask_type in ['land', 'ocean', 'sea', 'north', 'south']:
         out = masked.weighted(weights.fillna(0)).sum().values
     else:
-        sys.exit("ERROR: Mask undefined, this cannot be handled!")
+        sys.exit("ERROR: masked_meansum-> mask undefined, this cannot be handled!")
 
     return float(out)
 
@@ -477,9 +480,11 @@ def mask_field(xfield, var, mask_type, mask):
     # nothing to be done
     if mask_type == 'global':
         out = xfield
-
+    elif mask_type == 'north':
+        out = xfield.where(xfield['lat']>0) 
+    elif mask_type == 'south':
+        out = xfield.where(xfield['lat']<0) 
     else:
-
         # check that we are receiving a dataset and not a datarray
         if isinstance(xfield, xr.DataArray):
             xfield = xfield.to_dataset(name=var)
@@ -497,7 +502,7 @@ def mask_field(xfield, var, mask_type, mask):
         elif mask_type in ['sea', 'ocean']:
             out = bfield[var].where(bfield['mask'] < 0.5)
         else:
-            sys.exit("ERROR: Mask undefined, this cannot be handled!")
+            sys.exit("ERROR: mask_field -> Mask undefined, this cannot be handled!")
 
     return out
 
