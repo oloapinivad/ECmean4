@@ -323,7 +323,7 @@ def pi_main(argv):
 
     # loop on the variables, create the parallel process
     for varlist in weight_split(field_all, diag.numproc):
-        
+
         p = Process(
             target=pi_worker,
             args=(

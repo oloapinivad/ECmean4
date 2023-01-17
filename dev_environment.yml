@@ -8,17 +8,17 @@ channels:
 dependencies:
   - python>=3.8,<3.11
   - numpy
-  - netcdf4 
+  - netcdf4
   - dask
   - xarray
   - cfgrib
   - xesmf
-  - metpy
-  - numba
-  - esmpy=8.3.1 #temporary
+  - esmpy<=8.3.1 #temporary, cant use py311
   - matplotlib-base>=3.5.0
-  - metpy
+  - numba
+  - metpy<1.4.0
   - seaborn
+  - pytest
   - tabulate
   - pytest
   - flake8

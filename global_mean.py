@@ -198,7 +198,7 @@ def gm_main(argv):
         dict.fromkeys(
             var_atm +
             var_table +
-            var_oce + 
+            var_oce +
             var_ice))  # python 3.7+, preserve order
 
     # Can probably be cleaned up further
