@@ -1,0 +1,479 @@
+tas:
+  dataset: CRU
+  remap: remapbil
+  mask: land
+  units: degC
+  year1: 1990
+  year2: 2019
+  cmip6:
+    ALL:
+      Global: 36.82380009303219
+      North Midlat: 18.040757347134626
+      South Midlat: 23.351392196673473
+      Tropical: 56.32509780573537
+    DJF:
+      Global: 22.04870580884723
+      North Midlat: 10.227799232768772
+      South Midlat: 16.41588473829986
+      Tropical: 34.07988577292906
+    JJA:
+      Global: 30.514258066185903
+      North Midlat: 18.30666606869133
+      South Midlat: 9.053973157038419
+      Tropical: 44.264055096968555
+    models:
+    - EC-Earth3
+    - IPSL-CM6A-LR
+    - FGOALS-g3
+    - TaiESM1
+    - CanESM5
+    - CNRM-CM6-1
+    - MIROC6
+    - MPI-ESM1-2-HR
+    - AWI-CM-1-1-MR
+    - CMCC-CM2-SR5
+    - NorESM2-MM
+    year1: 1981
+    year2: 2010
+pr:
+  dataset: MSWEP
+  remap: remapcon
+  mask: global
+  units: mm/month
+  year1: 1990
+  year2: 2019
+  cmip6:
+    ALL:
+      Global: 8.835918387457358
+      North Midlat: 4.528449346571523
+      South Midlat: 3.642972383309251
+      Tropical: 13.586125909974202
+    DJF:
+      Global: 6.411542014662576
+      North Midlat: 2.540401471796998
+      South Midlat: 1.5525917971586296
+      Tropical: 10.776587394847216
+    JJA:
+      Global: 12.748411916773968
+      North Midlat: 2.9527026045305322
+      South Midlat: 1.5094261861949454
+      Tropical: 23.26966079069066
+    models:
+    - EC-Earth3
+    - IPSL-CM6A-LR
+    - FGOALS-g3
+    - TaiESM1
+    - CanESM5
+    - CNRM-CM6-1
+    - MIROC6
+    - MPI-ESM1-2-HR
+    - AWI-CM-1-1-MR
+    - CMCC-CM2-SR5
+    - NorESM2-MM
+    year1: 1981
+    year2: 2010
+net_sfc:
+  dataset: NOCS
+  remap: remapcon
+  mask: ocean
+  units: W m-2
+  year1: 1990
+  year2: 2014
+  cmip6:
+    ALL:
+      Global: 3.6893449006531176
+      North Midlat: 9.28673835390742
+      South Midlat: 3.997212975223978
+      Tropical: 2.1147536375340277
+    DJF:
+      Global: 4.154341438757482
+      North Midlat: 9.71810552762698
+      South Midlat: 6.342594865611766
+      Tropical: 1.446700948435269
+    JJA:
+      Global: 3.344680117338351
+      North Midlat: 4.551436620786544
+      South Midlat: 6.237816860321141
+      Tropical: 1.4609106945697938
+    models:
+    - EC-Earth3
+    - IPSL-CM6A-LR
+    - FGOALS-g3
+    - TaiESM1
+    - CanESM5
+    - CNRM-CM6-1
+    - MIROC6
+    - MPI-ESM1-2-HR
+    - AWI-CM-1-1-MR
+    - CMCC-CM2-SR5
+    - NorESM2-MM
+    year1: 1981
+    year2: 2010
+tauu:
+  dataset: ORAS5
+  remap: remapbil
+  mask: ocean
+  units: N/m2
+  year1: 1990
+  year2: 2019
+  cmip6:
+    ALL:
+      Global: 25.166252099776536
+      North Midlat: 6.50091349738109
+      South Midlat: 25.189025737821602
+      Tropical: 30.905049167508157
+    DJF:
+      Global: 10.74433166229091
+      North Midlat: 4.230753576066721
+      South Midlat: 8.173493611066114
+      Tropical: 14.303333783970626
+    JJA:
+      Global: 13.78584084043748
+      North Midlat: 3.4026212787229166
+      South Midlat: 8.739481702082017
+      Tropical: 20.0352311652601
+    models:
+    - EC-Earth3
+    - IPSL-CM6A-LR
+    - FGOALS-g3
+    - TaiESM1
+    - CanESM5
+    - CNRM-CM6-1
+    - MIROC6
+    - MPI-ESM1-2-HR
+    - AWI-CM-1-1-MR
+    - CMCC-CM2-SR5
+    - NorESM2-MM
+    year1: 1981
+    year2: 2010
+tauv:
+  dataset: ORAS5
+  remap: remapbil
+  mask: ocean
+  units: N/m2
+  year1: 1990
+  year2: 2019
+  cmip6:
+    ALL:
+      Global: 12.13386043994988
+      North Midlat: 5.027011802867678
+      South Midlat: 5.9466259831287
+      Tropical: 18.05011462938673
+    DJF:
+      Global: 6.176017738985267
+      North Midlat: 3.3120402143167507
+      South Midlat: 2.510802374594102
+      Tropical: 9.267898030424497
+    JJA:
+      Global: 8.920166543239706
+      North Midlat: 3.84504692676255
+      South Midlat: 1.9394777617980017
+      Tropical: 14.701008903452399
+    models:
+    - EC-Earth3
+    - IPSL-CM6A-LR
+    - FGOALS-g3
+    - TaiESM1
+    - CanESM5
+    - CNRM-CM6-1
+    - MIROC6
+    - MPI-ESM1-2-HR
+    - AWI-CM-1-1-MR
+    - CMCC-CM2-SR5
+    - NorESM2-MM
+    year1: 1981
+    year2: 2010
+psl:
+  dataset: ERA5
+  remap: remapbil
+  mask: global
+  units: Pa
+  year1: 1990
+  year2: 2019
+  cmip6:
+    ALL:
+      Global: 10.139084260011732
+      North Midlat: 5.580024378806447
+      South Midlat: 5.004838187161725
+      Tropical: 14.985737237039267
+    DJF:
+      Global: 3.944672270956733
+      North Midlat: 1.827915471903028
+      South Midlat: 2.0406970032868936
+      Tropical: 5.955038304318463
+    JJA:
+      Global: 6.6557992330759355
+      North Midlat: 5.611264428750197
+      South Midlat: 1.8762747520822083
+      Tropical: 9.567828875735596
+    models:
+    - EC-Earth3
+    - IPSL-CM6A-LR
+    - FGOALS-g3
+    - TaiESM1
+    - CanESM5
+    - CNRM-CM6-1
+    - MIROC6
+    - MPI-ESM1-2-HR
+    - AWI-CM-1-1-MR
+    - CMCC-CM2-SR5
+    - NorESM2-MM
+    year1: 1981
+    year2: 2010
+ua:
+  dataset: ERA5
+  remap: remapbil
+  mask: global
+  units: m s-1
+  year1: 1990
+  year2: 2019
+  cmip6:
+    ALL:
+      Global: 16.126313787788078
+      North Midlat: 5.942749085389614
+      South Midlat: 20.29422948891598
+      Tropical: 19.134138288423348
+    DJF:
+      Global: 7.17895215460478
+      North Midlat: 1.6369636556970582
+      South Midlat: 15.832269486225748
+      Tropical: 5.623287738248153
+    JJA:
+      Global: 11.554298894678865
+      North Midlat: 18.104062808255517
+      South Midlat: 4.340820078967411
+      Tropical: 11.886156345746256
+    models:
+    - EC-Earth3
+    - IPSL-CM6A-LR
+    - FGOALS-g3
+    - TaiESM1
+    - CanESM5
+    - CNRM-CM6-1
+    - MIROC6
+    - MPI-ESM1-2-HR
+    - AWI-CM-1-1-MR
+    - CMCC-CM2-SR5
+    - NorESM2-MM
+    year1: 1981
+    year2: 2010
+va:
+  dataset: ERA5
+  remap: remapbil
+  mask: global
+  units: m s-1
+  year1: 1990
+  year2: 2019
+  cmip6:
+    ALL:
+      Global: 14.444491357959976
+      North Midlat: 14.650586833834312
+      South Midlat: 29.019782616554433
+      Tropical: 7.053797990725562
+    DJF:
+      Global: 7.5386603067458084
+      North Midlat: 5.085582330665292
+      South Midlat: 15.172685063154454
+      Tropical: 4.94818691658174
+    JJA:
+      Global: 8.566675868317715
+      North Midlat: 10.12744876723351
+      South Midlat: 10.502127527491767
+      Tropical: 6.818563589272788
+    models:
+    - EC-Earth3
+    - IPSL-CM6A-LR
+    - FGOALS-g3
+    - TaiESM1
+    - CanESM5
+    - CNRM-CM6-1
+    - MIROC6
+    - MPI-ESM1-2-HR
+    - AWI-CM-1-1-MR
+    - CMCC-CM2-SR5
+    - NorESM2-MM
+    year1: 1981
+    year2: 2010
+ta:
+  dataset: ERA5
+  remap: remapbil
+  mask: global
+  units: K
+  year1: 1990
+  year2: 2019
+  cmip6:
+    ALL:
+      Global: 72.98103578353602
+      North Midlat: 79.90827514159697
+      South Midlat: 88.06586813919101
+      Tropical: 61.97499992667797
+    DJF:
+      Global: 37.72963588783812
+      North Midlat: 24.371260011351595
+      South Midlat: 69.95199580596942
+      Tropical: 28.29764386701572
+    JJA:
+      Global: 52.01250852455125
+      North Midlat: 60.106196887106144
+      South Midlat: 48.52424605140523
+      Tropical: 49.709795579846784
+    models:
+    - EC-Earth3
+    - IPSL-CM6A-LR
+    - FGOALS-g3
+    - TaiESM1
+    - CanESM5
+    - CNRM-CM6-1
+    - MIROC6
+    - MPI-ESM1-2-HR
+    - AWI-CM-1-1-MR
+    - CMCC-CM2-SR5
+    - NorESM2-MM
+    year1: 1981
+    year2: 2010
+hus:
+  dataset: ERA5
+  remap: remapbil
+  mask: global
+  units: kg kg-1
+  year1: 1990
+  year2: 2019
+  cmip6:
+    ALL:
+      Global: 677.8166538020182
+      North Midlat: 803.130516107886
+      South Midlat: 1257.8924245880394
+      Tropical: 325.1218372560728
+    DJF:
+      Global: 423.9276312828536
+      North Midlat: 753.5083817586689
+      South Midlat: 586.3750842976835
+      Tropical: 177.9135295375307
+    JJA:
+      Global: 362.1512434307999
+      North Midlat: 448.756018762907
+      South Midlat: 542.1503177945056
+      Tropical: 228.8493185828935
+    models:
+    - EC-Earth3
+    - IPSL-CM6A-LR
+    - FGOALS-g3
+    - TaiESM1
+    - CanESM5
+    - CNRM-CM6-1
+    - MIROC6
+    - MPI-ESM1-2-HR
+    - AWI-CM-1-1-MR
+    - CMCC-CM2-SR5
+    - NorESM2-MM
+    year1: 1981
+    year2: 2010
+tos:
+  dataset: ESA-CCI-L4
+  remap: remapbil
+  mask: ocean
+  units: K
+  year1: 1990
+  year2: 2019
+  cmip6:
+    ALL:
+      Global: 17.252055690287502
+      North Midlat: 9.647032332463363
+      South Midlat: 39.28149265323539
+      Tropical: 6.53119488585888
+    DJF:
+      Global: 8.490375879858362
+      North Midlat: 7.639154526172302
+      South Midlat: 15.946524663909514
+      Tropical: 4.259648745248291
+    JJA:
+      Global: 10.368934974415005
+      North Midlat: 7.477100681612547
+      South Midlat: 21.900260323824128
+      Tropical: 5.016170473246267
+    models:
+    - EC-Earth3
+    - IPSL-CM6A-LR
+    - FGOALS-g3
+    - TaiESM1
+    - CanESM5
+    - CNRM-CM6-1
+    - MIROC6
+    - MPI-ESM1-2-HR
+    - AWI-CM-1-1-MR
+    - CMCC-CM2-SR5
+    - NorESM2-MM
+    year1: 1981
+    year2: 2010
+sos:
+  dataset: ORAS5
+  remap: remapbil
+  mask: ocean
+  units: PSU
+  year1: 1990
+  year2: 2019
+  cmip6:
+    ALL:
+      Global: 40.91900007337619
+      North Midlat: 125.82593838820215
+      South Midlat: 25.996067589281182
+      Tropical: 23.940280642585282
+    DJF:
+      Global: 29.844612742188666
+      North Midlat: 96.58760345872831
+      South Midlat: 18.503359318965696
+      Tropical: 16.255122112423724
+    JJA:
+      Global: 29.498403406848347
+      North Midlat: 86.99008477268391
+      South Midlat: 20.570332099661893
+      Tropical: 17.272105911929287
+    models:
+    - EC-Earth3
+    - IPSL-CM6A-LR
+    - FGOALS-g3
+    - TaiESM1
+    - CanESM5
+    - CNRM-CM6-1
+    - MIROC6
+    - MPI-ESM1-2-HR
+    - AWI-CM-1-1-MR
+    - CMCC-CM2-SR5
+    - NorESM2-MM
+    year1: 1981
+    year2: 2010
+siconc:
+  dataset: ESA-CCI-L4
+  remap: remapbil
+  mask: ocean
+  units: fraction
+  year1: 1990
+  year2: 2019
+  cmip6:
+    ALL:
+      Global: 4.80380174151918
+      North Midlat: 1.839769284115361
+      South Midlat: 6.515805488242549
+      Tropical: .nan
+    DJF:
+      Global: 2.9446774766839616
+      North Midlat: 3.3581695331724624
+      South Midlat: 2.7764889799874055
+      Tropical: .nan
+    JJA:
+      Global: 5.21046802002379
+      North Midlat: 1.4356393821703108
+      South Midlat: 7.136935054257805
+      Tropical: .nan
+    models:
+    - EC-Earth3
+    - IPSL-CM6A-LR
+    - FGOALS-g3
+    - TaiESM1
+    - CanESM5
+    - CNRM-CM6-1
+    - MIROC6
+    - MPI-ESM1-2-HR
+    - AWI-CM-1-1-MR
+    year1: 1981
+    year2: 2010

@@ -1,5 +1,9 @@
 __pycache__/
 cdo/__pycache__/
-config.yml
+config*.yml
 test/table/*.txt
+test/table/*.yml
+test/figures
+test/data/*/*.idx
 docs/sphinx/build/
+

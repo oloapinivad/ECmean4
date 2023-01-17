@@ -16,6 +16,10 @@ import xarray as xr
 import xesmf as xe
 from metpy.units import units
 import yaml
+import matplotlib.pyplot as plt
+import seaborn as sns
+import pandas as pd
+from matplotlib.colors import TwoSlopeNorm
 
 
 ####################
@@ -39,6 +43,8 @@ class Diagnostic():
         self.climatology = getattr(args, 'climatology', 'RK08')
         self.interface = getattr(args, 'interface', '')
         self.resolution = getattr(args, 'resolution', '')
+        self.regions = cfg['PI']['regions']
+        self.seasons = cfg['PI']['seasons']
         if not self.modelname:
             self.modelname = cfg['model']['name']
         if self.year1 == self.year2:  # Ignore if only one year requested
@@ -53,14 +59,21 @@ class Diagnostic():
 
         # hard-coded resolution (due to climatological dataset)
         if self.climatology == 'RK08':
+            logging.error('RK08 can work only with r180x91 grid')
             self.resolution = 'r180x91'
         else:
             if not self.resolution:
                 self.resolution = cfg['PI']['resolution']
 
+        # hard-coded seasons (due to climatological dataset)
+        if self.climatology in ['EC22', 'RK08']:
+            logging.error('only EC23 climatology support multiple seasons! Keeping only yearly seasons!')
+            self.seasons = ['ALL']
+
         # Various input and output directories
         self.ECEDIR = Path(os.path.expandvars(cfg['dirs']['exp']))
         self.TABDIR = Path(os.path.expandvars(cfg['dirs']['tab']))
+        self.FIGDIR = Path(os.path.expandvars(cfg['dirs']['fig']))
         self.CLMDIR = Path(
             os.path.expandvars(
                 cfg['dirs']['clm']),
@@ -90,13 +103,55 @@ def is_number(s):
         return False
 
 
-def chunks(iterable, num):
-    """Generate num adjacent chunks of data from a list iterable
-    Split lists in a convenient way for a parallel process"""
+# def chunks(iterable, num):
+#     """Generate num adjacent chunks of data from a list iterable
+#     Split lists in a convenient way for a parallel process"""
 
-    size = int(np.ceil(len(iterable) / num))
-    it = iter(iterable)
-    return iter(lambda: tuple(itertools.islice(it, size)), ())
+#     size = int(np.ceil(len(iterable) / num))
+#     it = iter(iterable)
+#     return iter(lambda: tuple(itertools.islice(it, size)), ())
+
+# def split(iterable, num):
+#     k, m = divmod(len(iterable), num)
+#     return (iterable[i*k+min(i, m):(i+1)*k+min(i+1, m)] for i in range(num))
+
+def runtime_weights(varlist) : 
+    """Define the weights to estimate the best repartition of the cores
+    This is done a-priori, considering that 1) compound variables are more difficult to compute 
+    2) 3d variables requires more evaluation"""
+
+    w = {}
+    for k in varlist : 
+        if k in ['ua', 'ta', 'va', 'hus'] :
+            t = 8
+        elif k in ['pme', 'net_sfc_nosn', 'net_sfc', 'toamsfc_nosn', 'toamsfc', 
+            'pr_oce', 'pme_oce', 'pr_land', 'pme_land', 'net_toa'] :
+            t = 3
+        else :
+            t = 1
+        w[k] = t 
+
+    return w
+
+
+def weight_split(a, n) : 
+    """use the weights by runtime_weights to provide a number of n chunks based on the
+    minimum possible value of each chunk computing time. Then, provide the list of variables
+    to be used in the multiprocessing routine"""
+
+    ws = sorted(runtime_weights(a).items(), key=lambda x:x[1], reverse=True)
+    ordered = dict(ws)
+
+    elists = [ [0] for _ in range(n) ]
+    olists = [ [] for _ in range(n) ]
+    
+    count=0
+    for f in ordered.keys() : 
+        elists[count].append(ordered[f])
+        olists[count].append(f)
+        count=elists.index(min(elists)) 
+        
+    return olists
 
 
 def getdomain(var, face):
@@ -137,7 +192,7 @@ def var_is_there(flist, var, reference):
 
     if isavail:
         xfield = xr.open_mfdataset(flist, preprocess=xr_preproc)
-        #vars_avail = [i for i in xfield.data_vars]
+        # vars_avail = [i for i in xfield.data_vars]
         vars_avail = xfield.data_vars
         units_avail = {}
         # if I don't know the unit, assuming is a fraction
@@ -182,28 +237,44 @@ def var_is_there(flist, var, reference):
     return isavail, varunit
 
 
-def get_clim_files(piclim, var, diag):
+def get_clim_files(piclim, var, diag, season):
     """Function to extra names for the climatology files"""
 
     # extract info from pi_climatology.yml
     # reference dataset and reference varname
     # as well as years when available
     dataref = piclim[var]['dataset']
-    dataname = piclim[var]['dataname']
     datayear1 = piclim[var].get('year1', 'nan')
     datayear2 = piclim[var].get('year2', 'nan')
 
     # get files for climatology
     if diag.climatology == 'RK08':
+        dataname = piclim[var]['dataname']
         clim = str(diag.RESCLMDIR / f'climate_{dataref}_{dataname}.nc')
         vvvv = str(diag.RESCLMDIR / f'variance_{dataref}_{dataname}.nc')
-    elif diag.climatology == 'EC22':
+    elif diag.climatology in 'EC22':
+        dataname = piclim[var]['dataname']
         clim = str(
             diag.RESCLMDIR /
             f'climate_{dataname}_{dataref}_{diag.resolution}_{datayear1}-{datayear2}.nc')
         vvvv = str(
             diag.RESCLMDIR /
             f'variance_{dataname}_{dataref}_{diag.resolution}_{datayear1}-{datayear2}.nc')
+    elif diag.climatology in 'EC23':
+        if season == 'ALL':
+            clim = str(
+                diag.RESCLMDIR /
+                f'climate_average_{var}_{dataref}_{diag.resolution}_{datayear1}-{datayear2}.nc')
+            vvvv = str(
+                diag.RESCLMDIR /
+                f'climate_variance_{var}_{dataref}_{diag.resolution}_{datayear1}-{datayear2}.nc')
+        else:
+            clim = str(
+                diag.RESCLMDIR /
+                f'seasons_average_{var}_{dataref}_{diag.resolution}_{datayear1}-{datayear2}.nc')
+            vvvv = str(
+                diag.RESCLMDIR /
+                f'seasons_variance_{var}_{dataref}_{diag.resolution}_{datayear1}-{datayear2}.nc')
 
     return clim, vvvv
 
@@ -319,11 +390,10 @@ def make_input_filename(var0, varlist, year1, year2, face, diag):
             fname = _expand_filename(filepath, var, '*', '*', diag)
             fname = _filter_filename_by_year(fname, year)
             filename1 = filename1 + fname
-        filename1 = list(dict.fromkeys(filename1))  # Filter unique ones
-        if len(filename1) <= 1:
-            filename = filename + filename1
-        else:
-            filename = filename + filename1
+        # filename1 = list(dict.fromkeys(filename1))
+        filename = filename + filename1
+    filename = list(dict.fromkeys(filename))  # Filter unique ones
+    # print(filename)
     logging.debug("Filenames: %s", filename)
     return filename
 
@@ -409,10 +479,17 @@ def mask_field(xfield, var, mask_type, mask):
         out = xfield
 
     else:
+
+        # check that we are receiving a dataset and not a datarray
+        if isinstance(xfield, xr.DataArray):
+            xfield = xfield.to_dataset(name=var)
+
         # convert from datarray to dataset and merge
-        xfield = xfield.to_dataset(name=var)
         mask = mask.to_dataset(name='mask')
-        bfield = xr.merge([xfield, mask])
+
+        # the compat='override' option forces the merging. some CMIP6 data might
+        # have different float type, this simplies the handling
+        bfield = xr.merge([xfield, mask], compat='override')
 
         # conditions
         if mask_type == 'land':
@@ -423,6 +500,24 @@ def mask_field(xfield, var, mask_type, mask):
             sys.exit("ERROR: Mask undefined, this cannot be handled!")
 
     return out
+
+
+def select_region(xfield, region):
+    """Trivial function to convert region definition to xarray
+    sliced array to compute the PIs or global means on selected regions"""
+
+    if region == 'Global':
+        slicearray = xfield
+    elif region == 'North Midlat':
+        slicearray = xfield.sel(lat=slice(30, 90))
+    elif region == 'South Midlat':
+        slicearray = xfield.sel(lat=slice(-90, -30))
+    elif region == 'Tropical':
+        slicearray = xfield.sel(lat=slice(-30, 30))
+    else:
+        sys.exit(region + "region not supported!!!")
+
+    return slicearray
 
 
 ##################################
@@ -442,7 +537,8 @@ def areas_dictionary(component, atmareafile, oceareafile):
 
 
 def _make_atm_areas(component, atmareafile):
-    "Create atmospheric weights for area operations"
+    """Create atmospheric weights for area operations. Load once defined to allow
+    for parallel computation."""
 
     logging.debug('Atmareafile is ' + atmareafile)
     if not atmareafile : 
@@ -459,11 +555,13 @@ def _make_atm_areas(component, atmareafile):
         area = _area_cell(xfield)
     else:
         sys.exit("ERROR: Area for this configuration cannot be handled!")
-    return area
+    return area.load()
 
 
 def _make_oce_areas(component, oceareafile):
-    "Create atmospheric weights for area operations"
+    """Create atmospheric weights for area operations. Load once defined to allow
+    for parallel computation
+    """
 
     logging.debug('Oceareafile is ' + oceareafile)
     if not oceareafile : 
@@ -484,6 +582,8 @@ def _make_oce_areas(component, oceareafile):
                 area = _area_cell(xfield)
         else:
             sys.exit("ERROR: Area for this configuration cannot be handled!")
+
+        area = area.load()
     else:
         area = None
     return area
@@ -565,7 +665,7 @@ def _area_cell(xfield, formula='triangles'):
     Function which estimate the area cell from bounds. This is done assuming
     making use of spherical triangels.
     Working also on regular grids which does not have lon/lat bounds
-    via the guess_bounds function. Unstructured grids are not supported,
+    via the guess_bounds function. Curvilinear/unstructured grids are not supported,
     especially if with more with more than 4 vertices are not supported.
 
     Args:
@@ -596,7 +696,7 @@ def _area_cell(xfield, formula='triangles'):
     # this is a nightmare, so far working only for ECE4 gaussian reduced
     if not regular_grid:
 
-        logging.debug('Unstructured grid, tryin to get grid info...')
+        logging.debug('Curvilinear/Unstructured grid, tryin to get grid info...')
 
         blondim = None
         blatdim = None
@@ -907,12 +1007,27 @@ def _make_oce_interp_weights(component, oceareafile, target_grid):
         fix = None
         xfield = xr.open_mfdataset(oceareafile, preprocess=xr_preproc)
         xname = list(xfield.data_vars)[-1]
-        interp = xe.Regridder(
-            xfield[xname].load(),
-            target_grid,
-            method="bilinear",
-            ignore_degenerate=True,
-            periodic=True)
+        # print(len(xfield.coords['lon'].shape))
+
+        # check if oceanic grid is regular: lon/lat dims should be 1d
+        # if not all(x in xfield.dims for x in ['lon', 'lat']) and (len(xfield.dims) < 3) :
+        if len(xfield.coords['lon'].shape) == 1 and len(xfield.coords['lat'].shape) == 1:
+
+            print("Detecting a unstructured grid, using nearest neighbour!")
+            interp = xe.Regridder(
+                xfield[xname].load(),
+                target_grid,
+                method="nearest_s2d",
+                locstream_in=True,
+                periodic=True)
+        else:
+            print("Detecting regular or curvilinear grid, using bilinear!")
+            interp = xe.Regridder(
+                xfield[xname].load(),
+                target_grid,
+                method="bilinear",
+                ignore_degenerate=True,
+                periodic=True)
 
     else:
         sys.exit(
@@ -924,7 +1039,6 @@ def _make_oce_interp_weights(component, oceareafile, target_grid):
 #########################
 # FILE FORMAT FUNCTIONS #
 #########################
-
 
 def xr_preproc(ds):
     """Preprocessing functuon to adjust coordinate and dimensions
@@ -962,6 +1076,18 @@ def xr_preproc(ds):
 
     if 'latitude' in list(ds.dims):
         ds = ds.rename({"latitude": "lat"})
+
+    if 'longitude' in list(ds.coords):
+        ds = ds.rename({"longitude": "lon"})
+
+    if 'nav_lon' in list(ds.coords):
+        ds = ds.rename({"nav_lon": "lon"})
+
+    if 'latitude' in list(ds.coords):
+        ds = ds.rename({"latitude": "lat"})
+
+    if 'nav_lat' in list(ds.coords):
+        ds = ds.rename({"nav_lat": "lat"})
 
     if 'values' in list(ds.dims):
         ds = ds.rename({"values": "cell"})
@@ -1004,6 +1130,7 @@ def units_extra_definition():
     # special units definition
     units.define('fraction = [] = frac')
     units.define('psu = 1e-3 frac')
+    units.define('PSU = 1e-3 frac')
     units.define('Sv = 1e+6 m^3/s')  # Replace Sievert with Sverdrup
 
 
@@ -1027,8 +1154,8 @@ def units_converter(org_units, tgt_units):
                 factor = 1.
 
         elif units_relation.units == units('kg / m^3'):
-            logging.debug("Assuming this as a water flux! Am I correct?")
-            logging.debug("Dividing by water density...")
+            logging.info("Assuming this as a water flux! Am I correct?")
+            logging.info("Dividing by water density...")
             density_water = units('kg / m^3') * 1000
             offset = 0.
             factor = (factor_standard / density_water).to(tgt_units).magnitude
@@ -1040,6 +1167,8 @@ def units_converter(org_units, tgt_units):
         offset = 0.
         factor = 1.
 
+    logging.info('Offset is ' + str(offset))
+    logging.info('Factor is ' + str(factor))
     return offset, factor
 
 
@@ -1069,6 +1198,19 @@ def directions_match(org, dst):
 # OUTPUT FUNCTIONS #
 ####################
 
+def dict_to_dataframe(varstat):
+    """very clumsy conversion of the nested 3-level dictionary
+    to a pd.dataframe: NEED TO BE IMPROVED"""
+    data_table = {}
+    for i in varstat.keys():
+        pippo = {}
+        for outerKey, innerDict in varstat[i].items():
+            for innerKey, values in innerDict.items():
+                pippo[(outerKey, innerKey)] = values
+        data_table[i] = pippo
+    data_table = pd.DataFrame(data_table).T
+    return data_table
+
 
 def write_tuning_table(linefile, varmean, var_table, diag, ref):
     """Write results appending one line to a text file.
@@ -1097,3 +1239,44 @@ def write_tuning_table(linefile, varmean, var_table, diag, ref):
                 end=' ',
                 file=f)
         print(file=f)
+
+##################
+# PLOT FUNCTIONS #
+##################
+
+
+def heatmap_comparison(relative_table, diag, filemap):
+    """Function to produce a heatmap - seaborn based - for Performance Indices
+    based on CMIP6 ratio"""
+
+    # real plot
+    fig, axs = plt.subplots(1, 1, sharey=True, tight_layout=True, figsize=(15, 8))
+
+    thr = [0, 1, 5]
+    tictoc = [0, 0.25, 0.5, 0.75, 1, 2, 3, 4, 5]
+    title = 'CMIP6 RELATIVE PI'
+    myfield = relative_table
+
+    # axs.subplots_adjust(bottom=0.2)
+    # pal = sns.diverging_palette(h_neg=130, h_pos=10, s=99, l=55, sep=3, as_cmap=True)
+    tot = (len(myfield.columns))
+    sss = (len(set([tup[1] for tup in myfield.columns])))
+    divnorm = TwoSlopeNorm(vmin=thr[0], vcenter=thr[1], vmax=thr[2])
+    pal = sns.color_palette("Spectral_r", as_cmap=True)
+    # pal = sns.diverging_palette(220, 20, as_cmap=True)
+    chart = sns.heatmap(myfield, norm=divnorm, cmap=pal,
+                        cbar_kws={"ticks": tictoc, 'label': title},
+                        ax=axs, annot=True, linewidth=0.5,
+                        annot_kws={'fontsize': 11, 'fontweight': 'bold'})
+    chart = chart.set_facecolor('whitesmoke')
+    axs.set_title(f'{title} {diag.modelname} {diag.year1} {diag.year2}', fontsize=25)
+    axs.vlines(list(range(sss, tot+sss, sss)), ymin=-1, ymax=len(myfield.index), colors='k')
+    axs.hlines(len(myfield.index)-1, xmin=-1, xmax=len(myfield.columns), colors='purple', lw=2)
+    names = [' '.join(x) for x in myfield.columns]
+    axs.set_xticks([x+.5 for x in range(len(names))], names, rotation=45, ha='right', fontsize=15)
+    axs.set_yticks([x+.5 for x in range(len(myfield.index))], myfield.index, rotation=0, fontsize=18)
+    axs.set(xlabel=None)
+
+    # save and close
+    plt.savefig(filemap)
+    plt.cla()

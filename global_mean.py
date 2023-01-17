@@ -26,7 +26,7 @@ import dask
 from ecmean import var_is_there, eval_formula, \
     masks_dictionary, areas_dictionary, get_inifiles, load_yaml, \
     units_extra_definition, units_are_integrals, \
-    units_converter, directions_match, chunks, write_tuning_table, \
+    units_converter, directions_match, weight_split, write_tuning_table, \
     Diagnostic, getdomain, make_input_filename, masked_meansum, \
     xr_preproc
 
@@ -129,7 +129,7 @@ def gm_worker(util, ref, face, diag, varmean, vartrend, varlist):
 
                 infile = make_input_filename(
                     var, dervars, year, year, face, diag)
-                xfield = xr.open_mfdataset(infile, preprocess=xr_preproc)
+                xfield = xr.open_mfdataset(infile, preprocess=xr_preproc, chunks={'time': 12})
 
                 # time selection for longer dataset!
                 xfield = xfield.sel(time=(xfield.time.dt.year == year))
@@ -152,7 +152,7 @@ def gm_worker(util, ref, face, diag, varmean, vartrend, varlist):
                 print('Average', var, varmean[var])
 
 
-def main(argv):
+def gm_main(argv):
     """The main ECmean4 global mean code"""
 
     # assert sys.version_info >= (3, 7)
@@ -227,7 +227,7 @@ def main(argv):
     tic = time()
 
     # loop on the variables, create the parallel process
-    for varlist in chunks(var_all, diag.numproc):
+    for varlist in weight_split(var_all, diag.numproc):
         p = Process(target=gm_worker, args=(util_dictionary, ref, face, diag,
                                             varmean, vartrend, varlist))
         p.start()
@@ -280,4 +280,4 @@ def main(argv):
 
 if __name__ == "__main__":
 
-    sys.exit(main(sys.argv[1:]))
+    sys.exit(gm_main(sys.argv[1:]))

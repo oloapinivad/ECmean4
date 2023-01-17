@@ -1,0 +1,44 @@
+pr:
+  ALL:
+    Global: 13.886
+    North Midlat: 2.913
+    Tropical: 23.78
+    South Midlat: 5.07
+  JJA:
+    Global: 795.026
+    North Midlat: 67.807
+    Tropical: 1555.372
+    South Midlat: 2.098
+ta:
+  ALL:
+    Global: 35.891
+    North Midlat: 25.952
+    Tropical: 14.815
+    South Midlat: 87.982
+  JJA:
+    Global: 204.247
+    North Midlat: 416.588
+    Tropical: 85.977
+    South Midlat: 228.445
+tos:
+  ALL:
+    Global: 42.63
+    North Midlat: 12.168
+    Tropical: 12.368
+    South Midlat: 111.024
+  JJA:
+    Global: 57.172
+    North Midlat: 27.768
+    Tropical: 22.871
+    South Midlat: 140.397
+siconc:
+  ALL:
+    Global: 6.222
+    North Midlat: 4.895
+    Tropical: .nan
+    South Midlat: 7.198
+  JJA:
+    Global: 11.027
+    North Midlat: 8.64
+    Tropical: .nan
+    South Midlat: 12.578

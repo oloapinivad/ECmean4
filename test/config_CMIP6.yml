@@ -7,6 +7,7 @@ dirs:
    exp: test/data
    tab: test/table
    clm: climatology
+   fig: test/figures
 
 global:
   atm_vars: [pr]
@@ -22,4 +23,7 @@ PI:
     field: [tos]
   ice_vars:
     field: [siconc]
-  resolution: r180x91
+  regions: ['Global', 'North Midlat', 'Tropical', 'South Midlat']
+  seasons: ['ALL', 'JJA']
+  resolution: r360x180
+

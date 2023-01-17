@@ -1,84 +1,97 @@
-tas: 
+tas:
   dataset: CRU
   units: degC
-  dataname : t2m
+  dataname: t2m
   mask: land
   cmip3: 25.13
-psl: 
+  cmip6: 23.28
+psl:
   dataset: COADS
   units: mbar
-  dataname : msl
+  dataname: msl
   mask: global
   cmip3: 11.69
+  cmip6: 6.55
 pr:
   dataset: CMAP
-  units: 'mm/day'
-  dataname : tp
+  units: mm/day
+  dataname: tp
   mask: global
   cmip3: 38.87
+  cmip6: 28.87
 tauu:
   dataset: DASILVA
-  units: 'N/m^2'
-  dataname : ewss
+  units: N/m^2
+  dataname: ewss
   mask: ocean
   cmip3: 4.03
+  cmip6: 5.97
 tauv:
   dataset: DASILVA
-  units: 'N/m^2'
-  dataname : nsss
+  units: N/m^2
+  dataname: nsss
   mask: ocean
-  cmip3: 3.10
-ua: 
+  cmip3: 3.1
+  cmip6: 3.83
+ua:
   dataset: ERA40
-  units: 'm/s'
-  dataname : U_zonal
+  units: m/s
+  dataname: U_zonal
   mask: global
   cmip3: 12.07
+  cmip6: 17.96
 va:
   dataset: ERA40
-  units: 'm/s'
-  dataname : V_zonal
+  units: m/s
+  dataname: V_zonal
   mask: global
   cmip3: 8.25
+  cmip6: 5.23
 ta:
   dataset: ERA40
   units: K
-  dataname : T_zonal
+  dataname: T_zonal
   mask: global
   cmip3: 38.89
+  cmip6: 34.27
 hus:
   dataset: ERA40
-  units: 'kg/kg'
-  dataname : Q_zonal
+  units: kg/kg
+  dataname: Q_zonal
   mask: global
   cmip3: 29.41
-tos: 
+  cmip6: 30.05
+tos:
   dataset: GISS
-  units: 'degC'
-  dataname : SST
+  units: degC
+  dataname: SST
   mask: ocean
   cmip3: 17.21
-sos: 
+  cmip6: 17.6
+sos:
   dataset: levitus
   units: psu
-  dataname : SSS
+  dataname: SSS
   mask: ocean
   cmip3: 0.22
-siconc: 
+  cmip6: 45128.64
+siconc:
   dataset: GISS
   units: ''
-  dataname : SICE
+  dataname: SICE
   mask: ocean
   cmip3: 0.34
-net_sfc: 
+  cmip6: 73.99
+net_sfc:
   dataset: OAFLUX
-  units: 'W/m^2'
+  units: W/m^2
   dataname: qnet
-  mask : ocean
+  mask: ocean
   cmip3: 14.24
+  cmip6: 18.27
 snc:
-  dataset: 'nan'
+  dataset: nan
   units: ''
-  dataname : 'nan'
+  dataname: nan
   mask: land
   cmip3: Nan

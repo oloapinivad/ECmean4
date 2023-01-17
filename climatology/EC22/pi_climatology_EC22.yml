@@ -1,114 +1,357 @@
-tas: 
-  dataset: 'CRU'
+tas:
+  dataset: CRU
   version: '4.05'
   units: degC
-  dataname : tas
+  dataname: tas
   mask: land
   cmip3: Nan
   year1: 1990
   year2: 2019
-psl: 
+  cmip6:
+    Global: 35.71
+    North Midlat: 17.09
+    South Midlat: 25.5
+    Tropical: 54.83
+    models:
+    - EC-Earth3
+    - IPSL-CM6A-LR
+    - FGOALS-g3
+    - TaiESM1
+    - CanESM5
+    - CNRM-CM6-1
+    - CESM2
+    - MIROC6
+    - MPI-ESM1-2-HR
+    - AWI-CM-1-1-MR
+    - CMCC-CM2-SR5
+    - NorESM2-MM
+    year1: 1981
+    year2: 2010
+psl:
   dataset: ERA5
   units: Pa
-  dataname : MSL
+  dataname: MSL
   mask: global
   cmip3: Nan
   year1: 1990
   year2: 2019
+  cmip6:
+    Global: 9.68
+    North Midlat: 5.35
+    South Midlat: 5.15
+    Tropical: 14.11
+    models:
+    - EC-Earth3
+    - IPSL-CM6A-LR
+    - FGOALS-g3
+    - TaiESM1
+    - CanESM5
+    - CNRM-CM6-1
+    - CESM2
+    - MIROC6
+    - MPI-ESM1-2-HR
+    - AWI-CM-1-1-MR
+    - CMCC-CM2-SR5
+    - NorESM2-MM
+    year1: 1981
+    year2: 2010
 pr:
-  dataset: 'MSWEP'
-  version: 'v2'
-  units: 'mm/month'
-  dataname : precipitation
+  dataset: MSWEP
+  version: v2
+  units: mm/month
+  dataname: precipitation
   mask: global
   cmip3: Nan
   year1: 1990
   year2: 2019
+  cmip6:
+    Global: 8.72
+    North Midlat: 4.54
+    South Midlat: 3.5
+    Tropical: 13.41
+    models:
+    - EC-Earth3
+    - IPSL-CM6A-LR
+    - FGOALS-g3
+    - TaiESM1
+    - CanESM5
+    - CNRM-CM6-1
+    - CESM2
+    - MIROC6
+    - MPI-ESM1-2-HR
+    - AWI-CM-1-1-MR
+    - CMCC-CM2-SR5
+    - NorESM2-MM
+    year1: 1981
+    year2: 2010
 tauu:
   dataset: ORAS5
-  units: 'N/m^2'
-  dataname : sozotaux
+  units: N/m^2
+  dataname: sozotaux
   mask: ocean
   cmip3: Nan
   year1: 1990
   year2: 2019
+  cmip6:
+    Global: 22.89
+    North Midlat: 5.96
+    South Midlat: 22.89
+    Tropical: 28.02
+    models:
+    - EC-Earth3
+    - IPSL-CM6A-LR
+    - TaiESM1
+    - CanESM5
+    - CNRM-CM6-1
+    - CESM2
+    - MIROC6
+    - AWI-CM-1-1-MR
+    - CMCC-CM2-SR5
+    - NorESM2-MM
+    year1: 1981
+    year2: 2010
 tauv:
   dataset: ORAS5
-  units: 'N/m^2'
-  dataname : sometauy
+  units: N/m^2
+  dataname: sometauy
   mask: ocean
   cmip3: Nan
   year1: 1990
   year2: 2019
-ua: 
+  cmip6:
+    Global: 11.12
+    North Midlat: 4.58
+    South Midlat: 5.58
+    Tropical: 16.44
+    models:
+    - EC-Earth3
+    - IPSL-CM6A-LR
+    - TaiESM1
+    - CanESM5
+    - CNRM-CM6-1
+    - CESM2
+    - MIROC6
+    - AWI-CM-1-1-MR
+    - CMCC-CM2-SR5
+    - NorESM2-MM
+    year1: 1981
+    year2: 2010
+ua:
   dataset: ERA5
-  units: 'm/s'
-  dataname : U_zonal
+  units: m/s
+  dataname: U_zonal
   mask: global
   cmip3: Nan
   year1: 1990
   year2: 2019
+  cmip6:
+    Global: 18.97
+    North Midlat: 6.28
+    South Midlat: 22.6
+    Tropical: 23.5
+    models:
+    - EC-Earth3
+    - IPSL-CM6A-LR
+    - FGOALS-g3
+    - TaiESM1
+    - CanESM5
+    - CNRM-CM6-1
+    - CESM2
+    - MIROC6
+    - MPI-ESM1-2-HR
+    - AWI-CM-1-1-MR
+    - CMCC-CM2-SR5
+    - NorESM2-MM
+    year1: 1981
+    year2: 2010
 va:
   dataset: ERA5
-  units: 'm/s'
-  dataname : V_zonal
+  units: m/s
+  dataname: V_zonal
   mask: global
   cmip3: Nan
   year1: 1990
   year2: 2019
+  cmip6:
+    Global: 14.77
+    North Midlat: 13.66
+    South Midlat: 28.43
+    Tropical: 8.49
+    models:
+    - EC-Earth3
+    - IPSL-CM6A-LR
+    - FGOALS-g3
+    - TaiESM1
+    - CanESM5
+    - CNRM-CM6-1
+    - CESM2
+    - MIROC6
+    - MPI-ESM1-2-HR
+    - AWI-CM-1-1-MR
+    - CMCC-CM2-SR5
+    - NorESM2-MM
+    year1: 1981
+    year2: 2010
 ta:
   dataset: ERA5
-  units: 'K'
-  dataname : T_zonal
+  units: K
+  dataname: T_zonal
   mask: global
   cmip3: Nan
   year1: 1990
   year2: 2019
+  cmip6:
+    Global: 69.51
+    North Midlat: 75.69
+    South Midlat: 85.04
+    Tropical: 58.66
+    models:
+    - EC-Earth3
+    - IPSL-CM6A-LR
+    - FGOALS-g3
+    - TaiESM1
+    - CanESM5
+    - CNRM-CM6-1
+    - CESM2
+    - MIROC6
+    - MPI-ESM1-2-HR
+    - AWI-CM-1-1-MR
+    - CMCC-CM2-SR5
+    - NorESM2-MM
+    year1: 1981
+    year2: 2010
 hus:
   dataset: ERA5
-  units: 'kg/kg'
-  dataname : Q_zonal
+  units: kg/kg
+  dataname: Q_zonal
   mask: global
   cmip3: Nan
   year1: 1990
   year2: 2019
-tos: 
+  cmip6:
+    Global: 635.75
+    North Midlat: 754.18
+    South Midlat: 1171.99
+    Tropical: 308.41
+    models:
+    - EC-Earth3
+    - IPSL-CM6A-LR
+    - TaiESM1
+    - CanESM5
+    - CNRM-CM6-1
+    - CESM2
+    - MIROC6
+    - AWI-CM-1-1-MR
+    - CMCC-CM2-SR5
+    - NorESM2-MM
+    year1: 1981
+    year2: 2010
+tos:
   dataset: ESA-CCI-L4
-  units: 'K'
-  dataname : analysed_sst
+  units: K
+  dataname: analysed_sst
   mask: ocean
   cmip3: Nan
   year1: 1990
   year2: 2019
-sos: 
+  cmip6:
+    Global: 16.86
+    North Midlat: 9.52
+    South Midlat: 37.75
+    Tropical: 6.56
+    models:
+    - EC-Earth3
+    - IPSL-CM6A-LR
+    - FGOALS-g3
+    - TaiESM1
+    - CanESM5
+    - CNRM-CM6-1
+    - CESM2
+    - MIROC6
+    - MPI-ESM1-2-HR
+    - AWI-CM-1-1-MR
+    - CMCC-CM2-SR5
+    - NorESM2-MM
+    year1: 1981
+    year2: 2010
+sos:
   dataset: ORAS5
   units: psu
-  dataname : sosaline
+  dataname: sosaline
   mask: ocean
   cmip3: Nan
   year1: 1990
   year2: 2019
-siconc: 
+  cmip6:
+    Global: 41.6
+    North Midlat: 122.16
+    South Midlat: 29.87
+    Tropical: 24.17
+    models:
+    - EC-Earth3
+    - IPSL-CM6A-LR
+    - CanESM5
+    - CNRM-CM6-1
+    - CESM2
+    - MIROC6
+    - AWI-CM-1-1-MR
+    - CMCC-CM2-SR5
+    - NorESM2-MM
+    year1: 1981
+    year2: 2010
+siconc:
   dataset: ESA-CCI-L4
   units: ''
-  dataname : sea_ice_fraction
+  dataname: sea_ice_fraction
   mask: ocean
   cmip3: Nan
   year1: 1990
   year2: 2019
+  cmip6:
+    Global: 4.3
+    North Midlat: 1.8
+    South Midlat: 5.8
+    Tropical: .nan
+    models:
+    - EC-Earth3
+    - IPSL-CM6A-LR
+    - TaiESM1
+    - CanESM5
+    - CNRM-CM6-1
+    - CESM2
+    - MIROC6
+    year1: 1981
+    year2: 2010
 net_sfc:
-  dataset: 'NOCS'
+  dataset: NOCS
   version: '2.0'
-  units: 'W/m2'
-  dataname : net_sfc
+  units: W/m2
+  dataname: net_sfc
   mask: ocean
   cmip3: Nan
   year1: 1990
   year2: 2014
+  cmip6:
+    Global: 3.43
+    North Midlat: 9.41
+    South Midlat: 2.75
+    Tropical: 2.17
+    models:
+    - EC-Earth3
+    - IPSL-CM6A-LR
+    - TaiESM1
+    - CanESM5
+    - CNRM-CM6-1
+    - MIROC6
+    - AWI-CM-1-1-MR
+    - CMCC-CM2-SR5
+    - NorESM2-MM
+    year1: 1981
+    year2: 2010
 snc:
   dataset: ERA5
   units: ''
-  dataname : snc
+  dataname: snc
   mask: land
   cmip3: Nan
   year1: 1990
