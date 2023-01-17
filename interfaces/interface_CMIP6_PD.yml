@@ -217,3 +217,11 @@ variables:
     varname: 'Precip. minus evap. (ocean)'
     derived: 'pr-evspsbl'
     filetype: atm2d
+  siconc_north:
+    varname: 'Sea Ice Area (North Hemisphere)'
+    derived: siconc
+    filetype: ice
+  siconc_south:
+    varname: 'Sea Ice Area (South Hemisphere)'
+    derived: siconc
+    filetype: ice

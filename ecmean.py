@@ -10,7 +10,6 @@ import operator
 import sys
 from pathlib import Path
 from glob import glob
-import itertools
 import numpy as np
 import xarray as xr
 import xesmf as xe
@@ -115,42 +114,42 @@ def is_number(s):
 #     k, m = divmod(len(iterable), num)
 #     return (iterable[i*k+min(i, m):(i+1)*k+min(i+1, m)] for i in range(num))
 
-def runtime_weights(varlist) : 
+def runtime_weights(varlist):
     """Define the weights to estimate the best repartition of the cores
-    This is done a-priori, considering that 1) compound variables are more difficult to compute 
+    This is done a-priori, considering that 1) compound variables are more difficult to compute
     2) 3d variables requires more evaluation"""
 
     w = {}
-    for k in varlist : 
-        if k in ['ua', 'ta', 'va', 'hus'] :
+    for k in varlist:
+        if k in ['ua', 'ta', 'va', 'hus']:
             t = 8
-        elif k in ['pme', 'net_sfc_nosn', 'net_sfc', 'toamsfc_nosn', 'toamsfc', 
-            'pr_oce', 'pme_oce', 'pr_land', 'pme_land', 'net_toa'] :
+        elif k in ['pme', 'net_sfc_nosn', 'net_sfc', 'toamsfc_nosn', 'toamsfc',
+                   'pr_oce', 'pme_oce', 'pr_land', 'pme_land', 'net_toa']:
             t = 3
-        else :
+        else:
             t = 1
-        w[k] = t 
+        w[k] = t
 
     return w
 
 
-def weight_split(a, n) : 
+def weight_split(a, n):
     """use the weights by runtime_weights to provide a number of n chunks based on the
     minimum possible value of each chunk computing time. Then, provide the list of variables
     to be used in the multiprocessing routine"""
 
-    ws = sorted(runtime_weights(a).items(), key=lambda x:x[1], reverse=True)
+    ws = sorted(runtime_weights(a).items(), key=lambda x: x[1], reverse=True)
     ordered = dict(ws)
 
-    elists = [ [0] for _ in range(n) ]
-    olists = [ [] for _ in range(n) ]
-    
-    count=0
-    for f in ordered.keys() : 
+    elists = [[0] for _ in range(n)]
+    olists = [[] for _ in range(n)]
+
+    count = 0
+    for f in ordered.keys():
         elists[count].append(ordered[f])
         olists[count].append(f)
-        count=elists.index(min(elists)) 
-        
+        count = elists.index(min(elists))
+
     return olists
 
 
@@ -216,7 +215,7 @@ def var_is_there(flist, var, reference):
             varunit = reference[var].get('units')
             if not varunit:
                 logging.info('%s is a derived var, assuming unit '
-                                'as the first of its term', var)
+                             'as the first of its term', var)
                 varunit = units_avail.get(var_req[0])
         else:
             var_req = [var]
@@ -231,7 +230,7 @@ def var_is_there(flist, var, reference):
                                 "available in the model output. Ignoring it.", var, x)
     else:
         varunit = None
-        #print(f'Not available: {var} File: {flist}')
+        # print(f'Not available: {var} File: {flist}')
         logging.warning("No data found for variable %s. Ignoring it.", var)
 
     return isavail, varunit
@@ -422,7 +421,7 @@ def _make_atm_masks(component, maskatmfile, remap_dictionary=None):
     # prepare ATM LSM: this needs to be improved, since it is clearly model
     # dependent
     logging.debug('maskatmfile is' + maskatmfile)
-    if not maskatmfile: 
+    if not maskatmfile:
         sys.exit("ERROR: maskatmfile cannot be found")
 
     if component == 'oifs':
@@ -444,7 +443,7 @@ def _make_atm_masks(component, maskatmfile, remap_dictionary=None):
         mask = mask['lsm']
         mask = abs(1-mask)
     else:
-        sys.exit("ERROR: Mask undefined yet mismatch, this cannot be handled!")
+        sys.exit("ERROR: _make_atm_masks -> Mask undefined yet mismatch, this cannot be handled!")
 
     if remap_dictionary is not None:
         if remap_dictionary['atm_fix']:
@@ -455,18 +454,21 @@ def _make_atm_masks(component, maskatmfile, remap_dictionary=None):
 
 
 def masked_meansum(xfield, var, weights, mask_type, mask):
-    """For global variables rvaluate the weighted averaged
+    """For global variables evaluate the weighted averaged
     or weighted integral when required by the variable properties"""
 
     # call the mask_field to mask where necessary
+    # the mask field is area
     masked = mask_field(xfield, var, mask_type, mask)
 
+    # global mean
     if mask_type in ['global']:
         out = masked.weighted(weights.fillna(0)).mean().values
-    elif mask_type in ['land', 'ocean', 'sea']:
+    # global integrals
+    elif mask_type in ['land', 'ocean', 'sea', 'north', 'south']:
         out = masked.weighted(weights.fillna(0)).sum().values
     else:
-        sys.exit("ERROR: Mask undefined, this cannot be handled!")
+        sys.exit("ERROR: masked_meansum-> mask undefined, this cannot be handled!")
 
     return float(out)
 
@@ -477,9 +479,11 @@ def mask_field(xfield, var, mask_type, mask):
     # nothing to be done
     if mask_type == 'global':
         out = xfield
-
+    elif mask_type == 'north':
+        out = xfield.where(xfield['lat'] > 0)
+    elif mask_type == 'south':
+        out = xfield.where(xfield['lat'] < 0)
     else:
-
         # check that we are receiving a dataset and not a datarray
         if isinstance(xfield, xr.DataArray):
             xfield = xfield.to_dataset(name=var)
@@ -497,7 +501,7 @@ def mask_field(xfield, var, mask_type, mask):
         elif mask_type in ['sea', 'ocean']:
             out = bfield[var].where(bfield['mask'] < 0.5)
         else:
-            sys.exit("ERROR: Mask undefined, this cannot be handled!")
+            sys.exit("ERROR: mask_field -> Mask undefined, this cannot be handled!")
 
     return out
 
@@ -541,7 +545,7 @@ def _make_atm_areas(component, atmareafile):
     for parallel computation."""
 
     logging.debug('Atmareafile is ' + atmareafile)
-    if not atmareafile : 
+    if not atmareafile:
         sys.exit("ERROR: Atmareafile cannot be found")
 
     if component == 'oifs':
@@ -564,7 +568,7 @@ def _make_oce_areas(component, oceareafile):
     """
 
     logging.debug('Oceareafile is ' + oceareafile)
-    if not oceareafile : 
+    if not oceareafile:
         logging.warning("Ocereafile cannot be found, assuming this is an AMIP run")
 
     if oceareafile:
@@ -919,7 +923,7 @@ def _make_atm_interp_weights(component, atmareafile, target_grid):
     """Create atmospheric interpolator"""
 
     logging.debug('Atmareafile is ' + atmareafile)
-    if not atmareafile : 
+    if not atmareafile:
         sys.exit("ERROR: Atmareafile cannot be found")
 
     if component == 'oifs':
@@ -978,7 +982,7 @@ def _make_oce_interp_weights(component, oceareafile, target_grid):
     """Create oceanic interpolator weights"""
 
     logging.debug('Oceareafile is ' + oceareafile)
-    if not oceareafile : 
+    if not oceareafile:
         sys.exit("ERROR: Oceareafile cannot be found")
 
     if component == 'nemo':
@@ -1058,16 +1062,16 @@ def xr_preproc(ds):
         ds = ds.rename({"plevel": "plev"})
 
     # fix for NEMO eORCA grid (nav_lon, nav_lat)
-    for h in ['lon', 'lat'] : 
-        for f in ['', 'grid_T'] :
-            g = 'nav_'+ h + '_' + f 
+    for h in ['lon', 'lat']:
+        for f in ['', 'grid_T']:
+            g = 'nav_' + h + '_' + f
             if g in list(ds.coords):
                 ds = ds.rename({g: h})
 
     # fix for NEMO eORCA grid (x_grid_T, etc.)
-    for h in ['x', 'y'] :
-        for f in ['grid_T'] :
-            g = h + '_'+ f 
+    for h in ['x', 'y']:
+        for f in ['grid_T']:
+            g = h + '_' + f
             if g in list(ds.dims):
                 ds = ds.rename({g: h})
 
@@ -1280,3 +1284,4 @@ def heatmap_comparison(relative_table, diag, filemap):
     # save and close
     plt.savefig(filemap)
     plt.cla()
+    plt.close()

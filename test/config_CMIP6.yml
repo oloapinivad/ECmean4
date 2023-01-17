@@ -10,8 +10,9 @@ dirs:
    fig: test/figures
 
 global:
-  atm_vars: [pr]
+  atm_vars: [pr, pr_land, pr_oce]
   oce_vars: [tos]
+  ice_vars: [siconc_north, siconc_south]
   tab_vars: [pr, tos]
 
 PI: 

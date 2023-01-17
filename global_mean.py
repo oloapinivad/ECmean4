@@ -191,13 +191,15 @@ def gm_main(argv):
     # list of vars on which to work
     var_atm = cfg['global']['atm_vars']
     var_oce = cfg['global']['oce_vars']
+    var_ice = cfg['global']['ice_vars']
     var_table = cfg['global']['tab_vars']
     # var_all = list(set(var_atm + var_table + var_oce))
     var_all = list(
         dict.fromkeys(
             var_atm +
             var_table +
-            var_oce))  # python 3.7+, preserve order
+            var_oce +
+            var_ice))  # python 3.7+, preserve order
 
     # Can probably be cleaned up further
     comp = face['model']['component']  # Get component for each domain
@@ -245,7 +247,7 @@ def gm_main(argv):
 
     # loop on the variables to create the output table
     global_table = []
-    for var in var_atm + var_oce:
+    for var in var_atm + var_oce + var_ice:
         beta = face['variables'][var]
         gamma = ref[var]
 
