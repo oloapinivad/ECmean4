@@ -9,11 +9,11 @@
 
 __author__ = "Paolo Davini (p.davini@isac.cnr.it), Sep 2022."
 
-# required to call uppper level folder
+# required to call upper level folder
 import sys
 sys.path.insert(0, '../')
 
-from performance_indices import pi_main, parse_arguments
+from performance_indices import pi_main, pi_parse_arguments
 from ecmean.files import load_yaml
 import os
 import yaml
@@ -73,7 +73,7 @@ if do_compute:
 if do_create_clim:
 
     sys.argv = ['historical', str(year1), str(year2), '--config', config_file, '--model', models[0], '-k', refclim]
-    args = parse_arguments(sys.argv)
+    args = pi_parse_arguments(sys.argv)
     cfg = load_yaml(args.config)
 
     # dictionary with all elements

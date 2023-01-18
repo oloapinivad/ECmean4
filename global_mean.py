@@ -33,7 +33,7 @@ import dask
 dask.config.set(scheduler="synchronous")
 
 
-def parse_arguments(args):
+def gm_parse_arguments(args):
     """Parse CLI arguments for global mean"""
 
     parser = argparse.ArgumentParser(
@@ -157,7 +157,7 @@ def gm_main(argv):
 
     # assert sys.version_info >= (3, 7)
 
-    args = parse_arguments(argv)
+    args = gm_parse_arguments(argv)
     # log level with logging
     # currently basic definition trought the text
     numeric_level = getattr(logging, args.loglevel.upper(), None)
