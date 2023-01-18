@@ -5,7 +5,7 @@ Main concepts
 ^^^^^^^^^^^^^
 
 The ``global_mean.py`` script computes the global averages for many dynamical and physical fields. 
-It compares the output against a set of pre-computed climatological values defined in ``gm_reference.yml``, including the most important dynamical and physical fields for both the atmosphere and the ocean (e.g. temperature, salinity, etc.).
+It compares the output against a set of pre-computed climatological values defined in ``reference/gm_reference.yml``, including the most important dynamical and physical fields for both the atmosphere and the ocean (e.g. temperature, salinity, etc.).
 
 Most importantly, it provides estimate for the radiative budget (including clouds radiative forcing) and for the hydrological cycle (including integrals over land and ocean) 
 and other quantities useful for fast model assessment and for model tuning.

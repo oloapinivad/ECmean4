@@ -14,7 +14,6 @@ Welcome to ECmean4's documentation!
    configuration
    performanceindices
    globalmean
-   CDOversion
 
 ECmean4 code
 ^^^^^^^^^^^^^^^

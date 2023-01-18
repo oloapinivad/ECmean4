@@ -94,7 +94,7 @@ Properties of each climatology - as which variables, dataset and CMIP6 models us
 Climatology computation
 ^^^^^^^^^^^^^^^^^^^^^^^
 
-Climatology is computed by the ``py-climatology-create.py`` script, which is included in the repository for documentation.
+Climatology is computed by the ``utils/clim-create.py`` script, which is included in the repository for documentation.
 It is based on a YML file which is tells the script where to retrieve the data, identifying all the required data folder and names. 
 The tool loops over the variable and produces the yearly and seasonal average of the climate, as well as the interannual variance required for PIs. 
 To avoid that grid points with unrealistic low variance affect the computation of the PIs, a filter to exclude outlier is introduced. This is based on the 5-sigma of the log10 distribution of each variable and each season.
