@@ -19,13 +19,15 @@ from multiprocessing import Process, Manager
 import numpy as np
 import xarray as xr
 import yaml
-from ecmean import var_is_there, eval_formula, \
-    get_inifiles, adjust_clim_file, get_clim_files, \
-    areas_dictionary, masks_dictionary, remap_dictionary, guess_bounds, \
-    load_yaml, units_extra_definition, units_are_integrals, \
-    units_converter, directions_match, weight_split, \
-    Diagnostic, getdomain, make_input_filename, xr_preproc, mask_field, \
-    heatmap_comparison, select_region, dict_to_dataframe
+from ecmean.general import weight_split, Diagnostic, getdomain, dict_to_dataframe
+from ecmean.files import var_is_there, get_inifiles, load_yaml, make_input_filename, get_clim_files
+from ecmean.formula import eval_formula
+from ecmean.masks import masks_dictionary, areas_dictionary, mask_field, select_region, guess_bounds
+from ecmean.interp import remap_dictionary
+from ecmean.units import units_extra_definition, units_are_integrals, units_converter, directions_match
+from ecmean.ncfixers import xr_preproc, adjust_clim_file
+from ecmean.plotting import heatmap_comparison
+
 
 # temporary disabling the scheduler
 import dask

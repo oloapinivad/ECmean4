@@ -22,14 +22,14 @@ from time import time
 from tabulate import tabulate
 import numpy as np
 import xarray as xr
-import dask
-from ecmean import var_is_there, eval_formula, \
-    masks_dictionary, areas_dictionary, get_inifiles, load_yaml, \
-    units_extra_definition, units_are_integrals, \
-    units_converter, directions_match, weight_split, write_tuning_table, \
-    Diagnostic, getdomain, make_input_filename, masked_meansum, \
-    xr_preproc
+from ecmean.general import weight_split, write_tuning_table, Diagnostic, getdomain
+from ecmean.files import var_is_there, get_inifiles, load_yaml, make_input_filename
+from ecmean.formula import eval_formula
+from ecmean.masks import masks_dictionary, areas_dictionary, masked_meansum
+from ecmean.units import units_extra_definition, units_are_integrals, units_converter, directions_match
+from ecmean.ncfixers import xr_preproc
 
+import dask
 dask.config.set(scheduler="synchronous")
 
 

@@ -6,7 +6,12 @@
     data on a specific machine for both performance indices and global mean
     produce a figure to be automatically placed within the documentation and used as benchmark
     in different phases of the ECmean4 project evolution.
+    This is made to run on CNR-ISAC machina 'Wilma' only
 """
+
+# required to call uppper level folder
+import sys
+sys.path.insert(0, '../')
 
 from performance_indices import pi_main
 from global_mean import gm_main
@@ -15,7 +20,6 @@ import timeit
 import pandas as pd
 import seaborn as sns
 import matplotlib.pyplot as plt
-
 
 expname = 'historical'
 refclim = 'EC23'
@@ -30,7 +34,7 @@ nprocs = [1, 2, 4, 6, 8]
 nyears = [1, 2, 5, 10, 30]
 
 # file for configuration to be used as a reference
-benchconfig = 'docs/config_benchmark.yml'
+benchconfig = '../docs/config_benchmark.yml'
 
 # number of repetition of each run
 nrepeat = 3
@@ -109,7 +113,7 @@ hh, ll = axs[1].get_legend_handles_labels()
 axs[1].legend(hh, ll)
 
 if do_definitive:
-    figurepath = '/home/paolo/ECmean4/docs/sphinx/source/_static/benchmark.png'
+    figurepath = '../docs/sphinx/source/_static/benchmark.png'
 else:
     figurepath = '/home/paolo/work/figures/ECmean4/benchmark.png'
 
