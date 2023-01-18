@@ -179,7 +179,7 @@ def gm_main(argv):
     os.makedirs(diag.TABDIR, exist_ok=True)
 
     # load reference data
-    ref = load_yaml(INDIR / 'gm_reference.yml')
+    ref = load_yaml(INDIR / 'reference/gm_reference.yml')
 
     # loading the var-to-file interface
     face = load_yaml(

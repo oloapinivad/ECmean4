@@ -34,7 +34,7 @@ nprocs = [1, 2, 4, 6, 8]
 nyears = [1, 2, 5, 10, 30]
 
 # file for configuration to be used as a reference
-benchconfig = '../docs/config_benchmark.yml'
+benchconfig = 'config_benchmark.yml'
 
 # number of repetition of each run
 nrepeat = 3
