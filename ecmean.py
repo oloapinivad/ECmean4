@@ -1132,6 +1132,9 @@ def units_extra_definition():
     """Add units to the pint registry required by ECMean4"""
 
     # special units definition
+    #needed to work with metpy 1.4.0 see
+    #https://github.com/Unidata/MetPy/issues/2884
+    units._on_redefinition = 'warn' 
     units.define('fraction = [] = frac')
     units.define('psu = 1e-3 frac')
     units.define('PSU = 1e-3 frac')

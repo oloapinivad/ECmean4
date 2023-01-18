@@ -29,7 +29,7 @@ jobs:
     - name: provision-with-micromamba
       uses: mamba-org/provision-with-micromamba@v14
       with:
-        environment-file: mamba_environment.yml
+        environment-file: environment.yml
         environment-name: ECmean4
         cache-downloads: true
         extra-specs: |

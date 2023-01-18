@@ -16,7 +16,7 @@ dependencies:
   - esmpy<=8.3.1 #temporary, cant use py311
   - matplotlib-base>=3.5.0
   - numba
-  - metpy<1.4.0
+  - metpy
   - seaborn
   - pytest
   - tabulate

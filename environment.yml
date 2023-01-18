@@ -1,7 +1,5 @@
 # Create the ECmean4 environment:
 #   conda env create -f environment.yml
-# Alternatively, use mamba
-#   mamba env create -n ECmean4 -f environment.yml
 
 name : ECmean4
 channels:
@@ -12,13 +10,12 @@ dependencies:
   - netcdf4 
   - dask
   - xarray
-  - cfgrib
   - xesmf
-  - esmpy<=8.3.1 #temporary, cant use py311
-  - matplotlib-base>=3.5.0
+  - esmpy<=8.3.1
+  - matplotlib-base
+  - metpy
+  - tabulate
   - numba
-  - metpy<1.4.0
+  - cfgrib
   - seaborn
   - pytest
-  - tabulate
-
