@@ -2,7 +2,7 @@
 # Create the ECmean4 environment:
 #   conda env create -f dev_environment.yml
 
-name : ECmean4
+name : DevECmean4
 channels:
   - conda-forge
 dependencies:
@@ -26,3 +26,5 @@ dependencies:
   - sphinx
   - sphinx_rtd_theme
   - ipykernel
+  - cdo
+  - python-cdo

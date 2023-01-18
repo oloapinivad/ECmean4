@@ -9,10 +9,13 @@
 
 __author__ = "Paolo Davini (p.davini@isac.cnr.it), Sep 2022."
 
-from performance_indices import pi_main, parse_arguments
-from ecmean import load_yaml
-import os
+# required to call uppper level folder
 import sys
+sys.path.insert(0, '../')
+
+from performance_indices import pi_main, parse_arguments
+from ecmean.files import load_yaml
+import os
 import yaml
 import warnings
 import glob
@@ -29,6 +32,7 @@ nprocs = 4
 do_compute = False
 do_create_clim = True
 do_definitive = True
+config_file = '../config_CMIP6_PD.yml'
 
 # models on which we can build the clim
 if do_create_clim:
@@ -62,13 +66,13 @@ if do_compute:
         else:
             ensemble = "r1i1p1f1"
 
-        sys.argv = [expname, str(year1), str(year2), '--config', 'config_CMIP6_PD.yml',
+        sys.argv = [expname, str(year1), str(year2), '--config', config_file,
                     '--model', model, '-j', str(nprocs), '-k', refclim, '-e', ensemble]
         pi_main(sys.argv)
 
 if do_create_clim:
 
-    sys.argv = ['historical', str(year1), str(year2), '--config', 'config_CMIP6_PD.yml', '--model', models[0], '-k', refclim]
+    sys.argv = ['historical', str(year1), str(year2), '--config', config_file, '--model', models[0], '-k', refclim]
     args = parse_arguments(sys.argv)
     cfg = load_yaml(args.config)
 
