@@ -7,7 +7,7 @@ model:
 dirs:
    exp: /archive/paolo/cmip6
    tab: /work/scratch/users/paolo/ecmean_cmip6
-   clm: /home/paolo/ECmean4/climatology
+   clm: /home/paolo/ECmean4/ecmean/climatology
    fig: /work/users/paolo/figures/ECmean4
 
 global:

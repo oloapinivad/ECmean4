@@ -34,10 +34,12 @@ jobs:
         cache-downloads: true
         extra-specs: |
             python=${{ matrix.python-version }}
-    - name: Lint with flake8
+    - name: Install ECmean4
       run: |
         # install package
         pip install -e .
+    - name: Lint with flake8
+      run: |
         # install flake8
         conda install flake8
         # stop the build if there are Python syntax errors or undefined names

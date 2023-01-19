@@ -19,7 +19,7 @@ from multiprocessing import Process, Manager
 import numpy as np
 import xarray as xr
 import yaml
-from ecmean.libs.general import weight_split, Diagnostic, getdomain, dict_to_dataframe
+from ecmean.libs.general import weight_split, Diagnostic, getdomain, dict_to_dataframe, numeric_loglevel
 from ecmean.libs.files import var_is_there, get_inifiles, load_yaml, make_input_filename, get_clim_files
 from ecmean.libs.formula import eval_formula
 from ecmean.libs.masks import masks_dictionary, areas_dictionary, mask_field, select_region, guess_bounds
@@ -32,39 +32,6 @@ from ecmean.libs.plotting import heatmap_comparison
 # temporary disabling the scheduler
 import dask
 dask.config.set(scheduler="synchronous")
-
-
-def pi_parse_arguments(args):
-    """Parse CLI arguments"""
-
-    parser = argparse.ArgumentParser(
-        description='ECmean Performance Indices for EC-Earth4')
-    parser.add_argument('exp', metavar='EXP', type=str, help='experiment ID')
-    parser.add_argument('year1', metavar='Y1', type=int, help='starting year')
-    parser.add_argument('year2', metavar='Y2', type=int, help='final year')
-    parser.add_argument('-s', '--silent', action='store_true',
-                        help='do not print anything to std output')
-    parser.add_argument('-v', '--loglevel', type=str, default='WARNING',
-                        help='define the level of logging. default: error')
-    parser.add_argument('-j', dest="numproc", type=int, default=1,
-                        help='number of processors to use')
-    parser.add_argument('-c', '--config', type=str, default='',
-                        help='config file')
-    parser.add_argument('-m', '--model', type=str, default='',
-                        help='model name')
-    parser.add_argument(
-        '-k',
-        '--climatology',
-        type=str,
-        default='EC23',
-        help='climatology to be compared. default: EC23. Options: [RK08, EC22, EC23]')
-    parser.add_argument('-r', '--resolution', type=str, default='',
-                        help='climatology resolution')
-    parser.add_argument('-e', '--ensemble', type=str, default='r1i1p1f1',
-                        help='variant label (ripf number for cmor)')
-    parser.add_argument('-i', '--interface', type=str, default='',
-                        help='interface (overrides config.yml)')
-    return parser.parse_args(args)
 
 
 def pi_worker(util, piclim, face, diag, field_3d, varstat, varlist):
@@ -236,29 +203,50 @@ def pi_worker(util, piclim, face, diag, field_3d, varstat, varlist):
         varstat[var] = result
 
 
-def pi_main(argv):
-    """Main performance indices calculation"""
+def performance_indices(exp, year1, year2,
+                config = 'config.yml',
+                loglevel = 'WARNING',
+                numproc = 1, 
+                climatology = 'EC23',
+                interface = None, model = None, ensemble = 'r1i1p1f1', 
+                silent = None):
+    
+    """Main performance indices calculation
 
-    # assert sys.version_info >= (3, 7)
+    :param exp: Experiment name or ID
+    :param year1: Initial year
+    :param year2: Final year
+    :param config: configuration file, optional (default 'config.yml')
+    :param loglevel: level of logging, optional (default 'WARNING')
+    :param numproc: number of multiprocessing cores, optional (default '1')
+    :param interface: interface file to be used, optional (default as specifified in config file)
+    :param model: model to be analyzed, optional (default as specifified in config file)
+    :param ensemble: ensemble member to be analyzed, optional (default as 'r1i1p1f1')
+    :param silent: do not print anything to std output, optional
+    :param climatology: climatology to be compared. default: EC23. Options: [RK08, EC22, EC23]
+
+    :return the performance indices yaml file and heatmap
+
+    """
+
+    # create a name space with all the arguments to feed the Diagnostic class
+    # This is not the neatest option, but it is very compact
+    argv = argparse.Namespace(**locals())
+
+     # set loglevel
+    logging.basicConfig(level=numeric_loglevel(argv.loglevel))
 
     tic = time()
-    args = pi_parse_arguments(argv)
-    # log level with logging
-    # currently basic definition trought the text
-    numeric_level = getattr(logging, args.loglevel.upper(), None)
-    if not isinstance(numeric_level, int):
-        raise ValueError('Invalid log level: %s' % args.loglevel)
-    logging.basicConfig(level=numeric_level)
 
     INDIR = Path(os.path.dirname(os.path.abspath(__file__)))
     # config file (looks for it in the same dir as the .py program file
-    if args.config:
-        cfg = load_yaml(args.config)
+    if argv.config:
+        cfg = load_yaml(argv.config)
     else:
         cfg = load_yaml(INDIR / 'config.yml')
 
     # Setup all common variables, directories from arguments and config files
-    diag = Diagnostic(args, cfg)
+    diag = Diagnostic(argv, cfg)
 
     # Create missing folders
     os.makedirs(diag.TABDIR, exist_ok=True)
@@ -434,7 +422,51 @@ def pi_main(argv):
     if diag.fverb:
         print('Postproc done in {:.4f} seconds'.format(toc - tic))
 
+def pi_parse_arguments(args):
+    """Parse CLI arguments"""
+
+    parser = argparse.ArgumentParser(
+        description='ECmean Performance Indices for EC-Earth4')
+    parser.add_argument('exp', metavar='EXP', type=str, help='experiment ID')
+    parser.add_argument('year1', metavar='Y1', type=int, help='starting year')
+    parser.add_argument('year2', metavar='Y2', type=int, help='final year')
+    parser.add_argument('-s', '--silent', action='store_true',
+                        help='do not print anything to std output')
+    parser.add_argument('-v', '--loglevel', type=str, default='WARNING',
+                        help='define the level of logging. default: error')
+    parser.add_argument('-j', dest="numproc", type=int, default=1,
+                        help='number of processors to use')
+    parser.add_argument('-c', '--config', type=str, default='',
+                        help='config file')
+    parser.add_argument('-m', '--model', type=str, default='',
+                        help='model name')
+    parser.add_argument(
+        '-k',
+        '--climatology',
+        type=str,
+        default='EC23',
+        help='climatology to be compared. default: EC23. Options: [RK08, EC22, EC23]')
+    parser.add_argument('-r', '--resolution', type=str, default='',
+                        help='climatology resolution')
+    parser.add_argument('-e', '--ensemble', type=str, default='r1i1p1f1',
+                        help='variant label (ripf number for cmor)')
+    parser.add_argument('-i', '--interface', type=str, default='',
+                        help='interface (overrides config.yml)')
+    return parser.parse_args(args)
+
+def pi_entry_point():
+
+    # read arguments from command line
+    args = pi_parse_arguments(sys.argv[1:])
+
+    performance_indices(exp = args.exp, year1 = args.year1, year2 = args.year2,
+                numproc = args.numproc,
+                silent = args.silent,
+                loglevel = args.loglevel,
+                climatology = args.climatology,
+                interface = args.interface, config = args.config,
+                model = args.model, ensemble = args.ensemble)
 
 if __name__ == '__main__':
 
-    sys.exit(pi_main(sys.argv[1:]))
+    sys.exit(pi_entry_point())

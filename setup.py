@@ -12,6 +12,7 @@ setup(name='ECmean4',
       entry_points={
             "console_scripts": [
                 "global_mean = ecmean.global_mean:gm_entry_point",
+                "performance_indices = ecmean.performance_indices:pi_entry_point",
             ],
             }
      )

@@ -27,7 +27,7 @@ class Diagnostic():
         self.debug = getattr(args, 'debug', False)
         self.numproc = args.numproc
         self.modelname = getattr(args, 'model', '')
-        self.climatology = getattr(args, 'climatology', 'RK08')
+        self.climatology = getattr(args, 'climatology', 'EC23')
         self.interface = getattr(args, 'interface', '')
         self.resolution = getattr(args, 'resolution', '')
         self.regions = cfg['PI']['regions']
