@@ -22,7 +22,7 @@ from time import time
 from tabulate import tabulate
 import numpy as np
 import xarray as xr
-from ecmean.general import weight_split, write_tuning_table, Diagnostic, getdomain
+from ecmean.general import weight_split, write_tuning_table, Diagnostic, getdomain, numeric_loglevel
 from ecmean.files import var_is_there, get_inifiles, load_yaml, make_input_filename
 from ecmean.formula import eval_formula
 from ecmean.masks import masks_dictionary, areas_dictionary, masked_meansum
@@ -124,23 +124,39 @@ def global_mean(exp, year1, year2,
             config = 'config.yml',
             loglevel = 'WARNING',
             numproc = 1, 
-            interface = None, model = None, ensemble = '', 
+            interface = None, model = None, ensemble = 'r1i1p1f1', 
             silent = None, trend = None, line = None,
             output = None):
     
-    """The main ECmean4 global mean code"""
+    """The main ECmean4 global mean function
+
+    :param exp: Experiment name or ID
+    :param year1: Initial year
+    :param year2: Final year
+    :param config: configuration file, optional (default 'config.yml')
+    :param loglevel: level of logging, optional (default 'WARNING')
+    :param numproc: number of multiprocessing cores, optional (default '1')
+    :param interface: interface file to be used, optional (default as specifified in config file)
+    :param model: model to be analyzed, optional (default as specifified in config file)
+    :param ensemble: ensemble member to be analyzed, optional (default as 'r1i1p1f1')
+    :param silent: do not print anything to std output, optional
+    :param trend: compute yearly trends, optional
+    :param line: appends also single line to a table, optional
+    :param output: output directory for the single line output, optional
+
+    :returns: the global mean txt table as defined in the output
+
+    """
 
     # create a name space with all the arguments to feed the Diagnostic class
+    # This is not the neatest option, but it is very compact
     argv = argparse.Namespace(**locals())
 
-    # log level with logging
-    # currently basic definition trought the text
-    numeric_level = getattr(logging, argv.loglevel.upper(), None)
-    if not isinstance(numeric_level, int):
-        raise ValueError('Invalid log level: %s' % args.loglevel)
-    logging.basicConfig(level=numeric_level)
+    # set loglevel
+    logging.basicConfig(level=numeric_loglevel(argv.loglevel))
 
     INDIR = Path(os.path.dirname(os.path.abspath(__file__)))
+    print(INDIR)
     # config file (looks for it in the same dir as the .py program file
     if argv.config:
         cfg = load_yaml(argv.config)

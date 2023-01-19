@@ -89,6 +89,16 @@ def is_number(s):
     except ValueError:
         return False
 
+def numeric_loglevel(loglevel) :
+    """Define the logging level """
+    # log level with logging
+    # currently basic definition trought the text
+    numeric_level = getattr(logging, loglevel.upper(), None)
+    if not isinstance(numeric_level, int):
+        raise ValueError('Invalid log level: %s' % loglevel)
+    
+    return numeric_level
+
 
 # def chunks(iterable, num):
 #     """Generate num adjacent chunks of data from a list iterable
