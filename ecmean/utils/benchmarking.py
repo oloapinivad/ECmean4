@@ -9,13 +9,8 @@
     This is made to run on CNR-ISAC machina 'Wilma' only
 """
 
-# required to call uppper level folder
-import sys
-sys.path.insert(0, '../')
-
-from performance_indices import pi_main
-from global_mean import gm_main
-import sys
+from ecmean.performance_indices import performance_indices
+from ecmean.global_mean import global_mean
 import timeit
 import pandas as pd
 import seaborn as sns
@@ -69,13 +64,21 @@ for model in models:
                 year2 = year1 + n - 1
                 # separated calls for model (perhaps a specific config file should be added)
                 if script == 'Performance Indices':
-                    sys.argv = [expname, str(year1), str(year2), '--config', benchconfig,
-                                '--model', model, '-j', str(nproc), '-k', refclim, '-e', ensemble, '-v', 'warning']
-                    single = timeit.timeit(lambda: pi_main(sys.argv), number=nrepeat)
+                    single = timeit.timeit(lambda: performance_indices(expname, year1, year2, config = benchconfig,
+                                                                       model = model, numproc = nproc, 
+                                                                       climatology = refclim, ensemble = ensemble, 
+                                                                       loglevel = 'warning'))
+                    #sys.argv = [expname, str(year1), str(year2), '--config', benchconfig,
+                    #            '--model', model, '-j', str(nproc), '-k', refclim, '-e', ensemble, '-v', 'warning']
+                    #single = timeit.timeit(lambda: pi_main(sys.argv), number=nrepeat)
                 elif script == 'Global Mean':
-                    sys.argv = [expname, str(year1), str(year2), '--config', benchconfig,
-                                '--model', model, '-j', str(nproc), '-e', ensemble, '-v', 'warning']
-                    single = timeit.timeit(lambda: gm_main(sys.argv), number=nrepeat)
+                    single = timeit.timeit(lambda: global_mean(expname, year1, year2, config = benchconfig,
+                                                                       model = model, numproc = nproc, 
+                                                                       ensemble = ensemble, 
+                                                                       loglevel = 'warning'))
+                    #sys.argv = [expname, str(year1), str(year2), '--config', benchconfig,
+                    #            '--model', model, '-j', str(nproc), '-e', ensemble, '-v', 'warning']
+                    #single = timeit.timeit(lambda: gm_main(sys.argv), number=nrepeat)
 
                 # concatenate
                 d = pd.DataFrame({'script': [script], 'time': [round(single/nrepeat, 1)], 'nprocs': [nproc], 'nyears': [n]})

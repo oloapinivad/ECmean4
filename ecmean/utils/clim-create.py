@@ -8,16 +8,12 @@
 
 __author__ = "Paolo Davini (p.davini@isac.cnr.it), Sep 2022."
 
-# required to call uppper level folder
-import sys
-sys.path.insert(0, '../')
-
 import tempfile
-from ecmean.files import load_yaml
-from ecmean.units import units_extra_definition
-from ecmean.ncfixers import xr_preproc
+from ecmean.libs.files import load_yaml
+from ecmean.libs.units import units_extra_definition
+from ecmean.libs.ncfixers import xr_preproc
 from dask.distributed import Client, LocalCluster, progress
-from ecmean.climatology import full_histogram, check_histogram, variance_threshold, mask_from_field
+from ecmean.libs.climatology import full_histogram, check_histogram, variance_threshold, mask_from_field
 import yaml
 import os
 import xarray as xr
@@ -46,7 +42,7 @@ year1 = 1990
 year2 = 2019
 
 # yml file to get information on dataset on some machine
-clim_info = '/home/paolo/ECmean4/climatology/create-clim-wilma-EC23.yml'
+clim_info = '/home/paolo/ECmean4/ecmean/climatology/create-clim-wilma-EC23.yml'
 
 # figures : some diagnostic figures can be saved to check the consistency of mean and variance fields
 do_figures = True

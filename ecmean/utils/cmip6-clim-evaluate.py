@@ -9,12 +9,8 @@
 
 __author__ = "Paolo Davini (p.davini@isac.cnr.it), Sep 2022."
 
-# required to call upper level folder
-import sys
-sys.path.insert(0, '../')
-
-from performance_indices import pi_main, pi_parse_arguments
-from ecmean.files import load_yaml
+from performance_indices import performance_indices
+from ecmean.libs.files import load_yaml
 import os
 import yaml
 import warnings
@@ -66,15 +62,14 @@ if do_compute:
         else:
             ensemble = "r1i1p1f1"
 
-        sys.argv = [expname, str(year1), str(year2), '--config', config_file,
-                    '--model', model, '-j', str(nprocs), '-k', refclim, '-e', ensemble]
-        pi_main(sys.argv)
+        performance_indices(expname, year1, year2, config = config_file, model = model, ensemble = ensemble,
+                            numproc = nprocs, cliamtology = refclim)
 
 if do_create_clim:
 
-    sys.argv = ['historical', str(year1), str(year2), '--config', config_file, '--model', models[0], '-k', refclim]
-    args = pi_parse_arguments(sys.argv)
-    cfg = load_yaml(args.config)
+    #sys.argv = ['historical', str(year1), str(year2), '--config', config_file, '--model', models[0], '-k', refclim]
+    #args = pi_parse_arguments(sys.argv)
+    cfg = load_yaml(config_file)
 
     # dictionary with all elements
     full = {}
