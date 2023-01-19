@@ -2,9 +2,11 @@ __pycache__/
 .vscode/
 cdo/__pycache__/
 /config*.yml
+ecmean/config*.yml
 test/table/*.txt
 test/table/*.yml
 test/figures
 test/data/*/*.idx
 docs/sphinx/build/
+ECmean4.egg-info/
 

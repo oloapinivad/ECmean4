@@ -22,12 +22,12 @@ from time import time
 from tabulate import tabulate
 import numpy as np
 import xarray as xr
-from ecmean.general import weight_split, write_tuning_table, Diagnostic, getdomain, numeric_loglevel
-from ecmean.files import var_is_there, get_inifiles, load_yaml, make_input_filename
-from ecmean.formula import eval_formula
-from ecmean.masks import masks_dictionary, areas_dictionary, masked_meansum
-from ecmean.units import units_extra_definition, units_are_integrals, units_converter, directions_match
-from ecmean.ncfixers import xr_preproc
+from ecmean.libs.general import weight_split, write_tuning_table, Diagnostic, getdomain, numeric_loglevel
+from ecmean.libs.files import var_is_there, get_inifiles, load_yaml, make_input_filename
+from ecmean.libs.formula import eval_formula
+from ecmean.libs.masks import masks_dictionary, areas_dictionary, masked_meansum
+from ecmean.libs.units import units_extra_definition, units_are_integrals, units_converter, directions_match
+from ecmean.libs.ncfixers import xr_preproc
 
 import dask
 dask.config.set(scheduler="synchronous")
@@ -47,7 +47,6 @@ def gm_worker(util, ref, face, diag, varmean, vartrend, varlist):
 
     Returns:
         vartrend and varmean under the form of a dictionaries
-
     """
 
     for var in varlist:
@@ -303,17 +302,19 @@ def gm_parse_arguments(args):
 
     return parser.parse_args(args)
 
-
-if __name__ == "__main__":
+def gm_entry_point():
 
     # read arguments from command line
     args = gm_parse_arguments(sys.argv[1:])
 
-    sys.exit(
-        global_mean(exp = args.exp, year1 = args.year1, year2 = args.year2, 
-                numproc = args.numproc, 
+    global_mean(exp = args.exp, year1 = args.year1, year2 = args.year2,
+                numproc = args.numproc,
                 silent = args.silent, trend = args.trend, line = args.line,
                 output = args.output, loglevel = args.loglevel,
                 interface = args.interface, config = args.config,
                 model = args.model, ensemble = args.ensemble)
-        )
+
+
+if __name__ == "__main__":
+
+    sys.exit(gm_entry_point())

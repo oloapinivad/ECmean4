@@ -4,10 +4,10 @@ model:
    name: EC-Earth3
 
 dirs:
-   exp: test/data
-   tab: test/table
-   clm: climatology
-   fig: test/figures
+   exp: tests/data
+   tab: tests/table
+   clm: ecmean/climatology
+   fig: tests/figures
 
 global:
   atm_vars: [pr, pr_land, pr_oce]

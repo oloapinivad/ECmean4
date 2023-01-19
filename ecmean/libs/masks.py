@@ -7,7 +7,7 @@ import logging
 import sys
 import xarray as xr
 import numpy as np
-from ecmean.ncfixers import xr_preproc
+from ecmean.libs.ncfixers import xr_preproc
 
 
 ##########################

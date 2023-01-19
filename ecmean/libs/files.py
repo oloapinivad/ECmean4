@@ -11,8 +11,8 @@ import logging
 from glob import glob
 import yaml
 import sys
-from ecmean.general import is_number
-from ecmean.ncfixers import xr_preproc
+from ecmean.libs.general import is_number
+from ecmean.libs.ncfixers import xr_preproc
 
 
 ##################

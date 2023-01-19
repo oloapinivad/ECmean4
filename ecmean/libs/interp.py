@@ -7,7 +7,7 @@ import logging
 import xarray as xr
 import xesmf as xe
 import sys
-from ecmean.ncfixers import xr_preproc
+from ecmean.libs.ncfixers import xr_preproc
 
 ###########################
 # INTERPOLATION FUNCTIONS #

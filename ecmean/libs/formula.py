@@ -9,7 +9,7 @@ Shared functions for ECmean4. Set of formula based tools
 
 import operator
 import re
-from ecmean.general import is_number
+from ecmean.libs.general import is_number
 
 
 # this is a tool to parse a CDO-based formula into mathematical operatos

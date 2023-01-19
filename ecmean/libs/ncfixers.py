@@ -1,3 +1,8 @@
+#!/usr/bin/env python3
+'''
+Shared functions for Xarray 
+'''
+
 #########################
 # FILE FORMAT FUNCTIONS #
 #########################
