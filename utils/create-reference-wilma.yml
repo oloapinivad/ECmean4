@@ -1,0 +1,19 @@
+# directories to be specified, machine dependent
+dirs: 
+  datadir: "/work/scratch/users/paolo/ecmean_datasets"
+
+mask: "/work/datasets/obs/ERA5/land_sea_mask/landsea_mask.nc"
+
+pr:
+  dataset: MSWEP
+  varname: precipitation
+  org_units: mm/month
+  tgt_units: mm/day
+  dir: "{datadir}/{dataset}/data/*.nc"
+pr_land:
+  dataset: MSWEP
+  varname: precipitation
+  total: land
+  org_units: mm/month
+  tgt_units: Sv
+  dir: "{datadir}/{dataset}/data/*.nc"
