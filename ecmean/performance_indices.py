@@ -253,7 +253,7 @@ def performance_indices(exp, year1, year2,
     os.makedirs(diag.FIGDIR, exist_ok=True)
 
     # loading the var-to-file interface
-    # allow for both string name and file
+    # allow for both interface name or interface file
     fff, ext = os.path.splitext(diag.interface)
     if ext: 
         faceload = diag.interface
