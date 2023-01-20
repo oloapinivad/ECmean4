@@ -173,11 +173,15 @@ def global_mean(exp, year1, year2,
     ref = load_yaml(INDIR / 'reference/gm_reference.yml')
 
     # loading the var-to-file interface
-    face = load_yaml(
-        INDIR /
-        Path(
+    # allow for both interface name or interface file
+    fff, ext = os.path.splitext(diag.interface)
+    if ext: 
+        faceload = diag.interface
+    else :  
+        faceload = INDIR / Path(
             'interfaces',
-            f'interface_{diag.interface}.yml'))
+            f'interface_{diag.interface}.yml')   
+    face = load_yaml(faceload)
 
     # list of vars on which to work
     var_atm = cfg['global']['atm_vars']
@@ -303,6 +307,10 @@ def gm_parse_arguments(args):
     return parser.parse_args(args)
 
 def gm_entry_point():
+
+    """
+    Command line interface to run the global_mean function
+    """
 
     # read arguments from command line
     args = gm_parse_arguments(sys.argv[1:])

@@ -253,11 +253,15 @@ def performance_indices(exp, year1, year2,
     os.makedirs(diag.FIGDIR, exist_ok=True)
 
     # loading the var-to-file interface
-    face = load_yaml(
-        INDIR /
-        Path(
+    # allow for both string name and file
+    fff, ext = os.path.splitext(diag.interface)
+    if ext: 
+        faceload = diag.interface
+    else :  
+        faceload = INDIR / Path(
             'interfaces',
-            f'interface_{diag.interface}.yml'))
+            f'interface_{diag.interface}.yml')   
+    face = load_yaml(faceload)
 
     # load the climatology reference data
     piclim = load_yaml(diag.CLMDIR / f'pi_climatology_{diag.climatology}.yml')
@@ -455,6 +459,10 @@ def pi_parse_arguments(args):
     return parser.parse_args(args)
 
 def pi_entry_point():
+
+    """
+    Command line interface to run the global_mean function
+    """
 
     # read arguments from command line
     args = pi_parse_arguments(sys.argv[1:])

@@ -17,7 +17,7 @@ Running the global mean evaluation is rather simple ::
 
         global_mean EXP Y1 Y2
 
-Alternative, you also run the python script
+Alternative, you also run the python script in ``ecmean`` library ::
 
         ./global_mean.py EXP Y1 Y2
 
@@ -65,6 +65,6 @@ Example
 
 Usage example for CMIP5::
 
-        ./global_mean.py historical 1990 1999 -j 12 -m EC-EARTH -e r1i1p1 -i CMIP5
+        global_mean historical 1990 1999 -j 12 -m EC-EARTH -e r1i1p1 -i CMIP5
 
 will compute performance indices for member r1i1p1 of the EC-EARTH model in the CMIP5 historical experiment.
