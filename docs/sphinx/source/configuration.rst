@@ -24,7 +24,7 @@ dirs: exp
 dirs: tab
 	Where the output should be placed
 dirs: fig
-	Where the output figures should be placed (for ``performance_indices.py`` only)
+	Where the output figures should be placed (for ``performance_indices`` only)
 dirs: clm
 	Where the ECmean4 climatology is installed, i.e. the ``ECmean4/climatology`` folder
 

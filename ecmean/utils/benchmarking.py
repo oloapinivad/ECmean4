@@ -67,7 +67,7 @@ for model in models:
                     single = timeit.timeit(lambda: performance_indices(expname, year1, year2, config = benchconfig,
                                                                        model = model, numproc = nproc, 
                                                                        climatology = refclim, ensemble = ensemble, 
-                                                                       loglevel = 'warning'))
+                                                                       loglevel = 'warning'), number=nrepeat)
                     #sys.argv = [expname, str(year1), str(year2), '--config', benchconfig,
                     #            '--model', model, '-j', str(nproc), '-k', refclim, '-e', ensemble, '-v', 'warning']
                     #single = timeit.timeit(lambda: pi_main(sys.argv), number=nrepeat)
@@ -75,7 +75,7 @@ for model in models:
                     single = timeit.timeit(lambda: global_mean(expname, year1, year2, config = benchconfig,
                                                                        model = model, numproc = nproc, 
                                                                        ensemble = ensemble, 
-                                                                       loglevel = 'warning'))
+                                                                       loglevel = 'warning'), number=nrepeat)
                     #sys.argv = [expname, str(year1), str(year2), '--config', benchconfig,
                     #            '--model', model, '-j', str(nproc), '-e', ensemble, '-v', 'warning']
                     #single = timeit.timeit(lambda: gm_main(sys.argv), number=nrepeat)

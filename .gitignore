@@ -5,7 +5,7 @@ cdo/__pycache__/
 ecmean/config*.yml
 tests/table/*.txt
 tests/table/*.yml
-tests/figures
+tests/figures/*.pdf
 tests/data/*/*.idx
 docs/sphinx/build/
 ECmean4.egg-info/

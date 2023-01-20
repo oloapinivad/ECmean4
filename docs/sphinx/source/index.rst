@@ -19,7 +19,7 @@ ECmean4 code
 ^^^^^^^^^^^^^^^
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 3
 
    _apidocs/modules
 

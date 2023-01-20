@@ -35,7 +35,7 @@ ECmean4 can process many years and multiple variables in less than 5 minutes (as
 Performance indices are implicitly slower than global mean, but with a few cores available both can be completed in a couple of minutes.
 Since parallelization is done along variables, it does not make sense (especially for performance indices) to use more than 6 cores due to the limited number of variables. 
 
-Scaling has been tested on a Xeon 16-Core 6130 2,1Ghz machine, analysing EC-Earth3 CMIP6 historical run (i.e. TL255L91, about 0.7x0.7 deg), using the fixed ``utils/config_benchmark.yml`` (i.e. for performance indices evaluating on 3 seasons and 4 regions).
+Scaling has been tested on a Xeon 16-Core 6130 2,1Ghz machine, analysing EC-Earth3 CMIP6 historical run (i.e. TL255L91, about 0.7x0.7 deg), using the fixed ``ecmean/utils/config_benchmark.yml`` (i.e. for performance indices evaluating on 3 seasons and 4 regions).
 
 .. figure:: _static/benchmark.png
    :align: center
