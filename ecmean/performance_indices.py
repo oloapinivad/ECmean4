@@ -10,7 +10,6 @@
 
 import sys
 import os
-import re
 import argparse
 from pathlib import Path
 import logging
@@ -19,12 +18,12 @@ from multiprocessing import Process, Manager
 import numpy as np
 import xarray as xr
 import yaml
-from ecmean.libs.general import weight_split, Diagnostic, getdomain, dict_to_dataframe, numeric_loglevel
-from ecmean.libs.files import var_is_there, get_inifiles, load_yaml, make_input_filename, get_clim_files
-from ecmean.libs.formula import eval_formula
+from ecmean.libs.general import weight_split, getdomain, dict_to_dataframe, numeric_loglevel, get_variables_to_load
+from ecmean.libs.files import var_is_there, get_inifiles, load_yaml, make_input_filename, get_clim_files, config_diagnostic
+from ecmean.libs.formula import formula_wrapper
 from ecmean.libs.masks import masks_dictionary, areas_dictionary, mask_field, select_region, guess_bounds
 from ecmean.libs.interp import remap_dictionary
-from ecmean.libs.units import units_extra_definition, units_are_integrals, units_converter, directions_match
+from ecmean.libs.units import units_extra_definition, units_wrapper
 from ecmean.libs.ncfixers import xr_preproc, adjust_clim_file
 from ecmean.libs.plotting import heatmap_comparison
 
@@ -53,13 +52,11 @@ def pi_worker(util, piclim, face, diag, field_3d, varstat, varlist):
 
     for var in varlist:
 
+        # get domain
         vdom = getdomain(var, face)
 
-        if 'derived' in face['variables'][var].keys():
-            cmd = face['variables'][var]['derived']
-            dervars = re.findall("[a-zA-Z0-9]+", cmd)
-        else:
-            dervars = [var]
+        # get the list of the variables to be loaded
+        dervars = get_variables_to_load(var, face)
 
         # check if required variables are there: use interface file
         # check into first file, and load also model variable units
@@ -78,23 +75,12 @@ def pi_worker(util, piclim, face, diag, field_3d, varstat, varlist):
         # if the variable is available
         if isavail:
 
-            logging.debug(var)
-            logging.debug(varunit + ' ---> ' + piclim[var]['units'])
-
-            # adjust integrated quantities
-            new_units = units_are_integrals(varunit, piclim[var])
-
-            # unit conversion based on metpy
-            offset, factor = units_converter(new_units, piclim[var]['units'])
-
-            # sign adjustment (for heat fluxes)
-            factor = factor * \
-                directions_match(face['variables'][var], piclim[var])
-            logging.debug('Offset %f, Factor %f', offset, factor)
+            # perform the unit conversion extracting offset and factor
+            offset, factor = units_wrapper(var, varunit, piclim, face)
 
             # create a file list using bash wildcards
-            infile = make_input_filename(
-                var, dervars, face, diag)
+            #infile = make_input_filename(
+            #    var, dervars, face, diag)
 
             # open file: chunking on time only, might be improved
             xfield = xr.open_mfdataset(infile, preprocess=xr_preproc, chunks={'time': 12})
@@ -102,11 +88,8 @@ def pi_worker(util, piclim, face, diag, field_3d, varstat, varlist):
             # in case of big files with multi year, be sure of having opened the right records
             xfield = xfield.sel(time=xfield.time.dt.year.isin(diag.years_joined))
 
-            if 'derived' in face['variables'][var].keys():
-                cmd = face['variables'][var]['derived']
-                outfield = eval_formula(cmd, xfield)
-            else:
-                outfield = xfield[var]
+            # get the data-array field for the required var
+            outfield = formula_wrapper(var, face, xfield)
 
             # mean over time and fixing of the units
             for season in diag.seasons:
@@ -238,30 +221,16 @@ def performance_indices(exp, year1, year2,
 
     tic = time()
 
-    INDIR = Path(os.path.dirname(os.path.abspath(__file__)))
-    # config file (looks for it in the same dir as the .py program file
-    if argv.config:
-        cfg = load_yaml(argv.config)
-    else:
-        cfg = load_yaml(INDIR / 'config.yml')
-
-    # Setup all common variables, directories from arguments and config files
-    diag = Diagnostic(argv, cfg)
-
+    # get local directory
+    indir = Path(os.path.dirname(os.path.abspath(__file__)))
+    logging.info(indir)
+    
+    # define config dictionary, interface dictionary and diagnostic class
+    cfg, face, diag = config_diagnostic(indir, argv)
+    
     # Create missing folders
     os.makedirs(diag.TABDIR, exist_ok=True)
     os.makedirs(diag.FIGDIR, exist_ok=True)
-
-    # loading the var-to-file interface
-    # allow for both interface name or interface file
-    fff, ext = os.path.splitext(diag.interface)
-    if ext: 
-        faceload = diag.interface
-    else :  
-        faceload = INDIR / Path(
-            'interfaces',
-            f'interface_{diag.interface}.yml')   
-    face = load_yaml(faceload)
 
     # load the climatology reference data
     piclim = load_yaml(diag.CLMDIR / f'pi_climatology_{diag.climatology}.yml')

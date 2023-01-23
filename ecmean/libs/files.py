@@ -11,7 +11,7 @@ import logging
 from glob import glob
 import yaml
 import sys
-from ecmean.libs.general import is_number
+from ecmean.libs.general import is_number, Diagnostic
 from ecmean.libs.ncfixers import xr_preproc
 
 
@@ -19,6 +19,34 @@ from ecmean.libs.ncfixers import xr_preproc
 # FILE FUNCTIONS #
 ##################
 
+def config_diagnostic(indir, argv) : 
+    """
+    configuration function to load config and interface files
+    and to initilized the diagnotic object
+    """
+    
+    # config file (looks for it in the same dir as the .py program file
+    if argv.config:
+        cfg = load_yaml(argv.config)
+    else:
+        cfg = load_yaml(indir / 'config.yml')
+
+    # Setup all common variables, directories from arguments and config files
+    logging.info(argv)
+    diag = Diagnostic(argv, cfg)
+
+    # loading the var-to-file interface
+    # allow for both interface name or interface file
+    fff, ext = os.path.splitext(diag.interface)
+    if ext: 
+        faceload = diag.interface
+    else :  
+        faceload = indir / Path(
+            'interfaces',
+            f'interface_{diag.interface}.yml')   
+    face = load_yaml(faceload)
+
+    return cfg, face, diag
 
 def var_is_there(flist, var, reference):
     """Check if a variable is available in the input file and provide its units"""
@@ -140,7 +168,6 @@ def get_inifiles(face, diag):
                     _expand_filename(
                         inifile,
                         '',
-                        '',
                         diag))
             else:
                 inifiles[filename] = Path(diag.ECEDIR) / \
@@ -149,7 +176,6 @@ def get_inifiles(face, diag):
                 inifiles[filename] = str(
                     _expand_filename(
                         inifiles[filename],
-                        '',
                         '',
                         diag))
 
@@ -163,16 +189,15 @@ def get_inifiles(face, diag):
     return inifiles.values()
 
 
-def _expand_filename(fn, var, var2load, diag):
+def _expand_filename(fn, var, diag):
     """Expands a path (filename or dir) for var, expname, frequency, ensemble etc.
-    and environment variables."""
+    and environment variables. Years are set as a wildcard and filtered by _filter_by_year"""
 
     return Path(str(os.path.expandvars(fn)).format(
         expname=diag.expname,
-        year1=diag.year1,
-        year2=diag.year2,
+        year1='*',
+        year2='*',
         var=var,
-        var2load=var2load,
         frequency=diag.frequency,
         ensemble=diag.ensemble,
         grid=diag.grid,
@@ -181,28 +206,34 @@ def _expand_filename(fn, var, var2load, diag):
     ))
 
 
-def _filter_filename_by_year(fname, year):
+def _filter_filename_by_year(template, fname, year):
     """Find filename containing a given year in a list of filenames"""
 
+    # get all files from template
     filenames = glob(str(fname))
-    # Assumes that the file name ends with 199001-199012.nc or 1990-1991.nc
-    try: 
+
+    # if year1 is used in the file template
+    if 'year1' in template: 
+    
+        # Assumes that the file name ends with 199001-199012.nc or 1990-1991.nc
         year1 = [int(x.split('_')[-1].split('-')[0][0:4]) for x in filenames]
-        try:
+
+        # if year2 is used in the file template
+        if 'year2' in template: 
             year2 = [int(x.split('_')[-1].split('-')[1][0:4]) for x in filenames]
-        except IndexError:
-            # this is introduced to handle files which have only one year in their filename
+        else:
             year2 = year1
+       
+        # filter names
         filternames = [filenames[i] for i in range(len(year1)) if year >= year1[i] and year <= year2[i]]
-    except :
+    else :
         # this is introduced for file that does not have year in their filename
         filternames = filenames
 
+    logging.info('Filtered filenames: %s', filternames)
     return filternames
         
   
-
-
 def load_yaml(infile):
     """Load generic yaml file"""
 
@@ -214,33 +245,35 @@ def load_yaml(infile):
     return cfg
 
 
-def make_input_filename(varname, var2load, face, diag):
-    """Create full input filepaths for the required variable and a given year"""
+def make_input_filename(cmorname, varname, face, diag):
+    """Create full input filepaths for the required variable and a given year
+    
+    Args: 
+        cmorname: the variable name in the interface files
+        varname: the derived variable name
+        face: the interface dictionary
+        diag: the diagnostic class
+        
+    Returns:
+        a list of files to be loaded by xarray
+        """
 
-    filetype = face['variables'][varname]['filetype']
+    # create the file structure according to the interface file
+    filetype = face['variables'][cmorname]['filetype']
     filepath = Path(diag.ECEDIR) / \
         Path(face['model']['basedir']) / \
         Path(face['filetype'][filetype]['dir']) / \
         Path(face['filetype'][filetype]['filename'])
-    # if year1 is a list, loop over it (we cannot use curly brackets anymore,
-    # now we pass a list)
+    logging.info('Filepath: %s', filepath)
+    
     filename = []
-    # Make an iterable even if year1 is not a list
-    if diag.years_joined : 
-        yy = diag.years_joined
-    else : 
-        yy = diag.year1
-    if not isinstance(diag.year1, list):
-        yy = [diag.year1]
-    for year in yy:
+    for year in diag.years_joined:
         filename1 = []
-        for var in var2load:
-            fname = _expand_filename(filepath, varname, var, diag)
-            fname = _filter_filename_by_year(fname, year)
+        for var in varname:
+            fname = _expand_filename(filepath, var, diag)
+            fname = _filter_filename_by_year(str(filepath), fname, year)
             filename1 = filename1 + fname
-        # filename1 = list(dict.fromkeys(filename1))
         filename = filename + filename1
     filename = list(dict.fromkeys(filename))  # Filter unique ones
-    print(filename)
-    logging.debug("Filenames: %s", filename)
+    logging.info("Filenames: %s", filename)
     return filename

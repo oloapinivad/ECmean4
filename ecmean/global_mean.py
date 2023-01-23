@@ -12,7 +12,7 @@ __author__ = "Paolo Davini (p.davini@isac.cnr.it), Sep 2022."
 
 import os
 import sys
-import re
+
 import argparse
 from pathlib import Path
 import logging
@@ -22,11 +22,11 @@ from time import time
 from tabulate import tabulate
 import numpy as np
 import xarray as xr
-from ecmean.libs.general import weight_split, write_tuning_table, Diagnostic, getdomain, numeric_loglevel
-from ecmean.libs.files import var_is_there, get_inifiles, load_yaml, make_input_filename
-from ecmean.libs.formula import eval_formula
+from ecmean.libs.general import weight_split, write_tuning_table, Diagnostic, getdomain, numeric_loglevel, get_variables_to_load
+from ecmean.libs.files import var_is_there, get_inifiles, load_yaml, make_input_filename, config_diagnostic
+from ecmean.libs.formula import formula_wrapper
 from ecmean.libs.masks import masks_dictionary, areas_dictionary, masked_meansum
-from ecmean.libs.units import units_extra_definition, units_are_integrals, units_converter, directions_match
+from ecmean.libs.units import units_extra_definition, units_wrapper
 from ecmean.libs.ncfixers import xr_preproc
 
 import dask
@@ -51,19 +51,20 @@ def gm_worker(util, ref, face, diag, varmean, vartrend, varlist):
 
     for var in varlist:
 
-        # compute weights
+        # get domain
         vdom = getdomain(var, face)
+
+        # compute weights
         weights = util[vdom + '_areas']
 
-        if 'derived' in face['variables'][var].keys():
-            cmd = face['variables'][var]['derived']
-            dervars = re.findall("[a-zA-Z0-9]+", cmd)
-        else:
-            dervars = [var]
+        # get the list of the variables to be loaded
+        dervars = get_variables_to_load(var, face)
 
+        # create input filenames
         infile = make_input_filename(
             var, dervars, face, diag)
 
+        # chck if variables are available
         isavail, varunit = var_is_there(infile, var, face['variables'])
 
         if not isavail:
@@ -71,43 +72,23 @@ def gm_worker(util, ref, face, diag, varmean, vartrend, varlist):
             vartrend[var] = float("NaN")
         else:
 
-            # conversion debug
-            logging.debug(var)
-            logging.debug(varunit + ' ---> ' + ref[var]['units'])
+            # perform the unit conversion extracting offset and factor
+            offset, factor = units_wrapper(var, varunit, ref, face)
 
-            # adjust integrated quantities
-            adjusted_units = units_are_integrals(varunit, ref[var])
+            # load the object
+            xfield = xr.open_mfdataset(infile, preprocess=xr_preproc, chunks={'time': 12})
 
-            # unit conversion
-            offset, factor = units_converter(adjusted_units, ref[var]['units'])
-
-            # sign adjustment (for heat fluxes)
-            factor = factor * \
-                directions_match(face['variables'][var], ref[var])
-
-            # conversion debug
-            logging.debug('Offset %f, Factor %f', offset, factor)
+            # get the data-array field for the required var
+            cfield = formula_wrapper(var, face, xfield)
 
             a = []
-            # loop on years: using xarray to perform the computations
-            # could be replaced by open_mfdataset but need to handle the
-            # time-mean
-            yrange = range(diag.year1, diag.year2 + 1)
-            for year in yrange:
+            # loop on years: 
+            for year in diag.years_joined:
 
-                infile = make_input_filename(
-                    var, dervars, face, diag)
-                xfield = xr.open_mfdataset(infile, preprocess=xr_preproc, chunks={'time': 12})
+                # time selection and mean
+                tfield = cfield.sel(time=(cfield.time.dt.year == year)).mean(dim='time')
 
-                # time selection for longer dataset!
-                xfield = xfield.sel(time=(xfield.time.dt.year == year))
-                if 'derived' in face['variables'][var].keys():
-                    cmd = face['variables'][var]['derived']
-                    outfield = eval_formula(cmd, xfield)
-                else:
-                    outfield = xfield[var]
-
-                tfield = outfield.mean(dim='time')
+                # final operation on the field
                 x = masked_meansum(
                     tfield, var, weights, ref[var].get(
                         'total', 'global'), util['atm_mask'])
@@ -115,7 +96,7 @@ def gm_worker(util, ref, face, diag, varmean, vartrend, varlist):
 
             varmean[var] = (mean(a) + offset) * factor
             if diag.ftrend:
-                vartrend[var] = np.polyfit(yrange, a, 1)[0]
+                vartrend[var] = np.polyfit(diag.years_joined, a, 1)[0]
             if diag.fverb:
                 print('Average', var, varmean[var])
 
@@ -155,34 +136,18 @@ def global_mean(exp, year1, year2,
     # set loglevel
     logging.basicConfig(level=numeric_loglevel(argv.loglevel))
 
-    INDIR = Path(os.path.dirname(os.path.abspath(__file__)))
-    logging.info(INDIR)
-    # config file (looks for it in the same dir as the .py program file
-    if argv.config:
-        cfg = load_yaml(argv.config)
-    else:
-        cfg = load_yaml(INDIR / 'config.yml')
+    # get local directory
+    indir = Path(os.path.dirname(os.path.abspath(__file__)))
+    logging.info(indir)
 
-    # Setup all common variables, directories from arguments and config files
-    logging.info(argv)
-    diag = Diagnostic(argv, cfg)
+    # define config dictionary, interface dictionary and diagnostic class
+    cfg, face, diag = config_diagnostic(indir, argv)
 
     # Create missing folders
     os.makedirs(diag.TABDIR, exist_ok=True)
 
     # load reference data
-    ref = load_yaml(INDIR / 'reference/gm_reference.yml')
-
-    # loading the var-to-file interface
-    # allow for both interface name or interface file
-    fff, ext = os.path.splitext(diag.interface)
-    if ext: 
-        faceload = diag.interface
-    else :  
-        faceload = INDIR / Path(
-            'interfaces',
-            f'interface_{diag.interface}.yml')   
-    face = load_yaml(faceload)
+    ref = load_yaml(indir / 'reference/gm_reference.yml')
 
     # list of vars on which to work
     var_atm = cfg['global']['atm_vars']
@@ -214,6 +179,9 @@ def global_mean(exp, year1, year2,
 
     # add missing unit definition
     units_extra_definition()
+
+    # We now use a list for all the years
+    diag.years_joined = list(range(diag.year1, diag.year2 + 1))
 
     # main loop: manager is required for shared variables
     mgr = Manager()

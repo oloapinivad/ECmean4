@@ -12,6 +12,21 @@ import re
 from ecmean.libs.general import is_number
 
 
+def formula_wrapper(var, face, xfield):
+    """
+    Wrapper function to extract data-array from a dataset (xfield) 
+    and to apply the mathematical operation required if it is a derived variable
+    """
+
+    if 'derived' in face['variables'][var].keys():
+        cmd = face['variables'][var]['derived']
+        outfield = eval_formula(cmd, xfield)
+    else:
+        outfield = xfield[var]
+
+    return outfield
+
+
 # this is a tool to parse a CDO-based formula into mathematical operatos
 # there might exists something more intelligent such as the pyparsing package
 

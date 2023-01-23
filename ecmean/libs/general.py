@@ -7,6 +7,7 @@ import os
 import logging
 from pathlib import Path
 import pandas as pd
+import re
 
 
 ####################
@@ -79,6 +80,25 @@ class Diagnostic():
 # HELP FUNCTIONS #
 ##################
 
+
+def get_variables_to_load(var, face):
+        
+        """Function to extract from the interface file the list of derived variable,
+        i.e. the real variables to be loaded, for each of the cmorname introduced in the
+        interface file 
+
+        Args: 
+            var: the cmorname variable of the data to be loaded
+            face: the interface file
+        """
+    
+        if 'derived' in face['variables'][var].keys():
+            cmd = face['variables'][var]['derived']
+            dervars = re.findall("[a-zA-Z0-9]+", cmd)
+        else:
+            dervars = [var]
+
+        return dervars
 
 def is_number(s):
     """Check if input is a float type"""

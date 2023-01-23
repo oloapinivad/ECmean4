@@ -11,6 +11,28 @@ from metpy.units import units
 import logging
 import sys
 
+def units_wrapper(var, varunit, clim, face) : 
+    """
+    Wrapper function for units computation: provides check for integral quantities,
+    estimate offset and factor of conversion and check the fluxes direction
+    """
+
+    logging.info(var)
+    logging.info(varunit + ' ---> ' + clim[var]['units'])
+
+    # adjust integrated quantities
+    new_units = units_are_integrals(varunit, clim[var])
+
+    # unit conversion based on metpy
+    offset, factor = units_converter(new_units, clim[var]['units'])
+
+    # sign adjustment (for heat fluxes)
+    factor = factor * \
+        directions_match(face['variables'][var], clim[var])
+    logging.debug('Offset %f, Factor %f', offset, factor)
+
+    return offset, factor
+
 def units_extra_definition():
     """Add units to the pint registry required by ECMean4"""
 
