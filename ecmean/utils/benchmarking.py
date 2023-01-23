@@ -15,6 +15,9 @@ import timeit
 import pandas as pd
 import seaborn as sns
 import matplotlib.pyplot as plt
+from datetime import date
+import shutil
+import os
 
 expname = 'historical'
 refclim = 'EC23'
@@ -27,9 +30,14 @@ scripts = ['Global Mean', 'Performance Indices']
 # number of processors and years on which looop
 nprocs = [1, 2, 4, 6, 8]
 nyears = [1, 2, 5, 10, 30]
+#nprocs = [2, 4]
+#nyears = [1, 10]
 
 # file for configuration to be used as a reference
 benchconfig = 'config_benchmark.yml'
+
+# benchmark directory
+benchdir = '/home/paolo/work/figures/ECmean4/benchmark'
 
 # number of repetition of each run
 nrepeat = 3
@@ -56,12 +64,12 @@ for model in models:
             else:
                 nn = [nyears_fixed]
 
-            for n in nn:
-                print('Running ' + script + ' with nprocs =', str(nproc) + ' for nyears = ' + str(n))
+            for nyear in nn:
+                print('Running ' + script + ' with nprocs =', str(nproc) + ' for nyears = ' + str(nyear))
                 print(model)
 
                 year1 = 1980
-                year2 = year1 + n - 1
+                year2 = year1 + nyear - 1
                 # separated calls for model (perhaps a specific config file should be added)
                 if script == 'Performance Indices':
                     single = timeit.timeit(lambda: performance_indices(expname, year1, year2, config = benchconfig,
@@ -81,10 +89,18 @@ for model in models:
                     #single = timeit.timeit(lambda: gm_main(sys.argv), number=nrepeat)
 
                 # concatenate
-                d = pd.DataFrame({'script': [script], 'time': [round(single/nrepeat, 1)], 'nprocs': [nproc], 'nyears': [n]})
+                d = pd.DataFrame({'script': [script], 'time': [round(single/nrepeat, 1)], 'nprocs': [nproc], 'nyears': [nyear]})
                 print(d)
                 howmuch = pd.concat([howmuch, d])
 
+# create folder
+if not os.path.exists(benchdir):
+    os.makedirs(benchdir)
+
+# save to file
+today = str(date.today())
+csvname = os.path.join(benchdir, 'csv-benchmark-' + today + '.csv')
+howmuch.to_csv(csvname, sep = '\t')
 print(howmuch)
 
 # produce the two-panel figure
@@ -115,9 +131,11 @@ axs[1].set_ylabel('Execution time (sec)', fontsize=15)
 hh, ll = axs[1].get_legend_handles_labels()
 axs[1].legend(hh, ll)
 
-if do_definitive:
-    figurepath = '../docs/sphinx/source/_static/benchmark.png'
-else:
-    figurepath = '/home/paolo/work/figures/ECmean4/benchmark.png'
-
+# save figure for benchmarks
+figurepath = os.path.join(benchdir, 'benchmark-' + today + '.png')
 fig.savefig(figurepath)
+
+localdir = os.path.dirname(os.path.abspath(__file__))
+
+if do_definitive:
+    shutil.copy(figurepath, os.path.join(localdir, '../../docs/sphinx/source/_static/benchmark.png'))
