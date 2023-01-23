@@ -57,14 +57,14 @@ def pi_worker(util, piclim, face, diag, field_3d, varstat, varlist):
 
         if 'derived' in face['variables'][var].keys():
             cmd = face['variables'][var]['derived']
-            dervars = re.findall("[a-zA-Z]+", cmd)
+            dervars = re.findall("[a-zA-Z0-9]+", cmd)
         else:
             dervars = [var]
 
         # check if required variables are there: use interface file
         # check into first file, and load also model variable units
         infile = make_input_filename(
-            var, dervars, diag.year1, diag.year1, face, diag)
+            var, dervars, face, diag)
         isavail, varunit = var_is_there(infile, var, face['variables'])
 
         # store NaN in dict (can't use defaultdict due to multiprocessing)
@@ -94,7 +94,7 @@ def pi_worker(util, piclim, face, diag, field_3d, varstat, varlist):
 
             # create a file list using bash wildcards
             infile = make_input_filename(
-                var, dervars, diag.years_joined, '????', face, diag)
+                var, dervars, face, diag)
 
             # open file: chunking on time only, might be improved
             xfield = xr.open_mfdataset(infile, preprocess=xr_preproc, chunks={'time': 12})

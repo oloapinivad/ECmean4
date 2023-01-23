@@ -57,12 +57,13 @@ def gm_worker(util, ref, face, diag, varmean, vartrend, varlist):
 
         if 'derived' in face['variables'][var].keys():
             cmd = face['variables'][var]['derived']
-            dervars = re.findall("[a-zA-Z]+", cmd)
+            dervars = re.findall("[a-zA-Z0-9]+", cmd)
         else:
             dervars = [var]
 
         infile = make_input_filename(
-            var, dervars, diag.year1, diag.year1, face, diag)
+            var, dervars, face, diag)
+
         isavail, varunit = var_is_there(infile, var, face['variables'])
 
         if not isavail:
@@ -95,7 +96,7 @@ def gm_worker(util, ref, face, diag, varmean, vartrend, varlist):
             for year in yrange:
 
                 infile = make_input_filename(
-                    var, dervars, year, year, face, diag)
+                    var, dervars, face, diag)
                 xfield = xr.open_mfdataset(infile, preprocess=xr_preproc, chunks={'time': 12})
 
                 # time selection for longer dataset!
@@ -155,7 +156,7 @@ def global_mean(exp, year1, year2,
     logging.basicConfig(level=numeric_loglevel(argv.loglevel))
 
     INDIR = Path(os.path.dirname(os.path.abspath(__file__)))
-    print(INDIR)
+    logging.info(INDIR)
     # config file (looks for it in the same dir as the .py program file
     if argv.config:
         cfg = load_yaml(argv.config)
@@ -163,7 +164,7 @@ def global_mean(exp, year1, year2,
         cfg = load_yaml(INDIR / 'config.yml')
 
     # Setup all common variables, directories from arguments and config files
-    print(argv)
+    logging.info(argv)
     diag = Diagnostic(argv, cfg)
 
     # Create missing folders

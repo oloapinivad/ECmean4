@@ -140,8 +140,7 @@ def get_inifiles(face, diag):
                     _expand_filename(
                         inifile,
                         '',
-                        diag.year1,
-                        diag.year1,
+                        '',
                         diag))
             else:
                 inifiles[filename] = Path(diag.ECEDIR) / \
@@ -151,8 +150,7 @@ def get_inifiles(face, diag):
                     _expand_filename(
                         inifiles[filename],
                         '',
-                        diag.year1,
-                        diag.year1,
+                        '',
                         diag))
 
             # safe check if inifile exist in the experiment folder
@@ -165,15 +163,16 @@ def get_inifiles(face, diag):
     return inifiles.values()
 
 
-def _expand_filename(fn, var, year1, year2, diag):
+def _expand_filename(fn, var, var2load, diag):
     """Expands a path (filename or dir) for var, expname, frequency, ensemble etc.
     and environment variables."""
 
     return Path(str(os.path.expandvars(fn)).format(
         expname=diag.expname,
-        year1=year1,
-        year2=year2,
+        year1=diag.year1,
+        year2=diag.year2,
         var=var,
+        var2load=var2load,
         frequency=diag.frequency,
         ensemble=diag.ensemble,
         grid=diag.grid,
@@ -187,14 +186,21 @@ def _filter_filename_by_year(fname, year):
 
     filenames = glob(str(fname))
     # Assumes that the file name ends with 199001-199012.nc or 1990-1991.nc
-    year1 = [int(x.split('_')[-1].split('-')[0][0:4]) for x in filenames]
-    try:
-        year2 = [int(x.split('_')[-1].split('-')[1][0:4]) for x in filenames]
-    except IndexError:
-        # this is introduced to handle files which have only one year in their filename
-        year2 = year1
-    return [filenames[i]
-            for i in range(len(year1)) if year >= year1[i] and year <= year2[i]]
+    try: 
+        year1 = [int(x.split('_')[-1].split('-')[0][0:4]) for x in filenames]
+        try:
+            year2 = [int(x.split('_')[-1].split('-')[1][0:4]) for x in filenames]
+        except IndexError:
+            # this is introduced to handle files which have only one year in their filename
+            year2 = year1
+        filternames = [filenames[i] for i in range(len(year1)) if year >= year1[i] and year <= year2[i]]
+    except :
+        # this is introduced for file that does not have year in their filename
+        filternames = filenames
+
+    return filternames
+        
+  
 
 
 def load_yaml(infile):
@@ -208,10 +214,10 @@ def load_yaml(infile):
     return cfg
 
 
-def make_input_filename(var0, varlist, year1, year2, face, diag):
+def make_input_filename(varname, var2load, face, diag):
     """Create full input filepaths for the required variable and a given year"""
 
-    filetype = face['variables'][var0]['filetype']
+    filetype = face['variables'][varname]['filetype']
     filepath = Path(diag.ECEDIR) / \
         Path(face['model']['basedir']) / \
         Path(face['filetype'][filetype]['dir']) / \
@@ -220,18 +226,21 @@ def make_input_filename(var0, varlist, year1, year2, face, diag):
     # now we pass a list)
     filename = []
     # Make an iterable even if year1 is not a list
-    yy = year1
-    if not isinstance(year1, list):
-        yy = [year1]
+    if diag.years_joined : 
+        yy = diag.years_joined
+    else : 
+        yy = diag.year1
+    if not isinstance(diag.year1, list):
+        yy = [diag.year1]
     for year in yy:
         filename1 = []
-        for var in varlist:
-            fname = _expand_filename(filepath, var, '*', '*', diag)
+        for var in var2load:
+            fname = _expand_filename(filepath, varname, var, diag)
             fname = _filter_filename_by_year(fname, year)
             filename1 = filename1 + fname
         # filename1 = list(dict.fromkeys(filename1))
         filename = filename + filename1
     filename = list(dict.fromkeys(filename))  # Filter unique ones
-    # print(filename)
+    print(filename)
     logging.debug("Filenames: %s", filename)
     return filename
