@@ -30,7 +30,7 @@
 | toamsfc      | TOA-Sfc net radiation          | W/m2      |      0.301943    |      0        |            |           |
 | tos          | SST                            | degC      |     18.9061      |      0        |            |           |
 | sos          | SSS                            | psu       |     34.4368      |      0        |            |           |
-| zos          | SSH                            | m         |      0.00120878  |      0        |            |           |
-| wfo          | Net Water Flux into ocean      | m/century |     -1.40863     |      0        |            |           |
+| zos          | SSH                            | m         |      0.00120879  |      0        |            |           |
+| wfo          | Net Water Flux into ocean      | m/century |     -1.40864     |      0        |            |           |
 | siconc_north | Sea-ice Concentration          | km^2      |      1.06708e+07 |      0        |            |           |
-| siconc_south | Sea-ice Concentration          | km^2      |      3.11234e+06 |      0        |            |           |
+| siconc_south | Sea-ice Concentration          | km^2      |      3.11233e+06 |      0        |            |           |

@@ -25,7 +25,8 @@ import xarray as xr
 from ecmean.libs.general import weight_split, write_tuning_table, get_domain, numeric_loglevel, get_variables_to_load
 from ecmean.libs.files import var_is_there, get_inifiles, load_yaml, make_input_filename, init_diagnostic
 from ecmean.libs.formula import formula_wrapper
-from ecmean.libs.masks import masks_dictionary, areas_dictionary, masked_meansum
+from ecmean.libs.masks import masks_dictionary, masked_meansum
+from ecmean.libs.areas import areas_dictionary
 from ecmean.libs.units import units_extra_definition, units_wrapper
 from ecmean.libs.ncfixers import xr_preproc
 from ecmean.libs.parser import parse_arguments
@@ -166,16 +167,13 @@ def global_mean(exp, year1, year2,
     # Can probably be cleaned up further
     comp = face['model']['component']  # Get component for each domain
 
-    # this required a change from the original file requirements of CDO version
-    # now we have a mask file and two area files:
-    # needs to be fixed and organized in the
-    # config file in order to be more portable
-    maskatmfile, atmareafile, oceareafile = get_inifiles(face, diag)
-
+    # get file info
+    inifiles = get_inifiles(face, diag)
+    
     # create util dictionary including mask and weights for both atmosphere
     # and ocean grids
-    areas = areas_dictionary(comp, atmareafile, oceareafile)
-    masks = masks_dictionary(comp, maskatmfile)
+    areas = areas_dictionary(comp, inifiles['atm'], inifiles['oce'])
+    masks = masks_dictionary(comp, inifiles['atm']['maskfile'])
     util_dictionary = {**areas, **masks}
 
     # add missing unit definition

@@ -1,8 +1,0 @@
-| Variable     | Longname                        | Units   |   EC-Earth3 |     Obs. | Dataset   | Years     |
-|--------------+---------------------------------+---------+-------------+----------+-----------+-----------|
-| pr           | Precipitation                   | mm/day  |         nan |  2.92552 | ERA5      | 1990-2019 |
-| pr_land      | Precipitation (land)            | Sv      |         nan |  3.82094 | ERA5      | 1990-2019 |
-| pr_oce       | Precipitation (ocean)           | Sv      |         nan | 13.4499  | ERA5      | 1990-2019 |
-| tos          | SST                             | degC    |         nan |  0       |           |           |
-| siconc_north | Sea Ice Area (North Hemisphere) | km^2    |         nan |  0       |           |           |
-| siconc_south | Sea Ice Area (South Hemisphere) | km^2    |         nan |  0       |           |           |

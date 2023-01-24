@@ -40,17 +40,22 @@ filetype:
     dir: '{ensemble}/{frequency}/{var}/{grid}/{version}'
     component: cmoroce
 
-# Specify additional properties of each component
-# such as inifiles, an extra help file containing 
-# info such as areas, used in set_gridfixes
-# inifile can be formatted with: expname
+# Specify additional inifiles  of each component
+# maskfile: where the land-sea mask is, fundamental for atmospheric component 
+# gridfile: where the properties of the grid can be extracted, can be a standard file
+# areafile: where the grid cell area is
+# please not that for both grid area computation and itnerpolation weight computation
+# the code will look in priority from areafile to gridfile to maskfile. 
+# inifile can be formatted with all the possible keywords listed above
 # If a relative path is used this is attached to $ECEDIR/$basedir
 component:
   cmoratm:
-    inifile: 'r1i1p1f1/fx/sftlf/*/*/sftlf_fx_{model}_{expname}_r1i1p1f1_{grid}.nc'
-    atmfile: 'r1i1p1f1/fx/sftlf/*/*/sftlf_fx_{model}_{expname}_r1i1p1f1_{grid}.nc'
+    maskfile: 'r1i1p1f1/fx/sftlf/*/*/sftlf_fx_{model}_{expname}_r1i1p1f1_{grid}.nc'
+    gridfile: ''
+    areafile: ''
   cmoroce:
-    gridfile: 'r1i1p1f1/Ofx/sftof/*/*/sftof_Ofx_{model}_{expname}_r1i1p1f1_{grid}.nc'
+    maskfile: 'r1i1p1f1/Ofx/sftof/*/*/sftof_Ofx_{model}_{expname}_r1i1p1f1_{grid}.nc'
+    gridfile: ''
     areafile: 'r1i1p1f1/Ofx/areacello/*/*/areacello_Ofx_{model}_{expname}_r1i1p1f1_{grid}.nc'
 
 # Definition of individual variables

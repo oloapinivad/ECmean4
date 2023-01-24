@@ -48,6 +48,24 @@ def init_diagnostic(indir, argv) :
 
     return cfg, face, diag
 
+def inifiles_priority(inidict) :
+
+    """
+    For areas dictionary and remap dictionary, provides a priority of which 
+    files to be used for interpolation and area computation
+    Areas files comes first, then gridfile and finally land-sea mask. 
+    Provides flexibility for multiple models with different data access
+    """ 
+
+    if inidict['areafile']: 
+        file = inidict['areafile']
+    elif inidict['gridfile']: 
+        file = inidict['gridfile']
+    else:
+        file = inidict['maskfile'] 
+
+    return file
+
 def var_is_there(flist, var, reference):
     """Check if a variable is available in the input file and provide its units"""
 
@@ -148,6 +166,46 @@ def get_clim_files(piclim, var, diag, season):
 
 def get_inifiles(face, diag):
     """Return the inifiles from the interface, needs the component dictionary.
+    Check if inifiles exist.
+
+    Args: 
+        face: the interface dictionary
+        diag: the diagnostic object
+
+    Returns:
+        a dictionary with the different initial files
+    
+    """
+
+    dictcomp = face['model']['component']
+
+    ifiles = {}
+    for comp in dictcomp.keys(): 
+        ifiles[comp] ={}
+        dictnames = face['component'][dictcomp[comp]]
+        for name in dictnames.keys():
+            inifile = dictnames[name]
+            if inifile : 
+                if inifile[0] != '/':
+                    inifile = Path(diag.ECEDIR) / \
+                        Path(face['model']['basedir']) / \
+                        Path(inifile)
+                    
+                ifiles[comp][name] = str(_expand_filename(inifile, '', diag))
+                logging.info(f'{name} for component {comp} is: {ifiles[comp][name]}')
+               
+                # safe check if inifile exist 
+                if not glob(ifiles[comp][name]):
+                    logging.error('Inifile %s cannot be found!', ifiles[comp][name])
+                    ifiles[comp][name] = ''
+
+            else: 
+                ifiles[comp][name] = ''
+
+    return ifiles
+
+def get_inifiles_old(face, diag):
+    """Return the inifiles from the interface, needs the component dictionary.
     Check if inifiles exist."""
 
     dictcomp = face['model']['component']
@@ -225,7 +283,7 @@ def _filter_filename_by_year(template, filenames, year):
         filternames = filenames
     
     # safety warning if something is missing
-    if not filternames: 
+    if not filternames and len(filenames)>0: 
         logging.warning('Data for year ' + str(year) + ' has not been found!')
 
     logging.info('Filtered filenames: %s', filternames)

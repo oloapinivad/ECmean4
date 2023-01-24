@@ -8,23 +8,29 @@ import xarray as xr
 import xesmf as xe
 import sys
 from ecmean.libs.ncfixers import xr_preproc
+from ecmean.libs.files import inifiles_priority
 
 ###########################
 # INTERPOLATION FUNCTIONS #
 ###########################
 
 
-def remap_dictionary(component, atmareafile, oceareafile, target_grid):
+def remap_dictionary(component, atmdict, ocedict, target_grid):
     """Create a dicitionary with atmospheric and oceanic weights for
     interpolation. There is an option of fix grid before the real
     interpolation: this is used for Gaussian reduced grids"""
 
+    atmareafile = inifiles_priority(atmdict)
     atmfix, atmremap = _make_atm_interp_weights(
         component['atm'], atmareafile, target_grid)
+    
+    # get oceanic areas, assuming AMIP if no oceanic area is found
+    oceareafile = inifiles_priority(ocedict)
     if oceareafile:
         ocefix, oceremap = _make_oce_interp_weights(
             component['oce'], oceareafile, target_grid)
-    else:
+    else : 
+        logging.warning("Ocereafile cannot be found, assuming this is an AMIP run")
         ocefix = None
         oceremap = None
 
@@ -69,7 +75,7 @@ def _make_atm_interp_weights(component, atmareafile, target_grid):
         interp = xe.Regridder(
             fix(xfield[xname]), target_grid, periodic=True, method="bilinear")
 
-    elif component == 'cmoratm':
+    elif component in ['cmoratm','globo']:
 
         fix = None
         xfield = xr.open_mfdataset(atmareafile, preprocess=xr_preproc).load()
@@ -77,17 +83,6 @@ def _make_atm_interp_weights(component, atmareafile, target_grid):
             xfield,
             target_grid,
             periodic=True,
-            method="bilinear")
-
-    elif component == 'globo':
-
-        fix = None
-        xfield = xr.open_mfdataset(atmareafile, preprocess=xr_preproc).load()
-        interp = xe.Regridder(
-            xfield,
-            target_grid,
-            periodic=True,
-            ignore_degenerate=True,
             method="bilinear")
 
     else:
@@ -109,17 +104,17 @@ def _make_oce_interp_weights(component, oceareafile, target_grid):
         xfield = xr.open_mfdataset(oceareafile, preprocess=xr_preproc).load()
 
         # set coordinates which are missing
-        for cl in ['nav_lon', 'nav_lat', 'nav_lev', 'time_counter', 'x', 'y']:
-            if cl in xfield.data_vars:
-                xfield = xfield.set_coords([cl])
+        #for cl in ['nav_lon', 'nav_lat', 'nav_lev', 'time_counter', 'x', 'y']:
+        #    if cl in xfield.data_vars:
+        #        xfield = xfield.set_coords([cl])
 
         # rename dimensions and coordinates
-        xfield = xfield.rename(
-            {"nav_lon": "lon", "nav_lat": "lat", "nav_lev": "deptht"})
+        #xfield = xfield.rename(
+        #    {"nav_lon": "lon", "nav_lat": "lat", "nav_lev": "deptht"})
 
         # use grid distance as generic variable
         interp = xe.Regridder(
-            xfield['e1t'],
+            xfield['cell_area'],
             target_grid,
             method="bilinear",
             periodic=True,

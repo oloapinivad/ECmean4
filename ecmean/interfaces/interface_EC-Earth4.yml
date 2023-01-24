@@ -42,19 +42,23 @@ filetype:
     dir: output/nemo
     component: nemo
 
-# Specify additional properties of each component
-# such as inifiles, an extra help file containing 
-# info such as areas, used in set_gridfixes
-# and info on grid structure, used for remapping weights
-# inifile, gridfile and areafile can be formatted with: expname
+# Specify additional inifiles  of each component
+# maskfile: where the land-sea mask is, fundamental for atmospheric component 
+# gridfile: where the properties of the grid can be extracted, can be a standard file
+# areafile: where the grid cell area is
+# please not that for both grid area computation and itnerpolation weight computation
+# the code will look in priority from areafile to gridfile to maskfile. 
+# inifile can be formatted with all the possible keywords listed above
 # If a relative path is used this is attached to $ECEDIR/$basedir
 component:
   oifs:
-    inifile: 'ICMGG{expname}INIT'
-    atmfile: 'output/oifs/{expname}_atm_cmip6_1m_{year1}-{year2}.nc'
+    maskfile: 'ICMGG{expname}INIT'
+    gridfile: 'output/oifs/{expname}_atm_cmip6_1m_{year1}-{year2}.nc'
+    areafile: ''
   nemo:
-    gridfile: nemo-initial-state.nc
-    areafile: domain_cfg.nc
+    maskfile: ''
+    gridfile: ''
+    areafile: 'nemo-initial-state.nc'
 
 # Definition of individual variables
 variables:

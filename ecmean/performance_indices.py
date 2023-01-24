@@ -21,7 +21,8 @@ import yaml
 from ecmean.libs.general import weight_split, get_domain, dict_to_dataframe, numeric_loglevel, get_variables_to_load
 from ecmean.libs.files import var_is_there, get_inifiles, load_yaml, make_input_filename, get_clim_files, init_diagnostic
 from ecmean.libs.formula import formula_wrapper
-from ecmean.libs.masks import masks_dictionary, areas_dictionary, mask_field, select_region, guess_bounds
+from ecmean.libs.masks import masks_dictionary, mask_field, select_region
+from ecmean.libs.areas import areas_dictionary, guess_bounds
 from ecmean.libs.interp import remap_dictionary
 from ecmean.libs.units import units_extra_definition, units_wrapper
 from ecmean.libs.ncfixers import xr_preproc, adjust_clim_file
@@ -243,16 +244,16 @@ def performance_indices(exp, year1, year2,
     target_remap_grid = xr.open_dataset(clim)
 
     # get file info files
-    maskatmfile, atmareafile, oceareafile = get_inifiles(face, diag)
+    inifiles = get_inifiles(face, diag)
 
     # create remap dictionary with atm and oce interpolators
-    remap = remap_dictionary(comp, atmareafile, oceareafile, target_remap_grid)
+    remap = remap_dictionary(comp, inifiles['atm'], inifiles['oce'], target_remap_grid)
 
     # create util dictionary including mask and weights for both
     # atmosphere and ocean grids
     # use the atmospheric remap dictionary to remap the mask file
-    areas = areas_dictionary(comp, atmareafile, oceareafile)
-    masks = masks_dictionary(comp, maskatmfile, remap_dictionary=remap)
+    areas = areas_dictionary(comp, inifiles['atm'], inifiles['oce'])
+    masks = masks_dictionary(comp, inifiles['atm']['maskfile'], remap_dictionary=remap)
 
     # join the two dictionaries
     util_dictionary = {**masks, **areas, **remap}
