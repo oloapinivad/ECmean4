@@ -21,10 +21,10 @@ def units_wrapper(var, varunit, clim, face) :
     logging.info(varunit + ' ---> ' + clim[var]['units'])
 
     # adjust integrated quantities
-    new_units = units_are_integrals(varunit, clim[var])
+    new_units = _units_are_integrals(varunit, clim[var])
 
     # unit conversion based on metpy
-    offset, factor = units_converter(new_units, clim[var]['units'])
+    offset, factor = _units_converter(new_units, clim[var]['units'])
 
     # sign adjustment (for heat fluxes)
     factor = factor * \
@@ -46,7 +46,7 @@ def units_extra_definition():
     units.define('Sv = 1e+6 m^3/s')  # Replace Sievert with Sverdrup
 
 
-def units_converter(org_units, tgt_units):
+def _units_converter(org_units, tgt_units):
     """Units conversion using metpy and pint.
     From a org_units convert to tgt_units providing offset and factor.
     Some assumptions are done for precipitation field: must be extended
@@ -84,7 +84,7 @@ def units_converter(org_units, tgt_units):
     return offset, factor
 
 
-def units_are_integrals(org_units, ref_var):
+def _units_are_integrals(org_units, ref_var):
     """Check functions for spatially integrated variables"""
 
     if 'total' in ref_var.keys():

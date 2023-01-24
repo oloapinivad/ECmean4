@@ -20,7 +20,7 @@ def formula_wrapper(var, face, xfield):
 
     if 'derived' in face['variables'][var].keys():
         cmd = face['variables'][var]['derived']
-        outfield = eval_formula(cmd, xfield)
+        outfield = _eval_formula(cmd, xfield)
     else:
         outfield = xfield[var]
 
@@ -30,7 +30,7 @@ def formula_wrapper(var, face, xfield):
 # this is a tool to parse a CDO-based formula into mathematical operatos
 # there might exists something more intelligent such as the pyparsing package
 
-def eval_formula(mystring, xdataset):
+def _eval_formula(mystring, xdataset):
     """Evaluate the cmd string provided by the yaml file
     producing a parsing for the derived variables"""
 

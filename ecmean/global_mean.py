@@ -22,12 +22,13 @@ from time import time
 from tabulate import tabulate
 import numpy as np
 import xarray as xr
-from ecmean.libs.general import weight_split, write_tuning_table, Diagnostic, getdomain, numeric_loglevel, get_variables_to_load
-from ecmean.libs.files import var_is_there, get_inifiles, load_yaml, make_input_filename, config_diagnostic
+from ecmean.libs.general import weight_split, write_tuning_table, get_domain, numeric_loglevel, get_variables_to_load
+from ecmean.libs.files import var_is_there, get_inifiles, load_yaml, make_input_filename, init_diagnostic
 from ecmean.libs.formula import formula_wrapper
 from ecmean.libs.masks import masks_dictionary, areas_dictionary, masked_meansum
 from ecmean.libs.units import units_extra_definition, units_wrapper
 from ecmean.libs.ncfixers import xr_preproc
+from ecmean.libs.parser import parse_arguments
 
 import dask
 dask.config.set(scheduler="synchronous")
@@ -52,7 +53,7 @@ def gm_worker(util, ref, face, diag, varmean, vartrend, varlist):
     for var in varlist:
 
         # get domain
-        vdom = getdomain(var, face)
+        vdom = get_domain(var, face)
 
         # compute weights
         weights = util[vdom + '_areas']
@@ -141,7 +142,7 @@ def global_mean(exp, year1, year2,
     logging.info(indir)
 
     # define config dictionary, interface dictionary and diagnostic class
-    cfg, face, diag = config_diagnostic(indir, argv)
+    cfg, face, diag = init_diagnostic(indir, argv)
 
     # Create missing folders
     os.makedirs(diag.TABDIR, exist_ok=True)
@@ -179,9 +180,6 @@ def global_mean(exp, year1, year2,
 
     # add missing unit definition
     units_extra_definition()
-
-    # We now use a list for all the years
-    diag.years_joined = list(range(diag.year1, diag.year2 + 1))
 
     # main loop: manager is required for shared variables
     mgr = Manager()
@@ -243,38 +241,6 @@ def global_mean(exp, year1, year2,
             print(diag.linefile)
         write_tuning_table(diag.linefile, varmean, var_table, diag, ref)
 
-
-def gm_parse_arguments(args):
-    """Parse CLI arguments for global mean"""
-
-    parser = argparse.ArgumentParser(
-        description='ECmean global mean diagnostics for EC-Earth4')
-    parser.add_argument('exp', metavar='EXP', type=str, help='experiment ID')
-    parser.add_argument('year1', metavar='Y1', type=int, help='starting year')
-    parser.add_argument('year2', metavar='Y2', type=int, help='final year')
-    parser.add_argument('-s', '--silent', action='store_true',
-                        help='do not print anything to std output')
-    parser.add_argument('-t', '--trend', action='store_true',
-                        help='compute trends')
-    parser.add_argument('-l', '--line', action='store_true',
-                        help='appends also single line to a table')
-    parser.add_argument('-o', '--output', metavar='FILE', type=str, default='',
-                        help='path of output one-line table')
-    parser.add_argument('-m', '--model', type=str, default='',
-                        help='model name')
-    parser.add_argument('-c', '--config', type=str, default='',
-                        help='config file')
-    parser.add_argument('-v', '--loglevel', type=str, default='WARNING',
-                        help='define the level of logging.')
-    parser.add_argument('-j', dest="numproc", type=int, default=1,
-                        help='number of processors to use')
-    parser.add_argument('-e', '--ensemble', type=str, default='r1i1p1f1',
-                        help='variant label (ripf number for cmor)')
-    parser.add_argument('-i', '--interface', type=str, default='',
-                        help='interface (overrides config.yml)')
-
-    return parser.parse_args(args)
-
 def gm_entry_point():
 
     """
@@ -282,7 +248,7 @@ def gm_entry_point():
     """
 
     # read arguments from command line
-    args = gm_parse_arguments(sys.argv[1:])
+    args = parse_arguments(sys.argv[1:], script = 'gm')
 
     global_mean(exp = args.exp, year1 = args.year1, year2 = args.year2,
                 numproc = args.numproc,

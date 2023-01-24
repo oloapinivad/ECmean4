@@ -19,7 +19,7 @@ from ecmean.libs.ncfixers import xr_preproc
 # FILE FUNCTIONS #
 ##################
 
-def config_diagnostic(indir, argv) : 
+def init_diagnostic(indir, argv) : 
     """
     configuration function to load config and interface files
     and to initilized the diagnotic object
@@ -206,29 +206,27 @@ def _expand_filename(fn, var, diag):
     ))
 
 
-def _filter_filename_by_year(template, fname, year):
+def _filter_filename_by_year(template, filenames, year):
     """Find filename containing a given year in a list of filenames"""
 
-    # get all files from template
-    filenames = glob(str(fname))
-
     # if year1 is used in the file template
-    if 'year1' in template: 
-    
+    if 'year1' in template:     
         # Assumes that the file name ends with 199001-199012.nc or 1990-1991.nc
         year1 = [int(x.split('_')[-1].split('-')[0][0:4]) for x in filenames]
-
         # if year2 is used in the file template
         if 'year2' in template: 
             year2 = [int(x.split('_')[-1].split('-')[1][0:4]) for x in filenames]
         else:
-            year2 = year1
-       
+            year2 = year1     
         # filter names
         filternames = [filenames[i] for i in range(len(year1)) if year >= year1[i] and year <= year2[i]]
     else :
         # this is introduced for file that does not have year in their filename
         filternames = filenames
+    
+    # safety warning if something is missing
+    if not filternames: 
+        logging.warning('Data for year ' + str(year) + ' has not been found!')
 
     logging.info('Filtered filenames: %s', filternames)
     return filternames
@@ -244,34 +242,35 @@ def load_yaml(infile):
         sys.exit(f'ERROR: {infile} not found: you need to have this configuration file!')
     return cfg
 
+def _create_filepath(cmorname, face, diag):
+    """Create filepath with wildcards"""
 
-def make_input_filename(cmorname, varname, face, diag):
-    """Create full input filepaths for the required variable and a given year
-    
-    Args: 
-        cmorname: the variable name in the interface files
-        varname: the derived variable name
-        face: the interface dictionary
-        diag: the diagnostic class
-        
-    Returns:
-        a list of files to be loaded by xarray
-        """
-
-    # create the file structure according to the interface file
     filetype = face['variables'][cmorname]['filetype']
     filepath = Path(diag.ECEDIR) / \
         Path(face['model']['basedir']) / \
         Path(face['filetype'][filetype]['dir']) / \
         Path(face['filetype'][filetype]['filename'])
     logging.info('Filepath: %s', filepath)
-    
+
+    return filepath
+
+def make_input_filename(cmorname, varname, face, diag):
+    """Create full input filepaths for the required variable and a given year
+   
+    Returns:
+        a list of files to be loaded by xarray
+    """
+
+    filepath = _create_filepath(cmorname, face, diag)
+
+    # create the file structure according to the interface file
     filename = []
     for year in diag.years_joined:
         filename1 = []
         for var in varname:
-            fname = _expand_filename(filepath, var, diag)
-            fname = _filter_filename_by_year(str(filepath), fname, year)
+            expandfile = _expand_filename(filepath, var, diag)
+            filenames = glob(str(expandfile))
+            fname = _filter_filename_by_year(str(filepath), filenames, year)
             filename1 = filename1 + fname
         filename = filename + filename1
     filename = list(dict.fromkeys(filename))  # Filter unique ones

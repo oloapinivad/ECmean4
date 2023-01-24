@@ -67,7 +67,7 @@ class Diagnostic():
                 cfg['dirs']['clm']),
             self.climatology)
         self.RESCLMDIR = Path(self.CLMDIR, self.resolution)
-        self.years_joined = ''
+        self.years_joined = list(range(self.year1, self.year2 + 1))
 
         if hasattr(args, 'output') and args.output:
             self.linefile = args.output
@@ -171,7 +171,7 @@ def weight_split(a, n):
     return olists
 
 
-def getdomain(var, face):
+def get_domain(var, face):
     """Given a variable var extract its domain (oce or atm) from the interface.
     To do so it creates a dictionary providing the domain associated with a component.
     (the interface file specifies the component for each domain instead)"""
@@ -183,7 +183,7 @@ def getdomain(var, face):
     return domain[comp]
 
 
-def getcomponent(face):  # unused function
+def get_component(face):  # unused function
     """Return a dictionary providing the domain associated with a variable
     (the interface file specifies the domain for each component instead)"""
 

@@ -18,14 +18,15 @@ from multiprocessing import Process, Manager
 import numpy as np
 import xarray as xr
 import yaml
-from ecmean.libs.general import weight_split, getdomain, dict_to_dataframe, numeric_loglevel, get_variables_to_load
-from ecmean.libs.files import var_is_there, get_inifiles, load_yaml, make_input_filename, get_clim_files, config_diagnostic
+from ecmean.libs.general import weight_split, get_domain, dict_to_dataframe, numeric_loglevel, get_variables_to_load
+from ecmean.libs.files import var_is_there, get_inifiles, load_yaml, make_input_filename, get_clim_files, init_diagnostic
 from ecmean.libs.formula import formula_wrapper
 from ecmean.libs.masks import masks_dictionary, areas_dictionary, mask_field, select_region, guess_bounds
 from ecmean.libs.interp import remap_dictionary
 from ecmean.libs.units import units_extra_definition, units_wrapper
 from ecmean.libs.ncfixers import xr_preproc, adjust_clim_file
 from ecmean.libs.plotting import heatmap_comparison
+from ecmean.libs.parser import parse_arguments
 
 
 # temporary disabling the scheduler
@@ -53,13 +54,14 @@ def pi_worker(util, piclim, face, diag, field_3d, varstat, varlist):
     for var in varlist:
 
         # get domain
-        vdom = getdomain(var, face)
+        vdom = get_domain(var, face)
 
         # get the list of the variables to be loaded
         dervars = get_variables_to_load(var, face)
 
         # check if required variables are there: use interface file
         # check into first file, and load also model variable units
+        # create input filenames
         infile = make_input_filename(
             var, dervars, face, diag)
         isavail, varunit = var_is_there(infile, var, face['variables'])
@@ -77,10 +79,6 @@ def pi_worker(util, piclim, face, diag, field_3d, varstat, varlist):
 
             # perform the unit conversion extracting offset and factor
             offset, factor = units_wrapper(var, varunit, piclim, face)
-
-            # create a file list using bash wildcards
-            #infile = make_input_filename(
-            #    var, dervars, face, diag)
 
             # open file: chunking on time only, might be improved
             xfield = xr.open_mfdataset(infile, preprocess=xr_preproc, chunks={'time': 12})
@@ -226,7 +224,7 @@ def performance_indices(exp, year1, year2,
     logging.info(indir)
     
     # define config dictionary, interface dictionary and diagnostic class
-    cfg, face, diag = config_diagnostic(indir, argv)
+    cfg, face, diag = init_diagnostic(indir, argv)
     
     # Create missing folders
     os.makedirs(diag.TABDIR, exist_ok=True)
@@ -269,8 +267,6 @@ def performance_indices(exp, year1, year2,
     field_ice = cfg['PI']['ice_vars']['field']
     field_all = field_2d + field_3d + field_oce + field_ice
 
-    # We now use a list
-    diag.years_joined = list(range(diag.year1, diag.year2 + 1))
 
     # main loop: manager is required for shared variables
     mgr = Manager()
@@ -395,37 +391,6 @@ def performance_indices(exp, year1, year2,
     if diag.fverb:
         print('Postproc done in {:.4f} seconds'.format(toc - tic))
 
-def pi_parse_arguments(args):
-    """Parse CLI arguments"""
-
-    parser = argparse.ArgumentParser(
-        description='ECmean Performance Indices for EC-Earth4')
-    parser.add_argument('exp', metavar='EXP', type=str, help='experiment ID')
-    parser.add_argument('year1', metavar='Y1', type=int, help='starting year')
-    parser.add_argument('year2', metavar='Y2', type=int, help='final year')
-    parser.add_argument('-s', '--silent', action='store_true',
-                        help='do not print anything to std output')
-    parser.add_argument('-v', '--loglevel', type=str, default='WARNING',
-                        help='define the level of logging. default: error')
-    parser.add_argument('-j', dest="numproc", type=int, default=1,
-                        help='number of processors to use')
-    parser.add_argument('-c', '--config', type=str, default='',
-                        help='config file')
-    parser.add_argument('-m', '--model', type=str, default='',
-                        help='model name')
-    parser.add_argument(
-        '-k',
-        '--climatology',
-        type=str,
-        default='EC23',
-        help='climatology to be compared. default: EC23. Options: [RK08, EC22, EC23]')
-    parser.add_argument('-r', '--resolution', type=str, default='',
-                        help='climatology resolution')
-    parser.add_argument('-e', '--ensemble', type=str, default='r1i1p1f1',
-                        help='variant label (ripf number for cmor)')
-    parser.add_argument('-i', '--interface', type=str, default='',
-                        help='interface (overrides config.yml)')
-    return parser.parse_args(args)
 
 def pi_entry_point():
 
@@ -434,7 +399,7 @@ def pi_entry_point():
     """
 
     # read arguments from command line
-    args = pi_parse_arguments(sys.argv[1:])
+    args = parse_arguments(sys.argv[1:], script = 'pi')
 
     performance_indices(exp = args.exp, year1 = args.year1, year2 = args.year2,
                 numproc = args.numproc,
