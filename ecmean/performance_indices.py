@@ -55,7 +55,10 @@ def pi_worker(util, piclim, face, diag, field_3d, varstat, varlist):
     for var in varlist:
 
         # get domain
-        vdom = get_domain(var, face)
+        domain = get_domain(var, face)
+
+        # get masks
+        domain_mask = util[domain + '_mask']
 
         # get the list of the variables to be loaded
         dervars = get_variables_to_load(var, face)
@@ -128,11 +131,11 @@ def pi_worker(util, piclim, face, diag, field_3d, varstat, varlist):
 
                 # apply interpolation, if fixer is availble and with different
                 # grids
-                if vdom in 'atm':
+                if domain in 'atm':
                     if util['atm_fix']:
                         tmean = util['atm_fix'](tmean, keep_attrs=True)
                     final = util['atm_remap'](tmean, keep_attrs=True)
-                if vdom in 'oce':
+                if domain in 'oce':
                     if util['oce_fix']:
                         tmean = util['oce_fix'](tmean, keep_attrs=True)
                     final = util['oce_remap'](tmean, keep_attrs=True)
@@ -162,8 +165,9 @@ def pi_worker(util, piclim, face, diag, field_3d, varstat, varlist):
                 else:
 
                     complete = (final - cfield)**2 / vfield
-                    outarray = mask_field(
-                        complete, var, piclim[var]['mask'], util['atm_mask'])
+                    outarray = mask_field(xfield = complete, 
+                        var = var, mask_type = piclim[var]['mask'], 
+                        dom = domain, mask = domain_mask)
 
                 # loop on different regions
                 for region in diag.regions:
@@ -246,6 +250,9 @@ def performance_indices(exp, year1, year2,
     # get file info files
     inifiles = get_inifiles(face, diag)
 
+    # add missing unit definitions
+    units_extra_definition()
+
     # create remap dictionary with atm and oce interpolators
     remap = remap_dictionary(comp, inifiles['atm'], inifiles['oce'], target_remap_grid)
 
@@ -253,13 +260,11 @@ def performance_indices(exp, year1, year2,
     # atmosphere and ocean grids
     # use the atmospheric remap dictionary to remap the mask file
     areas = areas_dictionary(comp, inifiles['atm'], inifiles['oce'])
-    masks = masks_dictionary(comp, inifiles['atm']['maskfile'], remap_dictionary=remap)
+    masks = masks_dictionary(comp, inifiles['atm']['maskfile'], inifiles['oce']['maskfile'], remap_dictionary=remap)
 
     # join the two dictionaries
     util_dictionary = {**masks, **areas, **remap}
 
-    # add missing unit definitions
-    units_extra_definition()
 
     # defines the two varlist
     field_2d = cfg['PI']['2d_vars']['field']

@@ -12,13 +12,13 @@ ta:
     South Midlat: 56.836
 tos:
   ALL:
-    Global: 37.626
-    North Midlat: 22.567
-    Tropical: 14.62
-    South Midlat: 92.944
+    Global: 37.433
+    North Midlat: 22.552
+    Tropical: 14.607
+    South Midlat: 92.644
 siconc:
   ALL:
-    Global: 37.767
-    North Midlat: 60.389
+    Global: 37.066
+    North Midlat: 54.573
     Tropical: .nan
-    South Midlat: 24.388
+    South Midlat: 25.785

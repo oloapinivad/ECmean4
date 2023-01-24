@@ -54,10 +54,11 @@ def gm_worker(util, ref, face, diag, varmean, vartrend, varlist):
     for var in varlist:
 
         # get domain
-        vdom = get_domain(var, face)
+        domain = get_domain(var, face)
 
         # compute weights
-        weights = util[vdom + '_areas']
+        weights = util[domain + '_areas']
+        domain_mask = util[domain + '_mask']
 
         # get the list of the variables to be loaded
         dervars = get_variables_to_load(var, face)
@@ -92,8 +93,9 @@ def gm_worker(util, ref, face, diag, varmean, vartrend, varlist):
 
                 # final operation on the field
                 x = masked_meansum(
-                    tfield, var, weights, ref[var].get(
-                        'total', 'global'), util['atm_mask'])
+                    xfield = tfield, var = var, weights = weights, 
+                    mask_type = ref[var].get('total', 'global'), 
+                    dom = domain, mask = domain_mask)
                 a.append(x)
 
             varmean[var] = (mean(a) + offset) * factor
@@ -169,15 +171,16 @@ def global_mean(exp, year1, year2,
 
     # get file info
     inifiles = get_inifiles(face, diag)
+
+    # add missing unit definition
+    units_extra_definition()
     
     # create util dictionary including mask and weights for both atmosphere
     # and ocean grids
     areas = areas_dictionary(comp, inifiles['atm'], inifiles['oce'])
-    masks = masks_dictionary(comp, inifiles['atm']['maskfile'])
+    masks = masks_dictionary(comp, inifiles['atm']['maskfile'], inifiles['oce']['maskfile'])
     util_dictionary = {**areas, **masks}
 
-    # add missing unit definition
-    units_extra_definition()
 
     # main loop: manager is required for shared variables
     mgr = Manager()

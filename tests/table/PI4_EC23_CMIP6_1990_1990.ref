@@ -22,23 +22,23 @@ ta:
     South Midlat: 228.445
 tos:
   ALL:
-    Global: 42.63
-    North Midlat: 12.168
-    Tropical: 12.368
-    South Midlat: 111.024
+    Global: 42.213
+    North Midlat: 12.007
+    Tropical: 12.383
+    South Midlat: 110.48
   JJA:
-    Global: 57.172
-    North Midlat: 27.768
-    Tropical: 22.871
-    South Midlat: 140.397
+    Global: 56.856
+    North Midlat: 28.261
+    Tropical: 22.997
+    South Midlat: 139.708
 siconc:
   ALL:
-    Global: 6.222
-    North Midlat: 4.895
+    Global: 6.206
+    North Midlat: 4.817
     Tropical: .nan
-    South Midlat: 7.198
+    South Midlat: 7.297
   JJA:
-    Global: 11.027
-    North Midlat: 8.64
+    Global: 11.052
+    North Midlat: 8.869
     Tropical: .nan
-    South Midlat: 12.578
+    South Midlat: 12.603
