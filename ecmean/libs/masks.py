@@ -68,14 +68,9 @@ def _make_atm_masks(component, maskatmfile, remap_dictionary=None):
         dmask = xr.open_mfdataset(maskatmfile, preprocess=xr_preproc)
         if 'sftlf' in dmask.data_vars : 
             mask = dmask['sftlf']
+            mask = mask / 100 #cmor mask are %
         elif 'lsm' in dmask.data_vars : 
             mask = dmask['lsm']
-
-        # check if we need to convert from % to fraction
-        # offset should not count! (TO BE MOVED OUTSIDE)
-        if mask.units : 
-            offset, factor = units_converter(mask.units.replace(' ',''), 'frac')
-            mask = (mask * factor) + offset
 
         #globo has a reversed mask
         if component == 'globo':

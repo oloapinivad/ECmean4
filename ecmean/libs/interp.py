@@ -128,8 +128,8 @@ def _make_oce_interp_weights(component, oceareafile, target_grid):
         # print(len(xfield.coords['lon'].shape))
 
         # check if oceanic grid is regular: lon/lat dims should be 1d
-        # if not all(x in xfield.dims for x in ['lon', 'lat']) and (len(xfield.dims) < 3) :
-        if len(xfield.coords['lon'].shape) == 1 and len(xfield.coords['lat'].shape) == 1:
+        if not all(x in xfield.dims for x in ['lon', 'lat']) and (len(xfield.dims) < 3) :
+        #if len(xfield.coords['lon'].shape) == 1 and len(xfield.coords['lat'].shape) == 1:
 
             print("Detecting a unstructured grid, using nearest neighbour!")
             interp = xe.Regridder(
