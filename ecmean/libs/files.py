@@ -86,6 +86,8 @@ def var_is_there(flist, var, reference):
                 k = xfield[i].units
             except BaseException:
                 k = 'frac'
+            if k == '(0 - 1)' : 
+                k = 'frac'
             units_avail[i] = k
 
         # if variable is derived, extract required vars
