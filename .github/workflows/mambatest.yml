@@ -76,7 +76,7 @@ jobs:
         coverage lcov
         #coverage-badge -o ./coverage/coverage.svg
     - name: Run coveralls
-      uses: coverallsapp/github-action@master
+      uses: coverallsapp/github-action@1.1.3
       with:
         github-token: ${{ secrets.GITHUB_TOKEN }}
         path-to-lcov: coverage.lcov
