@@ -1,8 +1,7 @@
 [![Maintenance](https://img.shields.io/badge/Maintained%3F-yes-green.svg)](https://github.com/oloapinivad/ECmean4/graphs/commit-activity)
-[![made-with-python](https://img.shields.io/badge/Made%20with-Python-1f425f.svg)](https://www.python.org/)
 [![Documentation Status](https://readthedocs.org/projects/ecmean4/badge/?version=latest)](https://ecmean4.readthedocs.io/en/latest/?badge=latest)
-[![Mamba PyTest](https://github.com/oloapinivad/ECmean4/actions/workflows/mambatest.yml/badge.svg)](https://github.com/oloapinivad/ECmean4/actions/workflows/mambatest.yml)
-[![Coverage](https://coveralls.io/repos/github/oloapinivad/ECmean4/badge.svg?branch=main)](https://coveralls.io/github/oloapinivad/ECmean4?branch=main)
+[![PyTest](https://github.com/oloapinivad/ECmean4/actions/workflows/mambatest.yml/badge.svg)](https://github.com/oloapinivad/ECmean4/actions/workflows/mambatest.yml)
+[![Coverage](https://coveralls.io/repos/github/oloapinivad/ECmean4/badge.svg?branch=devel/refactor)](https://coveralls.io/github/oloapinivad/ECmean4?branch=devel/refactor)
 
 ![ECmean4](docs/ecmean4_smallest.png)
 
