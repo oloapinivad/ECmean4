@@ -1,36 +1,36 @@
-| Variable     | Longname                       | Units     |      EC-Earth4 |          Obs. | Dataset    | Years     |
-|--------------+--------------------------------+-----------+----------------+---------------+------------+-----------|
-| tas          | 2m Air Temperature             | K         |    287.714     |    287.497    | ERA5       | 1990-2019 |
-| psl          | MSLP                           | Pa        | 101115         | 101142        | ERA5       | 1990-2019 |
-| pr           | Precipitation                  | mm/day    |      2.86608   |      2.92552  | ERA5       | 1990-2019 |
-| evspsbl      | Evaporation                    | mm/day    |      2.88457   |     -2.90113  | ERA5       | 1990-2019 |
-| pme          | Precip. minus evap.            | mm/day    |     -0.0184938 |      0        |            |           |
-| clt          | Total cloud cover              |           |      0.658197  |      0.628433 | ERA5       | 1990-2019 |
-| cll          | Low cloud cover                |           |      0.378427  |      0.36627  | ERA5       | 1990-2019 |
-| clm          | Medium cloud cover             |           |      0.25471   |      0.247956 | ERA5       | 1990-2019 |
-| clh          | High cloud cover               |           |      0.396169  |      0.341018 | ERA5       | 1990-2019 |
-| pr_oce       | Precipitation (ocean)          | Sv        |     13.5894    |     13.4499   | ERA5       | 1990-2019 |
-| pme_oce      | Precip. minus evap. (ocean)    | Sv        |     -1.129     |     -1.24691  | ERA5       | 1990-2019 |
-| pr_land      | Precipitation (land)           | Sv        |      3.32839   |      3.82094  | ERA5       | 1990-2019 |
-| pme_land     | Precip. minus evap. (land)     | Sv        |      1.01983   |      1.39091  | ERA5       | 1990-2019 |
-| net_toa      | Net TOA                        | W/m2      |      0.774862  |      0.75262  | CERES-EBAF | 2005-2015 |
-| rsnt         | TOA net SW                     | W/m2      |    240.04      |    240.87     | CERES-EBAF | 2005-2015 |
-| rlnt         | TOA net LW                     | W/m2      |   -239.265     |   -240.11     | CERES-EBAF | 2005-2015 |
-| rsntcs       | TOA net SW, CS                 | W/m2      |    286.766     |    286.66     | CERES-EBAF | 2005-2015 |
-| rlntcs       | TOA net LW, CS                 | W/m2      |   -264.138     |   -268.04     | CERES-EBAF | 2005-2015 |
-| swcf         | SW CRE                         | W/m2      |    -46.7269    |    -45.32     | CERES-EBAF | 2005-2015 |
-| lwcf         | LW CRE                         | W/m2      |     24.8738    |     25.76     | CERES-EBAF | 2005-2015 |
-| rsns         | Surface net SW                 | W/m2      |    159.83      |    160        | Wild 2020  |           |
-| rlns         | Surface net LW                 | W/m2      |    -58.0639    |    -56        | Wild 2020  |           |
-| hfss         | Surface SH                     | W/m2      |    -17.0166    |    -21        | Wild 2020  |           |
-| hfls         | Surface LH                     | W/m2      |    -83.5407    |    -82        | Wild 2020  |           |
-| net_sfc_nosn | Net Surface (no snowfall)      | W/m2      |      1.20877   |      0.6      | Wild 2020  |           |
-| net_sfc      | Net Surface                    | W/m2      |      0.472922  |      0.6      | Wild 2020  |           |
-| toamsfc_nosn | TOA-Sfc net rad. (no snowfall) | W/m2      |     -0.433919  |      0        |            |           |
-| toamsfc      | TOA-Sfc net radiation          | W/m2      |      0.301943  |      0        |            |           |
-| tos          | SST                            | degC      |    nan         |      0        |            |           |
-| sos          | SSS                            | psu       |    nan         |      0        |            |           |
-| zos          | SSH                            | m         |    nan         |      0        |            |           |
-| wfo          | Net Water Flux into ocean      | m/century |    nan         |      0        |            |           |
-| siconc_north | Sea-ice Concentration          | km^2      |    nan         |      0        |            |           |
-| siconc_south | Sea-ice Concentration          | km^2      |    nan         |      0        |            |           |
+| Variable     | Longname                        | Units     |      EC-Earth4 |          Obs. | Dataset    | Years     |
+|--------------+---------------------------------+-----------+----------------+---------------+------------+-----------|
+| tas          | 2m Air Temperature              | K         |    287.714     |    287.497    | ERA5       | 1990-2019 |
+| psl          | MSLP                            | Pa        | 101115         | 101142        | ERA5       | 1990-2019 |
+| pr           | Precipitation                   | mm/day    |      2.86608   |      2.92552  | ERA5       | 1990-2019 |
+| evspsbl      | Evaporation                     | mm/day    |      2.88457   |     -2.90113  | ERA5       | 1990-2019 |
+| pme          | Precip. minus evap.             | mm/day    |     -0.0184938 |      0        |            |           |
+| clt          | Total cloud cover               |           |      0.658197  |      0.628433 | ERA5       | 1990-2019 |
+| cll          | Low cloud cover                 |           |      0.378427  |      0.36627  | ERA5       | 1990-2019 |
+| clm          | Medium cloud cover              |           |      0.25471   |      0.247956 | ERA5       | 1990-2019 |
+| clh          | High cloud cover                |           |      0.396169  |      0.341018 | ERA5       | 1990-2019 |
+| pr_oce       | Precipitation (ocean)           | Sv        |     13.5894    |     13.4499   | ERA5       | 1990-2019 |
+| pme_oce      | Precip. minus evap. (ocean)     | Sv        |     -1.129     |     -1.24691  | ERA5       | 1990-2019 |
+| pr_land      | Precipitation (land)            | Sv        |      3.32839   |      3.82094  | ERA5       | 1990-2019 |
+| pme_land     | Precip. minus evap. (land)      | Sv        |      1.01983   |      1.39091  | ERA5       | 1990-2019 |
+| net_toa      | Net TOA                         | W/m2      |      0.774862  |      0.75262  | CERES-EBAF | 2005-2015 |
+| rsnt         | TOA net SW                      | W/m2      |    240.04      |    240.87     | CERES-EBAF | 2005-2015 |
+| rlnt         | TOA net LW                      | W/m2      |   -239.265     |   -240.11     | CERES-EBAF | 2005-2015 |
+| rsntcs       | TOA net SW, CS                  | W/m2      |    286.766     |    286.66     | CERES-EBAF | 2005-2015 |
+| rlntcs       | TOA net LW, CS                  | W/m2      |   -264.138     |   -268.04     | CERES-EBAF | 2005-2015 |
+| swcf         | SW CRE                          | W/m2      |    -46.7269    |    -45.32     | CERES-EBAF | 2005-2015 |
+| lwcf         | LW CRE                          | W/m2      |     24.8738    |     25.76     | CERES-EBAF | 2005-2015 |
+| rsns         | Surface net SW                  | W/m2      |    159.83      |    160        | Wild 2020  |           |
+| rlns         | Surface net LW                  | W/m2      |    -58.0639    |    -56        | Wild 2020  |           |
+| hfss         | Surface SH                      | W/m2      |    -17.0166    |    -21        | Wild 2020  |           |
+| hfls         | Surface LH                      | W/m2      |    -83.5407    |    -82        | Wild 2020  |           |
+| net_sfc_nosn | Net Surface (no snowfall)       | W/m2      |      1.20877   |      0.6      | Wild 2020  |           |
+| net_sfc      | Net Surface                     | W/m2      |      0.472922  |      0.6      | Wild 2020  |           |
+| toamsfc_nosn | TOA-Sfc net rad. (no snowfall)  | W/m2      |     -0.433919  |      0        |            |           |
+| toamsfc      | TOA-Sfc net radiation           | W/m2      |      0.301943  |      0        |            |           |
+| tos          | SST                             | degC      |    nan         |      0        |            |           |
+| sos          | SSS                             | psu       |    nan         |      0        |            |           |
+| zos          | SSH                             | m         |    nan         |      0        |            |           |
+| wfo          | Net Water Flux into ocean       | m/century |    nan         |      0        |            |           |
+| siconc_north | Sea Ice Area (North Hemisphere) | Mm^2      |    nan         |      0        |            |           |
+| siconc_south | Sea Ice Area (South Hemisphere) | Mm^2      |    nan         |      0        |            |           |
