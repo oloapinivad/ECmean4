@@ -1,5 +1,6 @@
 __pycache__/
 .vscode/
+.coverage/
 cdo/__pycache__/
 /config*.yml
 ecmean/config*.yml
@@ -11,4 +12,5 @@ docs/sphinx/build/
 ECmean4.egg-info/
 ecmean/utils/history_benchmark
 *.ipynb
+
 
