@@ -69,7 +69,15 @@ jobs:
         # install package
         pip install -e .
         pip install coverage
+        #pip install coverage-badge
+        pip install coveralls
     - name: Run coverage
       run: |
         coverage run -m pytest
         coverage lcov
+        #coverage-badge -o ./coverage/coverage.svg
+    - name: Run coveralls
+        uses: coverallsapp/github-action@master
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          path-to-lcov: coverage.lcov
