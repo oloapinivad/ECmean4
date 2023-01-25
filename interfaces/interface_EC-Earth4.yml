@@ -203,11 +203,11 @@ variables:
     varname: 'Snow fraction'
     filetype: atm2d
   siconc_north:
-    varname: 'Sea-ice Concentration'
+    varname: 'Sea Ice Area (North Hemisphere)'
     derived: siconc
     filetype: ice
   siconc_south:
-    varname: 'Sea-ice Concentration'
+    varname: 'Sea Ice Area (South Hemisphere)'
     derived: siconc
     filetype: ice
 
