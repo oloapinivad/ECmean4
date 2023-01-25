@@ -13,7 +13,7 @@ permissions:
   contents: read
 
 jobs:
-  mamba-build:
+  mamba-test:
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
