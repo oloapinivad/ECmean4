@@ -2,6 +2,7 @@
 [![made-with-python](https://img.shields.io/badge/Made%20with-Python-1f425f.svg)](https://www.python.org/)
 [![Documentation Status](https://readthedocs.org/projects/ecmean4/badge/?version=latest)](https://ecmean4.readthedocs.io/en/latest/?badge=latest)
 [![Mamba PyTest](https://github.com/oloapinivad/ECmean4/actions/workflows/mambatest.yml/badge.svg)](https://github.com/oloapinivad/ECmean4/actions/workflows/mambatest.yml)
+[![Coverage Status](https://coveralls.io/repos/github/oloapinivad/ECmean4/badge.svg)](https://coveralls.io/github/oloapinivad/ECmean4)
 
 ![ECmean4](docs/ecmean4_smallest.png)
 
