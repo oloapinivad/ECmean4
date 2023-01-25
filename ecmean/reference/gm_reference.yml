@@ -142,11 +142,11 @@ tos:
   units: degC
   val: 0
 siconc_north:
-  units: km^2
+  units: Mm^2
   total: north
   val: 0
 siconc_south:
-  units: km^2
+  units: Mm^2
   total: south
   val: 0
 sos:

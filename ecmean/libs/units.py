@@ -43,6 +43,7 @@ def units_extra_definition():
     units.define('fraction = [] = frac')
     units.define('psu = 1e-3 frac')
     units.define('PSU = 1e-3 frac')
+    units.define('million = 1e6 = M')
     units.define('Sv = 1e+6 m^3/s')  # Replace Sievert with Sverdrup
 
 
