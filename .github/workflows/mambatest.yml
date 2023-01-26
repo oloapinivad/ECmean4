@@ -76,6 +76,7 @@ jobs:
     - name: Run coverage
       run: |
         coverage run -m pytest
+        coverage combine
         coverage lcov
     - name: Run coveralls
       uses: coverallsapp/github-action@1.1.3
