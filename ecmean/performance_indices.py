@@ -165,9 +165,9 @@ def pi_worker(util, piclim, face, diag, field_3d, varstat, varlist):
                 else:
 
                     complete = (final - cfield)**2 / vfield
-                    outarray = mask_field(xfield = complete, 
-                        var = var, mask_type = piclim[var]['mask'], 
-                        dom = domain, mask = domain_mask)
+                    outarray = mask_field(xfield=complete,
+                                          var=var, mask_type=piclim[var]['mask'],
+                                          dom=domain, mask=domain_mask)
 
                 # loop on different regions
                 for region in diag.regions:
@@ -190,13 +190,12 @@ def pi_worker(util, piclim, face, diag, field_3d, varstat, varlist):
 
 
 def performance_indices(exp, year1, year2,
-                config = 'config.yml',
-                loglevel = 'WARNING',
-                numproc = 1, 
-                climatology = 'EC23',
-                interface = None, model = None, ensemble = 'r1i1p1f1', 
-                silent = None):
-    
+                        config='config.yml',
+                        loglevel='WARNING',
+                        numproc=1,
+                        climatology='EC23',
+                        interface=None, model=None, ensemble='r1i1p1f1',
+                        silent=None):
     """Main performance indices calculation
 
     :param exp: Experiment name or ID
@@ -219,7 +218,7 @@ def performance_indices(exp, year1, year2,
     # This is not the neatest option, but it is very compact
     argv = argparse.Namespace(**locals())
 
-     # set loglevel
+    # set loglevel
     logging.basicConfig(level=numeric_loglevel(argv.loglevel))
 
     tic = time()
@@ -227,10 +226,10 @@ def performance_indices(exp, year1, year2,
     # get local directory
     indir = Path(os.path.dirname(os.path.abspath(__file__)))
     logging.info(indir)
-    
+
     # define config dictionary, interface dictionary and diagnostic class
     cfg, face, diag = init_diagnostic(indir, argv)
-    
+
     # Create missing folders
     os.makedirs(diag.TABDIR, exist_ok=True)
     os.makedirs(diag.FIGDIR, exist_ok=True)
@@ -265,14 +264,12 @@ def performance_indices(exp, year1, year2,
     # join the two dictionaries
     util_dictionary = {**masks, **areas, **remap}
 
-
     # defines the two varlist
     field_2d = cfg['PI']['2d_vars']['field']
     field_3d = cfg['PI']['3d_vars']['field']
     field_oce = cfg['PI']['oce_vars']['field']
     field_ice = cfg['PI']['ice_vars']['field']
     field_all = field_2d + field_3d + field_oce + field_ice
-
 
     # main loop: manager is required for shared variables
     mgr = Manager()
@@ -399,21 +396,21 @@ def performance_indices(exp, year1, year2,
 
 
 def pi_entry_point():
-
     """
     Command line interface to run the global_mean function
     """
 
     # read arguments from command line
-    args = parse_arguments(sys.argv[1:], script = 'pi')
+    args = parse_arguments(sys.argv[1:], script='pi')
 
-    performance_indices(exp = args.exp, year1 = args.year1, year2 = args.year2,
-                numproc = args.numproc,
-                silent = args.silent,
-                loglevel = args.loglevel,
-                climatology = args.climatology,
-                interface = args.interface, config = args.config,
-                model = args.model, ensemble = args.ensemble)
+    performance_indices(exp=args.exp, year1=args.year1, year2=args.year2,
+                        numproc=args.numproc,
+                        silent=args.silent,
+                        loglevel=args.loglevel,
+                        climatology=args.climatology,
+                        interface=args.interface, config=args.config,
+                        model=args.model, ensemble=args.ensemble)
+
 
 if __name__ == '__main__':
 

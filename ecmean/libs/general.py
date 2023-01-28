@@ -82,23 +82,23 @@ class Diagnostic():
 
 
 def get_variables_to_load(var, face):
-        
-        """Function to extract from the interface file the list of derived variable,
-        i.e. the real variables to be loaded, for each of the cmorname introduced in the
-        interface file 
+    """Function to extract from the interface file the list of derived variable,
+    i.e. the real variables to be loaded, for each of the cmorname introduced in the
+    interface file
 
-        Args: 
-            var: the cmorname variable of the data to be loaded
-            face: the interface file
-        """
-    
-        if 'derived' in face['variables'][var].keys():
-            cmd = face['variables'][var]['derived']
-            dervars = re.findall("[a-zA-Z0-9]+", cmd)
-        else:
-            dervars = [var]
+    Args:
+        var: the cmorname variable of the data to be loaded
+        face: the interface file
+    """
 
-        return dervars
+    if 'derived' in face['variables'][var].keys():
+        cmd = face['variables'][var]['derived']
+        dervars = re.findall("[a-zA-Z0-9]+", cmd)
+    else:
+        dervars = [var]
+
+    return dervars
+
 
 def is_number(s):
     """Check if input is a float type"""
@@ -109,14 +109,15 @@ def is_number(s):
     except ValueError:
         return False
 
-def numeric_loglevel(loglevel) :
+
+def numeric_loglevel(loglevel):
     """Define the logging level """
     # log level with logging
     # currently basic definition trought the text
     numeric_level = getattr(logging, loglevel.upper(), None)
     if not isinstance(numeric_level, int):
         raise ValueError('Invalid log level: %s' % loglevel)
-    
+
     return numeric_level
 
 
@@ -191,7 +192,6 @@ def get_component(face):  # unused function
     p = dict(zip([list(d.values())[x]['domain']
              for x in range(len(d.values()))], d.keys()))
     return p
-
 
 
 ####################

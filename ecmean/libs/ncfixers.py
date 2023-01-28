@@ -1,11 +1,12 @@
 #!/usr/bin/env python3
 '''
-Shared functions for Xarray 
+Shared functions for Xarray
 '''
 
 #########################
 # FILE FORMAT FUNCTIONS #
 #########################
+
 
 def xr_preproc(ds):
     """Preprocessing functuon to adjust coordinate and dimensions
@@ -84,5 +85,3 @@ def adjust_clim_file(cfield, remove_zero=False):
         field = field.metpy.convert_coordinate_units('plev', 'Pa')
 
     return field
-
-

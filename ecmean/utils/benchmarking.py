@@ -30,8 +30,8 @@ scripts = ['Global Mean', 'Performance Indices']
 # number of processors and years on which looop
 nprocs = [1, 2, 4, 6, 8]
 nyears = [1, 2, 5, 10, 30]
-#nprocs = [2, 4]
-#nyears = [1, 10]
+# nprocs = [2, 4]
+# nyears = [1, 10]
 
 # file for configuration to be used as a reference
 benchconfig = 'config_benchmark.yml'
@@ -72,24 +72,25 @@ for model in models:
                 year2 = year1 + nyear - 1
                 # separated calls for model (perhaps a specific config file should be added)
                 if script == 'Performance Indices':
-                    single = timeit.timeit(lambda: performance_indices(expname, year1, year2, config = benchconfig,
-                                                                       model = model, numproc = nproc, 
-                                                                       climatology = refclim, ensemble = ensemble, 
-                                                                       loglevel = 'warning'), number=nrepeat)
-                    #sys.argv = [expname, str(year1), str(year2), '--config', benchconfig,
+                    single = timeit.timeit(lambda: performance_indices(expname, year1, year2, config=benchconfig,
+                                                                       model=model, numproc=nproc,
+                                                                       climatology=refclim, ensemble=ensemble,
+                                                                       loglevel='warning'), number=nrepeat)
+                    # sys.argv = [expname, str(year1), str(year2), '--config', benchconfig,
                     #            '--model', model, '-j', str(nproc), '-k', refclim, '-e', ensemble, '-v', 'warning']
-                    #single = timeit.timeit(lambda: pi_main(sys.argv), number=nrepeat)
+                    # single = timeit.timeit(lambda: pi_main(sys.argv), number=nrepeat)
                 elif script == 'Global Mean':
-                    single = timeit.timeit(lambda: global_mean(expname, year1, year2, config = benchconfig,
-                                                                       model = model, numproc = nproc, 
-                                                                       ensemble = ensemble, 
-                                                                       loglevel = 'warning'), number=nrepeat)
-                    #sys.argv = [expname, str(year1), str(year2), '--config', benchconfig,
+                    single = timeit.timeit(lambda: global_mean(expname, year1, year2, config=benchconfig,
+                                                               model=model, numproc=nproc,
+                                                               ensemble=ensemble,
+                                                               loglevel='warning'), number=nrepeat)
+                    # sys.argv = [expname, str(year1), str(year2), '--config', benchconfig,
                     #            '--model', model, '-j', str(nproc), '-e', ensemble, '-v', 'warning']
-                    #single = timeit.timeit(lambda: gm_main(sys.argv), number=nrepeat)
+                    # single = timeit.timeit(lambda: gm_main(sys.argv), number=nrepeat)
 
                 # concatenate
-                d = pd.DataFrame({'script': [script], 'time': [round(single/nrepeat, 1)], 'nprocs': [nproc], 'nyears': [nyear]})
+                d = pd.DataFrame({'script': [script], 'time': [round(single / nrepeat, 1)],
+                                 'nprocs': [nproc], 'nyears': [nyear]})
                 print(d)
                 howmuch = pd.concat([howmuch, d])
 
@@ -100,7 +101,7 @@ if not os.path.exists(benchdir):
 # save to file
 today = str(date.today())
 csvname = os.path.join(benchdir, 'csv-benchmark-' + today + '.csv')
-howmuch.to_csv(csvname, sep = '\t')
+howmuch.to_csv(csvname, sep='\t')
 print(howmuch)
 
 # produce the two-panel figure
@@ -109,7 +110,7 @@ palette = ['teal', 'gold']
 
 # first plot: scaling on cores
 how1 = howmuch[howmuch["nyears"] == nyears_fixed]
-chart1 = sns.barplot(data=how1, x='nprocs', y='time', hue='script', palette=palette,  ax=axs[0])
+chart1 = sns.barplot(data=how1, x='nprocs', y='time', hue='script', palette=palette, ax=axs[0])
 
 axs[0].set_title(f' ECmean4 execution time for CMIP6 {model} ({nyears_fixed} years)', fontsize=15)
 for i in chart1.containers:

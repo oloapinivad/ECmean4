@@ -11,7 +11,8 @@ from metpy.units import units
 import logging
 import sys
 
-def units_wrapper(var, varunit, clim, face) : 
+
+def units_wrapper(var, varunit, clim, face):
     """
     Wrapper function for units computation: provides check for integral quantities,
     estimate offset and factor of conversion and check the fluxes direction
@@ -33,13 +34,14 @@ def units_wrapper(var, varunit, clim, face) :
 
     return offset, factor
 
+
 def units_extra_definition():
     """Add units to the pint registry required by ECMean4"""
 
     # special units definition
-    #needed to work with metpy 1.4.0 see
-    #https://github.com/Unidata/MetPy/issues/2884
-    units._on_redefinition = 'warn' 
+    # needed to work with metpy 1.4.0 see
+    # https://github.com/Unidata/MetPy/issues/2884
+    units._on_redefinition = 'warn'
     units.define('fraction = [] = frac')
     units.define('psu = 1e-3 frac')
     units.define('PSU = 1e-3 frac')

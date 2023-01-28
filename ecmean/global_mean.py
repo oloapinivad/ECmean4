@@ -85,7 +85,7 @@ def gm_worker(util, ref, face, diag, varmean, vartrend, varlist):
             cfield = formula_wrapper(var, face, xfield)
 
             a = []
-            # loop on years: 
+            # loop on years:
             for year in diag.years_joined:
 
                 # time selection and mean
@@ -93,9 +93,9 @@ def gm_worker(util, ref, face, diag, varmean, vartrend, varlist):
 
                 # final operation on the field
                 x = masked_meansum(
-                    xfield = tfield, var = var, weights = weights, 
-                    mask_type = ref[var].get('total', 'global'), 
-                    dom = domain, mask = domain_mask)
+                    xfield=tfield, var=var, weights=weights,
+                    mask_type=ref[var].get('total', 'global'),
+                    dom=domain, mask=domain_mask)
                 a.append(x)
 
             varmean[var] = (mean(a) + offset) * factor
@@ -105,14 +105,13 @@ def gm_worker(util, ref, face, diag, varmean, vartrend, varlist):
                 print('Average', var, varmean[var])
 
 
-def global_mean(exp, year1, year2, 
-            config = 'config.yml',
-            loglevel = 'WARNING',
-            numproc = 1, 
-            interface = None, model = None, ensemble = 'r1i1p1f1', 
-            silent = None, trend = None, line = None,
-            output = None):
-    
+def global_mean(exp, year1, year2,
+                config='config.yml',
+                loglevel='WARNING',
+                numproc=1,
+                interface=None, model=None, ensemble='r1i1p1f1',
+                silent=None, trend=None, line=None,
+                output=None):
     """The main ECmean4 global mean function
 
     :param exp: Experiment name or ID
@@ -174,13 +173,12 @@ def global_mean(exp, year1, year2,
 
     # add missing unit definition
     units_extra_definition()
-    
+
     # create util dictionary including mask and weights for both atmosphere
     # and ocean grids
     areas = areas_dictionary(comp, inifiles['atm'], inifiles['oce'])
     masks = masks_dictionary(comp, inifiles['atm']['maskfile'], inifiles['oce']['maskfile'])
     util_dictionary = {**areas, **masks}
-
 
     # main loop: manager is required for shared variables
     mgr = Manager()
@@ -242,21 +240,21 @@ def global_mean(exp, year1, year2,
             print(diag.linefile)
         write_tuning_table(diag.linefile, varmean, var_table, diag, ref)
 
-def gm_entry_point():
 
+def gm_entry_point():
     """
     Command line interface to run the global_mean function
     """
 
     # read arguments from command line
-    args = parse_arguments(sys.argv[1:], script = 'gm')
+    args = parse_arguments(sys.argv[1:], script='gm')
 
-    global_mean(exp = args.exp, year1 = args.year1, year2 = args.year2,
-                numproc = args.numproc,
-                silent = args.silent, trend = args.trend, line = args.line,
-                output = args.output, loglevel = args.loglevel,
-                interface = args.interface, config = args.config,
-                model = args.model, ensemble = args.ensemble)
+    global_mean(exp=args.exp, year1=args.year1, year2=args.year2,
+                numproc=args.numproc,
+                silent=args.silent, trend=args.trend, line=args.line,
+                output=args.output, loglevel=args.loglevel,
+                interface=args.interface, config=args.config,
+                model=args.model, ensemble=args.ensemble)
 
 
 if __name__ == "__main__":

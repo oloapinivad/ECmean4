@@ -17,24 +17,24 @@ from ecmean.libs.units import units_converter
 def masks_dictionary(component, maskatmfile, maskocefile, remap_dictionary=None):
     """
     Create a dictionary with atmospheric land-sea mask
-    Oceanic mask are not used yet, since it is assumed that oceanic variables 
-    are computed by definition on the oceanic grid. 
+    Oceanic mask are not used yet, since it is assumed that oceanic variables
+    are computed by definition on the oceanic grid.
     """
 
     # default mask: mandatory
     matm = _make_atm_masks(component['atm'],
-            maskatmfile, remap_dictionary=remap_dictionary)
+                           maskatmfile, remap_dictionary=remap_dictionary)
 
     # if I have the oceanic mask, use it
     if maskocefile:
         moce = _make_oce_masks(component['oce'],
-            maskocefile, remap_dictionary=remap_dictionary)
-    else:  
-        # if it is missing, for PI I can use the atmospheric one    
+                               maskocefile, remap_dictionary=remap_dictionary)
+    else:
+        # if it is missing, for PI I can use the atmospheric one
         if remap_dictionary:
             moce = matm
         # for global mean, I have no solution: I will not use it over the ocean
-        else: 
+        else:
             moce = None
 
     mask = {
@@ -63,29 +63,29 @@ def _make_atm_masks(component, maskatmfile, remap_dictionary=None):
             filter_by_keys={
                 'shortName': 'lsm'},
             preprocess=xr_preproc)['lsm']
-              
+
     elif component in ['cmoratm', 'globo']:
         dmask = xr.open_mfdataset(maskatmfile, preprocess=xr_preproc)
-        if 'sftlf' in dmask.data_vars : 
+        if 'sftlf' in dmask.data_vars:
             mask = dmask['sftlf']
-            mask = mask / 100 #cmor mask are %
-        elif 'lsm' in dmask.data_vars : 
+            mask = mask / 100  # cmor mask are %
+        elif 'lsm' in dmask.data_vars:
             mask = dmask['lsm']
 
-        #globo has a reversed mask
+        # globo has a reversed mask
         if component == 'globo':
-            mask = abs(1-mask)
+            mask = abs(1 - mask)
     else:
         sys.exit("ERROR: _make_atm_masks -> Mask undefined yet mismatch, this cannot be handled!")
-
 
     # interp the mask if required
     if remap_dictionary is not None:
         if remap_dictionary['atm_fix']:
             mask = remap_dictionary['atm_fix'](mask, keep_attrs=True)
         mask = remap_dictionary['atm_remap'](mask, keep_attrs=True)
-    
+
     return mask
+
 
 def _make_oce_masks(component, maskocefile, remap_dictionary=None):
     """Create land-sea masks for oceanic model. This is used only for CMIP"""
@@ -94,27 +94,26 @@ def _make_oce_masks(component, maskocefile, remap_dictionary=None):
     logging.info('maskocefile is' + maskocefile)
     if not maskocefile:
         sys.exit("ERROR: maskocefile cannot be found")
-     
+
     if component == 'cmoroce':
         dmask = xr.open_mfdataset(maskocefile, preprocess=xr_preproc)
-        if 'sftof' in dmask.data_vars : 
+        if 'sftof' in dmask.data_vars:
             # use fillna to have a binary max (0 land, 1 sea)
             mask = dmask['sftof'].fillna(0)
 
         # check if we need to convert from % to fraction
         # offset should not count!
-        if mask.units : 
+        if mask.units:
             offset, factor = units_converter(mask.units, 'frac')
             mask = (mask * factor) + offset
 
-        # to keep coehrence in other operations, oceanic mask is set to be 
-        #identical to atmospheric mask, i.e. 1 over land and 0 over ocean
-        mask = abs(1-mask)
+        # to keep coehrence in other operations, oceanic mask is set to be
+        # identical to atmospheric mask, i.e. 1 over land and 0 over ocean
+        mask = abs(1 - mask)
 
     else:
         mask = None
         sys.exit("ERROR: _make_oce_masks -> Mask undefined yet mismatch, this cannot be handled!")
-
 
     # interp the mask if required
     if remap_dictionary is not None:
@@ -128,7 +127,6 @@ def _make_oce_masks(component, maskocefile, remap_dictionary=None):
 def masked_meansum(xfield, var, weights, mask_type, dom, mask):
     """For global variables evaluate the weighted averaged
     or weighted integral when required by the variable properties"""
-
 
     # call the mask_field to mask where necessary
     # the mask field is area
@@ -145,6 +143,7 @@ def masked_meansum(xfield, var, weights, mask_type, dom, mask):
 
     return float(out)
 
+
 def _merge_mask(var, xfield, mask):
 
     # check that we are receiving a dataset and not a datarray
@@ -153,7 +152,7 @@ def _merge_mask(var, xfield, mask):
 
     # convert from datarray to dataset and merge
     mask = mask.to_dataset(name='mask')
-    
+
     # the compat='override' option forces the merging. some CMIP6 data might
     # have different float type, this simplies the handling
     bfield = xr.merge([xfield, mask], compat='override')
@@ -165,10 +164,10 @@ def mask_field(xfield, var, mask_type, dom, mask):
     """Apply a land/sea mask on a xarray variable var"""
 
     # if oceanic, apply the ocenanic mask (if it exists!)
-    if dom == 'oce' and isinstance(mask, xr.DataArray): 
+    if dom == 'oce' and isinstance(mask, xr.DataArray):
         bfield = _merge_mask(var, xfield, mask)
         xfield = bfield[var].where(bfield['mask'] < 0.5)
-        #xfield.to_netcdf(var+'okmasked.nc')
+        # xfield.to_netcdf(var+'okmasked.nc')
 
     # nothing to be done
     if mask_type == 'global':
@@ -188,7 +187,7 @@ def mask_field(xfield, var, mask_type, dom, mask):
         else:
             sys.exit("ERROR: mask_field -> Mask undefined, this cannot be handled!")
 
-    #out.to_netcdf(var+'masked.nc')
+    # out.to_netcdf(var+'masked.nc')
 
     return out
 
@@ -209,5 +208,3 @@ def select_region(xfield, region):
         sys.exit(region + "region not supported!!!")
 
     return slicearray
-
-

@@ -37,11 +37,11 @@ def heatmap_comparison(relative_table, diag, filemap):
                         annot_kws={'fontsize': 11, 'fontweight': 'bold'})
     chart = chart.set_facecolor('whitesmoke')
     axs.set_title(f'{title} {diag.modelname} {diag.year1} {diag.year2}', fontsize=25)
-    axs.vlines(list(range(sss, tot+sss, sss)), ymin=-1, ymax=len(myfield.index), colors='k')
-    axs.hlines(len(myfield.index)-1, xmin=-1, xmax=len(myfield.columns), colors='purple', lw=2)
+    axs.vlines(list(range(sss, tot + sss, sss)), ymin=-1, ymax=len(myfield.index), colors='k')
+    axs.hlines(len(myfield.index) - 1, xmin=-1, xmax=len(myfield.columns), colors='purple', lw=2)
     names = [' '.join(x) for x in myfield.columns]
-    axs.set_xticks([x+.5 for x in range(len(names))], names, rotation=45, ha='right', fontsize=15)
-    axs.set_yticks([x+.5 for x in range(len(myfield.index))], myfield.index, rotation=0, fontsize=18)
+    axs.set_xticks([x + .5 for x in range(len(names))], names, rotation=45, ha='right', fontsize=15)
+    axs.set_yticks([x + .5 for x in range(len(myfield.index))], myfield.index, rotation=0, fontsize=18)
     axs.set(xlabel=None)
 
     # save and close

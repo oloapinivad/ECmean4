@@ -23,13 +23,13 @@ def remap_dictionary(component, atmdict, ocedict, target_grid):
     atmareafile = inifiles_priority(atmdict)
     atmfix, atmremap = _make_atm_interp_weights(
         component['atm'], atmareafile, target_grid)
-    
+
     # get oceanic areas, assuming AMIP if no oceanic area is found
     oceareafile = inifiles_priority(ocedict)
     if oceareafile:
         ocefix, oceremap = _make_oce_interp_weights(
             component['oce'], oceareafile, target_grid)
-    else : 
+    else:
         logging.warning("Ocereafile cannot be found, assuming this is an AMIP run")
         ocefix = None
         oceremap = None
@@ -75,7 +75,7 @@ def _make_atm_interp_weights(component, atmareafile, target_grid):
         interp = xe.Regridder(
             fix(xfield[xname]), target_grid, periodic=True, method="bilinear")
 
-    elif component in ['cmoratm','globo']:
+    elif component in ['cmoratm', 'globo']:
 
         fix = None
         xfield = xr.open_mfdataset(atmareafile, preprocess=xr_preproc).load()
@@ -104,12 +104,12 @@ def _make_oce_interp_weights(component, oceareafile, target_grid):
         xfield = xr.open_mfdataset(oceareafile, preprocess=xr_preproc).load()
 
         # set coordinates which are missing
-        #for cl in ['nav_lon', 'nav_lat', 'nav_lev', 'time_counter', 'x', 'y']:
+        # for cl in ['nav_lon', 'nav_lat', 'nav_lev', 'time_counter', 'x', 'y']:
         #    if cl in xfield.data_vars:
         #        xfield = xfield.set_coords([cl])
 
         # rename dimensions and coordinates
-        #xfield = xfield.rename(
+        # xfield = xfield.rename(
         #    {"nav_lon": "lon", "nav_lat": "lat", "nav_lev": "deptht"})
 
         # use grid distance as generic variable
@@ -128,8 +128,8 @@ def _make_oce_interp_weights(component, oceareafile, target_grid):
         # print(len(xfield.coords['lon'].shape))
 
         # check if oceanic grid is regular: lon/lat dims should be 1d
-        if not all(x in xfield.dims for x in ['lon', 'lat']) and (len(xfield.dims) < 3) :
-        #if len(xfield.coords['lon'].shape) == 1 and len(xfield.coords['lat'].shape) == 1:
+        if not all(x in xfield.dims for x in ['lon', 'lat']) and (len(xfield.dims) < 3):
+            # if len(xfield.coords['lon'].shape) == 1 and len(xfield.coords['lat'].shape) == 1:
 
             print("Detecting a unstructured grid, using nearest neighbour!")
             interp = xe.Regridder(

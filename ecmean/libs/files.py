@@ -19,12 +19,12 @@ from ecmean.libs.ncfixers import xr_preproc
 # FILE FUNCTIONS #
 ##################
 
-def init_diagnostic(indir, argv) : 
+def init_diagnostic(indir, argv):
     """
     configuration function to load config and interface files
     and to initilized the diagnotic object
     """
-    
+
     # config file (looks for it in the same dir as the .py program file
     if argv.config:
         cfg = load_yaml(argv.config)
@@ -38,33 +38,34 @@ def init_diagnostic(indir, argv) :
     # loading the var-to-file interface
     # allow for both interface name or interface file
     fff, ext = os.path.splitext(diag.interface)
-    if ext: 
+    if ext:
         faceload = diag.interface
-    else :  
+    else:
         faceload = indir / Path(
             'interfaces',
-            f'interface_{diag.interface}.yml')   
+            f'interface_{diag.interface}.yml')
     face = load_yaml(faceload)
 
     return cfg, face, diag
 
-def inifiles_priority(inidict) :
 
+def inifiles_priority(inidict):
     """
-    For areas dictionary and remap dictionary, provides a priority of which 
+    For areas dictionary and remap dictionary, provides a priority of which
     files to be used for interpolation and area computation
-    Areas files comes first, then gridfile and finally land-sea mask. 
+    Areas files comes first, then gridfile and finally land-sea mask.
     Provides flexibility for multiple models with different data access
-    """ 
+    """
 
-    if inidict['areafile']: 
+    if inidict['areafile']:
         file = inidict['areafile']
-    elif inidict['gridfile']: 
+    elif inidict['gridfile']:
         file = inidict['gridfile']
     else:
-        file = inidict['maskfile'] 
+        file = inidict['maskfile']
 
     return file
+
 
 def var_is_there(flist, var, reference):
     """Check if a variable is available in the input file and provide its units"""
@@ -86,7 +87,7 @@ def var_is_there(flist, var, reference):
                 k = xfield[i].units
             except BaseException:
                 k = 'frac'
-            if k == '(0 - 1)' : 
+            if k == '(0 - 1)':
                 k = 'frac'
             units_avail[i] = k
 
@@ -170,41 +171,42 @@ def get_inifiles(face, diag):
     """Return the inifiles from the interface, needs the component dictionary.
     Check if inifiles exist.
 
-    Args: 
+    Args:
         face: the interface dictionary
         diag: the diagnostic object
 
     Returns:
         a dictionary with the different initial files
-    
+
     """
 
     dictcomp = face['model']['component']
 
     ifiles = {}
-    for comp in dictcomp.keys(): 
-        ifiles[comp] ={}
+    for comp in dictcomp.keys():
+        ifiles[comp] = {}
         dictnames = face['component'][dictcomp[comp]]
         for name in dictnames.keys():
             inifile = dictnames[name]
-            if inifile : 
+            if inifile:
                 if inifile[0] != '/':
                     inifile = Path(diag.ECEDIR) / \
                         Path(face['model']['basedir']) / \
                         Path(inifile)
-                    
+
                 ifiles[comp][name] = str(_expand_filename(inifile, '', diag))
                 logging.info(f'{name} for component {comp} is: {ifiles[comp][name]}')
-               
-                # safe check if inifile exist 
+
+                # safe check if inifile exist
                 if not glob(ifiles[comp][name]):
                     logging.error('Inifile %s cannot be found!', ifiles[comp][name])
                     ifiles[comp][name] = ''
 
-            else: 
+            else:
                 ifiles[comp][name] = ''
 
     return ifiles
+
 
 def get_inifiles_old(face, diag):
     """Return the inifiles from the interface, needs the component dictionary.
@@ -270,28 +272,28 @@ def _filter_filename_by_year(template, filenames, year):
     """Find filename containing a given year in a list of filenames"""
 
     # if year1 is used in the file template
-    if 'year1' in template:     
+    if 'year1' in template:
         # Assumes that the file name ends with 199001-199012.nc or 1990-1991.nc
         year1 = [int(x.split('_')[-1].split('-')[0][0:4]) for x in filenames]
         # if year2 is used in the file template
-        if 'year2' in template: 
+        if 'year2' in template:
             year2 = [int(x.split('_')[-1].split('-')[1][0:4]) for x in filenames]
         else:
-            year2 = year1     
+            year2 = year1
         # filter names
         filternames = [filenames[i] for i in range(len(year1)) if year >= year1[i] and year <= year2[i]]
-    else :
+    else:
         # this is introduced for file that does not have year in their filename
         filternames = filenames
-    
+
     # safety warning if something is missing
-    if not filternames and len(filenames)>0: 
+    if not filternames and len(filenames) > 0:
         logging.warning('Data for year ' + str(year) + ' has not been found!')
 
     logging.info('Filtered filenames: %s', filternames)
     return filternames
-        
-  
+
+
 def load_yaml(infile):
     """Load generic yaml file"""
 
@@ -301,6 +303,7 @@ def load_yaml(infile):
     except IOError:
         sys.exit(f'ERROR: {infile} not found: you need to have this configuration file!')
     return cfg
+
 
 def _create_filepath(cmorname, face, diag):
     """Create filepath with wildcards"""
@@ -314,9 +317,10 @@ def _create_filepath(cmorname, face, diag):
 
     return filepath
 
+
 def make_input_filename(cmorname, varname, face, diag):
     """Create full input filepaths for the required variable and a given year
-   
+
     Returns:
         a list of files to be loaded by xarray
     """

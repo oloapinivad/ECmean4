@@ -62,13 +62,13 @@ if do_compute:
         else:
             ensemble = "r1i1p1f1"
 
-        performance_indices(expname, year1, year2, config = config_file, model = model, ensemble = ensemble,
-                            numproc = nprocs, cliamtology = refclim)
+        performance_indices(expname, year1, year2, config=config_file, model=model, ensemble=ensemble,
+                            numproc=nprocs, cliamtology=refclim)
 
 if do_create_clim:
 
-    #sys.argv = ['historical', str(year1), str(year2), '--config', config_file, '--model', models[0], '-k', refclim]
-    #args = pi_parse_arguments(sys.argv)
+    # sys.argv = ['historical', str(year1), str(year2), '--config', config_file, '--model', models[0], '-k', refclim]
+    # args = pi_parse_arguments(sys.argv)
     cfg = load_yaml(config_file)
 
     # dictionary with all elements

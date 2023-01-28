@@ -9,14 +9,15 @@ import numpy as np
 import dask.array as da
 import matplotlib.pyplot as plt
 
+
 def variance_threshold(xvariance):
     """this defines the two thresholds (high and low) for filtering the dataset
     So far it is done on the 5-sigma of the log10 distribution"""
     f = np.log10(xvariance.where(xvariance > 0))
     m = float(np.mean(f).values)
     s = float(np.std(f).values)
-    low = 10**(m-5*s)
-    high = 10**(m+5*s)
+    low = 10**(m - 5 * s)
+    high = 10**(m + 5 * s)
     return low, high
 
 # function to set absurd value from a specific dataset
@@ -27,7 +28,7 @@ def fix_specific_dataset(var, dataset, xfield):
     # variance of SST under sea ice is almost zero. We need to get rid of those points
     if var == 'tos' and dataset == 'ESA-CCI-L4':
         # xfield = xfield.where(xfield > 271.15)
-        xfield = xfield.where(xfield > 1*10**-2)
+        xfield = xfield.where(xfield > 1 * 10**-2)
     return xfield
 
 
@@ -45,7 +46,7 @@ def full_histogram(field, figname, n_bins=100):
     hist, bins = da.histogram(field.data, bins=n_bins, range=[mmm - extra, xxx + extra])
     x = 0.5 * (bins[1:] + bins[:-1])
     width = np.diff(bins)
-    axs.bar(x, hist.compute(), width,  log=True)
+    axs.bar(x, hist.compute(), width, log=True)
     axs.title.set_text('Complete original values ' + field.name)
     fig.savefig(figname)
 
@@ -63,7 +64,7 @@ def check_histogram(ymean, yvar, yvar_filtered, figname, n_bins=100):
 
     # stats
     avg = f.mean()
-    sss = 5*f.std()
+    sss = 5 * f.std()
     qqq = f.quantile([0.25, 0.75])
     iqr = qqq[1] - qqq[0]
     iqleft = qqq[0] - 1.5 * iqr

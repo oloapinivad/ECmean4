@@ -20,13 +20,13 @@ def areas_dictionary(component, atmdict, ocedict):
 
     # get atmospheric areas
     atmareafile = inifiles_priority(atmdict)
-    atm_areas =  _make_atm_areas(component['atm'], atmareafile)
-    
+    atm_areas = _make_atm_areas(component['atm'], atmareafile)
+
     # get oceanic areas, assuming AMIP if no oceanic area is found
     oceareafile = inifiles_priority(ocedict)
     if oceareafile:
         oce_areas = _make_oce_areas(component['oce'], oceareafile)
-    else : 
+    else:
         logging.warning("Ocereafile cannot be found, assuming this is an AMIP run")
         oce_areas = None
 
@@ -63,17 +63,17 @@ def _make_oce_areas(component, oceareafile):
     logging.info('Oceareafile is ' + oceareafile)
 
     xfield = xr.open_mfdataset(oceareafile, preprocess=xr_preproc)
-    
+
     # this might be universal, but keep this as for supported components only
     if component in ['nemo', 'cmoroce']:
-        
-        if 'areacello' in xfield.data_vars: # CMOR case
+
+        if 'areacello' in xfield.data_vars:  # CMOR case
             area = xfield['areacello']
-        elif 'cell_area' in xfield.data_vars: #ECE4 NEMO case for nemo-initial-state.nc
+        elif 'cell_area' in xfield.data_vars:  # ECE4 NEMO case for nemo-initial-state.nc
             area = xfield['cell_area']
-        elif 'e1t' in xfield.data_vars: #ECE4 NEMO case for domaing_cfg.nc, deprecated
+        elif 'e1t' in xfield.data_vars:  # ECE4 NEMO case for domaing_cfg.nc, deprecated
             area = xfield['e1t'] * xfield['e2t']
-        else: #automatic solution! 
+        else:  # automatic solution!
             area = _area_cell(xfield)
 
     else:

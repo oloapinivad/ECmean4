@@ -166,7 +166,7 @@ def main():
 
             # use cdo to interpolate: call to attribute to exploit different interpolation
             print("interpolation..")
-            interpolator = getattr(cdo,  info[var]['remap'])
+            interpolator = getattr(cdo, info[var]['remap'])
             yfield = interpolator(grid, input=tmpout, returnXArray=var)
 
             # keep original dtype
@@ -195,7 +195,7 @@ def main():
                     # for winter, we drop first and last to have only complete season.
                     # this reduces the sample by one but it is safer for variance
                     if season == 'DJF':
-                        gfield = gfield.drop_isel(time=[0, gfield.sizes['time']-1])
+                        gfield = gfield.drop_isel(time=[0, gfield.sizes['time'] - 1])
 
                 logging.info(gfield.shape)
 
@@ -204,7 +204,7 @@ def main():
                     gfield = gfield.mean(dim='lon')
 
                 # create a reference time (average year, average month of the season)
-                reftime = pd.to_datetime(str(int((year1+year2)/2)) + '-' +
+                reftime = pd.to_datetime(str(int((year1 + year2) / 2)) + '-' +
                                          str(gfield.time.dt.month.values[0]) + '-15')
 
                 # compute mean and variance: remove NaN in this case only
@@ -234,8 +234,8 @@ def main():
                     check_histogram(omean, ovar, fvar, file)
 
                 # add a reference time
-                ymean = fmean.assign_coords({"time": ("time",  [reftime])})
-                yvar = fvar.assign_coords({"time": ("time",  [reftime])})
+                ymean = fmean.assign_coords({"time": ("time", [reftime])})
+                yvar = fvar.assign_coords({"time": ("time", [reftime])})
 
                 # append the dataset in the list
                 d1.append(ymean)

@@ -14,7 +14,7 @@ from ecmean.libs.general import is_number
 
 def formula_wrapper(var, face, xfield):
     """
-    Wrapper function to extract data-array from a dataset (xfield) 
+    Wrapper function to extract data-array from a dataset (xfield)
     and to apply the mathematical operation required if it is a derived variable
     """
 
