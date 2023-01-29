@@ -1,7 +1,6 @@
-# This workflow will install Python dependencies using Conda, run tests and lint with a single version of Python
-# For more information see: https://autobencoder.com/2020-08-24-conda-actions/
+# This workflow will install Python dependencies using Mamba, run tests and lint with a single version of Python
 
-name: Mamba PyTest
+name: mamba-test
 
 on:
   push:
@@ -14,16 +13,16 @@ permissions:
   contents: read
 
 jobs:
-  build:
+  mamba-test:
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
         python-version: ["3.8", "3.9", "3.10"]
+        #python-version: ["3.10"]
     defaults:
       run:
         shell: bash -el {0}
-
     steps:
     - uses: actions/checkout@v3
     - name: provision-with-micromamba
@@ -34,13 +33,53 @@ jobs:
         cache-downloads: true
         extra-specs: |
             python=${{ matrix.python-version }}
+    - name: Install ECmean4
+      run: |
+        # install package
+        python -m pip install --editable .
+    - name: Install Flake8
+      run: |
+        # install package
+        python -m pip install flake8
     - name: Lint with flake8
       run: |
-        conda install flake8
         # stop the build if there are Python syntax errors or undefined names
         flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
         # exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
-        flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
+        flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics --exclude=__init__.py
     - name: Test with pytest
       run: |
-         python -m pytest
+        python -m pytest
+
+  coverage:
+    needs: mamba-test
+    runs-on: ubuntu-20.04
+    defaults:
+      run:
+        shell: bash -el {0}
+    steps:
+    - uses: actions/checkout@v3
+    - name: provision-with-micromamba
+      uses: mamba-org/provision-with-micromamba@v14
+      with:
+        environment-file: environment.yml
+        environment-name: ECmean4
+        cache-downloads: true
+    - name: Install ECmean4
+      run: |
+        # install package
+        python -m pip install --editable .
+    - name: Install coverage tools
+      run: |
+        python -m pip install coverage
+        python -m pip install coveralls
+    - name: Run coverage
+      run: |
+        coverage run -m pytest
+        coverage combine
+        coverage lcov
+    - name: Run coveralls
+      uses: coverallsapp/github-action@1.1.3
+      with:
+        github-token: ${{ secrets.GITHUB_TOKEN }}
+        path-to-lcov: coverage.lcov

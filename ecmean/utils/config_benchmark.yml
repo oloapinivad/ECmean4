@@ -1,14 +1,14 @@
-# Choice of interface
-interface: EC-Earth4
-# Choice of model name. It is printed in the output table
+# Choice of model name, determines the chosen interface and is printed in the output table
+# Configuration file for benchmarking, please not change. To be run on Wilma. 
+interface: CMIP6_PD
 model:
-   name: EC-Earth4
+   name: EC-Earth3
 
 dirs:
-   exp: 'EXPERIMENT FOLDER'
-   tab: 'TABLE OUTPUT FOLDER'
-   clm: 'CLIMATOLOGY FOLDER, i.e. WHERE ECMEAN4 IS' ('ecmean/climatology')
-   fig: 'WHERE TO PUT YOUR FIGURE OUTPUT'
+   exp: /archive/paolo/cmip6
+   tab: /work/scratch/users/paolo/ecmean_cmip6
+   clm: /home/paolo/ECmean4/ecmean/climatology
+   fig: /work/users/paolo/figures/ECmean4
 
 global:
   atm_vars: [tas, psl, pr, evspsbl, pme, clt, cll, clm, clh,
@@ -18,7 +18,7 @@ global:
              toamsfc_nosn, toamsfc]
   oce_vars: [tos, sos, zos, wfo]
   ice_vars: [siconc_north, siconc_south]
-  tab_vars: [rsnt, rlnt, net_toa, rsns, rlns, hfss, hfls, swcf, lwcf, net_sfc, toamsfc, 
+  tab_vars: [rsnt, rlnt, net_toa, rsns, rlns, hfss, hfls, swcf, lwcf, net_sfc, toamsfc,
              tas, clt, cll, clm, clh, pr, pme, psl]
 
 PI:
@@ -33,4 +33,3 @@ PI:
   regions: ['Global', 'North Midlat', 'Tropical', 'South Midlat']
   seasons: ['ALL', 'DJF', 'JJA']
   resolution: r360x180
-

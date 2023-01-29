@@ -1,0 +1,147 @@
+# Configuration yaml file for GLOBO development model output files and variables
+# 
+# Possible filetype attributes for variables are defined in the model section
+# The full path is $basedir/$dir/$filename
+# 
+# basedir can be formatted with: expname
+# dir can be formatted with: expname, var and star (*)
+# filename can be formatted with: expname, year1, year2, var, model, ensemble, frequency and star (*)
+#
+# The key 'component' is used to determine the specific type of grid fixes to apply
+# (defined in cdopipe for now)
+# 
+# We also have the concept of 'domain' (atm or oce) later used to choose which fix to apply
+# Each component belongs to one and only one domain
+
+# Definition of model name and components belonging to it
+model:
+  basedir: '{expname}'
+  component:
+    atm: globo
+    oce: fesom
+
+# Definition of filetypes (specific for each component)
+# Each variable belongs to a filetype
+filetype: 
+  atm_6hrs:
+    filename: 'GLOBONE_atm_6hrs_{year1}.nc'
+    dir: ''
+    component: globo
+
+# Specify additional inifiles  of each component
+# maskfile: where the land-sea mask is, fundamental for atmospheric component 
+# gridfile: where the properties of the grid can be extracted, can be a standard file
+# areafile: where the grid cell area is
+# please not that for both grid area computation and itnerpolation weight computation
+# the code will look in priority from areafile to gridfile to maskfile. 
+# inifile can be formatted with all the possible keywords listed above
+# If a relative path is used this is attached to $ECEDIR/$basedir
+component:
+  globo:
+    maskfile: 'GLOBONE_BCs.nc'
+    gridfile: 'GLOBONE_atm_6hrs_{year1}.nc'
+    areafile: ''
+  fesom:
+    maskfile: ''
+    gridfile: ''
+    areafile: ''
+
+# Definition of individual variables
+variables:
+  tas:
+    varname: '2m Air Temperature'
+    filetype: atm_6hrs
+  clt:
+    varname: 'Total cloud cover'
+    filetype: atm_6hrs
+  ta: 
+    varname: 'Air Temperature'
+    filetype: atm_6hrs
+  ua:
+    varname: 'Zonal Wind'
+    filetype: atm_6hrs
+  va:
+    varname: 'Meridional Wind'
+    filetype: atm_6hrs
+  hus:
+    varname: 'Specific Humidity'
+    filetype: atm_6hrs
+  psl: 
+    varname: MSLP
+    filetype: atm_6hrs
+  pr: 
+    varname: Precipitation
+    filetype: atm_6hrs
+  evspsbl:
+    varname: Evaporation
+    filetype: atm_6hrs
+  rsnt:
+    varname: 'TOA net SW'
+    filetype: atm_6hrs
+    direction: down
+  rlnt:
+    varname: 'TOA net LW'
+    filetype: atm_6hrs
+    direction: down
+    derived: rlut
+  net_toa:
+    varname: 'Net TOA'
+    units: W/m2
+    derived: 'rsnt+rlut'
+    filetype: atm_6hrs
+    direction: down
+  rlns:
+    varname: 'Surface net LW'
+    filetype: atm_6hrs
+    direction: down
+    derived: rlns
+  rsns:
+    varname: 'Surface net SW'
+    filetype: atm_6hrs
+    direction: down
+  hfss:
+    varname: 'Surface SH'
+    filetype: atm_6hrs
+    direction: down
+  hfls:
+    varname: 'Surface LH'
+    filetype: atm_6hrs
+    direction: down
+  net_sfc_nosn:
+    varname: 'Net Surface (no snowfall)'
+    filetype: atm_6hrs
+    derived: 'rsns+rlns+hfls+hfss'
+  net_sfc:
+    varname: 'Net Surface'
+    units: W/m2
+    filetype: atm_6hrs
+    derived: 'rsns+rlns-hfls-hfss-prsn*334000'
+  toamsfc:
+    varname: 'TOA-Sfc net radiation'
+    units: W/m2
+    filetype: atm_6hrs
+    derived: 'rsnt+rlut-rsns-rlns+hfls+hfss+prsn*334000'
+  toamsfc_nosn:
+    varname: 'TOA-Sfc net rad. (no snowfall)'
+    filetype: atm_6hrs
+    derived: 'rsnt+rlut-rsns-rlns-hfls-hfss'
+  pme:
+    varname: 'Precip. minus evap.'
+    derived: 'pr+evspsbl'
+    filetype: atm_6hrs
+  pr_land:
+    varname: 'Precipitation (land)'
+    derived: pr
+    filetype: atm_6hrs
+  pr_oce:
+    varname: 'Precipitation (ocean)'
+    derived: pr
+    filetype: atm_6hrs
+  pme_land:
+    varname: 'Precip. minus evap. (land)'
+    derived: 'pr+evspsbl'
+    filetype: atm_6hrs
+  pme_oce:
+    varname: 'Precip. minus evap. (ocean)'
+    derived: 'pr+evspsbl'
+    filetype: atm_6hrs

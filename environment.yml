@@ -1,5 +1,7 @@
 # Create the ECmean4 environment:
-#   conda env create -f environment.yml
+# mamba env create -f environment.yml 
+# or 
+# conda env create -f environment.yml
 
 name : ECmean4
 channels:

@@ -14,13 +14,12 @@ Welcome to ECmean4's documentation!
    configuration
    performanceindices
    globalmean
-   CDOversion
 
 ECmean4 code
 ^^^^^^^^^^^^^^^
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 3
 
    _apidocs/modules
 

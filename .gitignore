@@ -1,9 +1,16 @@
 __pycache__/
+.vscode/
+.coverage
 cdo/__pycache__/
-config*.yml
-test/table/*.txt
-test/table/*.yml
-test/figures
-test/data/*/*.idx
+/config*.yml
+ecmean/config*.yml
+tests/table/*.txt
+tests/table/*.yml
+tests/figures/*.pdf
+tests/data/*/*.idx
 docs/sphinx/build/
+ECmean4.egg-info/
+ecmean/utils/history_benchmark
+*.ipynb
+
 

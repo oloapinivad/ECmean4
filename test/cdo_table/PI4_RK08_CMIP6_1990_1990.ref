@@ -1,9 +1,0 @@
-| Var    |    PI | Domain   | Dataset   |   CMIP3 |   Ratio to CMIP3 |
-|--------+-------+----------+-----------+---------+------------------|
-| pr     | 38.21 | global   | CMAP      |   38.87 |             0.98 |
-| ta     | 22.66 | global   | ERA40     |   38.89 |             0.58 |
-| tos    | 37.39 | ocean    | GISS      |   17.21 |             2.17 |
-| siconc | 36.93 | ocean    | GISS      |    0.34 |           108.61 |
-
-Partial PI (atm only) is   : 30.434
-Total Performance Index is : 33.796
