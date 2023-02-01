@@ -145,8 +145,18 @@ def pi_worker(util, piclim, face, diag, field_3d, varstat, varlist):
 
                     # xarray interpolation on plev, forcing to be in Pascal
                     final = final.metpy.convert_coordinate_units('plev', 'Pa')
-                    interped = final.interp(plev=cfield['plev'].values)
-                    final = interped.mean(dim='lon')
+                    if set(final['plev'].values) != set(cfield['plev'].values): 
+                        logging.warning(var + ': Need to interpolate vertical levels...')
+                        final = final.interp(plev=cfield['plev'].values, method = 'linear')
+
+                        # safety check for missing values
+                        sample = final.isel(lon=0, lat=0)
+                        if np.sum(np.isnan(sample)) != 0 :
+                            logging.warning(var + ': You have NaN after the interpolation, this will affect your PIs...')
+                            levnan = cfield['plev'].where(np.isnan(sample))
+                            logging.warning(levnan[~np.isnan(levnan)].values)
+
+                    final = final.mean(dim='lon')
 
                     # compute PI
                     complete = (final - cfield)**2 / vfield

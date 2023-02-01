@@ -1,6 +1,7 @@
 __pycache__/
 .vscode/
 .coverage
+.coverage*
 cdo/__pycache__/
 /config*.yml
 ecmean/config*.yml

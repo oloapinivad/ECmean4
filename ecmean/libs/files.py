@@ -29,7 +29,7 @@ def init_diagnostic(indir, argv):
     if argv.config:
         cfg = load_yaml(argv.config)
     else:
-        cfg = load_yaml(indir / 'config.yml')
+        cfg = load_yaml(indir / '../config.yml')
 
     # Setup all common variables, directories from arguments and config files
     logging.info(argv)
@@ -199,7 +199,7 @@ def get_inifiles(face, diag):
 
                 # safe check if inifile exist
                 if not glob(ifiles[comp][name]):
-                    logging.error('Inifile %s cannot be found!', ifiles[comp][name])
+                    logging.warning('Inifile %s cannot be found!', ifiles[comp][name])
                     ifiles[comp][name] = ''
 
             else:
@@ -208,47 +208,47 @@ def get_inifiles(face, diag):
     return ifiles
 
 
-def get_inifiles_old(face, diag):
-    """Return the inifiles from the interface, needs the component dictionary.
-    Check if inifiles exist."""
+# def get_inifiles_old(face, diag):
+#     """Return the inifiles from the interface, needs the component dictionary.
+#     Check if inifiles exist."""
 
-    dictcomp = face['model']['component']
+#     dictcomp = face['model']['component']
 
-    # use a dictionary to create the list of initial files
-    inifiles = {}
-    for comp, filename, filein in zip(['atm', 'atm', 'oce'],
-                                      ['maskatmfile', 'atmareafile', 'oceareafile'],
-                                      ['inifile', 'atmfile', 'areafile']):
+#     # use a dictionary to create the list of initial files
+#     inifiles = {}
+#     for comp, filename, filein in zip(['atm', 'atm', 'oce'],
+#                                       ['maskatmfile', 'atmareafile', 'oceareafile'],
+#                                       ['inifile', 'atmfile', 'areafile']):
 
-        inifile = face['component'][dictcomp[comp]].get(filein, '')
+#         inifile = face['component'][dictcomp[comp]].get(filein, '')
 
-        # add the full path if missing
-        inifiles[filename] = ''
-        if inifile:
-            if inifile[0] == '/':
-                inifiles[filename] = str(
-                    _expand_filename(
-                        inifile,
-                        '',
-                        diag))
-            else:
-                inifiles[filename] = Path(diag.ECEDIR) / \
-                    Path(face['model']['basedir']) / \
-                    Path(inifile)
-                inifiles[filename] = str(
-                    _expand_filename(
-                        inifiles[filename],
-                        '',
-                        diag))
+#         # add the full path if missing
+#         inifiles[filename] = ''
+#         if inifile:
+#             if inifile[0] == '/':
+#                 inifiles[filename] = str(
+#                     _expand_filename(
+#                         inifile,
+#                         '',
+#                         diag))
+#             else:
+#                 inifiles[filename] = Path(diag.ECEDIR) / \
+#                     Path(face['model']['basedir']) / \
+#                     Path(inifile)
+#                 inifiles[filename] = str(
+#                     _expand_filename(
+#                         inifiles[filename],
+#                         '',
+#                         diag))
 
-            # safe check if inifile exist in the experiment folder
-            if not glob(inifiles[filename]):
-                inifiles[filename] = ''
-        else:
-            inifiles[filename] = ''
+#             # safe check if inifile exist in the experiment folder
+#             if not glob(inifiles[filename]):
+#                 inifiles[filename] = ''
+#         else:
+#             inifiles[filename] = ''
 
-    # return dictionary values only
-    return inifiles.values()
+#     # return dictionary values only
+#     return inifiles.values()
 
 
 def _expand_filename(fn, var, diag):

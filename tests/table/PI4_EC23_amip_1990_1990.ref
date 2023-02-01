@@ -66,15 +66,15 @@ tauv:
     South Midlat: 1.009
 ta:
   ALL:
-    Global: 42.545
+    Global: 42.546
     North Midlat: 39.898
     Tropical: 23.326
-    South Midlat: 83.632
+    South Midlat: 83.633
   JJA:
     Global: 189.921
     North Midlat: 401.359
     Tropical: 87.675
-    South Midlat: 182.975
+    South Midlat: 182.977
 ua:
   ALL:
     Global: 4.337

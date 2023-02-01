@@ -60,6 +60,7 @@ def _make_atm_masks(component, maskatmfile, remap_dictionary=None):
         mask = xr.open_mfdataset(
             maskatmfile,
             engine="cfgrib",
+            indexpath=None,
             filter_by_keys={
                 'shortName': 'lsm'},
             preprocess=xr_preproc)['lsm']

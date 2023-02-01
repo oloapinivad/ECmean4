@@ -21,3 +21,4 @@ dependencies:
   - cfgrib
   - seaborn
   - pytest
+  - coverage

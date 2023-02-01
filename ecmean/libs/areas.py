@@ -171,6 +171,10 @@ def _area_cell(xfield, formula='triangles'):
     An xarray dataarray with the area for each grid point
     """
 
+    # safe check to operate only on single timeframe
+    if 'time' in xfield.coords:
+        xfield = xfield.isel(time=0)
+
     earth_radius = 6371000.
 
     # some check to starts
@@ -189,7 +193,7 @@ def _area_cell(xfield, formula='triangles'):
     # this is a nightmare, so far working only for ECE4 gaussian reduced
     if not regular_grid:
 
-        logging.debug('Curvilinear/Unstructured grid, tryin to get grid info...')
+        logging.info('Curvilinear/Unstructured grid, tryin to get grid info...')
 
         blondim = None
         blatdim = None
@@ -207,12 +211,13 @@ def _area_cell(xfield, formula='triangles'):
                 'bounds_lat']):
             blatdim = g
 
+
         # checking
         if blondim is None and blatdim is None:
             sys.exit(
                 "ERROR: Can't find any lon/lat boundaries and grid is unstructured, need some help!")
 
-        logging.debug('Unstructured grid, special ECE4 treatment...')
+        logging.info('Unstructured grid, special ECE4 treatment...')
         # ATTENTION: this is a very specific ECE4 definition, it will not work
         # with other unstructured grids. The assumption of the vertex position
         # is absolutely random. Needs to be generalized.
@@ -258,6 +263,7 @@ def _area_cell(xfield, formula='triangles'):
                         'lat', xfield['lat'].values), lon=(
                         'lon', xfield['lon'].values)))
             xfield = xfield.merge(xbounds)
+
 
         # create numpy array
         blon = np.column_stack((xfield['lon_bnds'].isel(bnds=0),

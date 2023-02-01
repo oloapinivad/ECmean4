@@ -15,7 +15,7 @@ Usage
 
 Running the performance indices evaluation is rather simple ::
 
-        performance_indices.py EXP Y1 Y2
+        performance_indices EXP Y1 Y2
 
 You can also run it from the specific python script in ``ecmean`` library ::
 
