@@ -5,5 +5,4 @@ ECmean4 autodoc
    :maxdepth: 4
 
    ecmean
-   global_mean
-   performance_indices
+   

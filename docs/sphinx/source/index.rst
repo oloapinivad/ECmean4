@@ -18,11 +18,11 @@ Welcome to ECmean4's documentation!
 ECmean4 code
 ^^^^^^^^^^^^^^^
 
-.. toctree::
-   :maxdepth: 2
+.. autosummary::
+   :toctree: _autosummary
+   :recursive:
 
-   _apidocs/modules
-
+   ecmean
 
 Indices and tables
 ==================

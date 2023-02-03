@@ -1,0 +1,24 @@
+pr:
+  ALL:
+    Global: 38.218
+    North Midlat: 23.301
+    Tropical: 30.225
+    South Midlat: 67.543
+ta:
+  ALL:
+    Global: 22.657
+    North Midlat: 17.383
+    Tropical: 8.335
+    South Midlat: 56.836
+tos:
+  ALL:
+    Global: 37.433
+    North Midlat: 22.552
+    Tropical: 14.607
+    South Midlat: 92.644
+siconc:
+  ALL:
+    Global: 37.066
+    North Midlat: 54.573
+    Tropical: .nan
+    South Midlat: 25.785

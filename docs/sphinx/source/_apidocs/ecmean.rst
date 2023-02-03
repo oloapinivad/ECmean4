@@ -1,7 +1,7 @@
 ecmean module
 =============
 
-.. automodule:: ecmean
+.. automodule:: ecmean.libs.general
    :members:
    :undoc-members:
    :show-inheritance:

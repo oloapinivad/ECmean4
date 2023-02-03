@@ -24,7 +24,7 @@ dirs: exp
 dirs: tab
 	Where the output should be placed
 dirs: fig
-	Where the output figures should be placed (for ``performance_indices.py`` only)
+	Where the output figures should be placed (for ``performance_indices`` only)
 dirs: clm
 	Where the ECmean4 climatology is installed, i.e. the ``ECmean4/climatology`` folder
 
@@ -80,14 +80,14 @@ resolution:
 Interface files
 ---------------
 
-Conversion from model variables - as well as the correspondent file structure - is handled by a interface-dependent file ``interfaces/interface_*.yml`` that can support EC-Earth4, CMIP5 and CMIP6 models. 
+Conversion from model variables - as well as the correspondent file structure - is handled by a interface-dependent file ``ecmean/interfaces/interface_*.yml`` that can support EC-Earth4, CMIP5 and CMIP6 models. 
 New interface files can be developed exploiting of the flexible file handling increasing the range of supported models. 
 
 It is important to provide land-sea mask for both atmospheric and oceanic grid, and when possible - recommended for non-regular grid - it is important to provide also files indicating grid cell areas.
 This latter are used for interpolation and weighted averages. ECmean4 has a few routines that tries to compute each grid cell area from lon/lat boundaries, but this can fail for non-regular grids.
 
 Of course, if some specific management of the model grid is requested - for example if the model grid does not follow standard naming convention it might be necessary to intervene directly within the code. 
-A function named ``xr_preproc()``  within ``ecmean.py``  might be adjusted in the case to allow for a correct interpretation of the model grid.
+A function named ``xr_preproc()``  within ``ecmean/libs/ncfixers.py``  might be adjusted in the case to allow for a correct interpretation of the model grid.
 
 .. note::
 	It is not necessary to modify this, but it could be required if - for example - your CMIP5/6 directory tree does not reflect exactly the one available on ESGF. 
@@ -96,7 +96,7 @@ A function named ``xr_preproc()``  within ``ecmean.py``  might be adjusted in th
 CMOR compatibility
 ------------------
 
-It is possible to use ECmean4 tools also to analyze CMOR-like files for CMIP5 or CMIP6. This assumes a standard ESGF directory structure but you can change it by modifying the corresponding interface files ``interfaces/interface_CMIP6.yml`` and ``interfaces/interface_CMIP6.yml``.
+It is possible to use ECmean4 tools also to analyze CMOR-like files for CMIP5 or CMIP6. This assumes a standard ESGF directory structure but you can change it by modifying the corresponding interface files ``ecmean/interfaces/interface_CMIP6.yml`` and ``ecmean/interfaces/interface_CMIP6.yml``.
 In order to allow masking and interpolation you will need the ``sftlf``, ``sftof`` and ``areacello`` variables for you experiment of interest too.
 
 
