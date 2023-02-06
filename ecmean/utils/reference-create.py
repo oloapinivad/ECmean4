@@ -9,14 +9,10 @@
 __author__ = "Paolo Davini (p.davini@isac.cnr.it), Gen 2023."
 
 
-# required to call uppper level folder
-import sys
-sys.path.insert(0, '../')
-
-from ecmean.files import load_yaml
-from ecmean.units import units_extra_definition, units_converter
-from ecmean.ncfixers import xr_preproc
-from ecmean.masks import mask_field, _area_cell, masked_meansum
+from ecmean.libs.files import load_yaml
+from ecmean.libs.units import units_extra_definition, units_converter
+from ecmean.libs.ncfixers import xr_preproc
+from ecmean.libs.masks import mask_field, _area_cell, masked_meansum
 import logging
 from time import time
 import numpy as np
