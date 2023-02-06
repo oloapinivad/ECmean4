@@ -131,7 +131,7 @@ def masked_meansum(xfield, var, weights, mask_type, dom, mask):
 
     # call the mask_field to mask where necessary
     # the mask field is area
-    masked = mask_field(xfield, var, mask_type, dom, mask)
+    masked = mask_field(xfield, mask_type, dom, mask)
 
     # global mean
     if mask_type in ['global']:
@@ -145,52 +145,79 @@ def masked_meansum(xfield, var, weights, mask_type, dom, mask):
     return float(out)
 
 
-def _merge_mask(var, xfield, mask):
+# def _merge_mask(var, xfield, mask):
 
-    # check that we are receiving a dataset and not a datarray
-    if isinstance(xfield, xr.DataArray):
-        xfield = xfield.to_dataset(name=var)
+#     # check that we are receiving a dataset and not a datarray
+#     if isinstance(xfield, xr.DataArray):
+#         xfield = xfield.to_dataset(name=var)
 
-    # convert from datarray to dataset and merge
-    mask = mask.to_dataset(name='mask')
+#     # convert from datarray to dataset and merge
+#     mask = mask.to_dataset(name='mask')
 
-    # the compat='override' option forces the merging. some CMIP6 data might
-    # have different float type, this simplies the handling
-    bfield = xr.merge([xfield, mask], compat='override')
+#     # the compat='override' option forces the merging. some CMIP6 data might
+#     # have different float type, this simplies the handling
+#     bfield = xr.merge([xfield, mask], compat='override')
 
-    return bfield
+#     return bfield
 
-
-def mask_field(xfield, var, mask_type, dom, mask):
+def mask_field(xfield, mask_type, dom, mask):
     """Apply a land/sea mask on a xarray variable var"""
 
     # if oceanic, apply the ocenanic mask (if it exists!)
     if dom == 'oce' and isinstance(mask, xr.DataArray):
-        bfield = _merge_mask(var, xfield, mask)
-        xfield = bfield[var].where(bfield['mask'] < 0.5)
-        # xfield.to_netcdf(var+'okmasked.nc')
+        out = xfield.where(mask.data < 0.5)
 
     # nothing to be done
     if mask_type == 'global':
         out = xfield
+
+    # northern and southern hemisphere
     elif mask_type == 'north':
         out = xfield.where(xfield['lat'] > 0)
     elif mask_type == 'south':
         out = xfield.where(xfield['lat'] < 0)
     else:
 
-        bfield = _merge_mask(var, xfield, mask)
         # conditions
         if mask_type == 'land':
-            out = bfield[var].where(bfield['mask'] >= 0.5)
+            out = xfield.where(mask.data >= 0.5)
         elif mask_type in ['sea', 'ocean']:
-            out = bfield[var].where(bfield['mask'] < 0.5)
+            out = xfield.where(mask.data < 0.5)
         else:
             sys.exit("ERROR: mask_field -> Mask undefined, this cannot be handled!")
 
-    # out.to_netcdf(var+'masked.nc')
-
     return out
+
+# def mask_field_old(xfield, var, mask_type, dom, mask):
+#     """Apply a land/sea mask on a xarray variable var"""
+
+#     # if oceanic, apply the ocenanic mask (if it exists!)
+#     if dom == 'oce' and isinstance(mask, xr.DataArray):
+#         bfield = _merge_mask(var, xfield, mask)
+#         xfield = bfield[var].where(bfield['mask'] < 0.5)
+#         # xfield.to_netcdf(var+'okmasked.nc')
+
+#     # nothing to be done
+#     if mask_type == 'global':
+#         out = xfield
+#     elif mask_type == 'north':
+#         out = xfield.where(xfield['lat'] > 0)
+#     elif mask_type == 'south':
+#         out = xfield.where(xfield['lat'] < 0)
+#     else:
+
+#         bfield = _merge_mask(var, xfield, mask)
+#         # conditions
+#         if mask_type == 'land':
+#             out = bfield[var].where(bfield['mask'] >= 0.5)
+#         elif mask_type in ['sea', 'ocean']:
+#             out = bfield[var].where(bfield['mask'] < 0.5)
+#         else:
+#             sys.exit("ERROR: mask_field -> Mask undefined, this cannot be handled!")
+
+#     # out.to_netcdf(var+'masked.nc')
+
+#     return out
 
 
 def select_region(xfield, region):
