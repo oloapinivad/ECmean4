@@ -125,7 +125,7 @@ def _make_oce_masks(component, maskocefile, remap_dictionary=None):
     return mask
 
 
-def masked_meansum(xfield, var, weights, mask_type, dom, mask):
+def masked_meansum(xfield, weights, mask_type, dom, mask):
     """For global variables evaluate the weighted averaged
     or weighted integral when required by the variable properties"""
 
@@ -133,16 +133,19 @@ def masked_meansum(xfield, var, weights, mask_type, dom, mask):
     # the mask field is area
     masked = mask_field(xfield, mask_type, dom, mask)
 
+    # no time dimensions
+    notimedim=[dim for dim in xfield.dims if dim != 'time']
+
     # global mean
     if mask_type in ['global']:
-        out = masked.weighted(weights.fillna(0)).mean().values
+        out = masked.weighted(weights.fillna(0)).mean(dim=notimedim).values
     # global integrals
     elif mask_type in ['land', 'ocean', 'sea', 'north', 'south']:
-        out = masked.weighted(weights.fillna(0)).sum().values
+        out = masked.weighted(weights.fillna(0)).sum(dim=notimedim).values
     else:
         sys.exit("ERROR: masked_meansum-> mask undefined, this cannot be handled!")
 
-    return float(out)
+    return out
 
 
 # def _merge_mask(var, xfield, mask):
@@ -223,6 +226,9 @@ def mask_field(xfield, mask_type, dom, mask):
 def select_region(xfield, region):
     """Trivial function to convert region definition to xarray
     sliced array to compute the PIs or global means on selected regions"""
+
+    # fixed for the order of latitudes
+    xfield = xfield.sortby('lat')
 
     if region == 'Global':
         slicearray = xfield

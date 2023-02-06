@@ -93,10 +93,10 @@ def gm_worker(util, ref, face, diag, varmean, vartrend, varlist):
 
                 # final operation on the field
                 x = masked_meansum(
-                    xfield=tfield, var=var, weights=weights,
+                    xfield=tfield, weights=weights,
                     mask_type=ref[var].get('total', 'global'),
                     dom=domain, mask=domain_mask)
-                a.append(x)
+                a.append(float(x))
 
             varmean[var] = (mean(a) + offset) * factor
             if diag.ftrend:
