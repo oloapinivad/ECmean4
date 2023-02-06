@@ -176,7 +176,7 @@ def pi_worker(util, piclim, face, diag, field_3d, varstat, varlist):
 
                     complete = (final - cfield)**2 / vfield
                     outarray = mask_field(xfield=complete,
-                                          var=var, mask_type=piclim[var]['mask'],
+                                          mask_type=piclim[var]['mask'],
                                           dom=domain, mask=domain_mask)
 
                 # loop on different regions
