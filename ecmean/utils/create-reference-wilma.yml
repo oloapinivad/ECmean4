@@ -1,19 +1,57 @@
 # directories to be specified, machine dependent
 dirs: 
   datadir: "/work/scratch/users/paolo/ecmean_datasets"
+  eradir: "/work/datasets/obs/ERA5"
 
 mask: "/work/datasets/obs/ERA5/land_sea_mask/landsea_mask.nc"
 
+
+tas: 
+  dataset: CRU
+  longname: '2m Temperature (land-only)'
+  filevar: tmp
+  mask: land
+  org_units: C
+  tgt_units: K
+  dir: "{datadir}/{dataset}/data/*.nc"
+psl: 
+  dataset: ERA5
+  longname: 'Mean Sea Level Pressure'
+  filevar: msl
+  org_units: Pa
+  tgt_units: Pa
+  dir: "{eradir}/mean_sea_level_pressure/mon/*.nc"
 pr:
   dataset: MSWEP
-  varname: precipitation
+  longname: 'Precipitation'
+  filevar: precipitation
   org_units: mm/month
   tgt_units: mm/day
   dir: "{datadir}/{dataset}/data/*.nc"
 pr_land:
   dataset: MSWEP
-  varname: precipitation
-  total: land
+  longname: 'Precipitation (integral over land)'
+  filevar: precipitation
+  mask: land
+  operation: integral
   org_units: mm/month
   tgt_units: Sv
   dir: "{datadir}/{dataset}/data/*.nc"
+pr_oce:
+  dataset: MSWEP
+  longname: 'Precipitation (integral over ocean)'
+  filevar: precipitation
+  mask: ocean
+  operation: integral
+  org_units: mm/month
+  tgt_units: Sv
+  dir: "{datadir}/{dataset}/data/*.nc"
+pme: 
+  dataset: ERA5
+  longname: 'Precipitation minus Evaporation'
+  filevar: ''
+  derived: TP-e
+  org_units: mm/day
+  tgt_units: mm/day
+  dir: ['{eradir}/total_precipitation/mon/ERA5_total_precipitation_mon_0.25x0.25_sfc_1950-2021.nc', '{eradir}/evaporation/mon/*.nc']
+

@@ -90,7 +90,7 @@ def units_converter(org_units, tgt_units):
 def _units_are_integrals(org_units, ref_var):
     """Check functions for spatially integrated variables"""
 
-    if 'total' in ref_var.keys():
+    if 'operation' in ref_var.keys():
         new_units = str((units(org_units) * units('m^2')).units)
     else:
         new_units = org_units

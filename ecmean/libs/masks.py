@@ -125,22 +125,22 @@ def _make_oce_masks(component, maskocefile, remap_dictionary=None):
     return mask
 
 
-def masked_meansum(xfield, weights, mask_type, dom, mask):
+def masked_meansum(xfield, weights, mask, operation, domain, mask_type):
     """For global variables evaluate the weighted averaged
     or weighted integral when required by the variable properties"""
 
     # call the mask_field to mask where necessary
     # the mask field is area
-    masked = mask_field(xfield, mask_type, dom, mask)
+    masked = mask_field(xfield, mask_type, domain, mask)
 
     # no time dimensions
     notimedim=[dim for dim in xfield.dims if dim != 'time']
 
     # global mean
-    if mask_type in ['global']:
+    if operation in ['average', 'mean']:
         out = masked.weighted(weights.fillna(0)).mean(dim=notimedim).values
     # global integrals
-    elif mask_type in ['land', 'ocean', 'sea', 'north', 'south']:
+    elif operation in ['integral', 'sum']:
         out = masked.weighted(weights.fillna(0)).sum(dim=notimedim).values
     else:
         sys.exit("ERROR: masked_meansum-> mask undefined, this cannot be handled!")

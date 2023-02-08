@@ -14,6 +14,7 @@ from ecmean.libs.units import units_extra_definition, units_converter, _units_ar
 from ecmean.libs.ncfixers import xr_preproc
 from ecmean.libs.masks import masked_meansum, select_region
 from ecmean.libs.areas import _area_cell
+from ecmean.libs.formula import _eval_formula
 import logging
 import yaml
 import numpy as np
@@ -24,10 +25,12 @@ from glob import glob
 cdo = Cdo()
 
 # set default logging
-logging.basicConfig(level=logging.WARNING)
+logging.basicConfig(level=logging.INFO)
 
 # variable list
-variables = ['pr', 'pr_land']
+variables = ['tas', 'psl', 'pr', 'pr_land', 'pr_oce']
+variables = ['pme']
+
 
 # to set: time period (default, can be shorter if data are missing) #WARNING MISSING
 year1 = 1990
@@ -59,21 +62,35 @@ clim_file = os.path.join('gm_reference_' + clim_name + '.yml')
 for var in variables:
 
     print(var)
-    # get the directory
-    filedata = str(os.path.expandvars(info[var]['dir'])).format(
+    # get the directory (specific treatment if a list, use glob to expand)
+    if isinstance(info[var]['dir'], list):
+        filedata = [glob(os.path.expandvars(string).format(
         datadir=info['dirs']['datadir'],
+        eradir=info['dirs']['eradir'],
         dataset=info[var]['dataset'],
-        varname=info[var]['varname'])
+        filevar=info[var]['filevar']))[0] for string in info[var]['dir']]
+    # use wildcards from xarray
+    else:
+        filedata = str(os.path.expandvars(info[var]['dir'])).format(
+            datadir=info['dirs']['datadir'],
+            eradir=info['dirs']['eradir'],
+            dataset=info[var]['dataset'],
+            filevar=info[var]['filevar'])
     logging.info(filedata)
 
      # load data and time select
     print("Loading multiple files...")
-    # unable to operate with Parallel=True
-    xfield = xr.open_mfdataset(filedata, chunks='auto',
-                                parallel=False, preprocess=xr_preproc, engine='netcdf4')
-    xfield = xfield.rename({info[var]['varname']: var})
-    cfield = xfield[var].sel(time=xfield.time.dt.year.isin(years))
+    xfield = xr.open_mfdataset(filedata, chunks = 'auto', preprocess=xr_preproc, engine='netcdf4')
 
+    # if derived, use the formula skill (or just rename)
+    if 'derived' in info[var].keys():
+        cmd = info[var]['derived']
+        xfield = _eval_formula(cmd, xfield).to_dataset(name=var)
+    else:
+        xfield = xfield.rename({info[var]['filevar']: var})
+
+    # select time
+    cfield = xfield[var].sel(time=xfield.time.dt.year.isin(years))
     real_year1 = np.min(cfield.time.dt.year.values)
     real_year2 = np.max(cfield.time.dt.year.values)
     if (real_year1 != year1):
@@ -86,8 +103,10 @@ for var in variables:
     first = cfield.to_dataset(name=var)
     weights = _area_cell(first).load()
 
-    mask_type = info[var].get('total', 'global')
+    # get infos on domain, operation and masks
+    mask_type = info[var].get('mask', 'global')
     domain = info[var].get('domain', 'atm')
+    operation = info[var].get('operation', 'mean')
 
     # compute land sea mask
     if mask_type != 'global':
@@ -121,6 +140,7 @@ for var in variables:
         print("Region loop...")
         for region in ['Global', 'North Midlat', 'Tropical', 'South Midlat']:
             
+            # slice everything
             slicefield = select_region(gfield, region)
             sliceweights = select_region(weights, region)
             if mask_type != 'global':
@@ -128,18 +148,20 @@ for var in variables:
             else:
                 slicemask = 0.
 
+            # get the masked-mean-sum
             out = masked_meansum(xfield=slicefield, weights=sliceweights,
-                    mask_type=info[var].get('total', 'global'),
-                    dom=domain, mask=slicemask)
+                    mask=slicemask, operation=operation,
+                    mask_type=mask_type, domain=domain)
             
+            # set the units
             new_units = _units_are_integrals(info[var]['org_units'], info[var])
             offset, factor = units_converter(new_units, info[var]['tgt_units'])
             final = out * factor + offset
 
             omean = np.mean(final)
             ostd = np.std(final)
-            mr[region] = str(round(omean,3))
-            ms[region] = str(round(ostd, 3))
+            mr[region] = float(str(round(omean,3)))
+            ms[region] = float(str(round(ostd, 3)))
             print('{} {} {} mean is: {:.2f} +- {:.2f}'.format(var, season, region, omean, ostd))
 
         # store everything
@@ -160,10 +182,14 @@ for var in variables:
     if var not in dclim:
         dclim[var] = {}
 
+    dclim[var]['longname'] = info[var]['longname']
     dclim[var]['dataset'] = info[var]['dataset']
-    # dclim[var]['dataname'] = info[var]['varname']
     if mask_type != 'global':
-        dclim[var]['total'] = mask_type
+        dclim[var]['mask'] = mask_type
+    if operation != 'mean':
+        dclim[var]['operation'] = operation
+    if operation != 'atm':
+        dclim[var]['domain'] = domain
     dclim[var]['units'] = info[var]['tgt_units']
     dclim[var]['year1'] = int(real_year1)
     dclim[var]['year2'] = int(real_year2)
