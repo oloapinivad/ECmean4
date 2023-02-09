@@ -25,11 +25,13 @@ from glob import glob
 cdo = Cdo()
 
 # set default logging
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(level=logging.WARNING)
 
 # variable list
-variables = ['tas', 'psl', 'pr', 'pr_land', 'pr_oce']
-variables = ['pme']
+variables = ['tas', 'psl', 'pr', 'evspsbl', 'pme', 'clt', 'cll', 'clm', 'clh',
+             'pr_oce', 'pme_oce', 'pr_land', 'pme_land']
+variables = ['tos', 'siconc']
+# clh does not work, double check
 
 
 # to set: time period (default, can be shorter if data are missing) #WARNING MISSING
@@ -53,6 +55,11 @@ nanskipper = False
 # set the land-sea mask (ERA5)
 maskfile = info['mask']
 
+def expand_filedata(directory, var, info) : 
+
+    return os.path.expandvars(directory).format(datadir=info['dirs']['datadir'],
+            eradir=info['dirs']['eradir'], esadir=info['dirs']['esadir'],
+            dataset=info[var]['dataset'],filevar=info[var]['filevar'])
 
 # climatology yaml output
 clim_name = 'EC23'
@@ -64,19 +71,12 @@ for var in variables:
     print(var)
     # get the directory (specific treatment if a list, use glob to expand)
     if isinstance(info[var]['dir'], list):
-        filedata = [glob(os.path.expandvars(string).format(
-        datadir=info['dirs']['datadir'],
-        eradir=info['dirs']['eradir'],
-        dataset=info[var]['dataset'],
-        filevar=info[var]['filevar']))[0] for string in info[var]['dir']]
+        temp_list = [glob(expand_filedata(ss, var, info)) for ss in info[var]['dir']]
+        filedata = [item for sublist in temp_list for item in sublist]
     # use wildcards from xarray
     else:
-        filedata = str(os.path.expandvars(info[var]['dir'])).format(
-            datadir=info['dirs']['datadir'],
-            eradir=info['dirs']['eradir'],
-            dataset=info[var]['dataset'],
-            filevar=info[var]['filevar'])
-    logging.info(filedata)
+        filedata = str(expand_filedata(info[var]['dir'], var, info))
+    logging.warning(filedata)
 
      # load data and time select
     print("Loading multiple files...")
@@ -123,7 +123,6 @@ for var in variables:
 
     print("Season loop...")
     mf = {}
-    sf = {}
     for season in ['ALL', 'DJF', 'MAM', 'JJA', 'SON']:
     # select the season
         if season == 'ALL':
@@ -135,8 +134,7 @@ for var in variables:
         if season == 'DJF':
             gfield = gfield.drop_isel(time=[0, gfield.sizes['time'] - 1])
 
-        mr = {}
-        ms = {}
+        mf[season] = {}
         print("Region loop...")
         for region in ['Global', 'North Midlat', 'Tropical', 'South Midlat']:
             
@@ -160,17 +158,14 @@ for var in variables:
 
             omean = np.mean(final)
             ostd = np.std(final)
-            mr[region] = float(str(round(omean,3)))
-            ms[region] = float(str(round(ostd, 3)))
+            mf[season][region] = {}
+            mf[season][region]['mean'] = float(str(round(omean,3)))
+            mf[season][region]['std'] = float(str(round(ostd, 3)))
             print('{} {} {} mean is: {:.2f} +- {:.2f}'.format(var, season, region, omean, ostd))
 
-        # store everything
-        mf[season] = mr
-        sf[season] = ms
 
     # log output
     logging.info(mf)
-    logging.info(sf)
 
     # preparing clim file
     if os.path.isfile(clim_file):
@@ -193,8 +188,8 @@ for var in variables:
     dclim[var]['units'] = info[var]['tgt_units']
     dclim[var]['year1'] = int(real_year1)
     dclim[var]['year2'] = int(real_year2)
-    dclim[var]['mean'] =  mf
-    dclim[var]['std'] = sf
+    dclim[var]['obs'] = mf
+
 
     # dump the yaml file
     with open(clim_file, 'w') as file:

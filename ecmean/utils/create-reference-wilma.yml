@@ -2,9 +2,21 @@
 dirs: 
   datadir: "/work/scratch/users/paolo/ecmean_datasets"
   eradir: "/work/datasets/obs/ERA5"
+  esadir: "/work/datasets/obs/ESA-CCI-L4/mon"
 
 mask: "/work/datasets/obs/ERA5/land_sea_mask/landsea_mask.nc"
 
+# key parameters
+#  dataset: dataset name
+#  longname: full variable description
+#  filevar:  the name of the variable within the dataset (ignored if using derived)
+#  operation: if do the "mean" or the "integral" (default if not defined, 'mean')
+#  mask: 'land', 'ocean', 'south', 'north' (default if not defined, 'global')
+#  domain: 'atm' or 'oce' variables  (default if not defined, 'atm')
+#  derived: required only if operations among variables, follow the ECmean4 (CDO-derived) syntax
+#  org_units: original file units
+#  tgt_units: target file units: conversion done with metpy, integrals have a m^2 factor
+#  dir: where to find 
 
 tas: 
   dataset: CRU
@@ -28,30 +40,104 @@ pr:
   org_units: mm/month
   tgt_units: mm/day
   dir: "{datadir}/{dataset}/data/*.nc"
-pr_land:
-  dataset: MSWEP
-  longname: 'Precipitation (integral over land)'
-  filevar: precipitation
-  mask: land
-  operation: integral
-  org_units: mm/month
-  tgt_units: Sv
-  dir: "{datadir}/{dataset}/data/*.nc"
+evspsbl: 
+  dataset: ERA5
+  longname: 'Evaporation'
+  filevar: e
+  org_units: m/day
+  tgt_units: mm/day
+  dir: "{eradir}/evaporation/mon/*.nc"
+pme: 
+  dataset: ERA5
+  longname: 'Precipitation minus Evaporation'
+  filevar: ''
+  derived: TP-e
+  org_units: m/day
+  tgt_units: mm/day
+  dir: ['{eradir}/total_precipitation/mon/ERA5_total_precipitation_mon_0.25x0.25_sfc_1950-2021.nc', '{eradir}/evaporation/mon/*.nc']
+clt: 
+  dataset: ERA5
+  longname: 'Total Cloud Cover'
+  filevar: var164
+  org_units: frac
+  tgt_units: frac
+  dir: '{eradir}/total_cloud_cover/mon/*.nc'
+cll: 
+  dataset: ERA5
+  longname: 'Low Cloud Cover'
+  filevar: lcc
+  org_units: frac
+  tgt_units: frac
+  dir: '{eradir}/low_cloud_cover/mon/*.nc'
+clm: 
+  dataset: ERA5
+  longname: 'Medium Cloud Cover'
+  filevar: mcc
+  org_units: frac
+  tgt_units: frac
+  dir: '{eradir}/medium_cloud_cover/mon/*.nc'
+clh: 
+  dataset: ERA5
+  longname: 'High Cloud Cover'
+  filevar: hcc
+  org_units: frac
+  tgt_units: frac
+  dir: '{eradir}/high_cloud_cover/mon/*.nc'
 pr_oce:
   dataset: MSWEP
   longname: 'Precipitation (integral over ocean)'
   filevar: precipitation
   mask: ocean
   operation: integral
+  org_units: m/day
+  tgt_units: Sv
+  dir: "{datadir}/{dataset}/data/*.nc"
+pme_oce: 
+  dataset: ERA5
+  longname: 'Precipitation minus Evaporation (integral over ocean)'
+  filevar: ''
+  mask: ocean
+  operation: integral
+  derived: TP-e
+  org_units: m/day
+  tgt_units: Sv
+  dir: ['{eradir}/total_precipitation/mon/ERA5_total_precipitation_mon_0.25x0.25_sfc_1950-2021.nc', '{eradir}/evaporation/mon/*.nc']  
+pr_land:
+  dataset: MSWEP
+  longname: 'Precipitation (integral over land)'
+  filevar: precipitation
+  operation: integral
+  mask: land
+  operation: integral
   org_units: mm/month
   tgt_units: Sv
   dir: "{datadir}/{dataset}/data/*.nc"
-pme: 
+pme_land: 
   dataset: ERA5
-  longname: 'Precipitation minus Evaporation'
+  longname: 'Precipitation minus Evaporation (integral over land)'
   filevar: ''
+  mask: land
+  operation: integral
   derived: TP-e
-  org_units: mm/day
-  tgt_units: mm/day
-  dir: ['{eradir}/total_precipitation/mon/ERA5_total_precipitation_mon_0.25x0.25_sfc_1950-2021.nc', '{eradir}/evaporation/mon/*.nc']
-
+  org_units: m/day
+  tgt_units: Sv
+  dir: ['{eradir}/total_precipitation/mon/ERA5_total_precipitation_mon_0.25x0.25_sfc_1950-2021.nc', '{eradir}/evaporation/mon/*.nc']  
+tos: 
+  dataset: ESA-CCI-L4
+  longname: 'Sea Surface Temperature'
+  filevar: 'analysed_sst'
+  mask: ocean
+  domain: oce
+  org_units: K
+  tgt_units: K
+  dir: '{esadir}/analysed_sst/*.nc'  
+siconc: 
+  dataset: ESA-CCI-L4
+  longname: 'Sea Ice Area (Northern Hemisphere)'
+  filevar: 'sea_ice_fraction'
+  operation: integral
+  mask: ocean
+  domain: oce
+  org_units: frac
+  tgt_units: Mm^2
+  dir: '{esadir}/sea_ice_fraction/*.nc'  
