@@ -184,14 +184,14 @@ def get_domain(var, face):
     return domain[comp]
 
 
-def get_component(face):  # unused function
-    """Return a dictionary providing the domain associated with a variable
-    (the interface file specifies the domain for each component instead)"""
+# def get_component(face):  # unused function
+#     """Return a dictionary providing the domain associated with a variable
+#     (the interface file specifies the domain for each component instead)"""
 
-    d = face['component']
-    p = dict(zip([list(d.values())[x]['domain']
-             for x in range(len(d.values()))], d.keys()))
-    return p
+#     d = face['component']
+#     p = dict(zip([list(d.values())[x]['domain']
+#              for x in range(len(d.values()))], d.keys()))
+#     return p
 
 
 ####################
