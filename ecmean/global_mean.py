@@ -93,9 +93,10 @@ def gm_worker(util, ref, face, diag, varmean, vartrend, varlist):
 
                 # final operation on the field
                 x = masked_meansum(
-                    xfield=tfield, weights=weights,
-                    mask_type=ref[var].get('total', 'global'),
-                    dom=domain, mask=domain_mask)
+                    xfield=tfield, weights=weights, mask=domain_mask,
+                    operation=ref[var].get('operation', 'mean'),
+                    mask_type=ref[var].get('mask', 'global'),
+                    domain=domain)
                 a.append(float(x))
 
             varmean[var] = (mean(a) + offset) * factor
@@ -150,7 +151,7 @@ def global_mean(exp, year1, year2,
     os.makedirs(diag.TABDIR, exist_ok=True)
 
     # load reference data
-    ref = load_yaml(indir / 'reference/gm_reference.yml')
+    ref = load_yaml(indir / 'reference/gm_reference_EC23.yml')
 
     # list of vars on which to work
     var_atm = cfg['global']['atm_vars']
@@ -209,15 +210,22 @@ def global_mean(exp, year1, year2,
     # loop on the variables to create the output table
     global_table = []
     for var in var_atm + var_oce + var_ice:
-        beta = face['variables'][var]
+        #beta = face['variables'][var]
         gamma = ref[var]
+        # get the predifined valuue or the ALL GLobal one
+        if isinstance(gamma['obs'], dict):
+            ff = gamma['obs']['ALL']['Global']
+            outval = str(ff['mean']) + u'\u00B1' + str(ff['std'])
+        else: 
+            outval = gamma['obs']
+            
+        if 'year1' in gamma.keys():
+            years = str(gamma['year1']) + '-' + str(gamma['year2'])
 
-        out_sequence = [var, beta['varname'], gamma['units'], varmean[var]]
+        out_sequence = [var, gamma['longname'], gamma['units'], varmean[var]]
         if diag.ftrend:
             out_sequence = out_sequence + [vartrend[var]]
-        out_sequence = out_sequence + [float(gamma['val']),
-                                       gamma.get('data', ''),
-                                       gamma.get('years', '')]
+        out_sequence = out_sequence + [outval, gamma.get('dataset', ''), years]
         global_table.append(out_sequence)
 
     # prepare the header for the table
@@ -232,7 +240,7 @@ def global_mean(exp, year1, year2,
     if diag.fverb:
         print(tablefile)
     with open(tablefile, 'w', encoding='utf-8') as f:
-        f.write(tabulate(global_table, headers=head, tablefmt='orgtbl'))
+        f.write(tabulate(global_table, headers=head, stralign='center', tablefmt='orgtbl'))
 
     # Print appending one line to table (for tuning)
     if diag.ftable:

@@ -1,0 +1,1802 @@
+tas:
+  longname: 2m Temperature (land-only)
+  dataset: CRU
+  mask: land
+  domain: atm
+  units: K
+  year1: 1991
+  year2: 2020
+  notes: CRU TS4.05
+  obs:
+    ALL:
+      Global:
+        mean: 286.847
+        std: 0.301
+      North Midlat:
+        mean: 275.805
+        std: 0.421
+      Tropical:
+        mean: 297.389
+        std: 0.228
+      South Midlat:
+        mean: 287.806
+        std: 0.264
+    DJF:
+      Global:
+        mean: 279.683
+        std: 0.416
+      North Midlat:
+        mean: 261.695
+        std: 0.766
+      Tropical:
+        mean: 295.849
+        std: 0.301
+      South Midlat:
+        mean: 293.662
+        std: 0.413
+    MAM:
+      Global:
+        mean: 286.956
+        std: 0.341
+      North Midlat:
+        mean: 275.314
+        std: 0.527
+      Tropical:
+        mean: 298.071
+        std: 0.268
+      South Midlat:
+        mean: 287.993
+        std: 0.307
+    JJA:
+      Global:
+        mean: 293.342
+        std: 0.283
+      North Midlat:
+        mean: 289.736
+        std: 0.42
+      Tropical:
+        mean: 297.749
+        std: 0.225
+      South Midlat:
+        mean: 281.807
+        std: 0.348
+    SON:
+      Global:
+        mean: 287.408
+        std: 0.359
+      North Midlat:
+        mean: 276.483
+        std: 0.542
+      Tropical:
+        mean: 297.888
+        std: 0.256
+      South Midlat:
+        mean: 287.764
+        std: 0.376
+psl:
+  longname: Mean Sea Level Pressure
+  dataset: ERA5
+  domain: atm
+  units: Pa
+  year1: 1991
+  year2: 2020
+  obs:
+    ALL:
+      Global:
+        mean: 101143.004
+        std: 5.191
+      North Midlat:
+        mean: 101475.568
+        std: 29.013
+      Tropical:
+        mean: 101319.89
+        std: 17.603
+      South Midlat:
+        mean: 100466.046
+        std: 37.896
+    DJF:
+      Global:
+        mean: 101158.152
+        std: 5.417
+      North Midlat:
+        mean: 101589.181
+        std: 93.098
+      Tropical:
+        mean: 101298.889
+        std: 33.909
+      South Midlat:
+        mean: 100455.13
+        std: 70.92
+    MAM:
+      Global:
+        mean: 101145.235
+        std: 5.464
+      North Midlat:
+        mean: 101524.811
+        std: 46.747
+      Tropical:
+        mean: 101282.189
+        std: 26.352
+      South Midlat:
+        mean: 100500.648
+        std: 50.533
+    JJA:
+      Global:
+        mean: 101129.64
+        std: 6.267
+      North Midlat:
+        mean: 101286.322
+        std: 41.02
+      Tropical:
+        mean: 101366.218
+        std: 22.106
+      South Midlat:
+        mean: 100508.875
+        std: 72.684
+    SON:
+      Global:
+        mean: 101138.961
+        std: 5.775
+      North Midlat:
+        mean: 101500.961
+        std: 45.683
+      Tropical:
+        mean: 101331.744
+        std: 19.287
+      South Midlat:
+        mean: 100401.463
+        std: 52.625
+pr:
+  longname: Precipitation
+  dataset: MSWEP
+  domain: atm
+  units: mm/day
+  year1: 1991
+  year2: 2020
+  obs:
+    ALL:
+      Global:
+        mean: 2.853
+        std: 0.039
+      North Midlat:
+        mean: 2.147
+        std: 0.037
+      Tropical:
+        mean: 3.405
+        std: 0.075
+      South Midlat:
+        mean: 2.455
+        std: 0.033
+    DJF:
+      Global:
+        mean: 2.806
+        std: 0.042
+      North Midlat:
+        mean: 2.274
+        std: 0.067
+      Tropical:
+        mean: 3.443
+        std: 0.073
+      South Midlat:
+        mean: 2.063
+        std: 0.049
+    MAM:
+      Global:
+        mean: 2.843
+        std: 0.043
+      North Midlat:
+        mean: 1.85
+        std: 0.047
+      Tropical:
+        mean: 3.412
+        std: 0.085
+      South Midlat:
+        mean: 2.697
+        std: 0.042
+    JJA:
+      Global:
+        mean: 2.93
+        std: 0.04
+      North Midlat:
+        mean: 2.117
+        std: 0.044
+      Tropical:
+        mean: 3.402
+        std: 0.091
+      South Midlat:
+        mean: 2.8
+        std: 0.042
+    SON:
+      Global:
+        mean: 2.834
+        std: 0.055
+      North Midlat:
+        mean: 2.344
+        std: 0.053
+      Tropical:
+        mean: 3.369
+        std: 0.09
+      South Midlat:
+        mean: 2.255
+        std: 0.047
+evspsbl:
+  longname: Evaporation
+  dataset: ERA5
+  domain: atm
+  units: mm/day
+  year1: 1991
+  year2: 2020
+  obs:
+    ALL:
+      Global:
+        mean: -2.906
+        std: 0.056
+      North Midlat:
+        mean: -1.743
+        std: 0.02
+      Tropical:
+        mean: -3.947
+        std: 0.094
+      South Midlat:
+        mean: -1.991
+        std: 0.036
+    DJF:
+      Global:
+        mean: -2.868
+        std: 0.058
+      North Midlat:
+        mean: -1.756
+        std: 0.034
+      Tropical:
+        mean: -3.992
+        std: 0.1
+      South Midlat:
+        mean: -1.741
+        std: 0.038
+    MAM:
+      Global:
+        mean: -2.882
+        std: 0.059
+      North Midlat:
+        mean: -1.518
+        std: 0.02
+      Tropical:
+        mean: -3.896
+        std: 0.099
+      South Midlat:
+        mean: -2.226
+        std: 0.053
+    JJA:
+      Global:
+        mean: -3.007
+        std: 0.052
+      North Midlat:
+        mean: -1.762
+        std: 0.023
+      Tropical:
+        mean: -4.032
+        std: 0.09
+      South Midlat:
+        mean: -2.204
+        std: 0.045
+    SON:
+      Global:
+        mean: -2.867
+        std: 0.062
+      North Midlat:
+        mean: -1.935
+        std: 0.038
+      Tropical:
+        mean: -3.871
+        std: 0.102
+      South Midlat:
+        mean: -1.795
+        std: 0.031
+pme:
+  longname: Precipitation minus Evaporation
+  dataset: ERA5
+  domain: atm
+  units: mm/day
+  year1: 1991
+  year2: 2020
+  obs:
+    ALL:
+      Global:
+        mean: 0.023
+        std: 0.021
+      North Midlat:
+        mean: 0.53
+        std: 0.024
+      Tropical:
+        mean: -0.475
+        std: 0.034
+      South Midlat:
+        mean: 0.497
+        std: 0.027
+    DJF:
+      Global:
+        mean: 0.04
+        std: 0.024
+      North Midlat:
+        mean: 0.612
+        std: 0.04
+      Tropical:
+        mean: -0.445
+        std: 0.04
+      South Midlat:
+        mean: 0.421
+        std: 0.034
+    MAM:
+      Global:
+        mean: 0.001
+        std: 0.018
+      North Midlat:
+        mean: 0.478
+        std: 0.03
+      Tropical:
+        mean: -0.491
+        std: 0.034
+      South Midlat:
+        mean: 0.493
+        std: 0.039
+    JJA:
+      Global:
+        mean: -0.006
+        std: 0.024
+      North Midlat:
+        mean: 0.505
+        std: 0.047
+      Tropical:
+        mean: -0.557
+        std: 0.041
+      South Midlat:
+        mean: 0.574
+        std: 0.035
+    SON:
+      Global:
+        mean: 0.056
+        std: 0.026
+      North Midlat:
+        mean: 0.525
+        std: 0.036
+      Tropical:
+        mean: -0.409
+        std: 0.042
+      South Midlat:
+        mean: 0.498
+        std: 0.033
+clt:
+  longname: Total Cloud Cover
+  dataset: CERES-EBAF
+  domain: atm
+  units: frac
+  year1: 2000
+  year2: 2020
+  notes: Edition 4.2; Release Date December 9, 2022
+  obs:
+    ALL:
+      Global:
+        mean: 0.675
+        std: 0.002
+      North Midlat:
+        mean: 0.678
+        std: 0.003
+      Tropical:
+        mean: 0.617
+        std: 0.003
+      South Midlat:
+        mean: 0.788
+        std: 0.003
+    DJF:
+      Global:
+        mean: 0.673
+        std: 0.003
+      North Midlat:
+        mean: 0.688
+        std: 0.007
+      Tropical:
+        mean: 0.616
+        std: 0.005
+      South Midlat:
+        mean: 0.771
+        std: 0.004
+    MAM:
+      Global:
+        mean: 0.672
+        std: 0.004
+      North Midlat:
+        mean: 0.685
+        std: 0.005
+      Tropical:
+        mean: 0.608
+        std: 0.007
+      South Midlat:
+        mean: 0.789
+        std: 0.005
+    JJA:
+      Global:
+        mean: 0.674
+        std: 0.002
+      North Midlat:
+        mean: 0.658
+        std: 0.003
+      Tropical:
+        mean: 0.622
+        std: 0.005
+      South Midlat:
+        mean: 0.792
+        std: 0.005
+    SON:
+      Global:
+        mean: 0.68
+        std: 0.003
+      North Midlat:
+        mean: 0.68
+        std: 0.006
+      Tropical:
+        mean: 0.62
+        std: 0.003
+      South Midlat:
+        mean: 0.799
+        std: 0.005
+cll:
+  longname: Low Cloud Cover
+  dataset: ERA5
+  domain: atm
+  units: frac
+  year1: 1991
+  year2: 2020
+  obs:
+    ALL:
+      Global:
+        mean: 0.382
+        std: 0.003
+      North Midlat:
+        mean: 0.436
+        std: 0.005
+      Tropical:
+        mean: 0.266
+        std: 0.004
+      South Midlat:
+        mean: 0.558
+        std: 0.003
+    DJF:
+      Global:
+        mean: 0.387
+        std: 0.003
+      North Midlat:
+        mean: 0.49
+        std: 0.008
+      Tropical:
+        mean: 0.261
+        std: 0.005
+      South Midlat:
+        mean: 0.533
+        std: 0.007
+    MAM:
+      Global:
+        mean: 0.374
+        std: 0.004
+      North Midlat:
+        mean: 0.417
+        std: 0.008
+      Tropical:
+        mean: 0.254
+        std: 0.005
+      South Midlat:
+        mean: 0.569
+        std: 0.005
+    JJA:
+      Global:
+        mean: 0.379
+        std: 0.004
+      North Midlat:
+        mean: 0.398
+        std: 0.006
+      Tropical:
+        mean: 0.274
+        std: 0.005
+      South Midlat:
+        mean: 0.567
+        std: 0.007
+    SON:
+      Global:
+        mean: 0.388
+        std: 0.004
+      North Midlat:
+        mean: 0.439
+        std: 0.008
+      Tropical:
+        mean: 0.274
+        std: 0.005
+      South Midlat:
+        mean: 0.564
+        std: 0.006
+clm:
+  longname: Medium Cloud Cover
+  dataset: ERA5
+  domain: atm
+  units: frac
+  year1: 1991
+  year2: 2020
+  obs:
+    ALL:
+      Global:
+        mean: 0.248
+        std: 0.003
+      North Midlat:
+        mean: 0.321
+        std: 0.002
+      Tropical:
+        mean: 0.161
+        std: 0.006
+      South Midlat:
+        mean: 0.347
+        std: 0.003
+    DJF:
+      Global:
+        mean: 0.256
+        std: 0.004
+      North Midlat:
+        mean: 0.377
+        std: 0.004
+      Tropical:
+        mean: 0.168
+        std: 0.007
+      South Midlat:
+        mean: 0.308
+        std: 0.004
+    MAM:
+      Global:
+        mean: 0.247
+        std: 0.003
+      North Midlat:
+        mean: 0.332
+        std: 0.004
+      Tropical:
+        mean: 0.153
+        std: 0.006
+      South Midlat:
+        mean: 0.351
+        std: 0.004
+    JJA:
+      Global:
+        mean: 0.243
+        std: 0.003
+      North Midlat:
+        mean: 0.258
+        std: 0.004
+      Tropical:
+        mean: 0.167
+        std: 0.006
+      South Midlat:
+        mean: 0.379
+        std: 0.003
+    SON:
+      Global:
+        mean: 0.246
+        std: 0.004
+      North Midlat:
+        mean: 0.318
+        std: 0.004
+      Tropical:
+        mean: 0.157
+        std: 0.007
+      South Midlat:
+        mean: 0.352
+        std: 0.003
+clh:
+  longname: High Cloud Cover
+  dataset: ERA5
+  domain: atm
+  units: frac
+  year1: 1991
+  year2: 2020
+  obs:
+    ALL:
+      Global:
+        mean: 0.341
+        std: 0.003
+      North Midlat:
+        mean: 0.341
+        std: 0.003
+      Tropical:
+        mean: 0.342
+        std: 0.005
+      South Midlat:
+        mean: 0.337
+        std: 0.003
+    DJF:
+      Global:
+        mean: 0.338
+        std: 0.004
+      North Midlat:
+        mean: 0.342
+        std: 0.005
+      Tropical:
+        mean: 0.351
+        std: 0.007
+      South Midlat:
+        mean: 0.309
+        std: 0.005
+    MAM:
+      Global:
+        mean: 0.35
+        std: 0.005
+      North Midlat:
+        mean: 0.352
+        std: 0.005
+      Tropical:
+        mean: 0.352
+        std: 0.008
+      South Midlat:
+        mean: 0.344
+        std: 0.006
+    JJA:
+      Global:
+        mean: 0.338
+        std: 0.003
+      North Midlat:
+        mean: 0.334
+        std: 0.004
+      Tropical:
+        mean: 0.331
+        std: 0.005
+      South Midlat:
+        mean: 0.358
+        std: 0.005
+    SON:
+      Global:
+        mean: 0.337
+        std: 0.004
+      North Midlat:
+        mean: 0.336
+        std: 0.006
+      Tropical:
+        mean: 0.337
+        std: 0.005
+      South Midlat:
+        mean: 0.338
+        std: 0.005
+pr_oce:
+  longname: Precipitation (integral over ocean)
+  dataset: MSWEP
+  mask: ocean
+  operation: integral
+  domain: atm
+  units: Sv
+  year1: 1991
+  year2: 2020
+  obs:
+    ALL:
+      Global:
+        mean: 13.395
+        std: 0.235
+      North Midlat:
+        mean: 2.103
+        std: 0.038
+      Tropical:
+        mean: 7.855
+        std: 0.213
+      South Midlat:
+        mean: 3.437
+        std: 0.048
+    DJF:
+      Global:
+        mean: 13.314
+        std: 0.29
+      North Midlat:
+        mean: 2.558
+        std: 0.075
+      Tropical:
+        mean: 7.876
+        std: 0.235
+      South Midlat:
+        mean: 2.881
+        std: 0.075
+    MAM:
+      Global:
+        mean: 13.402
+        std: 0.259
+      North Midlat:
+        mean: 1.811
+        std: 0.045
+      Tropical:
+        mean: 7.818
+        std: 0.243
+      South Midlat:
+        mean: 3.773
+        std: 0.055
+    JJA:
+      Global:
+        mean: 13.48
+        std: 0.271
+      North Midlat:
+        mean: 1.67
+        std: 0.053
+      Tropical:
+        mean: 7.878
+        std: 0.275
+      South Midlat:
+        mean: 3.931
+        std: 0.062
+    SON:
+      Global:
+        mean: 13.389
+        std: 0.317
+      North Midlat:
+        mean: 2.376
+        std: 0.068
+      Tropical:
+        mean: 7.861
+        std: 0.263
+      South Midlat:
+        mean: 3.152
+        std: 0.069
+pme_oce:
+  longname: Precipitation minus Evaporation (integral over ocean)
+  dataset: ERA5
+  mask: ocean
+  operation: integral
+  domain: atm
+  units: Sv
+  year1: 1991
+  year2: 2020
+  obs:
+    ALL:
+      Global:
+        mean: -1.277
+        std: 0.133
+      North Midlat:
+        mean: 0.326
+        std: 0.024
+      Tropical:
+        mean: -2.251
+        std: 0.108
+      South Midlat:
+        mean: 0.622
+        std: 0.036
+    DJF:
+      Global:
+        mean: -1.459
+        std: 0.173
+      North Midlat:
+        mean: 0.181
+        std: 0.046
+      Tropical:
+        mean: -2.241
+        std: 0.147
+      South Midlat:
+        mean: 0.573
+        std: 0.053
+    MAM:
+      Global:
+        mean: -1.317
+        std: 0.107
+      North Midlat:
+        mean: 0.376
+        std: 0.034
+      Tropical:
+        mean: -2.305
+        std: 0.094
+      South Midlat:
+        mean: 0.588
+        std: 0.05
+    JJA:
+      Global:
+        mean: -1.219
+        std: 0.174
+      North Midlat:
+        mean: 0.656
+        std: 0.05
+      Tropical:
+        mean: -2.579
+        std: 0.147
+      South Midlat:
+        mean: 0.682
+        std: 0.05
+    SON:
+      Global:
+        mean: -1.118
+        std: 0.171
+      North Midlat:
+        mean: 0.093
+        std: 0.043
+      Tropical:
+        mean: -1.879
+        std: 0.148
+      South Midlat:
+        mean: 0.642
+        std: 0.046
+pr_land:
+  longname: Precipitation (integral over land)
+  dataset: MSWEP
+  mask: land
+  operation: integral
+  domain: atm
+  units: Sv
+  year1: 1991
+  year2: 2020
+  obs:
+    ALL:
+      Global:
+        mean: 3.448
+        std: 0.07
+      North Midlat:
+        mean: 1.066
+        std: 0.031
+      Tropical:
+        mean: 2.195
+        std: 0.078
+      South Midlat:
+        mean: 0.187
+        std: 0.009
+    DJF:
+      Global:
+        mean: 3.251
+        std: 0.118
+      North Midlat:
+        mean: 0.798
+        std: 0.043
+      Tropical:
+        mean: 2.289
+        std: 0.129
+      South Midlat:
+        mean: 0.163
+        std: 0.014
+    MAM:
+      Global:
+        mean: 3.379
+        std: 0.093
+      North Midlat:
+        mean: 0.919
+        std: 0.039
+      Tropical:
+        mean: 2.253
+        std: 0.098
+      South Midlat:
+        mean: 0.207
+        std: 0.016
+    JJA:
+      Global:
+        mean: 3.818
+        std: 0.112
+      North Midlat:
+        mean: 1.454
+        std: 0.046
+      Tropical:
+        mean: 2.162
+        std: 0.099
+      South Midlat:
+        mean: 0.201
+        std: 0.011
+    SON:
+      Global:
+        mean: 3.34
+        std: 0.104
+      North Midlat:
+        mean: 1.082
+        std: 0.037
+      Tropical:
+        mean: 2.082
+        std: 0.107
+      South Midlat:
+        mean: 0.176
+        std: 0.013
+pme_land:
+  longname: Precipitation minus Evaporation (integral over land)
+  dataset: ERA5
+  mask: land
+  operation: integral
+  domain: atm
+  units: Sv
+  year1: 1991
+  year2: 2020
+  obs:
+    ALL:
+      Global:
+        mean: 1.412
+        std: 0.071
+      North Midlat:
+        mean: 0.458
+        std: 0.023
+      Tropical:
+        mean: 0.842
+        std: 0.066
+      South Midlat:
+        mean: 0.114
+        std: 0.007
+    DJF:
+      Global:
+        mean: 1.698
+        std: 0.095
+      North Midlat:
+        mean: 0.726
+        std: 0.036
+      Tropical:
+        mean: 0.923
+        std: 0.092
+      South Midlat:
+        mean: 0.051
+        std: 0.012
+    MAM:
+      Global:
+        mean: 1.322
+        std: 0.087
+      North Midlat:
+        mean: 0.332
+        std: 0.028
+      Tropical:
+        mean: 0.85
+        std: 0.081
+      South Midlat:
+        mean: 0.143
+        std: 0.015
+    JJA:
+      Global:
+        mean: 1.181
+        std: 0.13
+      North Midlat:
+        mean: 0.092
+        std: 0.047
+      Tropical:
+        mean: 0.928
+        std: 0.108
+      South Midlat:
+        mean: 0.168
+        std: 0.011
+    SON:
+      Global:
+        mean: 1.447
+        std: 0.094
+      North Midlat:
+        mean: 0.685
+        std: 0.036
+      Tropical:
+        mean: 0.666
+        std: 0.092
+      South Midlat:
+        mean: 0.097
+        std: 0.01
+net_toa:
+  longname: TOA Net
+  dataset: CERES-EBAF
+  domain: atm
+  units: W/m2
+  year1: 2000
+  year2: 2020
+  notes: Edition 4.2; Release Date December 9, 2022
+  obs:
+    ALL:
+      Global:
+        mean: 0.898
+        std: 0.555
+      North Midlat:
+        mean: -43.375
+        std: 3.121
+      Tropical:
+        mean: 45.034
+        std: 0.637
+      South Midlat:
+        mean: -43.105
+        std: 3.869
+    DJF:
+      Global:
+        mean: 7.917
+        std: 0.496
+      North Midlat:
+        mean: -128.23
+        std: 0.332
+      Tropical:
+        mean: 50.398
+        std: 0.844
+      South Midlat:
+        mean: 59.097
+        std: 1.174
+    MAM:
+      Global:
+        mean: 1.473
+        std: 0.478
+      North Midlat:
+        mean: -1.893
+        std: 0.76
+      Tropical:
+        mean: 50.67
+        std: 0.79
+      South Midlat:
+        mean: -93.558
+        std: 0.765
+    JJA:
+      Global:
+        mean: -7.5
+        std: 0.566
+      North Midlat:
+        mean: 46.849
+        std: 0.811
+      Tropical:
+        mean: 27.812
+        std: 0.634
+      South Midlat:
+        mean: -132.477
+        std: 0.569
+    SON:
+      Global:
+        mean: 1.995
+        std: 0.488
+      North Midlat:
+        mean: -93.102
+        std: 0.614
+      Tropical:
+        mean: 51.597
+        std: 0.563
+      South Midlat:
+        mean: -2.116
+        std: 0.82
+rsnt:
+  longname: TOA SW Net
+  dataset: CERES-EBAF
+  domain: atm
+  units: W/m2
+  year1: 2000
+  year2: 2020
+  notes: Edition 4.2; Release Date December 9, 2022
+  obs:
+    ALL:
+      Global:
+        mean: 241.343
+        std: 0.605
+      North Midlat:
+        mean: 180.654
+        std: 3.899
+      Tropical:
+        mean: 305.535
+        std: 0.694
+      South Midlat:
+        mean: 173.641
+        std: 4.498
+    DJF:
+      Global:
+        mean: 245.582
+        std: 0.552
+      North Midlat:
+        mean: 74.743
+        std: 0.613
+      Tropical:
+        mean: 309.378
+        std: 0.714
+      South Midlat:
+        mean: 288.826
+        std: 1.173
+    MAM:
+      Global:
+        mean: 240.923
+        std: 0.6
+      North Midlat:
+        mean: 217.757
+        std: 1.239
+      Tropical:
+        mean: 311.245
+        std: 0.702
+      South Midlat:
+        mean: 123.439
+        std: 0.744
+    JJA:
+      Global:
+        mean: 236.515
+        std: 0.531
+      North Midlat:
+        mean: 293.849
+        std: 0.924
+      Tropical:
+        mean: 289.485
+        std: 0.725
+      South Midlat:
+        mean: 73.236
+        std: 0.318
+    SON:
+      Global:
+        mean: 242.578
+        std: 0.593
+      North Midlat:
+        mean: 132.636
+        std: 0.962
+      Tropical:
+        mean: 312.368
+        std: 0.726
+      South Midlat:
+        mean: 212.933
+        std: 1.035
+rlnt:
+  longname: TOA LW Net
+  dataset: CERES-EBAF
+  domain: atm
+  units: W/m2
+  year1: 2000
+  year2: 2020
+  notes: Edition 4.2; Release Date December 9, 2022
+  obs:
+    ALL:
+      Global:
+        mean: -240.445
+        std: 0.307
+      North Midlat:
+        mean: -224.029
+        std: 0.889
+      Tropical:
+        mean: -260.501
+        std: 0.441
+      South Midlat:
+        mean: -216.746
+        std: 0.707
+    DJF:
+      Global:
+        mean: -237.666
+        std: 0.438
+      North Midlat:
+        mean: -202.973
+        std: 0.777
+      Tropical:
+        mean: -258.98
+        std: 0.805
+      South Midlat:
+        mean: -229.728
+        std: 0.452
+    MAM:
+      Global:
+        mean: -239.45
+        std: 0.46
+      North Midlat:
+        mean: -219.649
+        std: 0.799
+      Tropical:
+        mean: -260.576
+        std: 0.814
+      South Midlat:
+        mean: -216.997
+        std: 0.398
+    JJA:
+      Global:
+        mean: -244.015
+        std: 0.241
+      North Midlat:
+        mean: -247.0
+        std: 0.554
+      Tropical:
+        mean: -261.673
+        std: 0.517
+      South Midlat:
+        mean: -205.713
+        std: 0.561
+    SON:
+      Global:
+        mean: -240.583
+        std: 0.361
+      North Midlat:
+        mean: -225.739
+        std: 0.883
+      Tropical:
+        mean: -260.771
+        std: 0.453
+      South Midlat:
+        mean: -215.049
+        std: 0.613
+rsntcs:
+  longname: TOA SW Net (clear sky)
+  dataset: CERES-EBAF
+  domain: atm
+  units: W/m2
+  year1: 2000
+  year2: 2020
+  notes: Edition 4.2; Release Date December 9, 2022
+  obs:
+    ALL:
+      Global:
+        mean: 287.048
+        std: 0.523
+      North Midlat:
+        mean: 224.073
+        std: 4.812
+      Tropical:
+        mean: 348.535
+        std: 0.434
+      South Midlat:
+        mean: 227.042
+        std: 5.829
+    DJF:
+      Global:
+        mean: 295.126
+        std: 0.314
+      North Midlat:
+        mean: 95.207
+        std: 0.495
+      Tropical:
+        mean: 353.901
+        std: 0.256
+      South Midlat:
+        mean: 377.491
+        std: 0.808
+    MAM:
+      Global:
+        mean: 283.677
+        std: 0.381
+      North Midlat:
+        mean: 268.754
+        std: 1.472
+      Tropical:
+        mean: 351.738
+        std: 0.237
+      South Midlat:
+        mean: 162.471
+        std: 0.761
+    JJA:
+      Global:
+        mean: 280.398
+        std: 0.317
+      North Midlat:
+        mean: 363.272
+        std: 1.12
+      Tropical:
+        mean: 331.566
+        std: 0.176
+      South Midlat:
+        mean: 95.186
+        std: 0.334
+    SON:
+      Global:
+        mean: 289.342
+        std: 0.287
+      North Midlat:
+        mean: 164.614
+        std: 0.737
+      Tropical:
+        mean: 357.289
+        std: 0.21
+      South Midlat:
+        mean: 278.169
+        std: 1.082
+rlntcs:
+  longname: TOA LW Net (clear sky)
+  dataset: CERES-EBAF
+  domain: atm
+  units: W/m2
+  year1: 2000
+  year2: 2020
+  notes: Edition 4.2; Release Date December 9, 2022
+  obs:
+    ALL:
+      Global:
+        mean: -268.351
+        std: 0.252
+      North Midlat:
+        mean: -248.529
+        std: 0.944
+      Tropical:
+        mean: -290.602
+        std: 0.357
+      South Midlat:
+        mean: -243.668
+        std: 0.55
+    DJF:
+      Global:
+        mean: -265.443
+        std: 0.382
+      North Midlat:
+        mean: -226.828
+        std: 0.831
+      Tropical:
+        mean: -290.102
+        std: 0.608
+      South Midlat:
+        mean: -254.737
+        std: 0.291
+    MAM:
+      Global:
+        mean: -267.751
+        std: 0.312
+      North Midlat:
+        mean: -244.298
+        std: 0.62
+      Tropical:
+        mean: -291.07
+        std: 0.569
+      South Midlat:
+        mean: -244.564
+        std: 0.302
+    JJA:
+      Global:
+        mean: -271.793
+        std: 0.243
+      North Midlat:
+        mean: -271.791
+        std: 0.411
+      Tropical:
+        mean: -290.619
+        std: 0.43
+      South Midlat:
+        mean: -234.14
+        std: 0.418
+    SON:
+      Global:
+        mean: -268.333
+        std: 0.226
+      North Midlat:
+        mean: -250.425
+        std: 0.658
+      Tropical:
+        mean: -290.62
+        std: 0.309
+      South Midlat:
+        mean: -241.665
+        std: 0.396
+swcf:
+  longname: SW Cloud Forcing
+  dataset: CERES-EBAF
+  domain: atm
+  units: W/m2
+  year1: 2000
+  year2: 2020
+  notes: Edition 4.2; Release Date December 9, 2022
+  obs:
+    ALL:
+      Global:
+        mean: -45.705
+        std: 0.331
+      North Midlat:
+        mean: -43.42
+        std: 0.995
+      Tropical:
+        mean: -43.0
+        std: 0.47
+      South Midlat:
+        mean: -53.401
+        std: 1.412
+    DJF:
+      Global:
+        mean: -49.544
+        std: 0.492
+      North Midlat:
+        mean: -20.464
+        std: 0.4
+      Tropical:
+        mean: -44.523
+        std: 0.69
+      South Midlat:
+        mean: -88.665
+        std: 1.103
+    MAM:
+      Global:
+        mean: -42.754
+        std: 0.406
+      North Midlat:
+        mean: -50.998
+        std: 0.836
+      Tropical:
+        mean: -40.493
+        std: 0.604
+      South Midlat:
+        mean: -39.032
+        std: 0.586
+    JJA:
+      Global:
+        mean: -43.884
+        std: 0.421
+      North Midlat:
+        mean: -69.423
+        std: 0.73
+      Tropical:
+        mean: -42.081
+        std: 0.687
+      South Midlat:
+        mean: -21.951
+        std: 0.276
+    SON:
+      Global:
+        mean: -46.764
+        std: 0.505
+      North Midlat:
+        mean: -31.978
+        std: 0.714
+      Tropical:
+        mean: -44.921
+        std: 0.678
+      South Midlat:
+        mean: -65.236
+        std: 0.985
+lwcf:
+  longname: LW Cloud Forcing
+  dataset: CERES-EBAF
+  domain: atm
+  units: W/m2
+  year1: 2000
+  year2: 2020
+  notes: Edition 4.2; Release Date December 9, 2022
+  obs:
+    ALL:
+      Global:
+        mean: 27.906
+        std: 0.267
+      North Midlat:
+        mean: 24.5
+        std: 0.234
+      Tropical:
+        mean: 30.101
+        std: 0.356
+      South Midlat:
+        mean: 26.922
+        std: 0.285
+    DJF:
+      Global:
+        mean: 27.777
+        std: 0.253
+      North Midlat:
+        mean: 23.855
+        std: 0.394
+      Tropical:
+        mean: 31.122
+        std: 0.433
+      South Midlat:
+        mean: 25.009
+        std: 0.378
+    MAM:
+      Global:
+        mean: 28.301
+        std: 0.297
+      North Midlat:
+        mean: 24.649
+        std: 0.423
+      Tropical:
+        mean: 30.495
+        std: 0.477
+      South Midlat:
+        mean: 27.567
+        std: 0.294
+    JJA:
+      Global:
+        mean: 27.778
+        std: 0.249
+      North Midlat:
+        mean: 24.791
+        std: 0.31
+      Tropical:
+        mean: 28.946
+        std: 0.435
+      South Midlat:
+        mean: 28.427
+        std: 0.309
+    SON:
+      Global:
+        mean: 27.75
+        std: 0.347
+      North Midlat:
+        mean: 24.686
+        std: 0.412
+      Tropical:
+        mean: 29.849
+        std: 0.399
+      South Midlat:
+        mean: 26.616
+        std: 0.583
+rsns:
+  longname: Surface Net SW
+  dataset: Wild 2020
+  domain: atm
+  units: W/m2
+  year1: ''
+  year2: ''
+  obs: 160
+rlns:
+  longname: Surface Net LW
+  dataset: Wild 2020
+  domain: atm
+  units: W/m2
+  year1: ''
+  year2: ''
+  obs: -56
+hfss:
+  longname: Surface SH
+  dataset: Wild 2020
+  domain: atm
+  units: W/m2
+  year1: ''
+  year2: ''
+  obs: -21
+hfls:
+  longname: Surface LH
+  dataset: Wild 2020
+  domain: atm
+  units: W/m2
+  year1: ''
+  year2: ''
+  obs: -82
+net_sfc_nosn:
+  longname: Net Surface (no snowfall)
+  dataset: Wild 2020
+  domain: atm
+  units: W/m2
+  year1: ''
+  year2: ''
+  obs: 0.6
+net_sfc:
+  longname: Net Surface
+  dataset: Wild 2020
+  domain: atm
+  units: W/m2
+  year1: ''
+  year2: ''
+  obs: 0.6
+tos:
+  longname: Sea Surface Temperature
+  dataset: ESA-CCI-L4
+  mask: ocean
+  domain: oce
+  units: K
+  year1: 1991
+  year2: 2020
+  obs:
+    ALL:
+      Global:
+        mean: 291.44
+        std: 0.148
+      North Midlat:
+        mean: 283.869
+        std: 0.226
+      Tropical:
+        mean: 299.344
+        std: 0.166
+      South Midlat:
+        mean: 282.073
+        std: 0.117
+    DJF:
+      Global:
+        mean: 291.421
+        std: 0.156
+      North Midlat:
+        mean: 281.524
+        std: 0.164
+      Tropical:
+        mean: 299.326
+        std: 0.218
+      South Midlat:
+        mean: 283.425
+        std: 0.146
+    MAM:
+      Global:
+        mean: 291.529
+        std: 0.149
+      North Midlat:
+        mean: 281.337
+        std: 0.181
+      Tropical:
+        mean: 299.75
+        std: 0.187
+      South Midlat:
+        mean: 283.154
+        std: 0.131
+    JJA:
+      Global:
+        mean: 291.478
+        std: 0.159
+      North Midlat:
+        mean: 286.594
+        std: 0.306
+      Tropical:
+        mean: 299.156
+        std: 0.174
+      South Midlat:
+        mean: 280.924
+        std: 0.101
+    SON:
+      Global:
+        mean: 291.33
+        std: 0.165
+      North Midlat:
+        mean: 286.016
+        std: 0.287
+      Tropical:
+        mean: 299.148
+        std: 0.189
+      South Midlat:
+        mean: 280.784
+        std: 0.12
+sos:
+  longname: Sea Surface Salinity
+  dataset: ESA-CCI
+  mask: ocean
+  domain: oce
+  units: PSU
+  year1: 2010
+  year2: 2020
+  notes: Weekly sea surface salinity product, v03.21
+  obs:
+    ALL:
+      Global:
+        mean: 34.814
+        std: 0.014
+      North Midlat:
+        mean: 34.242
+        std: 0.026
+      Tropical:
+        mean: 35.109
+        std: 0.017
+      South Midlat:
+        mean: 34.532
+        std: 0.016
+    DJF:
+      Global:
+        mean: 34.812
+        std: 0.01
+      North Midlat:
+        mean: 34.211
+        std: 0.059
+      Tropical:
+        mean: 35.115
+        std: 0.013
+      South Midlat:
+        mean: 34.53
+        std: 0.011
+    MAM:
+      Global:
+        mean: 34.821
+        std: 0.028
+      North Midlat:
+        mean: 34.296
+        std: 0.046
+      Tropical:
+        mean: 35.111
+        std: 0.028
+      South Midlat:
+        mean: 34.523
+        std: 0.025
+    JJA:
+      Global:
+        mean: 34.826
+        std: 0.014
+      North Midlat:
+        mean: 34.239
+        std: 0.03
+      Tropical:
+        mean: 35.136
+        std: 0.026
+      South Midlat:
+        mean: 34.524
+        std: 0.023
+    SON:
+      Global:
+        mean: 34.803
+        std: 0.011
+      North Midlat:
+        mean: 34.218
+        std: 0.028
+      Tropical:
+        mean: 35.083
+        std: 0.014
+      South Midlat:
+        mean: 34.555
+        std: 0.024
+zos:
+  longname: SSH
+  dataset: None
+  domain: atm
+  units: m
+  year1: ''
+  year2: ''
+  obs: 0
+wfo:
+  longname: Net Water Flux into ocean
+  dataset: None
+  domain: atm
+  units: m/century
+  year1: ''
+  year2: ''
+  obs: 0
+toamsfc_nosn:
+  longname: TOA - Sfc Net Radiation (no snow)
+  dataset: None
+  domain: atm
+  units: W/m2
+  year1: ''
+  year2: ''
+  obs: 0
+toamsfc:
+  longname: TOA - Sfc Net Radiation
+  dataset: None
+  domain: atm
+  units: W/m2
+  year1: ''
+  year2: ''
+  obs: 0
+siconc:
+  longname: Sea Ice Area
+  dataset: ESA-CCI-L4
+  mask: ocean
+  operation: integral
+  domain: oce
+  units: Mm^2
+  year1: 1991
+  year2: 2020
+  obs:
+    ALL:
+      Global:
+        mean: 19.222
+        std: 0.73
+      North Midlat:
+        mean: 9.562
+        std: 0.539
+      Tropical:
+        mean: 0.0
+        std: 0.0
+      South Midlat:
+        mean: 9.66
+        std: 0.393
+    DJF:
+      Global:
+        mean: 16.697
+        std: 0.715
+      North Midlat:
+        mean: 12.33
+        std: 0.444
+      Tropical:
+        mean: 0.0
+        std: 0.0
+      South Midlat:
+        mean: 4.368
+        std: 0.497
+    MAM:
+      Global:
+        mean: 18.291
+        std: 0.792
+      North Midlat:
+        mean: 12.475
+        std: 0.396
+      Tropical:
+        mean: 0.0
+        std: 0.0
+      South Midlat:
+        mean: 5.816
+        std: 0.558
+    JJA:
+      Global:
+        mean: 20.54
+        std: 0.78
+      North Midlat:
+        mean: 6.801
+        std: 0.627
+      Tropical:
+        mean: 0.0
+        std: 0.0
+      South Midlat:
+        mean: 13.74
+        std: 0.412
+    SON:
+      Global:
+        mean: 21.359
+        std: 0.99
+      North Midlat:
+        mean: 6.642
+        std: 0.814
+      Tropical:
+        mean: 0.0
+        std: 0.0
+      South Midlat:
+        mean: 14.717
+        std: 0.479
+siconc_north:
+  longname: Sea Ice Area (Northern Hemisphere)
+  dataset: ESA-CCI-L4
+  mask: north
+  operation: integral
+  domain: ocean
+  units: Mm^2
+  year1: ''
+  year2: ''
+  obs: 9.562
+siconc_south:
+  longname: Sea Ice Area (Southern Hemisphere)
+  dataset: ESA-CCI-L4
+  mask: south
+  operation: integral
+  domain: ocean
+  units: Mm^2
+  year1: ''
+  year2: ''
+  obs: 9.66
