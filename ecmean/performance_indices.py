@@ -18,7 +18,7 @@ from multiprocessing import Process, Manager
 import numpy as np
 import xarray as xr
 import yaml
-from ecmean.libs.general import weight_split, get_domain, dict_to_dataframe, numeric_loglevel, get_variables_to_load
+from ecmean.libs.general import weight_split, get_domain, dict_to_dataframe, numeric_loglevel, get_variables_to_load, check_time_axis
 from ecmean.libs.files import var_is_there, get_inifiles, load_yaml, make_input_filename, get_clim_files, init_diagnostic
 from ecmean.libs.formula import formula_wrapper
 from ecmean.libs.masks import masks_dictionary, mask_field, select_region
@@ -90,6 +90,9 @@ def pi_worker(util, piclim, face, diag, field_3d, varstat, varlist):
             # in case of big files with multi year, be sure of having opened the right records
             xfield = xfield.sel(time=xfield.time.dt.year.isin(diag.years_joined))
 
+            # check time axis
+            check_time_axis(xfield.time, diag.years_joined)
+
             # get the data-array field for the required var
             outfield = formula_wrapper(var, face, xfield)
 
@@ -145,13 +148,13 @@ def pi_worker(util, piclim, face, diag, field_3d, varstat, varlist):
 
                     # xarray interpolation on plev, forcing to be in Pascal
                     final = final.metpy.convert_coordinate_units('plev', 'Pa')
-                    if set(final['plev'].values) != set(cfield['plev'].values): 
+                    if set(final['plev'].values) != set(cfield['plev'].values):
                         logging.warning(var + ': Need to interpolate vertical levels...')
-                        final = final.interp(plev=cfield['plev'].values, method = 'linear')
+                        final = final.interp(plev=cfield['plev'].values, method='linear')
 
                         # safety check for missing values
                         sample = final.isel(lon=0, lat=0)
-                        if np.sum(np.isnan(sample)) != 0 :
+                        if np.sum(np.isnan(sample)) != 0:
                             logging.warning(var + ': You have NaN after the interpolation, this will affect your PIs...')
                             levnan = cfield['plev'].where(np.isnan(sample))
                             logging.warning(levnan[~np.isnan(levnan)].values)

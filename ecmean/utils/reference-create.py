@@ -30,8 +30,8 @@ logging.basicConfig(level=logging.INFO)
 
 # variable list
 atm_vars = ['tas', 'psl', 'pr', 'evspsbl', 'pme', 'clt', 'cll', 'clm', 'clh',
-             'pr_oce', 'pme_oce', 'pr_land', 'pme_land']
-rad_vars = ['net_toa', 'rsnt', 'rlnt', 'rsntcs', 'rlntcs', 'swcf', 'lwcf', 
+            'pr_oce', 'pme_oce', 'pr_land', 'pme_land']
+rad_vars = ['net_toa', 'rsnt', 'rlnt', 'rsntcs', 'rlntcs', 'swcf', 'lwcf',
             'rsns', 'rlns', 'hfss', 'hfls', 'net_sfc_nosn', 'net_sfc',
             'toamsfc_nosn', 'toamsfc']
 oce_vars = ['tos', 'sos', 'zos', 'wfo']
@@ -39,9 +39,7 @@ ice_vars = ['siconc', 'siconc_north', 'siconc_south']
 
 # put them together
 variables = atm_vars + rad_vars + oce_vars + ice_vars
-#variables = ['toamsfc_nosn', 'toamsfc']
-
-
+# variables = ['toamsfc_nosn', 'toamsfc']
 
 
 # to set: time period (default, can be shorter if data are missing)
@@ -70,12 +68,13 @@ nanskipper = False
 maskfile = info['mask']
 
 # function to expand the path
-def expand_filedata(directory, var, info) : 
+
+
+def expand_filedata(directory, var, info):
 
     return os.path.expandvars(directory).format(datadir=info['dirs']['datadir'],
-            eradir=info['dirs']['eradir'], esadir=info['dirs']['esadir'],
-            dataset=info[var]['dataset'])
-
+        eradir=info['dirs']['eradir'], esadir=info['dirs']['esadir'],
+        dataset=info[var]['dataset'])
 
  # loop on variables to be processed
 for var in variables:
@@ -105,7 +104,7 @@ for var in variables:
 
         # load data and time select
         print("Loading multiple files...")
-        xfield = xr.open_mfdataset(filedata, chunks = 'auto', preprocess=xr_preproc, engine='netcdf4')
+        xfield = xr.open_mfdataset(filedata, chunks='auto', preprocess=xr_preproc, engine='netcdf4')
 
         # if derived, use the formula skill (or just rename)
         cmd = info[var]['derived']
@@ -130,9 +129,9 @@ for var in variables:
         # compute land sea mask
         if mask_type != 'global':
             print("Mask...")
-            xmask = cdo.remapbil(filedata[0], input = maskfile, returnXArray =  'lsm')
+            xmask = cdo.remapbil(filedata[0], input=maskfile, returnXArray='lsm')
             xmask.load()
-        else: 
+        else:
             xmask = 0.
 
         # yearly and season averages
@@ -155,9 +154,9 @@ for var in variables:
                 gfield = gfield.drop_isel(time=[0, gfield.sizes['time'] - 1])
 
             mf[season] = {}
-            #print("Region loop...")
+            # print("Region loop...")
             for region in ['Global', 'North Midlat', 'Tropical', 'South Midlat']:
-                
+
                 # slice everything
                 slicefield = select_region(gfield, region)
                 sliceweights = select_region(weights, region)
@@ -168,9 +167,9 @@ for var in variables:
 
                 # get the masked-mean-sum
                 out = masked_meansum(xfield=slicefield, weights=sliceweights,
-                        mask=slicemask, operation=operation,
-                        mask_type=mask_type, domain=domain)
-                
+                                     mask=slicemask, operation=operation,
+                                     mask_type=mask_type, domain=domain)
+
                 # set the units
                 new_units = _units_are_integrals(info[var]['org_units'], info[var])
                 offset, factor = units_converter(new_units, info[var]['tgt_units'])
@@ -181,13 +180,12 @@ for var in variables:
                 omean = np.mean(final)
                 ostd = np.std(final)
                 mf[season][region] = {}
-                mf[season][region]['mean'] = float(str(round(omean,3)))
+                mf[season][region]['mean'] = float(str(round(omean, 3)))
                 mf[season][region]['std'] = float(str(round(ostd, 3)))
-                if season == 'ALL' and region == 'Global' : 
+                if season == 'ALL' and region == 'Global':
                     logging.warning('{} {} {} mean is: {:.2f} +- {:.2f}'.format(var, season, region, omean, ostd))
                 else:
                     logging.info('{} {} {} mean is: {:.2f} +- {:.2f}'.format(var, season, region, omean, ostd))
-
 
     # log output
     logging.info(mf)
@@ -214,12 +212,10 @@ for var in variables:
     dclim[var]['units'] = info[var]['tgt_units']
     dclim[var]['year1'] = real_year1
     dclim[var]['year2'] = real_year2
-    if 'notes' in info[var].keys() : 
-         dclim[var]['notes'] = info[var]['notes']
+    if 'notes' in info[var].keys():
+        dclim[var]['notes'] = info[var]['notes']
     dclim[var]['obs'] = mf
-    
 
     # dump the yaml file
     with open(clim_file, 'w') as file:
         yaml.safe_dump(dclim, file, sort_keys=False)
-    

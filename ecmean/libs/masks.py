@@ -134,7 +134,7 @@ def masked_meansum(xfield, weights, mask, operation, domain, mask_type):
     masked = mask_field(xfield, mask_type, domain, mask)
 
     # no time dimensions
-    notimedim=[dim for dim in xfield.dims if dim != 'time']
+    notimedim = [dim for dim in xfield.dims if dim != 'time']
 
     # global mean
     if operation in ['average', 'mean']:
@@ -174,16 +174,16 @@ def mask_field(xfield, mask_type, dom, mask):
         out = xfield.where(xfield['lat'] > 0)
     elif mask_type == 'south':
         out = xfield.where(xfield['lat'] < 0)
-    else: 
+    else:
         # if oceanic, apply the ocenanic mask (if it exists!)
         if dom == 'oce':
             if isinstance(mask, xr.DataArray):
                 out = xfield.where(mask.data < 0.5)
-            else: 
+            else:
                 logging.warning('No oceanic mask available for oceanic vars, this might lead to inconsistent results...')
                 out = xfield
         elif dom == 'atm':
-            
+
             # conditions
             if mask_type == 'land':
                 out = xfield.where(mask.data >= 0.5)

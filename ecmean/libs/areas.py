@@ -211,7 +211,6 @@ def _area_cell(xfield, formula='triangles'):
                 'bounds_lat']):
             blatdim = g
 
-
         # checking
         if blondim is None and blatdim is None:
             sys.exit(
@@ -263,7 +262,6 @@ def _area_cell(xfield, formula='triangles'):
                         'lat', xfield['lat'].values), lon=(
                         'lon', xfield['lon'].values)))
             xfield = xfield.merge(xbounds)
-
 
         # create numpy array
         blon = np.column_stack((xfield['lon_bnds'].isel(bnds=0),
