@@ -120,7 +120,7 @@ def var_is_there(flist, var, reference):
     else:
         varunit = None
         # print(f'Not available: {var} File: {flist}')
-        logging.warning("No data found for variable %s. Ignoring it.", var)
+        logging.error("No data found for variable %s. Ignoring it.", var)
 
     return isavail, varunit
 

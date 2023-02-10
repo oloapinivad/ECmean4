@@ -30,25 +30,17 @@ do_create_clim = True
 do_definitive = False
 config_file = '../config_CMIP6_PD.yml'
 
-# models on which we can build the clim
-if do_create_clim:
-    models = ['EC-Earth3', 'IPSL-CM6A-LR', 'FGOALS-g3', 'TaiESM1', 'CanESM5', 'CNRM-CM6-1',
-              'MIROC6', 'MPI-ESM1-2-HR', 'AWI-CM-1-1-MR', 'CMCC-CM2-SR5', 'NorESM2-MM']
+models = ['EC-Earth3', 'IPSL-CM6A-LR', 'FGOALS-g3', 'TaiESM1', 'CanESM5', 'CNRM-CM6-1', 
+          'MIROC6', 'MPI-ESM1-2-HR', 'AWI-CM-1-1-MR', 'CMCC-CM2-SR5', 'NorESM2-MM']
 
+# models with issue in the grid shape for siconc
+# models= ['CMCC-CM2-SR5', 'NorESM2-MM', 'ACCESS-CM2']
 
-else:
-    # models working completely
-    models = ['EC-Earth3', 'IPSL-CM6A-LR', 'FGOALS-g3', 'TaiESM1', 'CanESM5', 'CNRM-CM6-1',
-              'MIROC6', 'MPI-ESM1-2-HR', 'AWI-CM-1-1-MR']
+# models which have not all the data
+# models=['UKESM1-0-LL']
 
-    # models with issue in the grid shape for siconc
-    # models= ['CMCC-CM2-SR5', 'NorESM2-MM', 'ACCESS-CM2']
-
-    # models which have not all the data
-    # models=['UKESM1-0-LL']
-
-    # model whhich does not work
-    # models=['GFDL-CM4', 'CESM2']
+# model whhich does not work
+# models=['GFDL-CM4', 'CESM2']
 
 # call the loop of global mean on all the models
 if do_compute:
@@ -62,8 +54,8 @@ if do_compute:
         else:
             ensemble = "r1i1p1f1"
 
-        performance_indices(expname, year1, year2, config=config_file, model=model, ensemble=ensemble,
-                            numproc=nprocs, climatology=refclim)
+        performance_indices(expname, year1, year2, config=config_file, model=model, 
+                            ensemble=ensemble, numproc=nprocs, climatology=refclim)
 
 if do_create_clim:
 

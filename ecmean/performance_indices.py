@@ -137,11 +137,19 @@ def pi_worker(util, piclim, face, diag, field_3d, varstat, varlist):
                 if domain in 'atm':
                     if util['atm_fix']:
                         tmean = util['atm_fix'](tmean, keep_attrs=True)
-                    final = util['atm_remap'](tmean, keep_attrs=True)
+                    try: 
+                        final = util['atm_remap'](tmean, keep_attrs=True)
+                    except ValueError: 
+                        logging.error(f'Cannot interpolate {var} with the current weights...')
+                        continue
                 if domain in 'oce':
                     if util['oce_fix']:
                         tmean = util['oce_fix'](tmean, keep_attrs=True)
-                    final = util['oce_remap'](tmean, keep_attrs=True)
+                    try: 
+                        final = util['oce_remap'](tmean, keep_attrs=True)
+                    except ValueError: 
+                        logging.error(f'Cannot interpolate {var} with the current weights...')
+                        continue
 
                 # vertical interpolation
                 if var in field_3d:
