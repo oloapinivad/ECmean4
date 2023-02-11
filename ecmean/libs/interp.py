@@ -106,10 +106,13 @@ def _make_oce_interp_weights(component, oceareafile, target_grid):
     gridtype = identify_grid(xfield)
     logging.warning(f'Ocean grid is is a {gridtype} grid!')
 
-    if component == 'nemo':
-        xname = 'cell_area'
-    elif component == 'cmoroce':
-        xname = list(xfield.data_vars)[-1]
+    if component in ['nemo', 'cmoroce']: 
+        if 'areacello' in xfield.data_vars:  # CMOR case
+            xname = 'areacello'
+        elif 'cell_area' in xfield.data_vars:  # ECE4 NEMO case for nemo-initial-state.nc
+            xname = 'cell_area'
+        else: 
+            xname = list(xfield.data_vars)[-1]
     else:
         sys.exit(
             "ERROR: Oce weights not defined for this component, this cannot be handled!")

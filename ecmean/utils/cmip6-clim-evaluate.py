@@ -30,37 +30,31 @@ do_create_clim = True
 do_definitive = False
 config_file = '../config_CMIP6_PD.yml'
 
-models = ['EC-Earth3', 'IPSL-CM6A-LR', 'FGOALS-g3', 'TaiESM1', 'CanESM5', 'CNRM-CM6-1', 
-          'MIROC6', 'MPI-ESM1-2-HR', 'AWI-CM-1-1-MR', 'CMCC-CM2-SR5', 'NorESM2-MM']
+models = ['EC-Earth3', 'IPSL-CM6A-LR', 'FGOALS-g3', 'TaiESM1', 'CanESM5', 'CNRM-CM6-1', 'CESM2',
+          'MIROC6', 'MPI-ESM1-2-HR', 'AWI-CM-1-1-MR', 'CMCC-CM2-SR5', 'NorESM2-MM', 'GFDL-CM4']
 
-# models with issue in the grid shape for siconc
-# models= ['CMCC-CM2-SR5', 'NorESM2-MM', 'ACCESS-CM2']
+# models with issue in the grid shape
+# models= ['ACCESS-CM2']
 
 # models which have not all the data
-# models=['UKESM1-0-LL']
+#models=['UKESM1-0-LL']
 
-# model whhich does not work
-# models=['GFDL-CM4', 'CESM2']
 
 # call the loop of global mean on all the models
 if do_compute:
     for model in models:
         print(model)
 
-        # sys.argv = [expname, str(year1), str(year2), '--config', 'config_CMIP6_PD.yml', '--model', model, '-j', '8']
-        # gm_main(sys.argv)
         if model in ['CNRM-CM6-1', 'UKESM1-0-LL']:
             ensemble = "r1i1p1f2"
         else:
             ensemble = "r1i1p1f1"
 
         performance_indices(expname, year1, year2, config=config_file, model=model, 
-                            ensemble=ensemble, numproc=nprocs, climatology=refclim)
+                            ensemble=ensemble, numproc=nprocs, climatology=refclim, loglevel = 'WARNING')
 
 if do_create_clim:
 
-    # sys.argv = ['historical', str(year1), str(year2), '--config', config_file, '--model', models[0], '-k', refclim]
-    # args = pi_parse_arguments(sys.argv)
     cfg = load_yaml(config_file)
 
     # dictionary with all elements

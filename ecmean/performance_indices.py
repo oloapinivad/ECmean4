@@ -198,7 +198,7 @@ def pi_worker(util, piclim, face, diag, field_3d, varstat, varlist):
                     # latitude-based averaging
                     weights = np.cos(np.deg2rad(slicearray.lat))
                     out = slicearray.weighted(weights).mean().values
-
+                    
                     # store the PI
                     result[season][region] = round(float(out), 3)
 
