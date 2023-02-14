@@ -18,8 +18,10 @@ from multiprocessing import Process, Manager
 import numpy as np
 import xarray as xr
 import yaml
-from ecmean.libs.general import weight_split, get_domain, dict_to_dataframe, numeric_loglevel, get_variables_to_load, check_time_axis
-from ecmean.libs.files import var_is_there, get_inifiles, load_yaml, make_input_filename, get_clim_files, init_diagnostic
+from ecmean.libs.general import weight_split, get_domain, dict_to_dataframe, numeric_loglevel, \
+                                get_variables_to_load, check_time_axis
+from ecmean.libs.files import var_is_there, get_inifiles, load_yaml, make_input_filename, \
+                                get_clim_files, init_diagnostic
 from ecmean.libs.formula import formula_wrapper
 from ecmean.libs.masks import masks_dictionary, mask_field, select_region
 from ecmean.libs.areas import areas_dictionary, guess_bounds
@@ -137,17 +139,17 @@ def pi_worker(util, piclim, face, diag, field_3d, varstat, varlist):
                 if domain in 'atm':
                     if util['atm_fix']:
                         tmean = util['atm_fix'](tmean, keep_attrs=True)
-                    try: 
+                    try:
                         final = util['atm_remap'](tmean, keep_attrs=True)
-                    except ValueError: 
+                    except ValueError:
                         logging.error(f'Cannot interpolate {var} with the current weights...')
                         continue
                 if domain in 'oce':
                     if util['oce_fix']:
                         tmean = util['oce_fix'](tmean, keep_attrs=True)
-                    try: 
+                    try:
                         final = util['oce_remap'](tmean, keep_attrs=True)
-                    except ValueError: 
+                    except ValueError:
                         logging.error(f'Cannot interpolate {var} with the current weights...')
                         continue
 
@@ -198,7 +200,7 @@ def pi_worker(util, piclim, face, diag, field_3d, varstat, varlist):
                     # latitude-based averaging
                     weights = np.cos(np.deg2rad(slicearray.lat))
                     out = slicearray.weighted(weights).mean().values
-                    
+
                     # store the PI
                     result[season][region] = round(float(out), 3)
 

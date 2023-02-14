@@ -73,8 +73,8 @@ maskfile = info['mask']
 def expand_filedata(directory, var, info):
 
     return os.path.expandvars(directory).format(datadir=info['dirs']['datadir'],
-        eradir=info['dirs']['eradir'], esadir=info['dirs']['esadir'],
-        dataset=info[var]['dataset'])
+                                                eradir=info['dirs']['eradir'], esadir=info['dirs']['esadir'],
+                                                dataset=info[var]['dataset'])
 
  # loop on variables to be processed
 for var in variables:

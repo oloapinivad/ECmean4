@@ -14,44 +14,44 @@ from ecmean.libs.files import inifiles_priority
 # AREA-WEIGHT FUNCTIONS #
 ##################################
 
-# def cdo_identify_grid(file):  
+# def cdo_identify_grid(file):
 #     cdogrid = cdo.sinfo(input=os.path.join(dir, file))
 #     for gg in ['unstructured', 'lonlat', 'curvilinear', 'gaussian_reduced', 'gaussian']:
 #         grid_type = [gg for i in cdogrid if gg in i]
 #         if grid_type :
-#             break    
+#             break
 #     return grid_type[0]
 
-def identify_grid(xfield):
 
+def identify_grid(xfield):
     """Receiveng an xarray object (DataArray or Dataset) investigates its coordinates
-    and dimensions and provide the grid type (regular, gaussian, curvilinear, 
+    and dimensions and provide the grid type (regular, gaussian, curvilinear,
     gaussian reduced, unstructured). It assumes that data is defined by 'lon' and 'lat'
     dimensions
 
-    Args : 
-        xfield: 
-    
+    Args :
+        xfield:
+
     Returns
         string with the grid type
-    
+
     """
 
     # if the coordinates are lon/lat proceed
     if all(x in xfield.coords for x in ['lon', 'lat']):
-        
+
         # if dimensions are lon/lat as well, this is a regular grid
         if all(x in xfield.dims for x in ['lon', 'lat']):
-            lat = xfield.coords['lat'] 
+            lat = xfield.coords['lat']
 
             # if lat grid spacing is equal, is regular lonlat, otherwise gaussian
-            if (lat[3] - lat[2]) == (lat[1] - lat[0]) :
+            if (lat[3] - lat[2]) == (lat[1] - lat[0]):
                 gridtype = 'lonlat'
             else:
                 gridtype = 'gaussian'
         else:
             # if the coords are 2D, we are curvilinear
-            if xfield.coords['lon'].ndim == 2 and xfield.coords['lon'].ndim == 2 :
+            if xfield.coords['lon'].ndim == 2 and xfield.coords['lon'].ndim == 2:
                 gridtype = 'curvilinear'
             else:
                 # check the first four elements of the grid (arbitrary)
@@ -62,10 +62,11 @@ def identify_grid(xfield):
                     gridtype = 'gaussian_reduced'
                 else:
                     gridtype = 'unstructured'
-    else: 
+    else:
         sys.exit("Cannot find any lon/lat dimension, aborting...")
-        
-    return(gridtype)
+
+    return (gridtype)
+
 
 def areas_dictionary(component, atmdict, ocedict):
     """Create a dictionary with atmospheric and oceanic area weights"""
@@ -337,11 +338,11 @@ def _area_cell(xfield, formula='triangles'):
         area_cell = area_cell.reshape([len(xfield['lat']), len(xfield['lon'])])
 
     # since we are using numpy need to bring them back into xarray dataset
-    outfield = xr.DataArray(area_cell, dims = area_dims, coords = xfield.coords, name = 'area')
+    outfield = xr.DataArray(area_cell, dims=area_dims, coords=xfield.coords, name='area')
 
     # check the total area
     logging.info('Total Earth Surface: %s Km2',
-                  str(outfield.sum().values / 10**6))
+                 str(outfield.sum().values / 10**6))
 
     return outfield
 

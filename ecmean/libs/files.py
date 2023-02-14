@@ -12,12 +12,11 @@ from glob import glob
 import yaml
 import sys
 from ecmean.libs.general import is_number, Diagnostic
-from ecmean.libs.ncfixers import xr_preproc
-
 
 ##################
 # FILE FUNCTIONS #
 ##################
+
 
 def init_diagnostic(indir, argv):
     """
@@ -37,10 +36,10 @@ def init_diagnostic(indir, argv):
 
     # loading the var-to-file interface
     # allow for both interface name or interface file
-    #fff, ext = os.path.splitext(diag.interface)
-    #if ext:
+    # fff, ext = os.path.splitext(diag.interface)
+    # if ext:
     #    faceload = diag.interface
-    #else:
+    # else:
     #    faceload = indir / Path(
     #        'interfaces',
     #        f'interface_{diag.interface}.yml')
@@ -51,7 +50,7 @@ def init_diagnostic(indir, argv):
         faceload = indir / Path(
             'interfaces',
             f'interface_{diag.interface}.yml')
-    
+
     face = load_yaml(faceload)
 
     return cfg, face, diag
@@ -76,6 +75,7 @@ def inifiles_priority(inidict):
 
     return file
 
+
 def var_is_there(flist, var, reference):
     """Check if a variable is available in the input file and provide its units"""
 
@@ -92,7 +92,7 @@ def var_is_there(flist, var, reference):
         for i in vars_avail:
             if hasattr(xfield[i], 'units'):
                 units_avail[i] = xfield[i].units
-            else: 
+            else:
                 units_avail[i] = 'frac'
             # this is because I can't get rid of this unit
             if units_avail[i] == '(0 - 1)':
@@ -103,7 +103,7 @@ def var_is_there(flist, var, reference):
         if d:
             # remove numbers
             var_req = [x for x in re.split('[*+-]', d) if not is_number(x)]
-  
+
             # check of unit is specified in the interface file
             varunit = reference[var].get('units')
             if not varunit:
@@ -116,10 +116,10 @@ def var_is_there(flist, var, reference):
 
         # check if all required variables are in model output
         for x in var_req:
-             if x not in vars_avail:
-                 isavail = False
-                 logging.warning("Variable %s requires %s which is not "
-                                 "available in the model output. Ignoring it.", var, x)
+            if x not in vars_avail:
+                isavail = False
+                logging.warning("Variable %s requires %s which is not "
+                                "available in the model output. Ignoring it.", var, x)
     else:
         varunit = None
         # print(f'Not available: {var} File: {flist}')

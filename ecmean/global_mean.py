@@ -21,7 +21,8 @@ from time import time
 from tabulate import tabulate
 import numpy as np
 import xarray as xr
-from ecmean.libs.general import weight_split, write_tuning_table, get_domain, numeric_loglevel, get_variables_to_load, check_time_axis
+from ecmean.libs.general import weight_split, write_tuning_table, get_domain, numeric_loglevel, \
+                                get_variables_to_load, check_time_axis
 from ecmean.libs.files import var_is_there, get_inifiles, load_yaml, make_input_filename, init_diagnostic
 from ecmean.libs.formula import formula_wrapper
 from ecmean.libs.masks import masks_dictionary, masked_meansum

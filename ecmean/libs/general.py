@@ -14,6 +14,7 @@ import numpy as np
 # DIAGNOSTIC CLASS #
 ####################
 
+
 class Diagnostic():
     """General container class for common variables"""
 
@@ -121,7 +122,7 @@ def numeric_loglevel(loglevel):
 
 
 def check_time_axis(xtime, years):
-    """Check if we have 12 months per year and if the required years 
+    """Check if we have 12 months per year and if the required years
     have been found in the NetCDF files. """
 
     unique, counts = np.unique(xtime.dt.month, return_counts=True)

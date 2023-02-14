@@ -62,8 +62,8 @@ def _make_atm_interp_weights(component, atmareafile, target_grid):
         # this is to get lon and lat from the Equator
         xname = list(xfield.data_vars)[-1]
         m = xfield[xname].isel(time=0).load()
-        #g = sorted(list(set(m.lat.data)))
-        #f = sorted(list(m.sel(cell=m.lat == g[int(len(g) / 2)]).lon.data))
+        # g = sorted(list(set(m.lat.data)))
+        # f = sorted(list(m.sel(cell=m.lat == g[int(len(g) / 2)]).lon.data))
         # use numpy since it is faster
         g = np.unique(m.lat.data)
         f = np.unique(m.sel(cell=m.lat == g[int(len(g) / 2)]).lon.data)
@@ -110,19 +110,19 @@ def _make_oce_interp_weights(component, oceareafile, target_grid):
     gridtype = identify_grid(xfield)
     logging.warning(f'Ocean grid is is a {gridtype} grid!')
 
-    if component in ['nemo', 'cmoroce']: 
+    if component in ['nemo', 'cmoroce']:
         if 'areacello' in xfield.data_vars:  # CMOR case
             xname = 'areacello'
         elif 'cell_area' in xfield.data_vars:  # ECE4 NEMO case for nemo-initial-state.nc
             xname = 'cell_area'
-        else: 
+        else:
             xname = list(xfield.data_vars)[-1]
     else:
         sys.exit(
             "ERROR: Oce weights not defined for this component, this cannot be handled!")
 
-    if gridtype in ['unstructured'] : 
-        #print("Detecting a unstructured grid, using nearest neighbour!")
+    if gridtype in ['unstructured']:
+        # print("Detecting a unstructured grid, using nearest neighbour!")
         fix = None
         interp = xe.Regridder(
             xfield[xname],
@@ -130,9 +130,9 @@ def _make_oce_interp_weights(component, oceareafile, target_grid):
             method="nearest_s2d",
             locstream_in=True,
             periodic=True)
-    
-    else: 
-       #print("Detecting regular or curvilinear grid, using bilinear!")
+
+    else:
+       # print("Detecting regular or curvilinear grid, using bilinear!")
         fix = None
         interp = xe.Regridder(
             xfield[xname],

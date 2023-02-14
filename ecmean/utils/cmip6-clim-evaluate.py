@@ -37,7 +37,7 @@ models = ['EC-Earth3', 'IPSL-CM6A-LR', 'FGOALS-g3', 'TaiESM1', 'CanESM5', 'CESM2
 # models= ['ACCESS-CM2']
 
 # models which have not all the data
-#models=['UKESM1-0-LL', 'CNRM-CM6-1']
+# models=['UKESM1-0-LL', 'CNRM-CM6-1']
 
 
 # call the loop of global mean on all the models
@@ -50,8 +50,8 @@ if do_compute:
         else:
             ensemble = "r1i1p1f1"
 
-        performance_indices(expname, year1, year2, config=config_file, model=model, 
-                            ensemble=ensemble, numproc=nprocs, climatology=refclim, loglevel = 'WARNING')
+        performance_indices(expname, year1, year2, config=config_file, model=model,
+                            ensemble=ensemble, numproc=nprocs, climatology=refclim, loglevel='WARNING')
 
 if do_create_clim:
 
@@ -82,7 +82,7 @@ if do_create_clim:
                     if var in full[model]:
                         if not np.isnan(full[model][var][season][region]):
                             element.append(full[model][var][season][region])
-                out[var][season][region] = float(round(np.mean(element),3))
+                out[var][season][region] = float(round(np.mean(element), 3))
 
     # clumsy way to get the models for each var
     mout = {}
