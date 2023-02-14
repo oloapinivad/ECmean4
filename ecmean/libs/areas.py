@@ -14,6 +14,59 @@ from ecmean.libs.files import inifiles_priority
 # AREA-WEIGHT FUNCTIONS #
 ##################################
 
+# def cdo_identify_grid(file):
+#     cdogrid = cdo.sinfo(input=os.path.join(dir, file))
+#     for gg in ['unstructured', 'lonlat', 'curvilinear', 'gaussian_reduced', 'gaussian']:
+#         grid_type = [gg for i in cdogrid if gg in i]
+#         if grid_type :
+#             break
+#     return grid_type[0]
+
+
+def identify_grid(xfield):
+    """Receiveng an xarray object (DataArray or Dataset) investigates its coordinates
+    and dimensions and provide the grid type (regular, gaussian, curvilinear,
+    gaussian reduced, unstructured). It assumes that data is defined by 'lon' and 'lat'
+    dimensions
+
+    Args :
+        xfield:
+
+    Returns
+        string with the grid type
+
+    """
+
+    # if the coordinates are lon/lat proceed
+    if all(x in xfield.coords for x in ['lon', 'lat']):
+
+        # if dimensions are lon/lat as well, this is a regular grid
+        if all(x in xfield.dims for x in ['lon', 'lat']):
+            lat = xfield.coords['lat']
+
+            # if lat grid spacing is equal, is regular lonlat, otherwise gaussian
+            if (lat[3] - lat[2]) == (lat[1] - lat[0]):
+                gridtype = 'lonlat'
+            else:
+                gridtype = 'gaussian'
+        else:
+            # if the coords are 2D, we are curvilinear
+            if xfield.coords['lon'].ndim == 2 and xfield.coords['lon'].ndim == 2:
+                gridtype = 'curvilinear'
+            else:
+                # check the first four elements of the grid (arbitrary)
+                lat = xfield.coords['lat'].values[0:5]
+
+                # if they are all the same, we have a gaussian reduced, else unstructured
+                if (lat == lat[0]).all():
+                    gridtype = 'gaussian_reduced'
+                else:
+                    gridtype = 'unstructured'
+    else:
+        sys.exit("Cannot find any lon/lat dimension, aborting...")
+
+    return (gridtype)
+
 
 def areas_dictionary(component, atmdict, ocedict):
     """Create a dictionary with atmospheric and oceanic area weights"""
@@ -177,12 +230,8 @@ def _area_cell(xfield, formula='triangles'):
 
     earth_radius = 6371000.
 
-    # some check to starts
-    if all(x in xfield.dims for x in ['lon', 'lat']):
-        logging.debug('Regulard grid recognized..')
-        regular_grid = True
-    else:
-        regular_grid = False
+    # extract the grid from field
+    gridtype = identify_grid(xfield)
 
     if all(x in xfield.data_vars for x in ['lon_bnds', 'lat_bnds']):
         logging.debug('cmor lon/lat_bounds found...')
@@ -191,26 +240,13 @@ def _area_cell(xfield, formula='triangles'):
         cmor_bounds = False
 
     # this is a nightmare, so far working only for ECE4 gaussian reduced
-    if not regular_grid:
+    if gridtype in ['unstructured', 'gaussian_reduced', 'curvilinear']:
 
         logging.info('Curvilinear/Unstructured grid, tryin to get grid info...')
 
-        blondim = None
-        blatdim = None
-        # trying to find bounderies
-        for g in (
-            t for t in list(
-                xfield.data_vars) if t in [
-                'lon_bnds',
-                'bounds_lon']):
-            blondim = g
-        for g in (
-            t for t in list(
-                xfield.data_vars) if t in [
-                'lat_bnds',
-                'bounds_lat']):
-            blatdim = g
-
+        # use next to assign the first occurence in data vars for the boundaries
+        blondim = next((t for t in xfield.data_vars if t in ['lon_bnds', 'bounds_lon']), None)
+        blatdim = next((t for t in xfield.data_vars if t in ['lat_bnds', 'bounds_lat']), None)
 
         # checking
         if blondim is None and blatdim is None:
@@ -227,24 +263,18 @@ def _area_cell(xfield, formula='triangles'):
                                       xfield[blatdim].isel(nvertex=3)))
         area_dims = 'cell'
         # set full lat
-        full_lat = xfield['lat'].values
+        full_lat = xfield['lat'].data
 
     # if we are dealing with a regular grid
-    if regular_grid:
+    if gridtype in ['gaussian', 'lonlat']:
 
         # if we have bounds, just check they have the right dimensions names
         if cmor_bounds:
 
             # if dimension is not called bnds, rename it
-            if 'bnds' not in list(xfield.dims):
-                logging.debug('bnds not found, trying to rename it...')
-                for g in (
-                    t for t in list(
-                        xfield.dims) if t not in [
-                        'lon',
-                        'lat',
-                        'time']):
-                    bdim = g
+            if 'bnds' not in xfield.dims:
+                logging.info('bnds not found, trying to rename it...')
+                bdim = [g for g in xfield.dims if g not in ['lon', 'lat', 'time']][0]
                 xfield = xfield.rename_dims({bdim: "bnds"})
 
         # else use guess_bounds() and expand the xarray dataset including them
@@ -252,30 +282,23 @@ def _area_cell(xfield, formula='triangles'):
 
             logging.debug('Bounds estimation from lon/lat...')
             # create and xarray dataset which the boundaries
-            xbounds = xr.Dataset(
-                data_vars=dict(
-                    lat_bnds=(
-                        ('lat', 'bnds'), guess_bounds(
-                            xfield['lat'], name='lat')), lon_bnds=(
-                        ('lon', 'bnds'), guess_bounds(
-                            xfield['lon'], name='lon'))), coords=dict(
-                    lat=(
-                        'lat', xfield['lat'].values), lon=(
-                        'lon', xfield['lon'].values)))
-            xfield = xfield.merge(xbounds)
-
+            xfield['lat_bnds'] = (('lat', 'bnds'), guess_bounds(xfield['lat'], name='lat'))
+            xfield['lon_bnds'] = (('lon', 'bnds'), guess_bounds(xfield['lon'], name='lon'))
 
         # create numpy array
         blon = np.column_stack((xfield['lon_bnds'].isel(bnds=0),
                                 xfield['lon_bnds'].isel(bnds=1)))
         blat = np.column_stack((xfield['lat_bnds'].isel(bnds=0),
                                 xfield['lat_bnds'].isel(bnds=1)))
-        full_lat = np.repeat(xfield['lat'].values, len(xfield['lon']), axis=0)
+        full_lat = np.repeat(xfield['lat'].data, len(xfield['lon']), axis=0)
 
         # 2d matrix of bounds
-        expansion = np.array([(y, x) for y in blat for x in blon])
-        bounds_lon = expansion[:, 1, :]
-        bounds_lat = expansion[:, 0, :]
+        # expansion and speed up using numpy instead of list comprehension
+        bounds_lon = np.stack([blon] * len(blat), axis=0)
+        bounds_lat = np.stack([blat] * len(blon), axis=1)
+        bounds_lon = bounds_lon.reshape(-1, 2)
+        bounds_lat = bounds_lat.reshape(-1, 2)
+
         area_dims = ('lat', 'lon')
 
     # cell dimension
@@ -311,14 +334,178 @@ def _area_cell(xfield, formula='triangles'):
         # trapezoid area
         area_cell = (arclon1 + arclon2) * arclat / 2
 
-    if regular_grid:
+    if gridtype in ['gaussian', 'lonlat']:
         area_cell = area_cell.reshape([len(xfield['lat']), len(xfield['lon'])])
 
     # since we are using numpy need to bring them back into xarray dataset
-    xfield['area'] = (area_dims, area_cell)
+    outfield = xr.DataArray(area_cell, dims=area_dims, coords=xfield.coords, name='area')
 
     # check the total area
-    logging.debug('Total Earth Surface: %s Km2',
-                  str(xfield['area'].sum().values / 10**6))
+    logging.info('Total Earth Surface: %s Km2',
+                 str(outfield.sum().values / 10**6))
 
-    return xfield['area']
+    return outfield
+
+# def _area_cell_old(xfield, formula='triangles'):
+#     """
+#     Function which estimate the area cell from bounds. This is done assuming
+#     making use of spherical triangels.
+#     Working also on regular grids which does not have lon/lat bounds
+#     via the guess_bounds function. Curvilinear/unstructured grids are not supported,
+#     especially if with more with more than 4 vertices are not supported.
+
+#     Args:
+#     xfield: a generic xarray dataset
+#     formula: 'squares' or 'trapezoids' or 'triangles' equation for the area cell
+#         'triangles' is the default, uses the spherical triangles - same as
+#         used by CDO - and it is very accurate
+
+#     Returns:
+#     An xarray dataarray with the area for each grid point
+#     """
+
+#     # safe check to operate only on single timeframe
+#     if 'time' in xfield.coords:
+#         xfield = xfield.isel(time=0)
+
+#     earth_radius = 6371000.
+
+#     gridtype = identify_grid(xfield)
+
+#     if all(x in xfield.data_vars for x in ['lon_bnds', 'lat_bnds']):
+#         logging.debug('cmor lon/lat_bounds found...')
+#         cmor_bounds = True
+#     else:
+#         cmor_bounds = False
+
+#     # this is a nightmare, so far working only for ECE4 gaussian reduced
+#     if gridtype in ['unstructured', 'gaussian_reduced', 'curvilinear']:
+
+#         logging.info('Curvilinear/Unstructured grid, tryin to get grid info...')
+
+#         blondim = None
+#         blatdim = None
+
+#         # trying to find bounderies
+#         for g in (
+#             t for t in list(
+#                 xfield.data_vars) if t in [
+#                 'lon_bnds',
+#                 'bounds_lon']):
+#             blondim = g
+#         for g in (
+#             t for t in list(
+#                 xfield.data_vars) if t in [
+#                 'lat_bnds',
+#                 'bounds_lat']):
+#             blatdim = g
+
+#         # checking
+#         if blondim is None and blatdim is None:
+#             sys.exit(
+#                 "ERROR: Can't find any lon/lat boundaries and grid is unstructured, need some help!")
+
+#         logging.info('Unstructured grid, special ECE4 treatment...')
+#         # ATTENTION: this is a very specific ECE4 definition, it will not work
+#         # with other unstructured grids. The assumption of the vertex position
+#         # is absolutely random. Needs to be generalized.
+#         bounds_lon = np.column_stack((xfield[blondim].isel(nvertex=1),
+#                                       xfield[blondim].isel(nvertex=2)))
+#         bounds_lat = np.column_stack((xfield[blatdim].isel(nvertex=2),
+#                                       xfield[blatdim].isel(nvertex=3)))
+#         area_dims = 'cell'
+#         # set full lat
+#         full_lat = xfield['lat'].values
+
+#     # if we are dealing with a regular grid
+#     if gridtype in ['gaussian', 'lonlat']:
+
+#         # if we have bounds, just check they have the right dimensions names
+#         if cmor_bounds:
+
+#             # if dimension is not called bnds, rename it
+#             if 'bnds' not in list(xfield.dims):
+#                 logging.debug('bnds not found, trying to rename it...')
+#                 for g in (
+#                     t for t in list(
+#                         xfield.dims) if t not in [
+#                         'lon',
+#                         'lat',
+#                         'time']):
+#                     bdim = g
+#                 xfield = xfield.rename_dims({bdim: "bnds"})
+
+#         # else use guess_bounds() and expand the xarray dataset including them
+#         if not cmor_bounds:
+
+#             logging.debug('Bounds estimation from lon/lat...')
+#             # create and xarray dataset which the boundaries
+#             xbounds = xr.Dataset(
+#                 data_vars=dict(
+#                     lat_bnds=(
+#                         ('lat', 'bnds'), guess_bounds(
+#                             xfield['lat'], name='lat')), lon_bnds=(
+#                         ('lon', 'bnds'), guess_bounds(
+#                             xfield['lon'], name='lon'))), coords=dict(
+#                     lat=(
+#                         'lat', xfield['lat'].values), lon=(
+#                         'lon', xfield['lon'].values)))
+#             xfield = xfield.merge(xbounds)
+
+#         # create numpy array
+#         blon = np.column_stack((xfield['lon_bnds'].isel(bnds=0),
+#                                 xfield['lon_bnds'].isel(bnds=1)))
+#         blat = np.column_stack((xfield['lat_bnds'].isel(bnds=0),
+#                                 xfield['lat_bnds'].isel(bnds=1)))
+#         full_lat = np.repeat(xfield['lat'].values, len(xfield['lon']), axis=0)
+
+#         # 2d matrix of bounds
+#         expansion = np.array([(y, x) for y in blat for x in blon])
+#         bounds_lon = expansion[:, 1, :]
+#         bounds_lat = expansion[:, 0, :]
+#         area_dims = ('lat', 'lon')
+
+#     # cell dimension
+#     if formula == "triangles":
+#         p1 = _lonlat_to_sphere(bounds_lon[:, 0], bounds_lat[:, 0]).transpose()
+#         p2 = _lonlat_to_sphere(bounds_lon[:, 0], bounds_lat[:, 1]).transpose()
+#         p3 = _lonlat_to_sphere(bounds_lon[:, 1], bounds_lat[:, 1]).transpose()
+#         p4 = _lonlat_to_sphere(bounds_lon[:, 1], bounds_lat[:, 0]).transpose()
+#         area_cell = _vector_spherical_triangle(
+#             p1, p2, p3) + _vector_spherical_triangle(p1, p4, p3)
+#         area_cell = area_cell * earth_radius**2
+#     else:
+#         # cell dimension
+#         dlon = abs(bounds_lon[:, 0] - bounds_lon[:, 1])
+#         dlat = abs(bounds_lat[:, 0] - bounds_lat[:, 1])
+
+#         # safe check on cosine of 90 included:
+#         # assume a trapezoid or a squared cell
+#         if formula == 'trapezoids':
+#             arclon1 = earth_radius * \
+#                 abs(np.cos(abs(np.deg2rad(bounds_lat[:, 0])))) * np.deg2rad(dlon)
+#             arclon2 = earth_radius * \
+#                 abs(np.cos(abs(np.deg2rad(bounds_lat[:, 1])))) * np.deg2rad(dlon)
+#         if formula == 'squares':
+#             full_lat = np.repeat(
+#                 xfield['lat'].values, len(
+#                     xfield['lon']), axis=0)
+#             arclon1 = arclon2 = earth_radius * \
+#                 abs(np.cos(abs(np.deg2rad(full_lat)))) * np.deg2rad(dlon)
+
+#         arclat = earth_radius * np.deg2rad(dlat)
+
+#         # trapezoid area
+#         area_cell = (arclon1 + arclon2) * arclat / 2
+
+#     if gridtype in ['gaussian', 'lonlat']:
+#         area_cell = area_cell.reshape([len(xfield['lat']), len(xfield['lon'])])
+
+#     # since we are using numpy need to bring them back into xarray dataset
+#     xfield['area'] = (area_dims, area_cell)
+
+#     # check the total area
+#     logging.debug('Total Earth Surface: %s Km2',
+#                   str(xfield['area'].sum().values / 10**6))
+
+#     return xfield['area']

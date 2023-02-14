@@ -5,7 +5,8 @@ Main concepts
 ^^^^^^^^^^^^^
 
 The ``global_mean`` command is based on ``global_mean.py`` script which computes the global averages for many dynamical and physical fields
-It compares the output against a set of pre-computed climatological values defined in ``ecmean/reference/gm_reference.yml``, including the most important dynamical and physical fields for both the atmosphere and the ocean (e.g. temperature, salinity, etc.).
+It compares the output against a set of pre-computed climatological values defined in ``ecmean/reference/gm_reference_EC23.yml``, including the most important dynamical and physical fields for both the atmosphere and the ocean (e.g. land temperature, salinity, etc.).
+Different datasates are taken in consideration, providing an estimate of the interannual variability in the form of stdandard deviation.
 
 Most importantly, it provides estimate for the radiative budget (including clouds radiative forcing) and for the hydrological cycle (including integrals over land and ocean) 
 and other quantities useful for fast model assessment and for model tuning.
@@ -46,6 +47,14 @@ Alternative, you also run the python script in ``ecmean`` library ::
   -j NUMPROC                    number of processors to use
   -e ENSEMBLE, --ensemble ENSEMBLE      variant label (ripf number for cmor)
 
+Example
+^^^^^^^
+
+Usage example for CMIP5::
+
+        global_mean historical 1990 1999 -j 12 -m EC-EARTH -e r1i1p1 -i CMIP5
+
+will compute performance indices for member r1i1p1 of the EC-EARTH model in the CMIP5 historical experiment.
 
 Output
 ^^^^^^
@@ -60,11 +69,8 @@ A txt table including the comparison with some predefined dataset.
    An example for a single year of the EC-Earth3 historical r1i1p1f1 simulation.
 
 
-Example
-^^^^^^^
+Climatology computation
+^^^^^^^^^^^^^^^^^^^^^^^
 
-Usage example for CMIP5::
-
-        global_mean historical 1990 1999 -j 12 -m EC-EARTH -e r1i1p1 -i CMIP5
-
-will compute performance indices for member r1i1p1 of the EC-EARTH model in the CMIP5 historical experiment.
+Climatology is computed by the ``ecmean/utils/reference-create.py`` script, which is included in the repository for documentation.
+It is based on a YML file which is tells the script where to retrieve the data, identifying all the required data folder and names. 

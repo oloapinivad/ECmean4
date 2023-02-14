@@ -125,24 +125,27 @@ def _make_oce_masks(component, maskocefile, remap_dictionary=None):
     return mask
 
 
-def masked_meansum(xfield, var, weights, mask_type, dom, mask):
+def masked_meansum(xfield, weights, mask, operation, domain, mask_type):
     """For global variables evaluate the weighted averaged
     or weighted integral when required by the variable properties"""
 
     # call the mask_field to mask where necessary
     # the mask field is area
-    masked = mask_field(xfield, mask_type, dom, mask)
+    masked = mask_field(xfield, mask_type, domain, mask)
+
+    # no time dimensions
+    notimedim = [dim for dim in xfield.dims if dim != 'time']
 
     # global mean
-    if mask_type in ['global']:
-        out = masked.weighted(weights.fillna(0)).mean().values
+    if operation in ['average', 'mean']:
+        out = masked.weighted(weights.fillna(0)).mean(dim=notimedim).data
     # global integrals
-    elif mask_type in ['land', 'ocean', 'sea', 'north', 'south']:
-        out = masked.weighted(weights.fillna(0)).sum().values
+    elif operation in ['integral', 'sum']:
+        out = masked.weighted(weights.fillna(0)).sum(dim=notimedim).data
     else:
         sys.exit("ERROR: masked_meansum-> mask undefined, this cannot be handled!")
 
-    return float(out)
+    return out
 
 
 # def _merge_mask(var, xfield, mask):
@@ -163,28 +166,31 @@ def masked_meansum(xfield, var, weights, mask_type, dom, mask):
 def mask_field(xfield, mask_type, dom, mask):
     """Apply a land/sea mask on a xarray variable var"""
 
-    # if oceanic, apply the ocenanic mask (if it exists!)
-    if dom == 'oce' and isinstance(mask, xr.DataArray):
-        out = xfield.where(mask.data < 0.5)
-
     # nothing to be done
     if mask_type == 'global':
         out = xfield
-
     # northern and southern hemisphere
     elif mask_type == 'north':
         out = xfield.where(xfield['lat'] > 0)
     elif mask_type == 'south':
         out = xfield.where(xfield['lat'] < 0)
     else:
+        # if oceanic, apply the ocenanic mask (if it exists!)
+        if dom == 'oce':
+            if isinstance(mask, xr.DataArray):
+                out = xfield.where(mask.data < 0.5)
+            else:
+                logging.warning('No oceanic mask available for oceanic vars, this might lead to inconsistent results...')
+                out = xfield
+        elif dom == 'atm':
 
-        # conditions
-        if mask_type == 'land':
-            out = xfield.where(mask.data >= 0.5)
-        elif mask_type in ['sea', 'ocean']:
-            out = xfield.where(mask.data < 0.5)
-        else:
-            sys.exit("ERROR: mask_field -> Mask undefined, this cannot be handled!")
+            # conditions
+            if mask_type == 'land':
+                out = xfield.where(mask.data >= 0.5)
+            elif mask_type in ['sea', 'ocean']:
+                out = xfield.where(mask.data < 0.5)
+            else:
+                sys.exit("ERROR: mask_field -> Mask undefined, this cannot be handled!")
 
     return out
 
@@ -223,6 +229,9 @@ def mask_field(xfield, mask_type, dom, mask):
 def select_region(xfield, region):
     """Trivial function to convert region definition to xarray
     sliced array to compute the PIs or global means on selected regions"""
+
+    # fixed for the order of latitudes
+    xfield = xfield.sortby('lat')
 
     if region == 'Global':
         slicearray = xfield

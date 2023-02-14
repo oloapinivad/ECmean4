@@ -8,7 +8,7 @@ import logging
 from pathlib import Path
 import pandas as pd
 import re
-
+import numpy as np
 
 ####################
 # DIAGNOSTIC CLASS #
@@ -121,6 +121,23 @@ def numeric_loglevel(loglevel):
     return numeric_level
 
 
+def check_time_axis(xtime, years):
+    """Check if we have 12 months per year and if the required years
+    have been found in the NetCDF files. """
+
+    unique, counts = np.unique(xtime.dt.month, return_counts=True)
+    if len(unique) != 12 or not all(counts == counts[0]):
+        logging.warning('Check your data: some months might be missing...')
+
+    # apparently this is already satisfied by the file browsing
+    # set1=set(years)
+    # set2=set(xtime.dt.year.values)
+    # missing = list(set1.difference(set2))
+    # if missing:
+    #     logging.warning('Some years are missing')
+    #     logging.warning(missing)
+
+
 # def chunks(iterable, num):
 #     """Generate num adjacent chunks of data from a list iterable
 #     Split lists in a convenient way for a parallel process"""
@@ -184,14 +201,14 @@ def get_domain(var, face):
     return domain[comp]
 
 
-def get_component(face):  # unused function
-    """Return a dictionary providing the domain associated with a variable
-    (the interface file specifies the domain for each component instead)"""
+# def get_component(face):  # unused function
+#     """Return a dictionary providing the domain associated with a variable
+#     (the interface file specifies the domain for each component instead)"""
 
-    d = face['component']
-    p = dict(zip([list(d.values())[x]['domain']
-             for x in range(len(d.values()))], d.keys()))
-    return p
+#     d = face['component']
+#     p = dict(zip([list(d.values())[x]['domain']
+#              for x in range(len(d.values()))], d.keys()))
+#     return p
 
 
 ####################

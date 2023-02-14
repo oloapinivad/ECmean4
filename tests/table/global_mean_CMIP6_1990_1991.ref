@@ -1,0 +1,8 @@
+|   Variable   |              Longname               |  Units  |   EC-Earth3 |        Trend |     Obs.     |  Dataset   |   Years   |
+|--------------+-------------------------------------+---------+-------------+--------------+--------------+------------+-----------|
+|      pr      |            Precipitation            | mm/day  |     2.89989 |  1.78857e-07 | 2.853±0.039  |   MSWEP    | 1991-2020 |
+|   pr_land    | Precipitation (integral over land)  |   Sv    |     3.58764 |  3.97631e+07 |  3.448±0.07  |   MSWEP    | 1991-2020 |
+|    pr_oce    | Precipitation (integral over ocean) |   Sv    |    13.5319  |  5.14653e+07 | 13.395±0.235 |   MSWEP    | 1991-2020 |
+|     tos      |       Sea Surface Temperature       |    K    |   292.14    | -0.0408802   | 291.44±0.148 | ESA-CCI-L4 | 1991-2020 |
+| siconc_north | Sea Ice Area (Northern Hemisphere)  |  Mm^2   |     6.04615 | -1.20923e+15 |    9.562     | ESA-CCI-L4 |     -     |
+| siconc_south | Sea Ice Area (Southern Hemisphere)  |  Mm^2   |     2.76726 | -5.53451e+14 |     9.66     | ESA-CCI-L4 |     -     |

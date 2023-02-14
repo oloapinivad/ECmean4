@@ -6,9 +6,11 @@ Shared functions for XArray ECmean4
 import logging
 import xarray as xr
 import xesmf as xe
+import numpy as np
 import sys
 from ecmean.libs.ncfixers import xr_preproc
 from ecmean.libs.files import inifiles_priority
+from ecmean.libs.areas import identify_grid
 
 ###########################
 # INTERPOLATION FUNCTIONS #
@@ -51,14 +53,20 @@ def _make_atm_interp_weights(component, atmareafile, target_grid):
     if not atmareafile:
         sys.exit("ERROR: Atmareafile cannot be found")
 
+    xfield = xr.open_mfdataset(atmareafile, preprocess=xr_preproc).load()
+    gridtype = identify_grid(xfield)
+    logging.warning(f'Atmosphere grid is is a {gridtype} grid!')
+
     if component == 'oifs':
 
         # this is to get lon and lat from the Equator
-        xfield = xr.open_mfdataset(atmareafile, preprocess=xr_preproc).load()
         xname = list(xfield.data_vars)[-1]
         m = xfield[xname].isel(time=0).load()
-        g = sorted(list(set(m.lat.values)))
-        f = sorted(list(m.sel(cell=m.lat == g[int(len(g) / 2)]).lon.values))
+        # g = sorted(list(set(m.lat.data)))
+        # f = sorted(list(m.sel(cell=m.lat == g[int(len(g) / 2)]).lon.data))
+        # use numpy since it is faster
+        g = np.unique(m.lat.data)
+        f = np.unique(m.sel(cell=m.lat == g[int(len(g) / 2)]).lon.data)
 
         # this creates a a gaussian non reduced grid
         ds_out = xr.Dataset({"lon": (["lon"], f), "lat": (["lat"], g)})
@@ -78,7 +86,6 @@ def _make_atm_interp_weights(component, atmareafile, target_grid):
     elif component in ['cmoratm', 'globo']:
 
         fix = None
-        xfield = xr.open_mfdataset(atmareafile, preprocess=xr_preproc).load()
         interp = xe.Regridder(
             xfield,
             target_grid,
@@ -99,56 +106,39 @@ def _make_oce_interp_weights(component, oceareafile, target_grid):
     if not oceareafile:
         sys.exit("ERROR: Oceareafile cannot be found")
 
-    if component == 'nemo':
+    xfield = xr.open_mfdataset(oceareafile, preprocess=xr_preproc).load()
+    gridtype = identify_grid(xfield)
+    logging.warning(f'Ocean grid is is a {gridtype} grid!')
+
+    if component in ['nemo', 'cmoroce']:
+        if 'areacello' in xfield.data_vars:  # CMOR case
+            xname = 'areacello'
+        elif 'cell_area' in xfield.data_vars:  # ECE4 NEMO case for nemo-initial-state.nc
+            xname = 'cell_area'
+        else:
+            xname = list(xfield.data_vars)[-1]
+    else:
+        sys.exit(
+            "ERROR: Oce weights not defined for this component, this cannot be handled!")
+
+    if gridtype in ['unstructured']:
+        # print("Detecting a unstructured grid, using nearest neighbour!")
         fix = None
-        xfield = xr.open_mfdataset(oceareafile, preprocess=xr_preproc).load()
-
-        # set coordinates which are missing
-        # for cl in ['nav_lon', 'nav_lat', 'nav_lev', 'time_counter', 'x', 'y']:
-        #    if cl in xfield.data_vars:
-        #        xfield = xfield.set_coords([cl])
-
-        # rename dimensions and coordinates
-        # xfield = xfield.rename(
-        #    {"nav_lon": "lon", "nav_lat": "lat", "nav_lev": "deptht"})
-
-        # use grid distance as generic variable
         interp = xe.Regridder(
-            xfield['cell_area'],
+            xfield[xname],
+            target_grid,
+            method="nearest_s2d",
+            locstream_in=True,
+            periodic=True)
+
+    else:
+       # print("Detecting regular or curvilinear grid, using bilinear!")
+        fix = None
+        interp = xe.Regridder(
+            xfield[xname],
             target_grid,
             method="bilinear",
             periodic=True,
             ignore_degenerate=True)
-
-    elif component == 'cmoroce':
-
-        fix = None
-        xfield = xr.open_mfdataset(oceareafile, preprocess=xr_preproc)
-        xname = list(xfield.data_vars)[-1]
-        # print(len(xfield.coords['lon'].shape))
-
-        # check if oceanic grid is regular: lon/lat dims should be 1d
-        if not all(x in xfield.dims for x in ['lon', 'lat']) and (len(xfield.dims) < 3):
-            # if len(xfield.coords['lon'].shape) == 1 and len(xfield.coords['lat'].shape) == 1:
-
-            print("Detecting a unstructured grid, using nearest neighbour!")
-            interp = xe.Regridder(
-                xfield[xname].load(),
-                target_grid,
-                method="nearest_s2d",
-                locstream_in=True,
-                periodic=True)
-        else:
-            print("Detecting regular or curvilinear grid, using bilinear!")
-            interp = xe.Regridder(
-                xfield[xname].load(),
-                target_grid,
-                method="bilinear",
-                ignore_degenerate=True,
-                periodic=True)
-
-    else:
-        sys.exit(
-            "ERROR: Oce weights not defined for this component, this cannot be handled!")
 
     return fix, interp
