@@ -138,10 +138,10 @@ def masked_meansum(xfield, weights, mask, operation, domain, mask_type):
 
     # global mean
     if operation in ['average', 'mean']:
-        out = masked.weighted(weights.fillna(0)).mean(dim=notimedim).values
+        out = masked.weighted(weights.fillna(0)).mean(dim=notimedim).data
     # global integrals
     elif operation in ['integral', 'sum']:
-        out = masked.weighted(weights.fillna(0)).sum(dim=notimedim).values
+        out = masked.weighted(weights.fillna(0)).sum(dim=notimedim).data
     else:
         sys.exit("ERROR: masked_meansum-> mask undefined, this cannot be handled!")
 

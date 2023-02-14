@@ -6,6 +6,7 @@ Shared functions for XArray ECmean4
 import logging
 import xarray as xr
 import xesmf as xe
+import numpy as np
 import sys
 from ecmean.libs.ncfixers import xr_preproc
 from ecmean.libs.files import inifiles_priority
@@ -61,8 +62,11 @@ def _make_atm_interp_weights(component, atmareafile, target_grid):
         # this is to get lon and lat from the Equator
         xname = list(xfield.data_vars)[-1]
         m = xfield[xname].isel(time=0).load()
-        g = sorted(list(set(m.lat.values)))
-        f = sorted(list(m.sel(cell=m.lat == g[int(len(g) / 2)]).lon.values))
+        #g = sorted(list(set(m.lat.data)))
+        #f = sorted(list(m.sel(cell=m.lat == g[int(len(g) / 2)]).lon.data))
+        # use numpy since it is faster
+        g = np.unique(m.lat.data)
+        f = np.unique(m.sel(cell=m.lat == g[int(len(g) / 2)]).lon.data)
 
         # this creates a a gaussian non reduced grid
         ds_out = xr.Dataset({"lon": (["lon"], f), "lat": (["lat"], g)})

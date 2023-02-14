@@ -24,20 +24,20 @@ year1 = 1981
 year2 = 2010
 expname = 'historical'
 refclim = 'EC23'
-nprocs = 4
+nprocs = 2
 do_compute = True
 do_create_clim = True
 do_definitive = False
 config_file = '../config_CMIP6_PD.yml'
 
-models = ['EC-Earth3', 'IPSL-CM6A-LR', 'FGOALS-g3', 'TaiESM1', 'CanESM5', 'CNRM-CM6-1', 'CESM2',
+models = ['EC-Earth3', 'IPSL-CM6A-LR', 'FGOALS-g3', 'TaiESM1', 'CanESM5', 'CESM2',
           'MIROC6', 'MPI-ESM1-2-HR', 'AWI-CM-1-1-MR', 'CMCC-CM2-SR5', 'NorESM2-MM', 'GFDL-CM4']
 
 # models with issue in the grid shape
 # models= ['ACCESS-CM2']
 
 # models which have not all the data
-#models=['UKESM1-0-LL']
+#models=['UKESM1-0-LL', 'CNRM-CM6-1']
 
 
 # call the loop of global mean on all the models
@@ -80,8 +80,9 @@ if do_create_clim:
                 element = []
                 for model in full.keys():
                     if var in full[model]:
-                        element.append(full[model][var][season][region])
-                out[var][season][region] = np.nanmean(element)
+                        if not np.isnan(full[model][var][season][region]):
+                            element.append(full[model][var][season][region])
+                out[var][season][region] = float(round(np.mean(element),3))
 
     # clumsy way to get the models for each var
     mout = {}
@@ -89,7 +90,8 @@ if do_create_clim:
         melement = []
         for model in full.keys():
             if var in full[model]:
-                melement.append(model)
+                if not np.isnan(full[model][var]['ALL']['Global']):
+                    melement.append(model)
         mout[var] = melement
 
     # clim files

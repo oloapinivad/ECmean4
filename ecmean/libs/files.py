@@ -37,13 +37,21 @@ def init_diagnostic(indir, argv):
 
     # loading the var-to-file interface
     # allow for both interface name or interface file
-    fff, ext = os.path.splitext(diag.interface)
-    if ext:
-        faceload = diag.interface
-    else:
+    #fff, ext = os.path.splitext(diag.interface)
+    #if ext:
+    #    faceload = diag.interface
+    #else:
+    #    faceload = indir / Path(
+    #        'interfaces',
+    #        f'interface_{diag.interface}.yml')
+
+    # allow for both interface name or interface file
+    faceload = diag.interface
+    if not os.path.exists(faceload):
         faceload = indir / Path(
             'interfaces',
             f'interface_{diag.interface}.yml')
+    
     face = load_yaml(faceload)
 
     return cfg, face, diag
@@ -61,45 +69,41 @@ def inifiles_priority(inidict):
         file = inidict['areafile']
     elif inidict['gridfile']:
         file = inidict['gridfile']
-    else:
+    elif inidict['maskfile']:
         file = inidict['maskfile']
+    else:
+        file = None
 
     return file
-
 
 def var_is_there(flist, var, reference):
     """Check if a variable is available in the input file and provide its units"""
 
     # we expect a list obtained by glob
-    isavail = True
-    for f in flist:
-        isavail = isavail and os.path.isfile(f)
-    isavail = isavail and (len(flist) > 0)
+    isavail = all(os.path.isfile(f) for f in flist) and len(flist) > 0
 
     if isavail:
-        xfield = xr.open_mfdataset(flist, preprocess=xr_preproc)
-        # vars_avail = [i for i in xfield.data_vars]
+        # no need of preproc here
+        xfield = xr.open_mfdataset(flist)
+
         vars_avail = xfield.data_vars
         units_avail = {}
         # if I don't know the unit, assuming is a fraction
         for i in vars_avail:
-            try:
-                k = xfield[i].units
-            except BaseException:
-                k = 'frac'
-            if k == '(0 - 1)':
-                k = 'frac'
-            units_avail[i] = k
+            if hasattr(xfield[i], 'units'):
+                units_avail[i] = xfield[i].units
+            else: 
+                units_avail[i] = 'frac'
+            # this is because I can't get rid of this unit
+            if units_avail[i] == '(0 - 1)':
+                units_avail[i] = 'frac'
 
         # if variable is derived, extract required vars
         d = reference[var].get('derived')
         if d:
-            var_req = re.split('[*+-]', d)
             # remove numbers
-            for x in var_req:
-                if is_number(x):
-                    var_req.remove(x)
-
+            var_req = [x for x in re.split('[*+-]', d) if not is_number(x)]
+  
             # check of unit is specified in the interface file
             varunit = reference[var].get('units')
             if not varunit:
@@ -111,18 +115,74 @@ def var_is_there(flist, var, reference):
             varunit = units_avail.get(var)
 
         # check if all required variables are in model output
-        isavail = True
         for x in var_req:
-            if x not in vars_avail:
-                isavail = False
-                logging.warning("Variable %s requires %s which is not "
-                                "available in the model output. Ignoring it.", var, x)
+             if x not in vars_avail:
+                 isavail = False
+                 logging.warning("Variable %s requires %s which is not "
+                                 "available in the model output. Ignoring it.", var, x)
     else:
         varunit = None
         # print(f'Not available: {var} File: {flist}')
         logging.error("No data found for variable %s. Ignoring it.", var)
 
     return isavail, varunit
+
+# def var_is_there_old(flist, var, reference):
+#     """Check if a variable is available in the input file and provide its units"""
+
+#     # we expect a list obtained by glob
+#     isavail = True
+#     for f in flist:
+#         isavail = isavail and os.path.isfile(f)
+#     isavail = isavail and (len(flist) > 0)
+
+#     if isavail:
+#         xfield = xr.open_mfdataset(flist, preprocess=xr_preproc)
+#         # vars_avail = [i for i in xfield.data_vars]
+#         vars_avail = xfield.data_vars
+#         units_avail = {}
+#         # if I don't know the unit, assuming is a fraction
+#         for i in vars_avail:
+#             try:
+#                 k = xfield[i].units
+#             except BaseException:
+#                 k = 'frac'
+#             if k == '(0 - 1)':
+#                 k = 'frac'
+#             units_avail[i] = k
+
+#         # if variable is derived, extract required vars
+#         d = reference[var].get('derived')
+#         if d:
+#             var_req = re.split('[*+-]', d)
+#             # remove numbers
+#             for x in var_req:
+#                 if is_number(x):
+#                     var_req.remove(x)
+
+#             # check of unit is specified in the interface file
+#             varunit = reference[var].get('units')
+#             if not varunit:
+#                 logging.info('%s is a derived var, assuming unit '
+#                              'as the first of its term', var)
+#                 varunit = units_avail.get(var_req[0])
+#         else:
+#             var_req = [var]
+#             varunit = units_avail.get(var)
+
+#         # check if all required variables are in model output
+#         isavail = True
+#         for x in var_req:
+#             if x not in vars_avail:
+#                 isavail = False
+#                 logging.warning("Variable %s requires %s which is not "
+#                                 "available in the model output. Ignoring it.", var, x)
+#     else:
+#         varunit = None
+#         # print(f'Not available: {var} File: {flist}')
+#         logging.error("No data found for variable %s. Ignoring it.", var)
+
+#     return isavail, varunit
 
 
 def get_clim_files(piclim, var, diag, season):
