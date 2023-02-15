@@ -79,6 +79,10 @@ def _make_atm_masks(component, maskatmfile, remap_dictionary=None):
     else:
         sys.exit("ERROR: _make_atm_masks -> Mask undefined yet mismatch, this cannot be handled!")
 
+    # safe check to operate only on single timeframe
+    if 'time' in mask.coords:
+        mask = mask.isel(time=0)
+
     # interp the mask if required
     if remap_dictionary is not None:
         if remap_dictionary['atm_fix']:
@@ -115,6 +119,10 @@ def _make_oce_masks(component, maskocefile, remap_dictionary=None):
     else:
         mask = None
         sys.exit("ERROR: _make_oce_masks -> Mask undefined yet mismatch, this cannot be handled!")
+
+    # safe check to operate only on single timeframe
+    if 'time' in mask.coords:
+        mask = mask.isel(time=0)
 
     # interp the mask if required
     if remap_dictionary is not None:
