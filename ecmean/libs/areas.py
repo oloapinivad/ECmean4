@@ -225,7 +225,7 @@ def _area_cell(xfield, formula='triangles'):
     """
 
     # safe check to operate only on single timeframe
-    if 'time' in xfield.coords:
+    if 'time' in xfield.dims:
         xfield = xfield.isel(time=0)
 
     earth_radius = 6371000.

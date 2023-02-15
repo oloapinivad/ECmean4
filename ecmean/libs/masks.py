@@ -80,7 +80,7 @@ def _make_atm_masks(component, maskatmfile, remap_dictionary=None):
         sys.exit("ERROR: _make_atm_masks -> Mask undefined yet mismatch, this cannot be handled!")
 
     # safe check to operate only on single timeframe
-    if 'time' in mask.coords:
+    if 'time' in mask.dims:
         mask = mask.isel(time=0)
 
     # interp the mask if required
@@ -121,7 +121,7 @@ def _make_oce_masks(component, maskocefile, remap_dictionary=None):
         sys.exit("ERROR: _make_oce_masks -> Mask undefined yet mismatch, this cannot be handled!")
 
     # safe check to operate only on single timeframe
-    if 'time' in mask.coords:
+    if 'time' in mask.dims:
         mask = mask.isel(time=0)
 
     # interp the mask if required
