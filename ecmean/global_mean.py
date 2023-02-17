@@ -25,7 +25,7 @@ from ecmean.libs.general import weight_split, write_tuning_table, get_domain, nu
                                 get_variables_to_load, check_time_axis
 from ecmean.libs.files import var_is_there, get_inifiles, load_yaml, make_input_filename, init_diagnostic
 from ecmean.libs.formula import formula_wrapper
-from ecmean.libs.masks import masks_dictionary, masked_meansum
+from ecmean.libs.masks import masks_dictionary, masked_meansum, select_region
 from ecmean.libs.areas import areas_dictionary
 from ecmean.libs.units import units_extra_definition, units_wrapper
 from ecmean.libs.ncfixers import xr_preproc
@@ -70,10 +70,15 @@ def gm_worker(util, ref, face, diag, varmean, vartrend, varlist):
         # chck if variables are available
         isavail, varunit = var_is_there(infile, var, face['variables'])
 
-        if not isavail:
-            varmean[var] = float("NaN")
-            vartrend[var] = float("NaN")
-        else:
+        # store NaN in dict (can't use defaultdict due to multiprocessing)
+        # result = defaultdict(lambda: defaultdict(lambda : float('NaN')))
+        result = {}
+        for season in diag.seasons:
+            result[season] = {}
+            for region in diag.regions:
+                result[season][region] = float('NaN')
+
+        if isavail:
 
             # perform the unit conversion extracting offset and factor
             offset, factor = units_wrapper(var, varunit, ref, face)
@@ -81,32 +86,54 @@ def gm_worker(util, ref, face, diag, varmean, vartrend, varlist):
             # load the object
             xfield = xr.open_mfdataset(infile, preprocess=xr_preproc, chunks={'time': 12})
 
+            # in case of big files with multi year, be sure of having opened the right records
+            xfield = xfield.sel(time=xfield.time.dt.year.isin(diag.years_joined))
+
             # check time axis
             check_time_axis(xfield.time, diag.years_joined)
 
             # get the data-array field for the required var
-            cfield = formula_wrapper(var, face, xfield)
+            cfield = formula_wrapper(var, face, xfield).compute()
 
-            a = []
-            # loop on years:
-            for year in diag.years_joined:
+            for season in diag.seasons:
 
-                # time selection and mean
-                tfield = cfield.sel(time=(cfield.time.dt.year == year)).mean(dim='time')
+                if season != 'ALL':
+                    tfield = cfield.sel(time=cfield.time.dt.season.isin(season)).mean(dim='time')
+                else: 
+                    tfield = cfield.mean(dim='time')
 
-                # final operation on the field
-                x = masked_meansum(
-                    xfield=tfield, weights=weights, mask=domain_mask,
-                    operation=ref[var].get('operation', 'mean'),
-                    mask_type=ref[var].get('mask', 'global'),
-                    domain=domain)
-                a.append(float(x))
+                for region in diag.regions:
 
-            varmean[var] = (np.nanmean(a) + offset) * factor
-            if diag.ftrend:
-                vartrend[var] = np.polyfit(diag.years_joined, a, 1)[0]
-            if diag.fverb:
-                print('Average', var, varmean[var])
+                    slicefield = select_region(tfield, region)
+                    sliceweights = select_region(weights, region)
+                    if ref[var].get('mask', 'global') != 'Global':
+                        slicemask = select_region(domain_mask, region)
+                    else:
+                        slicemask = 0.
+
+                    #tfield = cfield.resample(time='1Y').mean('time')
+
+                    # final operation on the field
+                    a = masked_meansum(
+                        xfield=slicefield, weights=sliceweights, mask=slicemask,
+                        operation=ref[var].get('operation', 'mean'),
+                        mask_type=ref[var].get('mask', 'global'),
+                        domain=domain)
+                    
+                    try:
+                        x = a.compute()
+                    except:
+                        x = a
+
+                    result[season][region] = (np.nanmean(x) + offset) * factor
+
+                    if diag.ftrend:
+                        vartrend[var] = np.polyfit(diag.years_joined,x, 1)[0]
+                    if diag.fverb and season == 'ALL' and region == 'Global':
+                        print('Average', var, season, region, result[season][region])
+
+        # nested dictionary, to be redifend as a dict to remove lambdas
+        varmean[var] = result
 
 
 def global_mean(exp, year1, year2,
@@ -225,7 +252,7 @@ def global_mean(exp, year1, year2,
         if 'year1' in gamma.keys():
             years = str(gamma['year1']) + '-' + str(gamma['year2'])
 
-        out_sequence = [var, gamma['longname'], gamma['units'], varmean[var]]
+        out_sequence = [var, gamma['longname'], gamma['units'], varmean[var]['ALL']['Global']]
         if diag.ftrend:
             out_sequence = out_sequence + [vartrend[var]]
         out_sequence = out_sequence + [outval, gamma.get('dataset', ''), years]

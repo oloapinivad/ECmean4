@@ -6,6 +6,7 @@ Shared functions for XArray ECmean4
 import logging
 import sys
 import xarray as xr
+import numpy as np
 from ecmean.libs.ncfixers import xr_preproc
 from ecmean.libs.units import units_converter
 
@@ -239,7 +240,30 @@ def select_region(xfield, region):
     sliced array to compute the PIs or global means on selected regions"""
 
     # fixed for the order of latitudes
-    xfield = xfield.sortby('lat')
+    #xfield = xfield.sortby('lat')
+
+    if region == 'Global':
+        return xfield
+    else: 
+        if region == 'North Midlat':
+            lat_min, lat_max = 30.0, 90.0
+        elif region == 'South Midlat':
+            lat_min, lat_max = -90.0, -30.0 
+        elif region == 'Tropical':
+            lat_min, lat_max = -30.0, 30.0
+        else:
+            sys.exit(region + "region not supported!!!")
+    
+        return xfield.where((xfield.lat >= lat_min) & (xfield.lat <= lat_max))
+         
+
+def select_region_old(xfield, region):
+    """Trivial function to convert region definition to xarray
+    sliced array to compute the PIs or global means on selected regions"""
+
+    # fixed for the order of latitudes
+    #xfield = xfield.sortby('lat')
+
 
     if region == 'Global':
         slicearray = xfield
