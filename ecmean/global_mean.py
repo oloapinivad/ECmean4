@@ -106,7 +106,7 @@ def gm_worker(util, ref, face, diag, varmean, vartrend, varlist):
 
                     slicefield = select_region(tfield, region)
                     sliceweights = select_region(weights, region)
-                    if ref[var].get('mask', 'global') != 'Global':
+                    if isinstance(domain_mask, xr.DataArray): 
                         slicemask = select_region(domain_mask, region)
                     else:
                         slicemask = 0.
