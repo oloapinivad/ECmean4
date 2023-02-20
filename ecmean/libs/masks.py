@@ -239,9 +239,6 @@ def select_region(xfield, region):
     """Trivial function to convert region definition to xarray
     sliced array to compute the PIs or global means on selected regions"""
 
-    # fixed for the order of latitudes
-    #xfield = xfield.sortby('lat')
-
     if region == 'Global':
         return xfield
     else: 
@@ -254,26 +251,27 @@ def select_region(xfield, region):
         else:
             sys.exit(region + "region not supported!!!")
     
+        # new version more flexible than the slice one
         return xfield.where((xfield.lat >= lat_min) & (xfield.lat <= lat_max))
          
 
-def select_region_old(xfield, region):
-    """Trivial function to convert region definition to xarray
-    sliced array to compute the PIs or global means on selected regions"""
+# def select_region_old(xfield, region):
+#     """Trivial function to convert region definition to xarray
+#     sliced array to compute the PIs or global means on selected regions"""
 
-    # fixed for the order of latitudes
-    #xfield = xfield.sortby('lat')
+#     # fixed for the order of latitudes
+#     #xfield = xfield.sortby('lat')
 
 
-    if region == 'Global':
-        slicearray = xfield
-    elif region == 'North Midlat':
-        slicearray = xfield.sel(lat=slice(30, 90))
-    elif region == 'South Midlat':
-        slicearray = xfield.sel(lat=slice(-90, -30))
-    elif region == 'Tropical':
-        slicearray = xfield.sel(lat=slice(-30, 30))
-    else:
-        sys.exit(region + "region not supported!!!")
+#     if region == 'Global':
+#         slicearray = xfield
+#     elif region == 'North Midlat':
+#         slicearray = xfield.sel(lat=slice(30, 90))
+#     elif region == 'South Midlat':
+#         slicearray = xfield.sel(lat=slice(-90, -30))
+#     elif region == 'Tropical':
+#         slicearray = xfield.sel(lat=slice(-30, 30))
+#     else:
+#         sys.exit(region + "region not supported!!!")
 
-    return slicearray
+#     return slicearray
