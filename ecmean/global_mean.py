@@ -191,6 +191,7 @@ def global_mean(exp, year1, year2,
 
     # Create missing folders
     os.makedirs(diag.TABDIR, exist_ok=True)
+    os.makedirs(diag.FIGDIR, exist_ok=True)
 
     # load reference data
     ref = load_yaml(indir / 'reference/gm_reference_EC23.yml')
