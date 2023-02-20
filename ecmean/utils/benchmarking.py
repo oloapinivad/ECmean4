@@ -117,7 +117,7 @@ for i in chart1.containers:
     chart1.bar_label(i,)
 axs[0].set_xlabel('Number of cores', fontsize=15)
 axs[0].set_ylabel('Execution time (sec)', fontsize=15)
-axs[0].set(ylim=(0, 200))
+axs[0].set(ylim=(0, 300))
 hh, ll = axs[0].get_legend_handles_labels()
 axs[0].legend(hh, ll)
 
