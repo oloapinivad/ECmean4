@@ -40,7 +40,7 @@ benchconfig = 'config_benchmark.yml'
 benchdir = '/home/paolo/work/figures/ECmean4/benchmark'
 
 # number of repetition of each run
-nrepeat = 3
+nrepeat = 5
 
 # number of years and processors used for the respective figure
 nyears_fixed = 10
@@ -117,6 +117,7 @@ for i in chart1.containers:
     chart1.bar_label(i,)
 axs[0].set_xlabel('Number of cores', fontsize=15)
 axs[0].set_ylabel('Execution time (sec)', fontsize=15)
+axs[0].set(ylim=(0, 200))
 hh, ll = axs[0].get_legend_handles_labels()
 axs[0].legend(hh, ll)
 
@@ -128,6 +129,7 @@ axs[1].set_title(f' ECmean4 execution time for CMIP6 {model} ({nprocs_fixed} npr
 for i in chart2.containers:
     chart2.bar_label(i,)
 axs[1].set_xlabel('Number of years', fontsize=15)
+axs[1].set(ylim=(0, 300))
 axs[1].set_ylabel('Execution time (sec)', fontsize=15)
 hh, ll = axs[1].get_legend_handles_labels()
 axs[1].legend(hh, ll)

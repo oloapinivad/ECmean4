@@ -28,7 +28,7 @@ from ecmean.libs.areas import areas_dictionary, guess_bounds
 from ecmean.libs.interp import remap_dictionary
 from ecmean.libs.units import units_extra_definition, units_wrapper
 from ecmean.libs.ncfixers import xr_preproc, adjust_clim_file
-from ecmean.libs.plotting import heatmap_comparison
+from ecmean.libs.plotting import heatmap_comparison_pi
 from ecmean.libs.parser import parse_arguments
 
 
@@ -334,30 +334,6 @@ def performance_indices(exp, year1, year2,
 
     tic = time()
 
-    # # define options for the output table
-    # head = ['Variable', 'Domain', 'Dataset'] + diag.regions + [s + ' CMIP6 Ratio' for s in diag.regions]
-    # global_table = []
-
-    # loop on the variables
-    # for var in field_all:
-    #    out_sequence = [
-    #        var,
-    #        piclim[var]['mask'],
-    #        piclim[var]['dataset']]
-    #
-    #    for region in diag.regions :
-    #        out_sequence = out_sequence + [varstat[var]['ALL'][region]]
-    #    for region in diag.regions :
-    #    #    out_sequence = out_sequence + [float(varstat[var]['ALL'][region]) / float(piclim[var]['cmip6'][region])]
-    #        #out_sequence = out_sequence + [1]
-    #
-    #    global_table.append(out_sequence)
-
-    # nice loop on dictionary to get the partial and total pi
-    # partial_pi = np.nanmean([varstat[k]['ALL']['Global'] for k in field_2d + field_3d])
-    # total_pi = np.nanmean([varstat[k]['ALL']['Global']
-    #                      for k in field_2d + field_3d + field_oce + field_ice])
-
     # order according to the original request the fields in the yaml file
     ordered = {}
     for item in field_all:
@@ -411,7 +387,7 @@ def performance_indices(exp, year1, year2,
         mapfile = diag.FIGDIR / \
             f'PI4_{diag.climatology}_{diag.expname}_{diag.modelname}_r1i1p1f1_{diag.year1}_{diag.year2}.pdf'
         # heatmap_comparison_old(data_table, diag, mapfile)
-        heatmap_comparison(cmip6_table, diag, mapfile)
+        heatmap_comparison_pi(cmip6_table, diag, mapfile)
 
     toc = time()
     # evaluate tic-toc time of postprocessing

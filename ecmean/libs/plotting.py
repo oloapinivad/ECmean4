@@ -9,10 +9,11 @@ Shared functions for XArray ECmean4
 
 from matplotlib.colors import TwoSlopeNorm
 import matplotlib.pyplot as plt
+from matplotlib.colors import ListedColormap
 import seaborn as sns
 
 
-def heatmap_comparison(relative_table, diag, filemap):
+def heatmap_comparison_pi(relative_table, diag, filemap):
     """Function to produce a heatmap - seaborn based - for Performance Indices
     based on CMIP6 ratio"""
 
@@ -42,6 +43,46 @@ def heatmap_comparison(relative_table, diag, filemap):
     names = [' '.join(x) for x in myfield.columns]
     axs.set_xticks([x + .5 for x in range(len(names))], names, rotation=45, ha='right', fontsize=15)
     axs.set_yticks([x + .5 for x in range(len(myfield.index))], myfield.index, rotation=0, fontsize=18)
+    axs.set(xlabel=None)
+
+    # save and close
+    plt.savefig(filemap)
+    plt.cla()
+    plt.close()
+
+
+def heatmap_comparison_gm(data_table, mean_table, std_table, diag, filemap):
+    """Function to produce a heatmap - seaborn based - for Global Mean
+    based on season-averaged standard deviation ratio"""
+
+    fig, axs = plt.subplots(1, 1, sharey=True, tight_layout=True, figsize=(18, 14))
+
+    ratio = (data_table - mean_table)/std_table
+
+    title = 'GLOBAL MEAN'
+    clean = ratio.dropna()
+    mask = ratio.notna().all(axis=1)
+    thr = 10
+    tictoc = range(-thr, thr+1)
+    pal = ListedColormap(sns.color_palette("seismic", n_colors=21))
+    tot = (len(clean.columns))
+    sss = (len(set([tup[1] for tup in clean.columns])))
+    #pal = sns.color_palette("seismic", as_cmap=True)
+
+    chart = sns.heatmap(clean, annot=data_table[mask], vmin=-thr-0.5, vmax=thr+0.5, center=0,
+                        annot_kws={'va':'bottom', 'fontsize': 12}, 
+                        cbar_kws={'ticks': tictoc, 'label': 'Obs St.Dev.'},
+                        fmt = '.2f', cmap = pal)
+    chart = sns.heatmap(clean, annot=mean_table[mask], vmin=-thr-0.5, vmax=thr+0.5, center=0,
+                        annot_kws={'va':'top', 'fontsize': 7, 'fontstyle': 'italic'}, 
+                        fmt = '.2f', cmap = pal, cbar = False)
+  
+    chart = chart.set_facecolor('whitesmoke')
+    axs.set_title(f'{title} {diag.modelname} {diag.expname} {diag.year1} {diag.year2}', fontsize=25)
+    axs.vlines(list(range(sss, tot + sss, sss)), ymin=-1, ymax=len(clean.index), colors='k')
+    names = [' '.join(x) for x in clean.columns]
+    axs.set_xticks([x + .5 for x in range(len(names))], names, rotation=45, ha='right', fontsize=15)
+    axs.set_yticks([x + .5 for x in range(len(clean.index))], clean.index, rotation=0, fontsize=18)
     axs.set(xlabel=None)
 
     # save and close

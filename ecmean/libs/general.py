@@ -258,3 +258,14 @@ def write_tuning_table(linefile, varmean, var_table, diag, ref):
                 end=' ',
                 file=f)
         print(file=f)
+
+
+def init_mydict(one, two): 
+    """Initialize a two level dictionary"""
+    dd = {}
+    for o in one:
+        dd[o] = {}
+        for t in two:
+            dd[o][t] = float('NaN')
+    
+    return dd

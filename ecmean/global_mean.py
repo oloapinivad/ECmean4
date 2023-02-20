@@ -12,7 +12,6 @@ __author__ = "Paolo Davini (p.davini@isac.cnr.it), Sep 2022."
 
 import os
 import sys
-
 import argparse
 from pathlib import Path
 import logging
@@ -21,8 +20,9 @@ from time import time
 from tabulate import tabulate
 import numpy as np
 import xarray as xr
+import yaml
 from ecmean.libs.general import weight_split, write_tuning_table, get_domain, numeric_loglevel, \
-                                get_variables_to_load, check_time_axis
+                                get_variables_to_load, check_time_axis, dict_to_dataframe, init_mydict
 from ecmean.libs.files import var_is_there, get_inifiles, load_yaml, make_input_filename, init_diagnostic
 from ecmean.libs.formula import formula_wrapper
 from ecmean.libs.masks import masks_dictionary, masked_meansum, select_region
@@ -30,6 +30,7 @@ from ecmean.libs.areas import areas_dictionary
 from ecmean.libs.units import units_extra_definition, units_wrapper
 from ecmean.libs.ncfixers import xr_preproc
 from ecmean.libs.parser import parse_arguments
+from ecmean.libs.plotting import heatmap_comparison_gm
 
 import dask
 dask.config.set(scheduler="synchronous")
@@ -72,14 +73,16 @@ def gm_worker(util, ref, face, diag, varmean, vartrend, varlist):
 
         # store NaN in dict (can't use defaultdict due to multiprocessing)
         # result = defaultdict(lambda: defaultdict(lambda : float('NaN')))
-        result = {}
-        trend = {}
-        for season in diag.seasons_gm:
-            result[season] = {}
-            trend[season] = {}
-            for region in diag.regions_gm:
-                result[season][region] = float('NaN')
-                trend[season][region] = float('NaN')
+        #result = {}
+        #trend = {}
+        #for season in diag.seasons_gm:
+        #    result[season] = {}
+        #    trend[season] = {}
+        #    for region in diag.regions_gm:
+        #        result[season][region] = float('NaN')
+        #        trend[season][region] = float('NaN')
+        result = init_mydict(diag.seasons_gm, diag.regions_gm)
+        trend = init_mydict(diag.seasons_gm, diag.regions_gm)
 
         if isavail:
 
@@ -132,7 +135,7 @@ def gm_worker(util, ref, face, diag, varmean, vartrend, varlist):
                         x = a.compute()
                     except:
                         x = a
-                    result[season][region] = (np.nanmean(x) + offset) * factor
+                    result[season][region] = float((np.nanmean(x) + offset) * factor)
 
                     if diag.ftrend:
                         if (len(x) == len(diag.years_joined)):
@@ -246,10 +249,15 @@ def global_mean(exp, year1, year2,
     if diag.fverb:
         print('Done in {:.4f} seconds'.format(toc - tic))
 
+    tic = time()
+
     # loop on the variables to create the output table
     global_table = []
+    obsmean = {}
+    obsstd = {}
     for var in var_atm + var_oce + var_ice:
-        # beta = face['variables'][var]
+
+
         gamma = ref[var]
         # get the predifined valuue or the ALL GLobal one
         if isinstance(gamma['obs'], dict):
@@ -257,6 +265,17 @@ def global_mean(exp, year1, year2,
             outval = str(ff['mean']) + u'\u00B1' + str(ff['std'])
         else:
             outval = gamma['obs']
+
+        # extract from yaml table for obs mean and standard deviation
+        mmm = init_mydict(diag.seasons_gm, diag.regions_gm)
+        sss = init_mydict(diag.seasons_gm, diag.regions_gm)
+        if isinstance(gamma['obs'], dict):
+            for season in diag.seasons_gm:
+                for region in diag.regions_gm:
+                    mmm[season][region] = gamma['obs'][season][region]['mean']
+                    sss[season][region] = gamma['obs'][season][region]['std']
+        obsmean[var] = mmm
+        obsstd[var] = sss
 
         if 'year1' in gamma.keys():
             years = str(gamma['year1']) + '-' + str(gamma['year2'])
@@ -281,11 +300,40 @@ def global_mean(exp, year1, year2,
     with open(tablefile, 'w', encoding='utf-8') as f:
         f.write(tabulate(global_table, headers=head, stralign='center', tablefmt='orgtbl'))
 
+    ordered = {}
+    for item in var_all:
+        ordered[item] = varmean[item]
+    #for var in ref.keys():
+    #    ordered[ref[var]['longname']]=varmean[var]
+
+     # dump the yaml file for global_mean, including all the seasons (need to copy to avoid mess)
+    yamlfile = diag.TABDIR / \
+        f'global_mean_{diag.expname}_{diag.modelname}_{diag.ensemble}_{diag.year1}_{diag.year2}.yml'
+    with open(yamlfile, 'w') as file:
+        yaml.safe_dump(ordered, file, default_flow_style=False, sort_keys=False)
+
+    # convert to dataframe
+    data_table = dict_to_dataframe(ordered)
+    mean_table = dict_to_dataframe(obsmean)
+    std_table = dict_to_dataframe(obsstd)
+    logging.info(data_table)
+
+    # call the heatmap routine for a plot
+    mapfile = diag.FIGDIR / \
+        f'global_mean_{diag.expname}_{diag.modelname}_r1i1p1f1_{diag.year1}_{diag.year2}.pdf'
+    
+    heatmap_comparison_gm(data_table, mean_table, std_table, diag, mapfile)
+
     # Print appending one line to table (for tuning)
     if diag.ftable:
         if diag.fverb:
             print(diag.linefile)
         write_tuning_table(diag.linefile, varmean, var_table, diag, ref)
+
+    toc = time()
+    # evaluate tic-toc time of postprocessing
+    if diag.fverb:
+        print('Postproc done in {:.4f} seconds'.format(toc - tic))
 
 
 def gm_entry_point():
