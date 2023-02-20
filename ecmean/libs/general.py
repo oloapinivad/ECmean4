@@ -31,8 +31,10 @@ class Diagnostic():
         self.climatology = getattr(args, 'climatology', 'EC23')
         self.interface = getattr(args, 'interface', '')
         self.resolution = getattr(args, 'resolution', '')
-        self.regions = cfg['PI']['regions']
-        self.seasons = cfg['PI']['seasons']
+        self.regions_gm = cfg['global']['regions']
+        self.seasons_gm = cfg['global']['seasons']
+        self.regions_pi = cfg['PI']['regions']
+        self.seasons_pi = cfg['PI']['seasons']
         if not self.modelname:
             self.modelname = cfg['model']['name']
         if self.year1 == self.year2:  # Ignore if only one year requested
@@ -56,7 +58,7 @@ class Diagnostic():
         # hard-coded seasons (due to climatological dataset)
         if self.climatology in ['EC22', 'RK08']:
             logging.error('only EC23 climatology support multiple seasons! Keeping only yearly seasons!')
-            self.seasons = ['ALL']
+            self.seasons_pi = ['ALL']
 
         # Various input and output directories
         self.ECEDIR = Path(os.path.expandvars(cfg['dirs']['exp']))
@@ -249,7 +251,7 @@ def write_tuning_table(linefile, varmean, var_table, diag, ref):
         for var in var_table:
             print(
                 '{:12.5f}'.format(
-                    varmean[var] *
+                    varmean[var]['ALL']['Global'] *
                     ref[var].get(
                         'factor',
                         1)),

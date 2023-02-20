@@ -143,7 +143,7 @@ def masked_meansum(xfield, weights, mask, operation, domain, mask_type):
     masked = mask_field(xfield, mask_type, domain, mask)
 
     # no time dimensions
-    notimedim = [dim for dim in xfield.dims if dim != 'time']
+    notimedim = [dim for dim in xfield.dims if dim not in ['time','year','month']]
 
     # global mean
     if operation in ['average', 'mean']:

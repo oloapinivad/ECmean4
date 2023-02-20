@@ -75,9 +75,9 @@ def pi_worker(util, piclim, face, diag, field_3d, varstat, varlist):
         # store NaN in dict (can't use defaultdict due to multiprocessing)
         # result = defaultdict(lambda: defaultdict(lambda : float('NaN')))
         result = {}
-        for season in diag.seasons:
+        for season in diag.seasons_pi:
             result[season] = {}
-            for region in diag.regions:
+            for region in diag.regions_pi:
                 result[season][region] = float('NaN')
 
         # if the variable is available
@@ -99,7 +99,7 @@ def pi_worker(util, piclim, face, diag, field_3d, varstat, varlist):
             outfield = formula_wrapper(var, face, xfield)
 
             # mean over time and fixing of the units
-            for season in diag.seasons:
+            for season in diag.seasons_pi:
 
                 logging.info(season)
 
@@ -169,6 +169,7 @@ def pi_worker(util, piclim, face, diag, field_3d, varstat, varlist):
                             levnan = cfield['plev'].where(np.isnan(sample))
                             logging.warning(levnan[~np.isnan(levnan)].values)
 
+                    # zonal mean
                     final = final.mean(dim='lon')
 
                     # compute PI
@@ -193,7 +194,7 @@ def pi_worker(util, piclim, face, diag, field_3d, varstat, varlist):
                                           dom=domain, mask=domain_mask)
 
                 # loop on different regions
-                for region in diag.regions:
+                for region in diag.regions_pi:
 
                     slicearray = select_region(outarray, region)
 
@@ -403,7 +404,7 @@ def performance_indices(exp, year1, year2,
         cmip6_table.loc['Total PI'] = cmip6_table.mean()
 
         # reordering columns
-        lll = [(x, y) for x in diag.seasons for y in diag.regions]
+        lll = [(x, y) for x in diag.seasons_pi for y in diag.regions_pi]
         cmip6_table = cmip6_table[lll]
 
         # call the heatmap routine for a plot

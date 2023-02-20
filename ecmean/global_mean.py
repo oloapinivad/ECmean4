@@ -73,10 +73,13 @@ def gm_worker(util, ref, face, diag, varmean, vartrend, varlist):
         # store NaN in dict (can't use defaultdict due to multiprocessing)
         # result = defaultdict(lambda: defaultdict(lambda : float('NaN')))
         result = {}
-        for season in diag.seasons:
+        trend = {}
+        for season in diag.seasons_gm:
             result[season] = {}
-            for region in diag.regions:
+            trend[season] = {}
+            for region in diag.regions_gm:
                 result[season][region] = float('NaN')
+                trend[season][region] = float('NaN')
 
         if isavail:
 
@@ -95,14 +98,21 @@ def gm_worker(util, ref, face, diag, varmean, vartrend, varlist):
             # get the data-array field for the required var
             cfield = formula_wrapper(var, face, xfield).compute()
 
-            for season in diag.seasons:
+            for season in diag.seasons_gm:
+
+                # copy of the full field
+                tfield = cfield.copy(deep=True)
 
                 if season != 'ALL':
-                    tfield = cfield.sel(time=cfield.time.dt.season.isin(season)).mean(dim='time')
-                else: 
-                    tfield = cfield.mean(dim='time')
+                    tfield = tfield.sel(time=cfield.time.dt.season.isin(season))
+                
+                if diag.ftrend:
+                    # this does not consider continuous seasons for DJF, but JF+D
+                    tfield = tfield.groupby('time.year').mean('time')
+                else:
+                    tfield = tfield.mean(dim='time')
 
-                for region in diag.regions:
+                for region in diag.regions_gm:
 
                     slicefield = select_region(tfield, region)
                     sliceweights = select_region(weights, region)
@@ -110,8 +120,6 @@ def gm_worker(util, ref, face, diag, varmean, vartrend, varlist):
                         slicemask = select_region(domain_mask, region)
                     else:
                         slicemask = 0.
-
-                    #tfield = cfield.resample(time='1Y').mean('time')
 
                     # final operation on the field
                     a = masked_meansum(
@@ -124,16 +132,17 @@ def gm_worker(util, ref, face, diag, varmean, vartrend, varlist):
                         x = a.compute()
                     except:
                         x = a
-
                     result[season][region] = (np.nanmean(x) + offset) * factor
 
                     if diag.ftrend:
-                        vartrend[var] = np.polyfit(diag.years_joined,x, 1)[0]
+                        if (len(x) == len(diag.years_joined)):
+                            trend[season][region] = np.polyfit(diag.years_joined,x, 1)[0]
                     if diag.fverb and season == 'ALL' and region == 'Global':
                         print('Average', var, season, region, result[season][region])
 
         # nested dictionary, to be redifend as a dict to remove lambdas
         varmean[var] = result
+        vartrend[var] = trend
 
 
 def global_mean(exp, year1, year2,
@@ -254,7 +263,7 @@ def global_mean(exp, year1, year2,
 
         out_sequence = [var, gamma['longname'], gamma['units'], varmean[var]['ALL']['Global']]
         if diag.ftrend:
-            out_sequence = out_sequence + [vartrend[var]]
+            out_sequence = out_sequence + [vartrend[var]['ALL']['Global']]
         out_sequence = out_sequence + [outval, gamma.get('dataset', ''), years]
         global_table.append(out_sequence)
 
