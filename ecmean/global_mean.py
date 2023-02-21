@@ -275,8 +275,8 @@ def global_mean(exp, year1, year2,
                 for region in diag.regions_gm:
                     mmm[season][region] = gamma['obs'][season][region]['mean']
                     sss[season][region] = gamma['obs'][season][region]['std']
-        obsmean[var] = mmm
-        obsstd[var] = sss
+        obsmean[gamma['longname']] = mmm
+        obsstd[gamma['longname']] = sss
 
         if 'year1' in gamma.keys():
             years = str(gamma['year1']) + '-' + str(gamma['year2'])
@@ -302,21 +302,27 @@ def global_mean(exp, year1, year2,
         f.write(tabulate(global_table, headers=head, stralign='center', tablefmt='orgtbl'))
 
     ordered = {}
-    for item in var_all:
-        ordered[item] = varmean[item]
-    #for var in ref.keys():
-    #    ordered[ref[var]['longname']]=varmean[var]
+    for var in var_all:
+        ordered[var] = varmean[var]
 
-     # dump the yaml file for global_mean, including all the seasons (need to copy to avoid mess)
+    # dump the yaml file for global_mean, including all the seasons (need to copy to avoid mess)
     yamlfile = diag.TABDIR / \
         f'global_mean_{diag.expname}_{diag.modelname}_{diag.ensemble}_{diag.year1}_{diag.year2}.yml'
     with open(yamlfile, 'w') as file:
         yaml.safe_dump(ordered, file, default_flow_style=False, sort_keys=False)
 
-    # convert to dataframe
-    data_table = dict_to_dataframe(ordered)
+    # convert to dataframe, add units, set longname
+    plotted = {}
+    units_list = []
+    for var in var_all:
+        plotted[ref[var]['longname']] = ordered[var]
+        units_list = units_list + [ref[var]['units']]
+    data_table = dict_to_dataframe(plotted)
     mean_table = dict_to_dataframe(obsmean)
     std_table = dict_to_dataframe(obsstd)
+    data_table.index = data_table.index + ' [' + units_list + ']'
+    mean_table.index = mean_table.index + ' [' + units_list + ']'
+    std_table.index = std_table.index + ' [' + units_list + ']'
     logging.info(data_table)
 
     # call the heatmap routine for a plot

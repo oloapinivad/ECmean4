@@ -11,6 +11,7 @@ from matplotlib.colors import TwoSlopeNorm
 import matplotlib.pyplot as plt
 from matplotlib.colors import ListedColormap
 import seaborn as sns
+import textwrap
 
 
 def heatmap_comparison_pi(relative_table, diag, filemap):
@@ -37,7 +38,7 @@ def heatmap_comparison_pi(relative_table, diag, filemap):
                         ax=axs, annot=True, linewidth=0.5,
                         annot_kws={'fontsize': 11, 'fontweight': 'bold'})
     chart = chart.set_facecolor('whitesmoke')
-    axs.set_title(f'{title} {diag.modelname} {diag.year1} {diag.year2}', fontsize=25)
+    axs.set_title(f'{title} {diag.modelname} {diag.expname} {diag.year1} {diag.year2}', fontsize=25)
     axs.vlines(list(range(sss, tot + sss, sss)), ymin=-1, ymax=len(myfield.index), colors='k')
     axs.hlines(len(myfield.index) - 1, xmin=-1, xmax=len(myfield.columns), colors='purple', lw=2)
     names = [' '.join(x) for x in myfield.columns]
@@ -59,30 +60,33 @@ def heatmap_comparison_gm(data_table, mean_table, std_table, diag, filemap):
 
     ratio = (data_table - mean_table)/std_table
 
+
     title = 'GLOBAL MEAN'
-    clean = ratio.dropna()
-    mask = ratio.notna().all(axis=1)
+    mask = ratio[('ALL','Global')].notna()
+    clean = ratio[mask]
     thr = 10
     tictoc = range(-thr, thr+1)
     pal = ListedColormap(sns.color_palette("seismic", n_colors=21))
     tot = (len(clean.columns))
     sss = (len(set([tup[1] for tup in clean.columns])))
-    #pal = sns.color_palette("seismic", as_cmap=True)
 
     chart = sns.heatmap(clean, annot=data_table[mask], vmin=-thr-0.5, vmax=thr+0.5, center=0,
                         annot_kws={'va':'bottom', 'fontsize': 12}, 
-                        cbar_kws={'ticks': tictoc, 'label': 'Obs St.Dev.'},
+                        cbar_kws={'ticks': tictoc, 'label': 'Model Bias (as standard deviation of interannual variability from observations)'},
                         fmt = '.2f', cmap = pal)
     chart = sns.heatmap(clean, annot=mean_table[mask], vmin=-thr-0.5, vmax=thr+0.5, center=0,
-                        annot_kws={'va':'top', 'fontsize': 7, 'fontstyle': 'italic'}, 
+                        annot_kws={'va':'top', 'fontsize': 8, 'fontstyle': 'italic'}, 
                         fmt = '.2f', cmap = pal, cbar = False)
   
     chart = chart.set_facecolor('whitesmoke')
     axs.set_title(f'{title} {diag.modelname} {diag.expname} {diag.year1} {diag.year2}', fontsize=25)
     axs.vlines(list(range(sss, tot + sss, sss)), ymin=-1, ymax=len(clean.index), colors='k')
     names = [' '.join(x) for x in clean.columns]
-    axs.set_xticks([x + .5 for x in range(len(names))], names, rotation=45, ha='right', fontsize=15)
-    axs.set_yticks([x + .5 for x in range(len(clean.index))], clean.index, rotation=0, fontsize=18)
+    axs.set_xticks([x + .5 for x in range(len(names))], names, rotation=45, ha='right', fontsize=16)
+    axs.set_yticks([x + .5 for x in range(len(clean.index))], clean.index, rotation=0, fontsize=16)
+    axs.set_yticklabels(textwrap.fill(y.get_text(), 20) for y in axs.get_yticklabels())
+    axs.figure.axes[-1].tick_params(labelsize=15)
+    axs.figure.axes[-1].yaxis.label.set_size(15)
     axs.set(xlabel=None)
 
     # save and close
