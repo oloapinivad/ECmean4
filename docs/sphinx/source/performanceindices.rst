@@ -76,7 +76,7 @@ An example of the the output for a single year of the EC-Earth3 historical simul
    :width: 600px
    :alt: PI for ECearth3
 
-   An example for a single year of the EC-Earth3 historical r1i1p1f1 simulation.
+   An example for a single year of the EC-Earth3 historical r1i1p1f1 simulation. Values smaller than one implies a better results than CMIP6 ensemble average.
 
 .. note ::
   Such plot is currently available for the EC23 climatology only, which is currently computed on a 30-year time window from 1990 to 2019 using about 10 CMIP6 models.

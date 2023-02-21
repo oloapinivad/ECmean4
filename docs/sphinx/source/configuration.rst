@@ -49,6 +49,12 @@ ice_vars:
 tab_vars: 
 	the list of fields to be reported in the output table
 
+regions: 
+	the list of regions on which compute the PI. Four regions are supported. Supported regions are: ``Global`` (90S-90N), ``North Midlat`` (30N-90N), ``Tropical`` (30S-30N), ``South Midlat`` (90S-30S) 
+
+seasons:
+	the list of seasons on which compute the PI. Four standard seasons are supported expressed as 3-string character (e.g. ``DJF``). ``ALL`` defines the yearly average. Default includes yearly, winter and summer.
+
 Performance indices configuration
 ---------------------------------
 

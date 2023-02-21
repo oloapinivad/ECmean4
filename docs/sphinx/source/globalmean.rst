@@ -5,8 +5,9 @@ Main concepts
 ^^^^^^^^^^^^^
 
 The ``global_mean`` command is based on ``global_mean.py`` script which computes the global averages for many dynamical and physical fields
-It compares the output against a set of pre-computed climatological values defined in ``ecmean/reference/gm_reference_EC23.yml``, including the most important dynamical and physical fields for both the atmosphere and the ocean (e.g. land temperature, salinity, etc.).
-Different datasates are taken in consideration, providing an estimate of the interannual variability in the form of stdandard deviation.
+It compares the output against a set of pre-computed climatological values defined in ``ecmean/reference/gm_reference_EC23.yml``, including the most important dynamical and physical fields 
+for both the atmosphere and the ocean (e.g. land temperature, salinity, etc.).
+Different datasates are taken in consideration, providing an estimate of the interannual variability in the form of standard deviation.
 
 Most importantly, it provides estimate for the radiative budget (including clouds radiative forcing) and for the hydrological cycle (including integrals over land and ocean) 
 and other quantities useful for fast model assessment and for model tuning.
@@ -37,7 +38,7 @@ Alternative, you also run the python script in ``ecmean`` library ::
 
   -h, --help            	show this help message and exit
   -s, --silent          	do not print anything to std output
-  -t, --trend           	compute trends on multiple years
+  -t, --trend           	compute trends on multiple years (only in the table format)
   -l, --line            	appends also single line to a table
   -c CONFIG, --config CONFIG	set up a specific configuration file (config.yml is default)
   -i INTERFACE, --interface INTERFACE   set up a specific interface file (override config.yml)
@@ -78,6 +79,7 @@ This is available only for the datasets for which we have access to a gridded da
    :alt: Global mean figure for EC-Earth3
 
    An example for a single year of the EC-Earth3 historical r1i1p1f1 simulation. Colors indicate the model bias as standard deviation of the interannual variability from observations.
+   Blues implies negative bias, reds positive bias. In each of the tiles the larger number show the model value, while the smaller one is the reference value. 
 
 
 Climatology computation
