@@ -320,9 +320,11 @@ def global_mean(exp, year1, year2,
     data_table = dict_to_dataframe(plotted)
     mean_table = dict_to_dataframe(obsmean)
     std_table = dict_to_dataframe(obsstd)
-    data_table.index = data_table.index + ' [' + units_list + ']'
-    mean_table.index = mean_table.index + ' [' + units_list + ']'
-    std_table.index = std_table.index + ' [' + units_list + ']'
+    for table in [data_table, mean_table, std_table]:
+        table.index = table.index  + ' [' + units_list + ']'
+    #data_table.index = data_table.index + ' [' + units_list + ']'
+    #mean_table.index = mean_table.index + ' [' + units_list + ']'
+    #std_table.index = std_table.index + ' [' + units_list + ']'
     logging.info(data_table)
 
     # call the heatmap routine for a plot

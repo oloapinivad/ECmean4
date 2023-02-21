@@ -84,7 +84,7 @@ def heatmap_comparison_gm(data_table, mean_table, std_table, diag, filemap):
     names = [' '.join(x) for x in clean.columns]
     axs.set_xticks([x + .5 for x in range(len(names))], names, rotation=45, ha='right', fontsize=16)
     axs.set_yticks([x + .5 for x in range(len(clean.index))], clean.index, rotation=0, fontsize=16)
-    axs.set_yticklabels(textwrap.fill(y.get_text(), 20) for y in axs.get_yticklabels())
+    axs.set_yticklabels(textwrap.fill(y.get_text(), 28) for y in axs.get_yticklabels())
     axs.figure.axes[-1].tick_params(labelsize=15)
     axs.figure.axes[-1].yaxis.label.set_size(15)
     axs.set(xlabel=None)

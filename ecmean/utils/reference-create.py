@@ -39,7 +39,7 @@ ice_vars = ['siconc', 'siconc_north', 'siconc_south']
 
 # put them together
 variables = atm_vars + rad_vars + oce_vars + ice_vars
-# variables = ['toamsfc_nosn', 'toamsfc']
+
 
 
 # to set: time period (default, can be shorter if data are missing)
@@ -72,7 +72,7 @@ maskfile = info['mask']
 
 def expand_filedata(directory, var, info):
 
-    return os.path.expandvars(directory).format(datadir=info['dirs']['datadir'],
+    return os.path.expandvars(directory).format(datadir=info['dirs']['datadir'], mswepdir=info['dirs']['mswepdir'],
                                                 eradir=info['dirs']['eradir'], esadir=info['dirs']['esadir'],
                                                 dataset=info[var]['dataset'])
 
