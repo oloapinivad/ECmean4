@@ -97,7 +97,7 @@ pr_oce:
   dir: "{mswepdir}/*.nc"
 pme_oce: 
   dataset: ERA5
-  longname: 'Precip. minus Evap. (over ocean)'
+  longname: 'Precip. minus Evap. (ocean)'
   mask: ocean
   operation: integral
   derived: TP+e

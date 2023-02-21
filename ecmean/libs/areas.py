@@ -7,8 +7,6 @@ import numpy as np
 import logging
 import sys
 import xarray as xr
-from ecmean.libs.ncfixers import xr_preproc
-from ecmean.libs.files import inifiles_priority
 
 ##################################
 # AREA-WEIGHT FUNCTIONS #
@@ -23,116 +21,71 @@ from ecmean.libs.files import inifiles_priority
 #     return grid_type[0]
 
 
-def identify_grid(xfield):
-    """Receiveng an xarray object (DataArray or Dataset) investigates its coordinates
-    and dimensions and provide the grid type (regular, gaussian, curvilinear,
-    gaussian reduced, unstructured). It assumes that data is defined by 'lon' and 'lat'
-    dimensions
+# def areas_dictionary(component, atmdict, ocedict):
+#     """Create a dictionary with atmospheric and oceanic area weights"""
 
-    Args :
-        xfield:
+#     # get atmospheric areas
+#     atmareafile = inifiles_priority(atmdict)
+#     atm_areas = _make_atm_areas(component['atm'], atmareafile)
 
-    Returns
-        string with the grid type
+#     # get oceanic areas, assuming AMIP if no oceanic area is found
+#     oceareafile = inifiles_priority(ocedict)
+#     if oceareafile:
+#         oce_areas = _make_oce_areas(component['oce'], oceareafile)
+#     else:
+#         logging.warning("Ocereafile cannot be found, assuming this is an AMIP run")
+#         oce_areas = None
 
-    """
+#     areas = {
+#         'atm_areas': atm_areas,
+#         'oce_areas': oce_areas
+#     }
 
-    # if the coordinates are lon/lat proceed
-    if all(x in xfield.coords for x in ['lon', 'lat']):
-
-        # if dimensions are lon/lat as well, this is a regular grid
-        if all(x in xfield.dims for x in ['lon', 'lat']):
-            lat = xfield.coords['lat']
-
-            # if lat grid spacing is equal, is regular lonlat, otherwise gaussian
-            if (lat[3] - lat[2]) == (lat[1] - lat[0]):
-                gridtype = 'lonlat'
-            else:
-                gridtype = 'gaussian'
-        else:
-            # if the coords are 2D, we are curvilinear
-            if xfield.coords['lon'].ndim == 2 and xfield.coords['lon'].ndim == 2:
-                gridtype = 'curvilinear'
-            else:
-                # check the first four elements of the grid (arbitrary)
-                lat = xfield.coords['lat'].values[0:5]
-
-                # if they are all the same, we have a gaussian reduced, else unstructured
-                if (lat == lat[0]).all():
-                    gridtype = 'gaussian_reduced'
-                else:
-                    gridtype = 'unstructured'
-    else:
-        sys.exit("Cannot find any lon/lat dimension, aborting...")
-
-    return (gridtype)
+#     return areas
 
 
-def areas_dictionary(component, atmdict, ocedict):
-    """Create a dictionary with atmospheric and oceanic area weights"""
+# def _make_atm_areas(component, atmareafile):
+#     """Create atmospheric weights for area operations. Load once defined to allow
+#     for parallel computation."""
 
-    # get atmospheric areas
-    atmareafile = inifiles_priority(atmdict)
-    atm_areas = _make_atm_areas(component['atm'], atmareafile)
+#     logging.info('Atmareafile is ' + atmareafile)
+#     if not atmareafile:
+#         sys.exit("ERROR: Atmareafile cannot be found")
 
-    # get oceanic areas, assuming AMIP if no oceanic area is found
-    oceareafile = inifiles_priority(ocedict)
-    if oceareafile:
-        oce_areas = _make_oce_areas(component['oce'], oceareafile)
-    else:
-        logging.warning("Ocereafile cannot be found, assuming this is an AMIP run")
-        oce_areas = None
-
-    areas = {
-        'atm_areas': atm_areas,
-        'oce_areas': oce_areas
-    }
-
-    return areas
+#     # this might be universal, but keep this as for supported components only
+#     if component in ['oifs', 'cmoratm', 'globo']:
+#         xfield = xr.open_mfdataset(atmareafile, preprocess=xr_preproc)
+#         area = _area_cell(xfield)
+#     else:
+#         sys.exit("ERROR: Area for this configuration cannot be handled!")
+#     return area.load()
 
 
-def _make_atm_areas(component, atmareafile):
-    """Create atmospheric weights for area operations. Load once defined to allow
-    for parallel computation."""
+# def _make_oce_areas(component, oceareafile):
+#     """Create atmospheric weights for area operations. Load once defined to allow
+#     for parallel computation
+#     """
 
-    logging.info('Atmareafile is ' + atmareafile)
-    if not atmareafile:
-        sys.exit("ERROR: Atmareafile cannot be found")
+#     logging.info('Oceareafile is ' + oceareafile)
 
-    # this might be universal, but keep this as for supported components only
-    if component in ['oifs', 'cmoratm', 'globo']:
-        xfield = xr.open_mfdataset(atmareafile, preprocess=xr_preproc)
-        area = _area_cell(xfield)
-    else:
-        sys.exit("ERROR: Area for this configuration cannot be handled!")
-    return area.load()
+#     xfield = xr.open_mfdataset(oceareafile, preprocess=xr_preproc)
 
+#     # this might be universal, but keep this as for supported components only
+#     if component in ['nemo', 'cmoroce']:
 
-def _make_oce_areas(component, oceareafile):
-    """Create atmospheric weights for area operations. Load once defined to allow
-    for parallel computation
-    """
+#         if 'areacello' in xfield.data_vars:  # CMOR case
+#             area = xfield['areacello']
+#         elif 'cell_area' in xfield.data_vars:  # ECE4 NEMO case for nemo-initial-state.nc
+#             area = xfield['cell_area']
+#         elif 'e1t' in xfield.data_vars:  # ECE4 NEMO case for domaing_cfg.nc, deprecated
+#             area = xfield['e1t'] * xfield['e2t']
+#         else:  # automatic solution!
+#             area = _area_cell(xfield)
 
-    logging.info('Oceareafile is ' + oceareafile)
+#     else:
+#         sys.exit("ERROR: Area for this configuration cannot be handled!")
 
-    xfield = xr.open_mfdataset(oceareafile, preprocess=xr_preproc)
-
-    # this might be universal, but keep this as for supported components only
-    if component in ['nemo', 'cmoroce']:
-
-        if 'areacello' in xfield.data_vars:  # CMOR case
-            area = xfield['areacello']
-        elif 'cell_area' in xfield.data_vars:  # ECE4 NEMO case for nemo-initial-state.nc
-            area = xfield['cell_area']
-        elif 'e1t' in xfield.data_vars:  # ECE4 NEMO case for domaing_cfg.nc, deprecated
-            area = xfield['e1t'] * xfield['e2t']
-        else:  # automatic solution!
-            area = _area_cell(xfield)
-
-    else:
-        sys.exit("ERROR: Area for this configuration cannot be handled!")
-
-    return area.load()
+#     return area.load()
 
 
 def guess_bounds(axis, name='lon'):
@@ -206,7 +159,7 @@ def _vector_spherical_triangle(p1, p2, p3):
     return area
 
 
-def _area_cell(xfield, formula='triangles'):
+def area_cell(xfield, gridtype = None, formula='triangles'):
     """
     Function which estimate the area cell from bounds. This is done assuming
     making use of spherical triangels.
@@ -231,7 +184,8 @@ def _area_cell(xfield, formula='triangles'):
     earth_radius = 6371000.
 
     # extract the grid from field
-    gridtype = identify_grid(xfield)
+    #if not gridtype:
+    #    gridtype = identify_grid(xfield)
 
     if all(x in xfield.data_vars for x in ['lon_bnds', 'lat_bnds']):
         logging.debug('cmor lon/lat_bounds found...')

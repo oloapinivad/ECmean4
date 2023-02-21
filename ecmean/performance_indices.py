@@ -23,9 +23,9 @@ from ecmean.libs.general import weight_split, get_domain, dict_to_dataframe, num
 from ecmean.libs.files import var_is_there, get_inifiles, load_yaml, make_input_filename, \
                                 get_clim_files, init_diagnostic
 from ecmean.libs.formula import formula_wrapper
-from ecmean.libs.masks import masks_dictionary, mask_field, select_region
-from ecmean.libs.areas import areas_dictionary, guess_bounds
-from ecmean.libs.interp import remap_dictionary
+from ecmean.libs.masks import mask_field, select_region
+from ecmean.libs.areas import guess_bounds
+from ecmean.libs.support import Supporter
 from ecmean.libs.units import units_extra_definition, units_wrapper
 from ecmean.libs.ncfixers import xr_preproc, adjust_clim_file
 from ecmean.libs.plotting import heatmap_comparison_pi
@@ -60,7 +60,7 @@ def pi_worker(util, piclim, face, diag, field_3d, varstat, varlist):
         domain = get_domain(var, face)
 
         # get masks
-        domain_mask = util[domain + '_mask']
+        domain_mask = getattr(util, domain + 'mask')
 
         # get the list of the variables to be loaded
         dervars = get_variables_to_load(var, face)
@@ -136,22 +136,17 @@ def pi_worker(util, piclim, face, diag, field_3d, varstat, varlist):
 
                 # apply interpolation, if fixer is availble and with different
                 # grids
-                if domain in 'atm':
-                    if util['atm_fix']:
-                        tmean = util['atm_fix'](tmean, keep_attrs=True)
-                    try:
-                        final = util['atm_remap'](tmean, keep_attrs=True)
-                    except ValueError:
-                        logging.error(f'Cannot interpolate {var} with the current weights...')
-                        continue
-                if domain in 'oce':
-                    if util['oce_fix']:
-                        tmean = util['oce_fix'](tmean, keep_attrs=True)
-                    try:
-                        final = util['oce_remap'](tmean, keep_attrs=True)
-                    except ValueError:
-                        logging.error(f'Cannot interpolate {var} with the current weights...')
-                        continue
+                fix = getattr(util, f'{domain}fix')
+                remap =  getattr(util, f'{domain}remap')
+
+                if fix:
+                    tmean = fix(tmean, keep_attrs=True)
+                try:
+                    final = remap(tmean, keep_attrs=True)
+                except ValueError:
+                    logging.error(f'Cannot interpolate {var} with the current weights...')
+                    continue
+                
 
                 # vertical interpolation
                 if var in field_3d:
@@ -277,16 +272,11 @@ def performance_indices(exp, year1, year2,
     units_extra_definition()
 
     # create remap dictionary with atm and oce interpolators
-    remap = remap_dictionary(comp, inifiles['atm'], inifiles['oce'], target_remap_grid)
+    util_dictionary = Supporter(comp, inifiles['atm'], inifiles['oce'], 
+                               areas = False, remap = True, 
+                               targetgrid = target_remap_grid)
 
-    # create util dictionary including mask and weights for both
-    # atmosphere and ocean grids
-    # use the atmospheric remap dictionary to remap the mask file
-    areas = areas_dictionary(comp, inifiles['atm'], inifiles['oce'])
-    masks = masks_dictionary(comp, inifiles['atm']['maskfile'], inifiles['oce']['maskfile'], remap_dictionary=remap)
 
-    # join the two dictionaries
-    util_dictionary = {**masks, **areas, **remap}
 
     # defines the two varlist
     field_2d = cfg['PI']['2d_vars']['field']

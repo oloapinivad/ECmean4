@@ -734,7 +734,7 @@ pr_oce:
         mean: 3.152
         std: 0.069
 pme_oce:
-  longname: Precip. minus Evap. (over ocean)
+  longname: Precip. minus Evap. (ocean)
   dataset: ERA5
   mask: ocean
   operation: integral

@@ -25,8 +25,8 @@ from ecmean.libs.general import weight_split, write_tuning_table, get_domain, nu
                                 get_variables_to_load, check_time_axis, dict_to_dataframe, init_mydict
 from ecmean.libs.files import var_is_there, get_inifiles, load_yaml, make_input_filename, init_diagnostic
 from ecmean.libs.formula import formula_wrapper
-from ecmean.libs.masks import masks_dictionary, masked_meansum, select_region
-from ecmean.libs.areas import areas_dictionary
+from ecmean.libs.masks import masked_meansum, select_region
+from ecmean.libs.support import Supporter
 from ecmean.libs.units import units_extra_definition, units_wrapper
 from ecmean.libs.ncfixers import xr_preproc
 from ecmean.libs.parser import parse_arguments
@@ -58,8 +58,8 @@ def gm_worker(util, ref, face, diag, varmean, vartrend, varlist):
         domain = get_domain(var, face)
 
         # compute weights
-        weights = util[domain + '_areas']
-        domain_mask = util[domain + '_mask']
+        weights = getattr(util, domain + 'area')
+        domain_mask = getattr(util, domain + 'mask')
 
         # get the list of the variables to be loaded
         dervars = get_variables_to_load(var, face)
@@ -220,9 +220,7 @@ def global_mean(exp, year1, year2,
 
     # create util dictionary including mask and weights for both atmosphere
     # and ocean grids
-    areas = areas_dictionary(comp, inifiles['atm'], inifiles['oce'])
-    masks = masks_dictionary(comp, inifiles['atm']['maskfile'], inifiles['oce']['maskfile'])
-    util_dictionary = {**areas, **masks}
+    util_dictionary = Supporter(comp, inifiles['atm'], inifiles['oce'], areas = True, remap = False)
 
     # main loop: manager is required for shared variables
     mgr = Manager()
@@ -260,7 +258,7 @@ def global_mean(exp, year1, year2,
 
 
         gamma = ref[var]
-        # get the predifined valuue or the ALL GLobal one
+        # get the predifined value or the ALL GLobal one
         if isinstance(gamma['obs'], dict):
             ff = gamma['obs']['ALL']['Global']
             outval = str(ff['mean']) + u'\u00B1' + str(ff['std'])
@@ -293,7 +291,7 @@ def global_mean(exp, year1, year2,
         head = head + ['Trend']
     head = head + ['Obs.', 'Dataset', 'Years']
 
-    # write the file with tabulate: cool python feature
+    # write the file with tabulate
     tablefile = diag.TABDIR / \
         f'global_mean_{diag.expname}_{diag.modelname}_{diag.ensemble}_{diag.year1}_{diag.year2}.txt'
     if diag.fverb:
@@ -301,22 +299,25 @@ def global_mean(exp, year1, year2,
     with open(tablefile, 'w', encoding='utf-8') as f:
         f.write(tabulate(global_table, headers=head, stralign='center', tablefmt='orgtbl'))
 
+    # required to avoid problem with multiprocessing
     ordered = {}
     for var in var_all:
         ordered[var] = varmean[var]
 
-    # dump the yaml file for global_mean, including all the seasons (need to copy to avoid mess)
+    # dump the yaml file for global_mean, including all the seasons
     yamlfile = diag.TABDIR / \
         f'global_mean_{diag.expname}_{diag.modelname}_{diag.ensemble}_{diag.year1}_{diag.year2}.yml'
     with open(yamlfile, 'w') as file:
         yaml.safe_dump(ordered, file, default_flow_style=False, sort_keys=False)
 
-    # convert to dataframe, add units, set longname
+    # set longname, get units
     plotted = {}
     units_list = []
     for var in var_all:
         plotted[ref[var]['longname']] = ordered[var]
         units_list = units_list + [ref[var]['units']]
+
+    # convert the three dictionary to pandas and then add units
     data_table = dict_to_dataframe(plotted)
     mean_table = dict_to_dataframe(obsmean)
     std_table = dict_to_dataframe(obsstd)
