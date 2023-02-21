@@ -59,14 +59,25 @@ will compute performance indices for member r1i1p1 of the EC-EARTH model in the 
 Output
 ^^^^^^
 
-A txt table including the comparison with some predefined dataset.
+A txt table including the comparison with some predefined dataset, for the global mean yearly averages.
 
 .. figure:: _static/globaltesttable.png
    :align: center
    :width: 600px
-   :alt: Global mean for EC-Earth3
+   :alt: Global mean table for EC-Earth3
 
    An example for a single year of the EC-Earth3 historical r1i1p1f1 simulation.
+
+
+In addition, it produces also a figure including a more detailed comparison for different seasons and regions.
+This is available only for the datasets for which we have access to a gridded dataset.
+
+.. figure:: _static/globaltestfigure.png
+   :align: center
+   :width: 600px
+   :alt: Global mean figure for EC-Earth3
+
+   An example for a single year of the EC-Earth3 historical r1i1p1f1 simulation. Colors indicate the model bias as standard deviation of the interannual variability from observations.
 
 
 Climatology computation
@@ -74,3 +85,5 @@ Climatology computation
 
 Climatology is computed by the ``ecmean/utils/reference-create.py`` script, which is included in the repository for documentation.
 It is based on a YML file which is tells the script where to retrieve the data, identifying all the required data folder and names. 
+The results are produced into a YML file for in ``ecmean/reference/gm_reference_EC23.yml`` which includes the global and regional mean 
+over different seasons as well the interannual standard deviation. All details on the datasets are found there. 
