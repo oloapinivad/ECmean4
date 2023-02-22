@@ -19,7 +19,7 @@ import numpy as np
 import xarray as xr
 import yaml
 from ecmean.libs.general import weight_split, get_domain, dict_to_dataframe, numeric_loglevel, \
-                                get_variables_to_load, check_time_axis
+                                get_variables_to_load, check_time_axis, init_mydict
 from ecmean.libs.files import var_is_there, get_inifiles, load_yaml, make_input_filename, \
                                 get_clim_files, init_diagnostic
 from ecmean.libs.formula import formula_wrapper
@@ -68,17 +68,18 @@ def pi_worker(util, piclim, face, diag, field_3d, varstat, varlist):
         # check if required variables are there: use interface file
         # check into first file, and load also model variable units
         # create input filenames
-        infile = make_input_filename(
-            var, dervars, face, diag)
+        # create input filenames
+        if diag.xdataset is None:
+            infile = make_input_filename(
+                var, dervars, face, diag)
+        else: 
+            infile = diag.xdataset
+
         isavail, varunit = var_is_there(infile, var, face['variables'])
 
         # store NaN in dict (can't use defaultdict due to multiprocessing)
         # result = defaultdict(lambda: defaultdict(lambda : float('NaN')))
-        result = {}
-        for season in diag.seasons_pi:
-            result[season] = {}
-            for region in diag.regions_pi:
-                result[season][region] = float('NaN')
+        result = init_mydict(diag.seasons_pi, diag.regions_pi)
 
         # if the variable is available
         if isavail:
@@ -88,7 +89,10 @@ def pi_worker(util, piclim, face, diag, field_3d, varstat, varlist):
             offset, factor= units_handler.offset, units_handler.factor
 
             # open file: chunking on time only, might be improved
-            xfield = xr.open_mfdataset(infile, preprocess=xr_preproc, chunks={'time': 12})
+            if not isinstance(infile, (xr.DataArray, xr.Dataset)):
+                xfield = xr.open_mfdataset(infile, preprocess=xr_preproc, chunks={'time': 12})
+            else: 
+                xfield = infile
 
             # in case of big files with multi year, be sure of having opened the right records
             xfield = xfield.sel(time=xfield.time.dt.year.isin(diag.years_joined))
@@ -215,7 +219,7 @@ def performance_indices(exp, year1, year2,
                         numproc=1,
                         climatology='EC23',
                         interface=None, model=None, ensemble='r1i1p1f1',
-                        silent=None):
+                        silent=None, xdataset=None):
     """Main performance indices calculation
 
     :param exp: Experiment name or ID
@@ -229,6 +233,7 @@ def performance_indices(exp, year1, year2,
     :param ensemble: ensemble member to be analyzed, optional (default as 'r1i1p1f1')
     :param silent: do not print anything to std output, optional
     :param climatology: climatology to be compared. default: EC23. Options: [RK08, EC22, EC23]
+    :param xdataset: xarray dataset - already open - to be used without looking for files
 
     :return the performance indices yaml file and heatmap
 

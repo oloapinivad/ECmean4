@@ -65,8 +65,12 @@ def gm_worker(util, ref, face, diag, varmean, vartrend, varlist):
         dervars = get_variables_to_load(var, face)
 
         # create input filenames
-        infile = make_input_filename(
-            var, dervars, face, diag)
+        if diag.xdataset is None:
+            infile = make_input_filename(
+                var, dervars, face, diag)
+        else: 
+            infile = diag.xdataset
+
 
         # chck if variables are available
         isavail, varunit = var_is_there(infile, var, face['variables'])
@@ -91,7 +95,10 @@ def gm_worker(util, ref, face, diag, varmean, vartrend, varlist):
             offset, factor= units_handler.offset, units_handler.factor
 
             # load the object
-            xfield = xr.open_mfdataset(infile, preprocess=xr_preproc, chunks={'time': 12})
+            if not isinstance(infile, (xr.DataArray, xr.Dataset)):
+                xfield = xr.open_mfdataset(infile, preprocess=xr_preproc, chunks={'time': 12})
+            else:
+                xfield = infile
 
             # in case of big files with multi year, be sure of having opened the right records
             xfield = xfield.sel(time=xfield.time.dt.year.isin(diag.years_joined))
@@ -155,7 +162,7 @@ def global_mean(exp, year1, year2,
                 numproc=1,
                 interface=None, model=None, ensemble='r1i1p1f1',
                 silent=None, trend=None, line=None,
-                output=None):
+                output=None, xdataset=None):
     """The main ECmean4 global mean function
 
     :param exp: Experiment name or ID
@@ -171,6 +178,7 @@ def global_mean(exp, year1, year2,
     :param trend: compute yearly trends, optional
     :param line: appends also single line to a table, optional
     :param output: output directory for the single line output, optional
+    :param xdataset: xarray dataset - already open - to be used without looking for files
 
     :returns: the global mean txt table as defined in the output
 

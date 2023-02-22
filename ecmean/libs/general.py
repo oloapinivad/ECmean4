@@ -9,6 +9,7 @@ from pathlib import Path
 import pandas as pd
 import re
 import numpy as np
+import xarray as xr
 
 ####################
 # DIAGNOSTIC CLASS #
@@ -76,6 +77,13 @@ class Diagnostic():
             self.ftable = True
         else:
             self.linefile = self.TABDIR / 'global_means.txt'
+
+        # load the possible xarray dataset
+        if isinstance(args.xdataset, (xr.DataArray, xr.Dataset)):
+            logging.warning('You asked to use your own xarray dataset/datarray...')
+            self.xdataset = args.xdataset
+        else:
+            self.xdataset = None
 
 
 ##################

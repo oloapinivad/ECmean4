@@ -80,11 +80,17 @@ def var_is_there(flist, var, reference):
     """Check if a variable is available in the input file and provide its units"""
 
     # we expect a list obtained by glob
-    isavail = all(os.path.isfile(f) for f in flist) and len(flist) > 0
+    if not isinstance(flist, (xr.DataArray, xr.Dataset)):
+        isavail = all(os.path.isfile(f) for f in flist) and len(flist) > 0
+    else:
+        isavail = True if var in flist else False
 
     if isavail:
         # no need of preproc here
-        xfield = xr.open_mfdataset(flist)
+        if not isinstance(flist, (xr.DataArray, xr.Dataset)):
+            xfield = xr.open_mfdataset(flist)
+        else: 
+            xfield = flist
 
         vars_avail = xfield.data_vars
         units_avail = {}
