@@ -11,49 +11,13 @@ import logging
 from glob import glob
 import yaml
 import sys
-from ecmean.libs.general import is_number, Diagnostic
+from ecmean.libs.general import is_number
 
 ##################
 # FILE FUNCTIONS #
 ##################
 
 
-def init_diagnostic(indir, argv):
-    """
-    configuration function to load config and interface files
-    and to initilized the diagnotic object
-    """
-
-    # config file (looks for it in the same dir as the .py program file
-    if argv.config:
-        cfg = load_yaml(argv.config)
-    else:
-        cfg = load_yaml(indir / '../config.yml')
-
-    # Setup all common variables, directories from arguments and config files
-    logging.info(argv)
-    diag = Diagnostic(argv, cfg)
-
-    # loading the var-to-file interface
-    # allow for both interface name or interface file
-    # fff, ext = os.path.splitext(diag.interface)
-    # if ext:
-    #    faceload = diag.interface
-    # else:
-    #    faceload = indir / Path(
-    #        'interfaces',
-    #        f'interface_{diag.interface}.yml')
-
-    # allow for both interface name or interface file
-    faceload = diag.interface
-    if not os.path.exists(faceload):
-        faceload = indir / Path(
-            'interfaces',
-            f'interface_{diag.interface}.yml')
-
-    face = load_yaml(faceload)
-
-    return cfg, face, diag
 
 
 def inifiles_priority(inidict):
@@ -134,62 +98,6 @@ def var_is_there(flist, var, reference):
 
     return isavail, varunit
 
-# def var_is_there_old(flist, var, reference):
-#     """Check if a variable is available in the input file and provide its units"""
-
-#     # we expect a list obtained by glob
-#     isavail = True
-#     for f in flist:
-#         isavail = isavail and os.path.isfile(f)
-#     isavail = isavail and (len(flist) > 0)
-
-#     if isavail:
-#         xfield = xr.open_mfdataset(flist, preprocess=xr_preproc)
-#         # vars_avail = [i for i in xfield.data_vars]
-#         vars_avail = xfield.data_vars
-#         units_avail = {}
-#         # if I don't know the unit, assuming is a fraction
-#         for i in vars_avail:
-#             try:
-#                 k = xfield[i].units
-#             except BaseException:
-#                 k = 'frac'
-#             if k == '(0 - 1)':
-#                 k = 'frac'
-#             units_avail[i] = k
-
-#         # if variable is derived, extract required vars
-#         d = reference[var].get('derived')
-#         if d:
-#             var_req = re.split('[*+-]', d)
-#             # remove numbers
-#             for x in var_req:
-#                 if is_number(x):
-#                     var_req.remove(x)
-
-#             # check of unit is specified in the interface file
-#             varunit = reference[var].get('units')
-#             if not varunit:
-#                 logging.info('%s is a derived var, assuming unit '
-#                              'as the first of its term', var)
-#                 varunit = units_avail.get(var_req[0])
-#         else:
-#             var_req = [var]
-#             varunit = units_avail.get(var)
-
-#         # check if all required variables are in model output
-#         isavail = True
-#         for x in var_req:
-#             if x not in vars_avail:
-#                 isavail = False
-#                 logging.warning("Variable %s requires %s which is not "
-#                                 "available in the model output. Ignoring it.", var, x)
-#     else:
-#         varunit = None
-#         # print(f'Not available: {var} File: {flist}')
-#         logging.error("No data found for variable %s. Ignoring it.", var)
-
-#     return isavail, varunit
 
 
 def get_clim_files(piclim, var, diag, season):
@@ -275,47 +183,6 @@ def get_inifiles(face, diag):
     return ifiles
 
 
-# def get_inifiles_old(face, diag):
-#     """Return the inifiles from the interface, needs the component dictionary.
-#     Check if inifiles exist."""
-
-#     dictcomp = face['model']['component']
-
-#     # use a dictionary to create the list of initial files
-#     inifiles = {}
-#     for comp, filename, filein in zip(['atm', 'atm', 'oce'],
-#                                       ['maskatmfile', 'atmareafile', 'oceareafile'],
-#                                       ['inifile', 'atmfile', 'areafile']):
-
-#         inifile = face['component'][dictcomp[comp]].get(filein, '')
-
-#         # add the full path if missing
-#         inifiles[filename] = ''
-#         if inifile:
-#             if inifile[0] == '/':
-#                 inifiles[filename] = str(
-#                     _expand_filename(
-#                         inifile,
-#                         '',
-#                         diag))
-#             else:
-#                 inifiles[filename] = Path(diag.ECEDIR) / \
-#                     Path(face['model']['basedir']) / \
-#                     Path(inifile)
-#                 inifiles[filename] = str(
-#                     _expand_filename(
-#                         inifiles[filename],
-#                         '',
-#                         diag))
-
-#             # safe check if inifile exist in the experiment folder
-#             if not glob(inifiles[filename]):
-#                 inifiles[filename] = ''
-#         else:
-#             inifiles[filename] = ''
-
-#     # return dictionary values only
-#     return inifiles.values()
 
 
 def _expand_filename(fn, var, diag):

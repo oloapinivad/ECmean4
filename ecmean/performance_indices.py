@@ -11,17 +11,17 @@
 import sys
 import os
 import argparse
-from pathlib import Path
 import logging
 from time import time
 from multiprocessing import Process, Manager
 import numpy as np
 import xarray as xr
 import yaml
+from ecmean.libs.diagnostic import Diagnostic
 from ecmean.libs.general import weight_split, get_domain, dict_to_dataframe, numeric_loglevel, \
                                 get_variables_to_load, check_time_axis, init_mydict
 from ecmean.libs.files import var_is_there, get_inifiles, load_yaml, make_input_filename, \
-                                get_clim_files, init_diagnostic
+                                get_clim_files
 from ecmean.libs.formula import formula_wrapper
 from ecmean.libs.masks import mask_field, select_region
 from ecmean.libs.areas import guess_bounds
@@ -79,7 +79,7 @@ def pi_worker(util, piclim, face, diag, field_3d, varstat, varlist):
 
         # store NaN in dict (can't use defaultdict due to multiprocessing)
         # result = defaultdict(lambda: defaultdict(lambda : float('NaN')))
-        result = init_mydict(diag.seasons_pi, diag.regions_pi)
+        result = init_mydict(diag.seasons, diag.regions)
 
         # if the variable is available
         if isavail:
@@ -104,7 +104,7 @@ def pi_worker(util, piclim, face, diag, field_3d, varstat, varlist):
             outfield = formula_wrapper(var, face, xfield)
 
             # mean over time and fixing of the units
-            for season in diag.seasons_pi:
+            for season in diag.seasons:
 
                 logging.info(season)
 
@@ -194,7 +194,7 @@ def pi_worker(util, piclim, face, diag, field_3d, varstat, varlist):
                                           dom=domain, mask=domain_mask)
 
                 # loop on different regions
-                for region in diag.regions_pi:
+                for region in diag.regions:
 
                     slicearray = select_region(outarray, region)
 
@@ -241,6 +241,7 @@ def performance_indices(exp, year1, year2,
 
     # create a name space with all the arguments to feed the Diagnostic class
     # This is not the neatest option, but it is very compact
+    funcname = __name__
     argv = argparse.Namespace(**locals())
 
     # set loglevel
@@ -248,19 +249,14 @@ def performance_indices(exp, year1, year2,
 
     tic = time()
 
-    # get local directory
-    indir = Path(os.path.dirname(os.path.abspath(__file__)))
-    logging.info(indir)
-
-    # define config dictionary, interface dictionary and diagnostic class
-    cfg, face, diag = init_diagnostic(indir, argv)
+    # initialize the diag class, load the inteface and the reference file
+    diag = Diagnostic(argv)
+    face = load_yaml(diag.interface)
+    piclim = load_yaml(diag.climfile)
 
     # Create missing folders
     os.makedirs(diag.TABDIR, exist_ok=True)
     os.makedirs(diag.FIGDIR, exist_ok=True)
-
-    # load the climatology reference data
-    piclim = load_yaml(diag.CLMDIR / f'pi_climatology_{diag.climatology}.yml')
 
     # new bunch of functions to set grids, create correction command, masks
     # and areas
@@ -283,14 +279,6 @@ def performance_indices(exp, year1, year2,
                                targetgrid = target_remap_grid)
 
 
-
-    # defines the two varlist
-    field_2d = cfg['PI']['2d_vars']['field']
-    field_3d = cfg['PI']['3d_vars']['field']
-    field_oce = cfg['PI']['oce_vars']['field']
-    field_ice = cfg['PI']['ice_vars']['field']
-    field_all = field_2d + field_3d + field_oce + field_ice
-
     # main loop: manager is required for shared variables
     mgr = Manager()
 
@@ -304,7 +292,7 @@ def performance_indices(exp, year1, year2,
     tic = time()
 
     # loop on the variables, create the parallel process
-    for varlist in weight_split(field_all, diag.numproc):
+    for varlist in weight_split(diag.field_all, diag.numproc):
 
         p = Process(
             target=pi_worker,
@@ -313,7 +301,7 @@ def performance_indices(exp, year1, year2,
                 piclim,
                 face,
                 diag,
-                field_3d,
+                diag.field_3d,
                 varstat,
                 varlist))
         p.start()
@@ -332,7 +320,7 @@ def performance_indices(exp, year1, year2,
 
     # order according to the original request the fields in the yaml file
     ordered = {}
-    for item in field_all:
+    for item in diag.field_all:
         ordered[item] = varstat[item]
 
     # dump the yaml file for PI, including all the seasons (need to copy to avoid mess)
@@ -370,13 +358,13 @@ def performance_indices(exp, year1, year2,
                 del filt_piclim[k][f]
 
         # relative pi with re-ordering of rows
-        cmip6_table = data_table.div(dict_to_dataframe(filt_piclim).reindex(field_all))
+        cmip6_table = data_table.div(dict_to_dataframe(filt_piclim).reindex(diag.field_all))
 
         # compute the total PI mean
         cmip6_table.loc['Total PI'] = cmip6_table.mean()
 
         # reordering columns
-        lll = [(x, y) for x in diag.seasons_pi for y in diag.regions_pi]
+        lll = [(x, y) for x in diag.seasons for y in diag.regions]
         cmip6_table = cmip6_table[lll]
 
         # call the heatmap routine for a plot

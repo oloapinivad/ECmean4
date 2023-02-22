@@ -13,7 +13,6 @@ __author__ = "Paolo Davini (p.davini@isac.cnr.it), Sep 2022."
 import os
 import sys
 import argparse
-from pathlib import Path
 import logging
 from multiprocessing import Process, Manager
 from time import time
@@ -21,9 +20,10 @@ from tabulate import tabulate
 import numpy as np
 import xarray as xr
 import yaml
+from ecmean.libs.diagnostic import Diagnostic
 from ecmean.libs.general import weight_split, write_tuning_table, get_domain, numeric_loglevel, \
                                 get_variables_to_load, check_time_axis, dict_to_dataframe, init_mydict
-from ecmean.libs.files import var_is_there, get_inifiles, load_yaml, make_input_filename, init_diagnostic
+from ecmean.libs.files import var_is_there, get_inifiles, load_yaml, make_input_filename
 from ecmean.libs.formula import formula_wrapper
 from ecmean.libs.masks import masked_meansum, select_region
 from ecmean.libs.support import Supporter
@@ -85,8 +85,8 @@ def gm_worker(util, ref, face, diag, varmean, vartrend, varlist):
         #    for region in diag.regions_gm:
         #        result[season][region] = float('NaN')
         #        trend[season][region] = float('NaN')
-        result = init_mydict(diag.seasons_gm, diag.regions_gm)
-        trend = init_mydict(diag.seasons_gm, diag.regions_gm)
+        result = init_mydict(diag.seasons, diag.regions)
+        trend = init_mydict(diag.seasons, diag.regions)
 
         if isavail:
 
@@ -109,7 +109,7 @@ def gm_worker(util, ref, face, diag, varmean, vartrend, varlist):
             # get the data-array field for the required var
             cfield = formula_wrapper(var, face, xfield).compute()
 
-            for season in diag.seasons_gm:
+            for season in diag.seasons:
 
                 # copy of the full field
                 tfield = cfield.copy(deep=True)
@@ -123,7 +123,7 @@ def gm_worker(util, ref, face, diag, varmean, vartrend, varlist):
                 else:
                     tfield = tfield.mean(dim='time')
 
-                for region in diag.regions_gm:
+                for region in diag.regions:
 
                     slicefield = select_region(tfield, region)
                     sliceweights = select_region(weights, region)
@@ -186,37 +186,20 @@ def global_mean(exp, year1, year2,
 
     # create a name space with all the arguments to feed the Diagnostic class
     # This is not the neatest option, but it is very compact
+    funcname = __name__
     argv = argparse.Namespace(**locals())
 
     # set loglevel
     logging.basicConfig(level=numeric_loglevel(argv.loglevel))
 
-    # get local directory
-    indir = Path(os.path.dirname(os.path.abspath(__file__)))
-    logging.info(indir)
-
-    # define config dictionary, interface dictionary and diagnostic class
-    cfg, face, diag = init_diagnostic(indir, argv)
+    # initialize the diag class, load the inteface and the reference file
+    diag = Diagnostic(argv)
+    face = load_yaml(diag.interface)
+    ref = load_yaml(diag.reffile)
 
     # Create missing folders
     os.makedirs(diag.TABDIR, exist_ok=True)
     os.makedirs(diag.FIGDIR, exist_ok=True)
-
-    # load reference data
-    ref = load_yaml(indir / 'reference/gm_reference_EC23.yml')
-
-    # list of vars on which to work
-    var_atm = cfg['global']['atm_vars']
-    var_oce = cfg['global']['oce_vars']
-    var_ice = cfg['global']['ice_vars']
-    var_table = cfg['global']['tab_vars']
-    # var_all = list(set(var_atm + var_table + var_oce))
-    var_all = list(
-        dict.fromkeys(
-            var_atm +
-            var_table +
-            var_oce +
-            var_ice))  # python 3.7+, preserve order
 
     # Can probably be cleaned up further
     comp = face['model']['component']  # Get component for each domain
@@ -241,7 +224,7 @@ def global_mean(exp, year1, year2,
     tic = time()
 
     # loop on the variables, create the parallel process
-    for varlist in weight_split(var_all, diag.numproc):
+    for varlist in weight_split(diag.var_all, diag.numproc):
         p = Process(target=gm_worker, args=(util_dictionary, ref, face, diag,
                                             varmean, vartrend, varlist))
         p.start()
@@ -263,7 +246,7 @@ def global_mean(exp, year1, year2,
     global_table = []
     obsmean = {}
     obsstd = {}
-    for var in var_atm + var_oce + var_ice:
+    for var in diag.var_atm + diag.var_oce + diag.var_ice:
 
 
         gamma = ref[var]
@@ -275,11 +258,11 @@ def global_mean(exp, year1, year2,
             outval = gamma['obs']
 
         # extract from yaml table for obs mean and standard deviation
-        mmm = init_mydict(diag.seasons_gm, diag.regions_gm)
-        sss = init_mydict(diag.seasons_gm, diag.regions_gm)
+        mmm = init_mydict(diag.seasons, diag.regions)
+        sss = init_mydict(diag.seasons, diag.regions)
         if isinstance(gamma['obs'], dict):
-            for season in diag.seasons_gm:
-                for region in diag.regions_gm:
+            for season in diag.seasons:
+                for region in diag.regions:
                     mmm[season][region] = gamma['obs'][season][region]['mean']
                     sss[season][region] = gamma['obs'][season][region]['std']
         obsmean[gamma['longname']] = mmm
@@ -310,7 +293,7 @@ def global_mean(exp, year1, year2,
 
     # required to avoid problem with multiprocessing
     ordered = {}
-    for var in var_all:
+    for var in diag.var_all:
         ordered[var] = varmean[var]
 
     # dump the yaml file for global_mean, including all the seasons
@@ -322,7 +305,7 @@ def global_mean(exp, year1, year2,
     # set longname, get units
     plotted = {}
     units_list = []
-    for var in var_all:
+    for var in diag.var_all:
         plotted[ref[var]['longname']] = ordered[var]
         units_list = units_list + [ref[var]['units']]
 
@@ -347,7 +330,7 @@ def global_mean(exp, year1, year2,
     if diag.ftable:
         if diag.fverb:
             print(diag.linefile)
-        write_tuning_table(diag.linefile, varmean, var_table, diag, ref)
+        write_tuning_table(diag.linefile, varmean, diag.var_table, diag, ref)
 
     toc = time()
     # evaluate tic-toc time of postprocessing
