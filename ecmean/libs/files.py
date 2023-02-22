@@ -83,7 +83,8 @@ def var_is_there(flist, var, reference):
     if not isinstance(flist, (xr.DataArray, xr.Dataset)):
         isavail = all(os.path.isfile(f) for f in flist) and len(flist) > 0
     else:
-        isavail = True if var in flist else False
+        #isavail = True if var in flist else False
+        isavail = True
 
     if isavail:
         # no need of preproc here
