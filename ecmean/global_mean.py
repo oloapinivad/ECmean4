@@ -27,7 +27,7 @@ from ecmean.libs.files import var_is_there, get_inifiles, load_yaml, make_input_
 from ecmean.libs.formula import formula_wrapper
 from ecmean.libs.masks import masked_meansum, select_region
 from ecmean.libs.support import Supporter
-from ecmean.libs.units import units_extra_definition, units_wrapper
+from ecmean.libs.units import units_extra_definition, UnitsHandler
 from ecmean.libs.ncfixers import xr_preproc
 from ecmean.libs.parser import parse_arguments
 from ecmean.libs.plotting import heatmap_comparison_gm
@@ -87,7 +87,8 @@ def gm_worker(util, ref, face, diag, varmean, vartrend, varlist):
         if isavail:
 
             # perform the unit conversion extracting offset and factor
-            offset, factor = units_wrapper(var, varunit, ref, face)
+            units_handler = UnitsHandler(var, org_units = varunit, clim = ref, face = face)
+            offset, factor= units_handler.offset, units_handler.factor
 
             # load the object
             xfield = xr.open_mfdataset(infile, preprocess=xr_preproc, chunks={'time': 12})

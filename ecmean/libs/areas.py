@@ -220,7 +220,7 @@ def area_cell(xfield, gridtype = None, formula='triangles'):
         full_lat = xfield['lat'].data
 
     # if we are dealing with a regular grid
-    if gridtype in ['gaussian', 'lonlat']:
+    elif gridtype in ['gaussian', 'lonlat']:
 
         # if we have bounds, just check they have the right dimensions names
         if cmor_bounds:
@@ -254,6 +254,9 @@ def area_cell(xfield, gridtype = None, formula='triangles'):
         bounds_lat = bounds_lat.reshape(-1, 2)
 
         area_dims = ('lat', 'lon')
+
+    else:
+        sys.exit('Gridtype undefined!')
 
     # cell dimension
     if formula == "triangles":

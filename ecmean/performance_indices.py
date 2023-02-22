@@ -26,7 +26,7 @@ from ecmean.libs.formula import formula_wrapper
 from ecmean.libs.masks import mask_field, select_region
 from ecmean.libs.areas import guess_bounds
 from ecmean.libs.support import Supporter
-from ecmean.libs.units import units_extra_definition, units_wrapper
+from ecmean.libs.units import units_extra_definition, UnitsHandler
 from ecmean.libs.ncfixers import xr_preproc, adjust_clim_file
 from ecmean.libs.plotting import heatmap_comparison_pi
 from ecmean.libs.parser import parse_arguments
@@ -84,7 +84,8 @@ def pi_worker(util, piclim, face, diag, field_3d, varstat, varlist):
         if isavail:
 
             # perform the unit conversion extracting offset and factor
-            offset, factor = units_wrapper(var, varunit, piclim, face)
+            units_handler = UnitsHandler(var, org_units = varunit, clim = piclim, face = face)
+            offset, factor= units_handler.offset, units_handler.factor
 
             # open file: chunking on time only, might be improved
             xfield = xr.open_mfdataset(infile, preprocess=xr_preproc, chunks={'time': 12})

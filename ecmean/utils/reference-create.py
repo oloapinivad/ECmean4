@@ -11,10 +11,11 @@ __author__ = "Paolo Davini (p.davini@isac.cnr.it), Feb 2023."
 
 
 from ecmean.libs.files import load_yaml
-from ecmean.libs.units import units_extra_definition, units_converter, directions_match, _units_are_integrals
+from ecmean.libs.units import units_extra_definition, UnitsHandler
 from ecmean.libs.ncfixers import xr_preproc
 from ecmean.libs.masks import masked_meansum, select_region
-from ecmean.libs.areas import _area_cell
+from ecmean.libs.areas import area_cell
+from ecmean.libs.support import identify_grid
 from ecmean.libs.formula import _eval_formula
 import logging
 import yaml
@@ -124,7 +125,8 @@ for var in variables:
         # get a single record and exploit of ecmean function to estimate areas
         print("Compute cell area for weights...")
         first = cfield.to_dataset(name=var)
-        weights = _area_cell(first).load()
+        gg = identify_grid(first)
+        weights = area_cell(first, gridtype=gg).load()
 
         # compute land sea mask
         if mask_type != 'global':
@@ -171,10 +173,17 @@ for var in variables:
                                      mask_type=mask_type, domain=domain)
 
                 # set the units
-                new_units = _units_are_integrals(info[var]['org_units'], info[var])
-                offset, factor = units_converter(new_units, info[var]['tgt_units'])
-                down = {'direction': 'down'}
-                factor = factor * directions_match(info[var], down)
+                units_handler = UnitsHandler(var, 
+                    org_units = info[var]['org_units'], 
+                    tgt_units = info[var]['tgt_units'], 
+                    operation=info[var].get('operation', 'mean'),
+                    org_direction = info[var].get('direction', 'down')
+                    )
+                offset, factor= units_handler.offset, units_handler.factor
+                #new_units = _units_are_integrals(info[var]['org_units'], info[var])
+                #offset, factor = units_converter(new_units, info[var]['tgt_units'])
+                #down = {'direction': 'down'}
+                #factor = factor * directions_match(info[var], down)
                 final = out * factor + offset
 
                 omean = np.mean(final)

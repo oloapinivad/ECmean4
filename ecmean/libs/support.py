@@ -11,7 +11,7 @@ import sys
 from ecmean.libs.ncfixers import xr_preproc
 from ecmean.libs.files import inifiles_priority
 from ecmean.libs.areas import area_cell
-from ecmean.libs.units import units_converter
+from ecmean.libs.units import UnitsHandler
 
 ###########################
 # INTERPOLATION FUNCTIONS #
@@ -149,7 +149,9 @@ class Supporter():
             # check if we need to convert from % to fraction
             # offset should not count!
             if mask.units:
-                offset, factor = units_converter(mask.units, 'frac')
+                units_handler = UnitsHandler(org_units = mask.units, tgt_units = 'frac')
+                offset, factor = units_handler.offset, units_handler.factor
+                #offset, factor = units_converter(mask.units, 'frac')
                 mask = (mask * factor) + offset
 
             # to keep coehrence in other operations, oceanic mask is set to be
