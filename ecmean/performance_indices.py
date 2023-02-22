@@ -126,6 +126,8 @@ def pi_worker(util, piclim, face, diag, field_3d, varstat, varlist):
 
                 # averaging
                 tmean = tmean.mean(dim='time')
+                cfield = cfield.load() #this ensure no crash with multiprocessing
+                vfield = vfield.load()
 
                 # safe check for old RK08 which has a different format
                 if diag.climatology != 'RK08':
@@ -158,16 +160,16 @@ def pi_worker(util, piclim, face, diag, field_3d, varstat, varlist):
 
                     # xarray interpolation on plev, forcing to be in Pascal
                     final = final.metpy.convert_coordinate_units('plev', 'Pa')
-                    if set(final['plev'].values) != set(cfield['plev'].values):
+                    if set(final['plev'].data) != set(cfield['plev'].data):
                         logging.warning(var + ': Need to interpolate vertical levels...')
-                        final = final.interp(plev=cfield['plev'].values, method='linear')
+                        final = final.interp(plev=cfield['plev'].data, method='linear')
 
                         # safety check for missing values
                         sample = final.isel(lon=0, lat=0)
                         if np.sum(np.isnan(sample)) != 0:
                             logging.warning(var + ': You have NaN after the interpolation, this will affect your PIs...')
                             levnan = cfield['plev'].where(np.isnan(sample))
-                            logging.warning(levnan[~np.isnan(levnan)].values)
+                            logging.warning(levnan[~np.isnan(levnan)]._to_dataframe)
 
                     # zonal mean
                     final = final.mean(dim='lon')
@@ -200,7 +202,7 @@ def pi_worker(util, piclim, face, diag, field_3d, varstat, varlist):
 
                     # latitude-based averaging
                     weights = np.cos(np.deg2rad(slicearray.lat))
-                    out = slicearray.weighted(weights).mean().values
+                    out = slicearray.weighted(weights).mean().data
 
                     # store the PI
                     result[season][region] = round(float(out), 3)
