@@ -14,14 +14,14 @@ import numpy as np
 ##################
 
 
-def is_number(s):
-    """Check if input is a float type"""
+# def is_number(s):
+#     """Check if input is a float type"""
 
-    try:
-        float(s)
-        return True
-    except ValueError:
-        return False
+#     try:
+#         float(s)
+#         return True
+#     except ValueError:
+#         return False
 
 
 def numeric_loglevel(loglevel):
@@ -66,7 +66,8 @@ def check_time_axis(xtime, years):
 
 def runtime_weights(varlist):
     """Define the weights to estimate the best repartition of the cores
-    This is done a-priori, considering that 1) compound variables are more difficult to compute
+    This is done a-priori, considering that 
+    1) compound variables are more difficult to compute
     2) 3d variables requires more evaluation"""
 
     w = {}
