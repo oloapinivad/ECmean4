@@ -18,8 +18,6 @@ from ecmean.libs.general import is_number
 ##################
 
 
-
-
 def inifiles_priority(inidict):
     """
     For areas dictionary and remap dictionary, provides a priority of which
@@ -47,14 +45,14 @@ def var_is_there(flist, var, reference):
     if not isinstance(flist, (xr.DataArray, xr.Dataset)):
         isavail = all(os.path.isfile(f) for f in flist) and len(flist) > 0
     else:
-        #isavail = True if var in flist else False
+        # isavail = True if var in flist else False
         isavail = True
 
     if isavail:
         # no need of preproc here
         if not isinstance(flist, (xr.DataArray, xr.Dataset)):
             xfield = xr.open_mfdataset(flist)
-        else: 
+        else:
             xfield = flist
 
         vars_avail = xfield.data_vars
@@ -97,7 +95,6 @@ def var_is_there(flist, var, reference):
         logging.error("No data found for variable %s. Ignoring it.", var)
 
     return isavail, varunit
-
 
 
 def get_clim_files(piclim, var, diag, season):
@@ -183,8 +180,6 @@ def get_inifiles(face, diag):
     return ifiles
 
 
-
-
 def _expand_filename(fn, var, diag):
     """Expands a path (filename or dir) for var, expname, frequency, ensemble etc.
     and environment variables. Years are set as a wildcard and filtered by _filter_by_year"""
@@ -263,7 +258,7 @@ def make_input_filename(cmorname, face, diag):
     if diag.xdataset is not None:
         return diag.xdataset
 
-    else: 
+    else:
 
         # detect if it is a derived vars and get the list of var to be loaded
         varname = _get_variables_to_load(cmorname, face)
@@ -284,6 +279,7 @@ def make_input_filename(cmorname, face, diag):
         filename = list(dict.fromkeys(filename))  # Filter unique ones
         logging.info("Filenames: %s", filename)
         return filename
+
 
 def _get_variables_to_load(var, face):
     """Function to extract from the interface file the list of derived variable,

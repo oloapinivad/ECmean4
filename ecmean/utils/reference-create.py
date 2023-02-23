@@ -42,7 +42,6 @@ ice_vars = ['siconc', 'siconc_north', 'siconc_south']
 variables = atm_vars + rad_vars + oce_vars + ice_vars
 
 
-
 # to set: time period (default, can be shorter if data are missing)
 year1 = 1991
 year2 = 2020
@@ -173,17 +172,17 @@ for var in variables:
                                      mask_type=mask_type, domain=domain)
 
                 # set the units
-                units_handler = UnitsHandler(var, 
-                    org_units = info[var]['org_units'], 
-                    tgt_units = info[var]['tgt_units'], 
-                    operation=info[var].get('operation', 'mean'),
-                    org_direction = info[var].get('direction', 'down')
-                    )
-                offset, factor= units_handler.offset, units_handler.factor
-                #new_units = _units_are_integrals(info[var]['org_units'], info[var])
-                #offset, factor = units_converter(new_units, info[var]['tgt_units'])
-                #down = {'direction': 'down'}
-                #factor = factor * directions_match(info[var], down)
+                units_handler = UnitsHandler(var,
+                                             org_units=info[var]['org_units'],
+                                             tgt_units=info[var]['tgt_units'],
+                                             operation=info[var].get('operation', 'mean'),
+                                             org_direction=info[var].get('direction', 'down')
+                                             )
+                offset, factor = units_handler.offset, units_handler.factor
+                # new_units = _units_are_integrals(info[var]['org_units'], info[var])
+                # offset, factor = units_converter(new_units, info[var]['tgt_units'])
+                # down = {'direction': 'down'}
+                # factor = factor * directions_match(info[var], down)
                 final = out * factor + offset
 
                 omean = np.mean(final)

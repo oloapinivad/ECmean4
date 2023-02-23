@@ -21,8 +21,8 @@ import numpy as np
 import xarray as xr
 import yaml
 from ecmean.libs.diagnostic import Diagnostic
-from ecmean.libs.general import weight_split, write_tuning_table, get_domain, numeric_loglevel, \
-                                check_time_axis, dict_to_dataframe, init_mydict
+from ecmean.libs.general import weight_split, write_tuning_table, get_domain, \
+    numeric_loglevel, check_time_axis, dict_to_dataframe, init_mydict
 from ecmean.libs.files import var_is_there, get_inifiles, load_yaml, make_input_filename
 from ecmean.libs.formula import formula_wrapper
 from ecmean.libs.masks import masked_meansum, select_region
@@ -74,8 +74,8 @@ def gm_worker(util, ref, face, diag, varmean, vartrend, varlist):
         if isavail:
 
             # perform the unit conversion extracting offset and factor
-            units_handler = UnitsHandler(var, org_units = varunit, clim = ref, face = face)
-            offset, factor= units_handler.offset, units_handler.factor
+            units_handler = UnitsHandler(var, org_units=varunit, clim=ref, face=face)
+            offset, factor = units_handler.offset, units_handler.factor
 
             # load the object
             if not isinstance(infile, (xr.DataArray, xr.Dataset)):
@@ -99,7 +99,7 @@ def gm_worker(util, ref, face, diag, varmean, vartrend, varlist):
 
                 if season != 'ALL':
                     tfield = tfield.sel(time=cfield.time.dt.season.isin(season))
-                
+
                 if diag.ftrend:
                     # this does not consider continuous seasons for DJF, but JF+D
                     tfield = tfield.groupby('time.year').mean('time')
@@ -110,7 +110,7 @@ def gm_worker(util, ref, face, diag, varmean, vartrend, varlist):
 
                     slicefield = select_region(tfield, region)
                     sliceweights = select_region(weights, region)
-                    if isinstance(domain_mask, xr.DataArray): 
+                    if isinstance(domain_mask, xr.DataArray):
                         slicemask = select_region(domain_mask, region)
                     else:
                         slicemask = 0.
@@ -121,16 +121,16 @@ def gm_worker(util, ref, face, diag, varmean, vartrend, varlist):
                         operation=ref[var].get('operation', 'mean'),
                         mask_type=ref[var].get('mask', 'global'),
                         domain=domain)
-                    
+
                     try:
                         x = a.compute()
-                    except:
+                    except BaseException:
                         x = a
                     result[season][region] = float((np.nanmean(x) + offset) * factor)
 
                     if diag.ftrend:
                         if (len(x) == len(diag.years_joined)):
-                            trend[season][region] = np.polyfit(diag.years_joined,x, 1)[0]
+                            trend[season][region] = np.polyfit(diag.years_joined, x, 1)[0]
                     if diag.fverb and season == 'ALL' and region == 'Global':
                         print('Average', var, season, region, result[season][region])
 
@@ -195,7 +195,7 @@ def global_mean(exp, year1, year2,
 
     # create util dictionary including mask and weights for both atmosphere
     # and ocean grids
-    util_dictionary = Supporter(comp, inifiles['atm'], inifiles['oce'], areas = True, remap = False)
+    util_dictionary = Supporter(comp, inifiles['atm'], inifiles['oce'], areas=True, remap=False)
 
     # main loop: manager is required for shared variables
     mgr = Manager()
@@ -230,7 +230,6 @@ def global_mean(exp, year1, year2,
     obsmean = {}
     obsstd = {}
     for var in diag.var_atm + diag.var_oce + diag.var_ice:
-
 
         gamma = ref[var]
         # get the predifined value or the ALL GLobal one
@@ -297,16 +296,16 @@ def global_mean(exp, year1, year2,
     mean_table = dict_to_dataframe(obsmean)
     std_table = dict_to_dataframe(obsstd)
     for table in [data_table, mean_table, std_table]:
-        table.index = table.index  + ' [' + units_list + ']'
-    #data_table.index = data_table.index + ' [' + units_list + ']'
-    #mean_table.index = mean_table.index + ' [' + units_list + ']'
-    #std_table.index = std_table.index + ' [' + units_list + ']'
+        table.index = table.index + ' [' + units_list + ']'
+    # data_table.index = data_table.index + ' [' + units_list + ']'
+    # mean_table.index = mean_table.index + ' [' + units_list + ']'
+    # std_table.index = std_table.index + ' [' + units_list + ']'
     logging.info(data_table)
 
     # call the heatmap routine for a plot
     mapfile = diag.FIGDIR / \
         f'global_mean_{diag.expname}_{diag.modelname}_r1i1p1f1_{diag.year1}_{diag.year2}.pdf'
-    
+
     heatmap_comparison_gm(data_table, mean_table, std_table, diag, mapfile)
 
     # Print appending one line to table (for tuning)

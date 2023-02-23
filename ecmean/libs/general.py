@@ -6,15 +6,12 @@ Shared functions for XArray ECmean4
 import os
 import logging
 import pandas as pd
-import re
 import numpy as np
 
 
 ##################
 # HELP FUNCTIONS #
 ##################
-
-
 
 
 def is_number(s):
@@ -175,12 +172,12 @@ def write_tuning_table(linefile, varmean, var_table, diag, ref):
         print(file=f)
 
 
-def init_mydict(one, two): 
+def init_mydict(one, two):
     """Initialize a two level dictionary"""
     dd = {}
     for o in one:
         dd[o] = {}
         for t in two:
             dd[o][t] = float('NaN')
-    
+
     return dd

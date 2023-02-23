@@ -17,11 +17,11 @@ from ecmean.libs.units import UnitsHandler
 # INTERPOLATION FUNCTIONS #
 ###########################
 
-class Supporter():
-    
-    def __init__(self, component, atmdict, ocedict, areas = True, remap = False, targetgrid=None):
 
-        """Class for masks, areas and interpolation (xESMF-based) 
+class Supporter():
+
+    def __init__(self, component, atmdict, ocedict, areas=True, remap=False, targetgrid=None):
+        """Class for masks, areas and interpolation (xESMF-based)
         for both atmospheric and oceanic component"""
 
         # define the basics
@@ -47,9 +47,9 @@ class Supporter():
         logging.warning(f'Atmosphere grid is is a {self.atmgridtype} grid!')
 
         # compute atmopheric area
-        if areas: 
+        if areas:
             self.atmarea = self.make_areas(self.atmgridtype, self.atmfield)
-        
+
         # initialize the interpolation for atmosphere
         if self.targetgrid and remap:
             self.atmfix, self.atmremap = self.make_atm_interp_weights(self.atmfield)
@@ -58,7 +58,7 @@ class Supporter():
         self.atmmask = self.make_atm_masks()
 
         # do the same if oceanic file is found
-        if self.oceareafile: 
+        if self.oceareafile:
             self.ocefield = self.load_field(self.oceareafile, comp='oce')
             self.ocegridtype = identify_grid(self.ocefield)
             logging.warning(f'Oceanic grid is is a {self.ocegridtype} grid!')
@@ -74,18 +74,17 @@ class Supporter():
             # ocean mask
             if self.ocemaskfile:
                 self.ocemask = self.make_oce_masks()
-            else: 
-                 # if it is missing, when remapping I can use the atmospheric one
+            else:
+                # if it is missing, when remapping I can use the atmospheric one
                 if self.targetgrid and remap:
                     self.ocemask = self.atmmask
                 # otherwise, no solution!
                 else:
-                    logging.warning(f'Oceanic mask not found!')
+                    logging.warning('Oceanic mask not found!')
 
-        else : 
+        else:
             logging.warning("Ocereafile cannot be found, assuming this is an AMIP run")
 
-      
     def make_atm_masks(self):
         """Create land-sea masks for atmosphere model"""
 
@@ -131,7 +130,7 @@ class Supporter():
             mask = self.atmremap(mask, keep_attrs=True)
 
         return mask
-    
+
     def make_oce_masks(self):
         """Create land-sea masks for oceanic model. This is used only for CMIP"""
 
@@ -149,9 +148,9 @@ class Supporter():
             # check if we need to convert from % to fraction
             # offset should not count!
             if mask.units:
-                units_handler = UnitsHandler(org_units = mask.units, tgt_units = 'frac')
+                units_handler = UnitsHandler(org_units=mask.units, tgt_units='frac')
                 offset, factor = units_handler.offset, units_handler.factor
-                #offset, factor = units_converter(mask.units, 'frac')
+                # offset, factor = units_converter(mask.units, 'frac')
                 mask = (mask * factor) + offset
 
             # to keep coehrence in other operations, oceanic mask is set to be
@@ -181,10 +180,9 @@ class Supporter():
         if not areafile:
             sys.exit(f'ERROR: {comp}reafile cannot be found')
         return xr.open_mfdataset(areafile, preprocess=xr_preproc).load()
-    
 
     def make_areas(self, gridtype, xfield):
-        """Create weights for area operations. 
+        """Create weights for area operations.
         Minimal structure."""
 
         # this might be universal, but keep this as for supported components only
@@ -196,7 +194,7 @@ class Supporter():
             area = xfield['e1t'] * xfield['e2t']
         else:  # automatic solution, wish you luck!
             area = area_cell(xfield, gridtype)
-            
+
         return area
 
     def make_atm_interp_weights(self, xfield):
@@ -222,7 +220,7 @@ class Supporter():
 
             # create bilinear interpolator
             remap = xe.Regridder(
-                fix(xfield[xname]), self.targetgrid, 
+                fix(xfield[xname]), self.targetgrid,
                 periodic=True, method="bilinear")
 
         elif self.atmcomponent in ['cmoratm', 'globo']:
@@ -235,9 +233,9 @@ class Supporter():
         else:
             sys.exit(
                 "ERROR: Atm weights not defined for this component, this cannot be handled!")
-            
+
         return fix, remap
-    
+
     def make_oce_interp_weights(self, xfield):
         """Create oceanic interpolator weights"""
 
@@ -264,7 +262,7 @@ class Supporter():
                 periodic=True)
 
         else:
-        # print("Detecting regular or curvilinear grid, using bilinear!")
+            # print("Detecting regular or curvilinear grid, using bilinear!")
             fix = None
             remap = xe.Regridder(
                 xfield[xname],

@@ -58,26 +58,26 @@ def heatmap_comparison_gm(data_table, mean_table, std_table, diag, filemap):
 
     fig, axs = plt.subplots(1, 1, sharey=True, tight_layout=True, figsize=(18, 14))
 
-    ratio = (data_table - mean_table)/std_table
-
+    ratio = (data_table - mean_table) / std_table
 
     title = 'GLOBAL MEAN'
-    mask = ratio[('ALL','Global')].notna()
+    mask = ratio[('ALL', 'Global')].notna()
     clean = ratio[mask]
     thr = 10
-    tictoc = range(-thr, thr+1)
+    tictoc = range(-thr, thr + 1)
     pal = ListedColormap(sns.color_palette("seismic", n_colors=21))
     tot = (len(clean.columns))
     sss = (len(set([tup[1] for tup in clean.columns])))
 
-    chart = sns.heatmap(clean, annot=data_table[mask], vmin=-thr-0.5, vmax=thr+0.5, center=0,
-                        annot_kws={'va':'bottom', 'fontsize': 12}, 
-                        cbar_kws={'ticks': tictoc, 'label': 'Model Bias (as standard deviation of interannual variability from observations)'},
-                        fmt = '.2f', cmap = pal)
-    chart = sns.heatmap(clean, annot=mean_table[mask], vmin=-thr-0.5, vmax=thr+0.5, center=0,
-                        annot_kws={'va':'top', 'fontsize': 8, 'fontstyle': 'italic'}, 
-                        fmt = '.2f', cmap = pal, cbar = False)
-  
+    chart = sns.heatmap(clean, annot=data_table[mask], vmin=-thr - 0.5, vmax=thr + 0.5, center=0,
+                        annot_kws={'va': 'bottom', 'fontsize': 12},
+                        cbar_kws={'ticks': tictoc,
+                                  'label': 'Model Bias (as standard deviation of interannual variability from observations)'},
+                        fmt='.2f', cmap=pal)
+    chart = sns.heatmap(clean, annot=mean_table[mask], vmin=-thr - 0.5, vmax=thr + 0.5, center=0,
+                        annot_kws={'va': 'top', 'fontsize': 8, 'fontstyle': 'italic'},
+                        fmt='.2f', cmap=pal, cbar=False)
+
     chart = chart.set_facecolor('whitesmoke')
     axs.set_title(f'{title} {diag.modelname} {diag.expname} {diag.year1} {diag.year2}', fontsize=25)
     axs.vlines(list(range(sss, tot + sss, sss)), ymin=-1, ymax=len(clean.index), colors='k')

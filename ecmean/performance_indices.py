@@ -18,10 +18,10 @@ import numpy as np
 import xarray as xr
 import yaml
 from ecmean.libs.diagnostic import Diagnostic
-from ecmean.libs.general import weight_split, get_domain, dict_to_dataframe, numeric_loglevel, \
-                                check_time_axis, init_mydict
-from ecmean.libs.files import var_is_there, get_inifiles, load_yaml, make_input_filename, \
-                                get_clim_files
+from ecmean.libs.general import weight_split, get_domain, dict_to_dataframe, \
+    numeric_loglevel, check_time_axis, init_mydict
+from ecmean.libs.files import var_is_there, get_inifiles, load_yaml, \
+    make_input_filename, get_clim_files
 from ecmean.libs.formula import formula_wrapper
 from ecmean.libs.masks import mask_field, select_region
 from ecmean.libs.areas import guess_bounds
@@ -77,13 +77,13 @@ def pi_worker(util, piclim, face, diag, field_3d, varstat, varlist):
         if isavail:
 
             # perform the unit conversion extracting offset and factor
-            units_handler = UnitsHandler(var, org_units = varunit, clim = piclim, face = face)
-            offset, factor= units_handler.offset, units_handler.factor
+            units_handler = UnitsHandler(var, org_units=varunit, clim=piclim, face=face)
+            offset, factor = units_handler.offset, units_handler.factor
 
             # open file: chunking on time only, might be improved
             if not isinstance(infile, (xr.DataArray, xr.Dataset)):
                 xfield = xr.open_mfdataset(infile, preprocess=xr_preproc, chunks={'time': 12})
-            else: 
+            else:
                 xfield = infile
 
             # in case of big files with multi year, be sure of having opened the right records
@@ -118,7 +118,7 @@ def pi_worker(util, piclim, face, diag, field_3d, varstat, varlist):
 
                 # averaging
                 tmean = tmean.mean(dim='time')
-                cfield = cfield.load() #this ensure no crash with multiprocessing
+                cfield = cfield.load()  # this ensure no crash with multiprocessing
                 vfield = vfield.load()
 
                 # safe check for old RK08 which has a different format
@@ -136,7 +136,7 @@ def pi_worker(util, piclim, face, diag, field_3d, varstat, varlist):
                 # apply interpolation, if fixer is availble and with different
                 # grids
                 fix = getattr(util, f'{domain}fix')
-                remap =  getattr(util, f'{domain}remap')
+                remap = getattr(util, f'{domain}remap')
 
                 if fix:
                     tmean = fix(tmean, keep_attrs=True)
@@ -145,7 +145,6 @@ def pi_worker(util, piclim, face, diag, field_3d, varstat, varlist):
                 except ValueError:
                     logging.error(f'Cannot interpolate {var} with the current weights...')
                     continue
-                
 
                 # vertical interpolation
                 if var in field_3d:
@@ -268,10 +267,9 @@ def performance_indices(exp, year1, year2,
     units_extra_definition()
 
     # create remap dictionary with atm and oce interpolators
-    util_dictionary = Supporter(comp, inifiles['atm'], inifiles['oce'], 
-                               areas = False, remap = True, 
-                               targetgrid = target_remap_grid)
-
+    util_dictionary = Supporter(comp, inifiles['atm'], inifiles['oce'],
+                                areas=False, remap=True,
+                                targetgrid=target_remap_grid)
 
     # main loop: manager is required for shared variables
     mgr = Manager()

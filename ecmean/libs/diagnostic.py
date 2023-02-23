@@ -37,7 +37,7 @@ class Diagnostic():
         self.resolution = getattr(args, 'resolution', '')
         self.ensemble = getattr(args, 'ensemble', 'r1i1p1f1')
         self.funcname = args.funcname.split(".")[1]
-        if self.year1 == self.year2: 
+        if self.year1 == self.year2:
             self.ftrend = False
         print(self.funcname)
 
@@ -62,8 +62,8 @@ class Diagnostic():
 
         # init for global mean
         if self.funcname == 'global_mean':
-           self.cfg_global_mean(cfg)
-        
+            self.cfg_global_mean(cfg)
+
         # init for performance indices
         if self.funcname in 'performance_indices':
             self.cfg_performance_indices(cfg)
@@ -85,14 +85,14 @@ class Diagnostic():
             if isinstance(args.xdataset, (xr.DataArray, xr.Dataset)):
                 logging.warning('You asked to use your own xarray dataset/datarray...')
                 self.xdataset = args.xdataset
-            else: 
+            else:
                 sys.exit('Cannot used the xdataset, is not Xarray object')
         else:
             self.xdataset = None
 
     def cfg_global_mean(self, cfg):
         """Set up configuration details for global mean"""
-        
+
         self.regions = cfg['global']['regions']
         self.seasons = cfg['global']['seasons']
 
@@ -123,7 +123,7 @@ class Diagnostic():
         self.field_3d = cfg['PI']['3d_vars']['field']
         self.field_oce = cfg['PI']['oce_vars']['field']
         self.field_ice = cfg['PI']['ice_vars']['field']
-        self.field_all = self.field_2d +  self.field_3d +  self.field_oce +  self.field_ice
+        self.field_all = self.field_2d + self.field_3d + self.field_oce + self.field_ice
 
         # hard-coded resolution (due to climatological dataset)
         if self.climatology == 'RK08':
@@ -137,7 +137,7 @@ class Diagnostic():
         if self.climatology in ['EC22', 'RK08']:
             logging.error('only EC23 climatology support multiple seasons! Keeping only yearly seasons!')
             self.seasons = ['ALL']
-        
+
         self.CLMDIR = Path(
             os.path.expandvars(
                 cfg['dirs']['clm']),

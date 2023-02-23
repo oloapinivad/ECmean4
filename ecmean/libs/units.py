@@ -11,12 +11,13 @@ from metpy.units import units
 import logging
 import sys
 
+
 class UnitsHandler():
 
-    def __init__(self, var = None, org_units=None, tgt_units=None, 
-        org_direction='down', tgt_direction='down', 
-        operation='mean', cumulation_time=None, 
-        clim=None, face=None, convert=True): 
+    def __init__(self, var=None, org_units=None, tgt_units=None,
+                 org_direction='down', tgt_direction='down',
+                 operation='mean', cumulation_time=None,
+                 clim=None, face=None, convert=True):
         """
         Class for handling units and their conversion
 
@@ -34,7 +35,7 @@ class UnitsHandler():
 
         Returns:
             offset (float): units offset of conversion
-            factor (float): units factor of conversion   
+            factor (float): units factor of conversion
         """
 
         # generic object initialization
@@ -59,16 +60,16 @@ class UnitsHandler():
     def init_ecmean(self, clim, face):
         """Specific initialization used within ECmean"""
 
-        if not self.org_units: 
+        if not self.org_units:
             logging.warning('Source unit undefined, assuming fraction')
             self.src_units = 'frac'
-   
+
         if clim[self.var]['units']:
             self.tgt_units = clim[self.var]['units']
-        else: 
+        else:
             logging.warning('Target unit undefined, assuming fraction')
             self.tgt_units = 'frac'
-        
+
         self.org_direction = face['variables'][self.var].get('direction', 'down')
         self.tgt_direction = clim[self.var].get('direction', 'down')
         self.operation = clim[self.var].get('operation', 'mean')
@@ -89,7 +90,7 @@ class UnitsHandler():
         units_relation = (units(self.org_units) / units(self.tgt_units)).to_base_units()
         logging.info(units_relation)
 
-        if units_relation.units ==  units('dimensionless'):
+        if units_relation.units == units('dimensionless'):
 
             if units_relation.magnitude != 1:
                 logging.info('Unit conversion required...')
@@ -105,24 +106,24 @@ class UnitsHandler():
                 factor = 1.
 
         elif units_relation.units == units('kg / m^3'):
-                logging.info("Assuming this as a water flux! Am I correct?")
-                logging.info("Dividing by water density...")
-                density_water = units('kg / m^3') * 1000
-                offset = 0.
-                factor_standard = 1 * units(self.org_units)
-                factor = (factor_standard / density_water).to(self.tgt_units).magnitude
+            logging.info("Assuming this as a water flux! Am I correct?")
+            logging.info("Dividing by water density...")
+            density_water = units('kg / m^3') * 1000
+            offset = 0.
+            factor_standard = 1 * units(self.org_units)
+            factor = (factor_standard / density_water).to(self.tgt_units).magnitude
 
         elif units_relation.units == units('s'):
-                logging.info("Assuming this is a cumulated flux...")
-                logging.info("Dividing by cumulation time...")
-                if self.cumulatione_time:
-                    cumtime = units('s') * self.cumulatione_time
-                    offset = 0.
-                    factor_standard = 1 * units(self.org_units)
-                    factor = (factor_standard / cumtime).to(self.tgt_units).magnitude
-                else:
-                    logging.error('This variable seems cumulated over time but has no cumulation time defined')
-                    sys.exit("ERROR: Units mismatch, this cannot be handled!")
+            logging.info("Assuming this is a cumulated flux...")
+            logging.info("Dividing by cumulation time...")
+            if self.cumulatione_time:
+                cumtime = units('s') * self.cumulatione_time
+                offset = 0.
+                factor_standard = 1 * units(self.org_units)
+                factor = (factor_standard / cumtime).to(self.tgt_units).magnitude
+            else:
+                logging.error('This variable seems cumulated over time but has no cumulation time defined')
+                sys.exit("ERROR: Units mismatch, this cannot be handled!")
 
         else:
             logging.error(units_relation)
@@ -134,7 +135,7 @@ class UnitsHandler():
         logging.info('Offset is ' + str(offset))
         logging.info('Factor is ' + str(factor))
         return offset, factor
-       
+
 
 # def units_wrapper(var, varunit, clim, face):
 #     """

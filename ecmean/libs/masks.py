@@ -140,7 +140,7 @@ def masked_meansum(xfield, weights, mask, operation, domain, mask_type):
     masked = mask_field(xfield, mask_type, domain, mask)
 
     # no time dimensions
-    notimedim = [dim for dim in xfield.dims if dim not in ['time','year','month']]
+    notimedim = [dim for dim in xfield.dims if dim not in ['time', 'year', 'month']]
 
     # global mean
     if operation in ['average', 'mean']:
@@ -238,19 +238,19 @@ def select_region(xfield, region):
 
     if region == 'Global':
         return xfield
-    else: 
+    else:
         if region == 'North Midlat':
             lat_min, lat_max = 30.0, 90.0
         elif region == 'South Midlat':
-            lat_min, lat_max = -90.0, -30.0 
+            lat_min, lat_max = -90.0, -30.0
         elif region == 'Tropical':
             lat_min, lat_max = -30.0, 30.0
         else:
             sys.exit(region + "region not supported!!!")
-    
+
         # new version more flexible than the slice one
         return xfield.where((xfield.lat >= lat_min) & (xfield.lat <= lat_max))
-         
+
 
 # def select_region_old(xfield, region):
 #     """Trivial function to convert region definition to xarray
