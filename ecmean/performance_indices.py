@@ -321,26 +321,8 @@ def performance_indices(exp, year1, year2,
     with open(yamlfile, 'w') as file:
         yaml.safe_dump(ordered, file, default_flow_style=False, sort_keys=False)
 
-    # write the file with tabulate only for yearly mean
-    # tablefile = diag.TABDIR / \
-    #     f'PI4_{diag.climatology}_{diag.expname}_{diag.modelname}_r1i1p1f1_{diag.year1}_{diag.year2}.txt'
-    # with open(tablefile, 'w', encoding='utf-8') as f:
-    #     f.write(
-    #         tabulate(
-    #             global_table,
-    #             headers=head,
-    #             tablefmt='orgtbl',
-    #             floatfmt=".2f"))
-    #     f.write('\n\nPartial PI (atm only) is   : ' +
-    #             str(round(partial_pi, 3)))
-    #     f.write('\nTotal Performance Index is : ' + str(round(total_pi, 3)))
-
     # to this date, only EC23 support comparison with CMIP6 data
     if diag.climatology == 'EC23':
-
-        # convert output dictionary to pandas dataframe
-        data_table = dict_to_dataframe(ordered)
-        logging.info(data_table)
 
         # uniform dictionaries
         filt_piclim = {}
@@ -349,8 +331,22 @@ def performance_indices(exp, year1, year2,
             for f in ['models', 'year1', 'year2']:
                 del filt_piclim[k][f]
 
+        # set longname, reorganize the dictionaries
+        plotted = {}
+        cmip6 = {}
+        longnames =[]
+        for var in diag.field_all:
+            plotted[piclim[var]['longname']] = ordered[var]
+            cmip6[piclim[var]['longname']] = filt_piclim[var]
+            longnames = longnames + [piclim[var]['longname']]
+
+        # convert output dictionary to pandas dataframe
+        data_table = dict_to_dataframe(plotted)
+        logging.info(data_table)
+
+
         # relative pi with re-ordering of rows
-        cmip6_table = data_table.div(dict_to_dataframe(filt_piclim).reindex(diag.field_all))
+        cmip6_table = data_table.div(dict_to_dataframe(cmip6).reindex(longnames))
 
         # compute the total PI mean
         cmip6_table.loc['Total PI'] = cmip6_table.mean()

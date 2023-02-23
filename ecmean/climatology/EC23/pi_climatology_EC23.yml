@@ -1,5 +1,6 @@
 tas:
   dataset: CRU
+  longname: 2m Temperature (land-only)
   remap: remapbil
   mask: land
   units: degC
@@ -36,6 +37,7 @@ tas:
     year1: 1981
     year2: 2010
 pr:
+  longname: Precipitation
   dataset: MSWEP
   remap: remapcon
   mask: global
@@ -74,6 +76,7 @@ pr:
     year1: 1981
     year2: 2010
 net_sfc:
+  longname: 'Net surface radiation'
   dataset: NOCS
   remap: remapcon
   mask: ocean
@@ -108,6 +111,7 @@ net_sfc:
     year1: 1981
     year2: 2010
 tauu:
+  longname: Eastward wind stress
   dataset: ORAS5
   remap: remapbil
   mask: ocean
@@ -144,6 +148,7 @@ tauu:
     year1: 1981
     year2: 2010
 tauv:
+  longname: Northward wind stress
   dataset: ORAS5
   remap: remapbil
   mask: ocean
@@ -181,6 +186,7 @@ tauv:
     year2: 2010
 psl:
   dataset: ERA5
+  longname: Mean Sea Level Pressure
   remap: remapbil
   mask: global
   units: Pa
@@ -217,6 +223,7 @@ psl:
     year1: 1981
     year2: 2010
 ua:
+  longname: Zonal Wind
   dataset: ERA5
   remap: remapbil
   mask: global
@@ -254,6 +261,7 @@ ua:
     year1: 1981
     year2: 2010
 va:
+  longname: Meridional Wind
   dataset: ERA5
   remap: remapbil
   mask: global
@@ -291,6 +299,7 @@ va:
     year1: 1981
     year2: 2010
 ta:
+  longname: Air Temperature
   dataset: ERA5
   remap: remapbil
   mask: global
@@ -328,6 +337,7 @@ ta:
     year1: 1981
     year2: 2010
 hus:
+  longname: Specific humidity
   dataset: ERA5
   remap: remapbil
   mask: global
@@ -364,6 +374,7 @@ hus:
     year1: 1981
     year2: 2010
 tos:
+  longname: Sea Surface Temperature
   dataset: ESA-CCI-L4
   remap: remapbil
   mask: ocean
@@ -402,6 +413,7 @@ tos:
     year1: 1981
     year2: 2010
 sos:
+  longname: Sea Surface Salinity
   dataset: ORAS5
   remap: remapbil
   mask: ocean
@@ -436,6 +448,7 @@ sos:
     year1: 1981
     year2: 2010
 siconc:
+  longname: Sea-ice Concentration
   dataset: ESA-CCI-L4
   remap: remapbil
   mask: ocean
