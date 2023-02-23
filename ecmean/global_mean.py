@@ -64,8 +64,8 @@ def gm_worker(util, ref, face, diag, varmean, vartrend, varlist):
         # get input files/fielf
         infile = make_input_filename(var, face, diag)
 
-        # chck if variables are available
-        isavail, varunit = var_is_there(infile, var, face['variables'])
+        # check if variables are available
+        isavail, varunit = var_is_there(infile, var, face)
 
         # create empty nested dictionaries
         result = init_mydict(diag.seasons, diag.regions)

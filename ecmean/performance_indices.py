@@ -67,7 +67,7 @@ def pi_worker(util, piclim, face, diag, field_3d, varstat, varlist):
         infile = make_input_filename(var, face, diag)
 
         # check if var is available
-        isavail, varunit = var_is_there(infile, var, face['variables'])
+        isavail, varunit = var_is_there(infile, var, face)
 
         # store NaN in dict (can't use defaultdict due to multiprocessing)
         # result = defaultdict(lambda: defaultdict(lambda : float('NaN')))
