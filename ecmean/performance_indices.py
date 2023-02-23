@@ -19,7 +19,7 @@ import xarray as xr
 import yaml
 from ecmean.libs.diagnostic import Diagnostic
 from ecmean.libs.general import weight_split, get_domain, dict_to_dataframe, numeric_loglevel, \
-                                get_variables_to_load, check_time_axis, init_mydict
+                                check_time_axis, init_mydict
 from ecmean.libs.files import var_is_there, get_inifiles, load_yaml, make_input_filename, \
                                 get_clim_files
 from ecmean.libs.formula import formula_wrapper
@@ -62,19 +62,11 @@ def pi_worker(util, piclim, face, diag, field_3d, varstat, varlist):
         # get masks
         domain_mask = getattr(util, domain + 'mask')
 
-        # get the list of the variables to be loaded
-        dervars = get_variables_to_load(var, face)
-
         # check if required variables are there: use interface file
         # check into first file, and load also model variable units
-        # create input filenames
-        # create input filenames
-        if diag.xdataset is None:
-            infile = make_input_filename(
-                var, dervars, face, diag)
-        else: 
-            infile = diag.xdataset
+        infile = make_input_filename(var, face, diag)
 
+        # check if var is available
         isavail, varunit = var_is_there(infile, var, face['variables'])
 
         # store NaN in dict (can't use defaultdict due to multiprocessing)

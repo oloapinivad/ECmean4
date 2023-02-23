@@ -22,7 +22,7 @@ import xarray as xr
 import yaml
 from ecmean.libs.diagnostic import Diagnostic
 from ecmean.libs.general import weight_split, write_tuning_table, get_domain, numeric_loglevel, \
-                                get_variables_to_load, check_time_axis, dict_to_dataframe, init_mydict
+                                check_time_axis, dict_to_dataframe, init_mydict
 from ecmean.libs.files import var_is_there, get_inifiles, load_yaml, make_input_filename
 from ecmean.libs.formula import formula_wrapper
 from ecmean.libs.masks import masked_meansum, select_region
@@ -61,30 +61,13 @@ def gm_worker(util, ref, face, diag, varmean, vartrend, varlist):
         weights = getattr(util, domain + 'area')
         domain_mask = getattr(util, domain + 'mask')
 
-        # get the list of the variables to be loaded
-        dervars = get_variables_to_load(var, face)
-
-        # create input filenames
-        if diag.xdataset is None:
-            infile = make_input_filename(
-                var, dervars, face, diag)
-        else: 
-            infile = diag.xdataset
-
+        # get input files/fielf
+        infile = make_input_filename(var, face, diag)
 
         # chck if variables are available
         isavail, varunit = var_is_there(infile, var, face['variables'])
 
-        # store NaN in dict (can't use defaultdict due to multiprocessing)
-        # result = defaultdict(lambda: defaultdict(lambda : float('NaN')))
-        #result = {}
-        #trend = {}
-        #for season in diag.seasons_gm:
-        #    result[season] = {}
-        #    trend[season] = {}
-        #    for region in diag.regions_gm:
-        #        result[season][region] = float('NaN')
-        #        trend[season][region] = float('NaN')
+        # create empty nested dictionaries
         result = init_mydict(diag.seasons, diag.regions)
         trend = init_mydict(diag.seasons, diag.regions)
 

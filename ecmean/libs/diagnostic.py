@@ -7,6 +7,7 @@ import os
 import logging
 from pathlib import Path
 import xarray as xr
+import sys
 from ecmean.libs.files import load_yaml
 
 ####################
@@ -80,9 +81,12 @@ class Diagnostic():
                 f'interface_{self.interface}.yml')
 
         # load the possible xarray dataset
-        if isinstance(args.xdataset, (xr.DataArray, xr.Dataset)):
-            logging.warning('You asked to use your own xarray dataset/datarray...')
-            self.xdataset = args.xdataset
+        if args.xdataset is not None:
+            if isinstance(args.xdataset, (xr.DataArray, xr.Dataset)):
+                logging.warning('You asked to use your own xarray dataset/datarray...')
+                self.xdataset = args.xdataset
+            else: 
+                sys.exit('Cannot used the xdataset, is not Xarray object')
         else:
             self.xdataset = None
 

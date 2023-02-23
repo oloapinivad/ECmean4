@@ -252,25 +252,53 @@ def _create_filepath(cmorname, face, diag):
     return filepath
 
 
-def make_input_filename(cmorname, varname, face, diag):
+def make_input_filename(cmorname, face, diag):
     """Create full input filepaths for the required variable and a given year
 
     Returns:
         a list of files to be loaded by xarray
     """
 
-    filepath = _create_filepath(cmorname, face, diag)
+    # if a dataarray is provided
+    if diag.xdataset is not None:
+        return diag.xdataset
 
-    # create the file structure according to the interface file
-    filename = []
-    for year in diag.years_joined:
-        filename1 = []
-        for var in varname:
-            expandfile = _expand_filename(filepath, var, diag)
-            filenames = glob(str(expandfile))
-            fname = _filter_filename_by_year(str(filepath), filenames, year)
-            filename1 = filename1 + fname
-        filename = filename + filename1
-    filename = list(dict.fromkeys(filename))  # Filter unique ones
-    logging.info("Filenames: %s", filename)
-    return filename
+    else: 
+
+        # detect if it is a derived vars and get the list of var to be loaded
+        varname = _get_variables_to_load(cmorname, face)
+
+        # create filepath
+        filepath = _create_filepath(cmorname, face, diag)
+
+        # create the file structure according to the interface file
+        filename = []
+        for year in diag.years_joined:
+            filename1 = []
+            for var in varname:
+                expandfile = _expand_filename(filepath, var, diag)
+                filenames = glob(str(expandfile))
+                fname = _filter_filename_by_year(str(filepath), filenames, year)
+                filename1 = filename1 + fname
+            filename = filename + filename1
+        filename = list(dict.fromkeys(filename))  # Filter unique ones
+        logging.info("Filenames: %s", filename)
+        return filename
+
+def _get_variables_to_load(var, face):
+    """Function to extract from the interface file the list of derived variable,
+    i.e. the real variables to be loaded, for each of the cmorname introduced in the
+    interface file
+
+    Args:
+        var: the cmorname variable of the data to be loaded
+        face: the interface file
+    """
+
+    if 'derived' in face['variables'][var].keys():
+        cmd = face['variables'][var]['derived']
+        dervars = re.findall("[a-zA-Z0-9]+", cmd)
+    else:
+        dervars = [var]
+
+    return dervars
