@@ -44,7 +44,7 @@ class UnitsHandler():
         self.tgt_units = tgt_units
         self.org_direction = org_direction
         self.tgt_direction = tgt_direction
-        self.cumulatione_time = cumulation_time
+        self.cumulation_time = cumulation_time
         self.operation = operation
 
         # init in the format from ecmean
@@ -73,7 +73,7 @@ class UnitsHandler():
         self.org_direction = face['variables'][self.var].get('direction', 'down')
         self.tgt_direction = clim[self.var].get('direction', 'down')
         self.operation = clim[self.var].get('operation', 'mean')
-        self.cumulatione_time = clim[self.var].get('cumulation_time', None)
+        self.cumulation_time = face['variables'][self.var].get('cumulation_time', None)
 
     def units_are_integrals(self):
         """Check functions for spatially integrated variables"""
@@ -96,9 +96,9 @@ class UnitsHandler():
                 logging.info('Unit conversion required...')
                 offset_standard = 0 * units(self.org_units)
                 factor_standard = 1 * units(self.org_units)
-                offset = offset_standard.to(self.tgt_units).magnitude
+                offset = offset_standard.to(units(self.tgt_units)).magnitude
                 if offset == 0:
-                    factor = factor_standard.to(self.tgt_units).magnitude
+                    factor = factor_standard.to(units(self.tgt_units)).magnitude
                 else:
                     factor = 1.
             else:
@@ -111,16 +111,16 @@ class UnitsHandler():
             density_water = units('kg / m^3') * 1000
             offset = 0.
             factor_standard = 1 * units(self.org_units)
-            factor = (factor_standard / density_water).to(self.tgt_units).magnitude
+            factor = (factor_standard / density_water).to(units(self.tgt_units)).magnitude
 
         elif units_relation.units == units('s'):
             logging.info("Assuming this is a cumulated flux...")
             logging.info("Dividing by cumulation time...")
-            if self.cumulatione_time:
-                cumtime = units('s') * self.cumulatione_time
+            if self.cumulation_time:
+                cumtime = units('s') * self.cumulation_time
                 offset = 0.
                 factor_standard = 1 * units(self.org_units)
-                factor = (factor_standard / cumtime).to(self.tgt_units).magnitude
+                factor = (factor_standard / cumtime).to(units(self.tgt_units)).magnitude
             else:
                 logging.error('This variable seems cumulated over time but has no cumulation time defined')
                 sys.exit("ERROR: Units mismatch, this cannot be handled!")
