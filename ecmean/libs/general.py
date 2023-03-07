@@ -5,75 +5,8 @@ Shared functions for XArray ECmean4
 
 import os
 import logging
-from pathlib import Path
 import pandas as pd
-import re
 import numpy as np
-
-####################
-# DIAGNOSTIC CLASS #
-####################
-
-
-class Diagnostic():
-    """General container class for common variables"""
-
-    def __init__(self, args, cfg):
-        self.expname = args.exp
-        self.year1 = args.year1
-        self.year2 = args.year2
-        self.fverb = not args.silent
-        self.ftable = getattr(args, 'line', False)
-        self.ftrend = getattr(args, 'trend', False)
-        self.debug = getattr(args, 'debug', False)
-        self.numproc = args.numproc
-        self.modelname = getattr(args, 'model', '')
-        self.climatology = getattr(args, 'climatology', 'EC23')
-        self.interface = getattr(args, 'interface', '')
-        self.resolution = getattr(args, 'resolution', '')
-        self.regions = cfg['PI']['regions']
-        self.seasons = cfg['PI']['seasons']
-        if not self.modelname:
-            self.modelname = cfg['model']['name']
-        if self.year1 == self.year2:  # Ignore if only one year requested
-            self.ftrend = False
-        #  These are here in prevision of future expansion to CMOR
-        if not self.interface:
-            self.interface = cfg['interface']
-        self.frequency = '*mon'
-        self.ensemble = getattr(args, 'ensemble', 'r1i1p1f1')
-        self.grid = '*'
-        self.version = '*'
-
-        # hard-coded resolution (due to climatological dataset)
-        if self.climatology == 'RK08':
-            logging.error('RK08 can work only with r180x91 grid')
-            self.resolution = 'r180x91'
-        else:
-            if not self.resolution:
-                self.resolution = cfg['PI']['resolution']
-
-        # hard-coded seasons (due to climatological dataset)
-        if self.climatology in ['EC22', 'RK08']:
-            logging.error('only EC23 climatology support multiple seasons! Keeping only yearly seasons!')
-            self.seasons = ['ALL']
-
-        # Various input and output directories
-        self.ECEDIR = Path(os.path.expandvars(cfg['dirs']['exp']))
-        self.TABDIR = Path(os.path.expandvars(cfg['dirs']['tab']))
-        self.FIGDIR = Path(os.path.expandvars(cfg['dirs']['fig']))
-        self.CLMDIR = Path(
-            os.path.expandvars(
-                cfg['dirs']['clm']),
-            self.climatology)
-        self.RESCLMDIR = Path(self.CLMDIR, self.resolution)
-        self.years_joined = list(range(self.year1, self.year2 + 1))
-
-        if hasattr(args, 'output') and args.output:
-            self.linefile = args.output
-            self.ftable = True
-        else:
-            self.linefile = self.TABDIR / 'global_means.txt'
 
 
 ##################
@@ -81,33 +14,14 @@ class Diagnostic():
 ##################
 
 
-def get_variables_to_load(var, face):
-    """Function to extract from the interface file the list of derived variable,
-    i.e. the real variables to be loaded, for each of the cmorname introduced in the
-    interface file
+# def is_number(s):
+#     """Check if input is a float type"""
 
-    Args:
-        var: the cmorname variable of the data to be loaded
-        face: the interface file
-    """
-
-    if 'derived' in face['variables'][var].keys():
-        cmd = face['variables'][var]['derived']
-        dervars = re.findall("[a-zA-Z0-9]+", cmd)
-    else:
-        dervars = [var]
-
-    return dervars
-
-
-def is_number(s):
-    """Check if input is a float type"""
-
-    try:
-        float(s)
-        return True
-    except ValueError:
-        return False
+#     try:
+#         float(s)
+#         return True
+#     except ValueError:
+#         return False
 
 
 def numeric_loglevel(loglevel):
@@ -152,7 +66,8 @@ def check_time_axis(xtime, years):
 
 def runtime_weights(varlist):
     """Define the weights to estimate the best repartition of the cores
-    This is done a-priori, considering that 1) compound variables are more difficult to compute
+    This is done a-priori, considering that 
+    1) compound variables are more difficult to compute
     2) 3d variables requires more evaluation"""
 
     w = {}
@@ -249,10 +164,21 @@ def write_tuning_table(linefile, varmean, var_table, diag, ref):
         for var in var_table:
             print(
                 '{:12.5f}'.format(
-                    varmean[var] *
+                    varmean[var]['ALL']['Global'] *
                     ref[var].get(
                         'factor',
                         1)),
                 end=' ',
                 file=f)
         print(file=f)
+
+
+def init_mydict(one, two):
+    """Initialize a two level dictionary"""
+    dd = {}
+    for o in one:
+        dd[o] = {}
+        for t in two:
+            dd[o][t] = float('NaN')
+
+    return dd

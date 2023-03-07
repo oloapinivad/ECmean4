@@ -9,8 +9,6 @@ Shared functions for ECmean4. Set of formula based tools
 
 import operator
 import re
-from ecmean.libs.general import is_number
-
 
 def formula_wrapper(var, face, xfield):
     """
@@ -62,11 +60,11 @@ def _operation(token, xdataset):
     dct = {}
     for k in token:
         if k not in ops:
-            if not is_number(k):
-                dct[k] = xdataset[k]
-            else:
+            if k.isdigit():
                 dct[k] = float(k)
-
+            else:
+                dct[k] = xdataset[k]
+               
     # apply operators to all occurrences, from top priority
     # so far this is not parsing parenthesis
     code = 0

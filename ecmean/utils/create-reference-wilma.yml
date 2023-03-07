@@ -3,6 +3,7 @@ dirs:
   datadir: "/work/scratch/users/paolo/ecmean_datasets"
   eradir: "/work/datasets/obs/ERA5"
   esadir: "/work/datasets/obs/ESA-CCI-L4/mon"
+  mswepdir: "/work/datasets/obs/MSWEP/mon"
 
 # mask, we are using land-sea mask from ERA5
 mask: "/work/datasets/obs/ERA5/land_sea_mask/landsea_mask.nc"
@@ -25,7 +26,7 @@ tas:
   derived: tmp
   mask: land
   org_units: celsius
-  tgt_units: K
+  tgt_units: celsius
   dir: "{datadir}/{dataset}/data/*.nc"
   notes: 'CRU TS4.05'
 psl: 
@@ -33,7 +34,7 @@ psl:
   longname: 'Mean Sea Level Pressure'
   derived: msl
   org_units: Pa
-  tgt_units: Pa
+  tgt_units: hPa
   dir: "{eradir}/mean_sea_level_pressure/mon/*.nc"
 pr:
   dataset: MSWEP
@@ -41,7 +42,7 @@ pr:
   derived: precipitation
   org_units: mm/month
   tgt_units: mm/day
-  dir: "{datadir}/{dataset}/data/*.nc"
+  dir: "{mswepdir}/*.nc"
 evspsbl: 
   dataset: ERA5
   longname: 'Evaporation'
@@ -51,7 +52,7 @@ evspsbl:
   dir: "{eradir}/evaporation/mon/*.nc"
 pme: 
   dataset: ERA5
-  longname: 'Precipitation minus Evaporation'
+  longname: 'Precip. minus Evap.'
   derived: TP+e
   org_units: m/day
   tgt_units: mm/day
@@ -87,16 +88,16 @@ clh:
   dir: '{eradir}/high_cloud_cover/mon/*.nc'
 pr_oce:
   dataset: MSWEP
-  longname: 'Precipitation (integral over ocean)'
+  longname: 'Precipitation (ocean)'
   derived: precipitation
   mask: ocean
   operation: integral
   org_units: mm/month
   tgt_units: Sv
-  dir: "{datadir}/{dataset}/data/*.nc"
+  dir: "{mswepdir}/*.nc"
 pme_oce: 
   dataset: ERA5
-  longname: 'Precipitation minus Evaporation (integral over ocean)'
+  longname: 'Precip. minus Evap. (ocean)'
   mask: ocean
   operation: integral
   derived: TP+e
@@ -105,17 +106,17 @@ pme_oce:
   dir: ['{eradir}/total_precipitation/mon/ERA5_total_precipitation_mon_0.25x0.25_sfc_1950-2021.nc', '{eradir}/evaporation/mon/*.nc']  
 pr_land:
   dataset: MSWEP
-  longname: 'Precipitation (integral over land)'
+  longname: 'Precipitation (land)'
   derived: precipitation
   operation: integral
   mask: land
   operation: integral
   org_units: mm/month
   tgt_units: Sv
-  dir: "{datadir}/{dataset}/data/*.nc"
+  dir: "{mswepdir}/*.nc"
 pme_land: 
   dataset: ERA5
-  longname: 'Precipitation minus Evaporation (integral over land)'
+  longname: 'Precip. minus Evap. (land)'
   mask: land
   operation: integral
   derived: TP+e
@@ -129,7 +130,7 @@ tos:
   mask: ocean
   domain: oce
   org_units: K
-  tgt_units: K
+  tgt_units: celsius
   dir: '{esadir}/analysed_sst/*.nc'  
 sos: 
   dataset: ESA-CCI

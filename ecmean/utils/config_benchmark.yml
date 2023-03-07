@@ -20,6 +20,8 @@ global:
   ice_vars: [siconc_north, siconc_south]
   tab_vars: [rsnt, rlnt, net_toa, rsns, rlns, hfss, hfls, swcf, lwcf, net_sfc, toamsfc,
              tas, clt, cll, clm, clh, pr, pme, psl]
+  regions: ['Global', 'North Midlat', 'Tropical', 'South Midlat']
+  seasons: ['ALL', 'DJF', 'JJA']
 
 PI:
   2d_vars:

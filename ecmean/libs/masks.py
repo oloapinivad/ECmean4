@@ -6,131 +6,129 @@ Shared functions for XArray ECmean4
 import logging
 import sys
 import xarray as xr
-from ecmean.libs.ncfixers import xr_preproc
-from ecmean.libs.units import units_converter
 
 ##########################
 # MASK-RELATED FUNCTIONS #
 ##########################
 
 
-def masks_dictionary(component, maskatmfile, maskocefile, remap_dictionary=None):
-    """
-    Create a dictionary with atmospheric land-sea mask
-    Oceanic mask are not used yet, since it is assumed that oceanic variables
-    are computed by definition on the oceanic grid.
-    """
+# def masks_dictionary(component, maskatmfile, maskocefile, remap_dictionary=None):
+#     """
+#     Create a dictionary with atmospheric land-sea mask
+#     Oceanic mask are not used yet, since it is assumed that oceanic variables
+#     are computed by definition on the oceanic grid.
+#     """
 
-    # default mask: mandatory
-    matm = _make_atm_masks(component['atm'],
-                           maskatmfile, remap_dictionary=remap_dictionary)
+#     # default mask: mandatory
+#     matm = _make_atm_masks(component['atm'],
+#                            maskatmfile, remap_dictionary=remap_dictionary)
 
-    # if I have the oceanic mask, use it
-    if maskocefile:
-        moce = _make_oce_masks(component['oce'],
-                               maskocefile, remap_dictionary=remap_dictionary)
-    else:
-        # if it is missing, for PI I can use the atmospheric one
-        if remap_dictionary:
-            moce = matm
-        # for global mean, I have no solution: I will not use it over the ocean
-        else:
-            moce = None
+#     # if I have the oceanic mask, use it
+#     if maskocefile:
+#         moce = _make_oce_masks(component['oce'],
+#                                maskocefile, remap_dictionary=remap_dictionary)
+#     else:
+#         # if it is missing, for PI I can use the atmospheric one
+#         if remap_dictionary:
+#             moce = matm
+#         # for global mean, I have no solution: I will not use it over the ocean
+#         else:
+#             moce = None
 
-    mask = {
-        'atm_mask': matm,
-        'oce_mask': moce,
-    }
+#     mask = {
+#         'atm_mask': matm,
+#         'oce_mask': moce,
+#     }
 
-    return mask
-
-
-def _make_atm_masks(component, maskatmfile, remap_dictionary=None):
-    """Create land-sea masks for atmosphere model"""
-
-    # prepare ATM LSM
-    logging.info('maskatmfile is' + maskatmfile)
-    if not maskatmfile:
-        sys.exit("ERROR: maskatmfile cannot be found")
-
-    if component == 'oifs':
-        # create mask: opening a grib and loading only lsm to avoid
-        # inconsistencies # in the grib structure ->
-        # see here https://github.com/ecmwf/cfgrib/issues/13
-        mask = xr.open_mfdataset(
-            maskatmfile,
-            engine="cfgrib",
-            indexpath=None,
-            filter_by_keys={
-                'shortName': 'lsm'},
-            preprocess=xr_preproc)['lsm']
-
-    elif component in ['cmoratm', 'globo']:
-        dmask = xr.open_mfdataset(maskatmfile, preprocess=xr_preproc)
-        if 'sftlf' in dmask.data_vars:
-            mask = dmask['sftlf']
-            mask = mask / 100  # cmor mask are %
-        elif 'lsm' in dmask.data_vars:
-            mask = dmask['lsm']
-
-        # globo has a reversed mask
-        if component == 'globo':
-            mask = abs(1 - mask)
-    else:
-        sys.exit("ERROR: _make_atm_masks -> Mask undefined yet mismatch, this cannot be handled!")
-
-    # safe check to operate only on single timeframe
-    if 'time' in mask.dims:
-        mask = mask.isel(time=0)
-
-    # interp the mask if required
-    if remap_dictionary is not None:
-        if remap_dictionary['atm_fix']:
-            mask = remap_dictionary['atm_fix'](mask, keep_attrs=True)
-        mask = remap_dictionary['atm_remap'](mask, keep_attrs=True)
-
-    return mask
+#     return mask
 
 
-def _make_oce_masks(component, maskocefile, remap_dictionary=None):
-    """Create land-sea masks for oceanic model. This is used only for CMIP"""
+# def _make_atm_masks(component, maskatmfile, remap_dictionary=None):
+#     """Create land-sea masks for atmosphere model"""
 
-    # prepare ocean LSM:
-    logging.info('maskocefile is' + maskocefile)
-    if not maskocefile:
-        sys.exit("ERROR: maskocefile cannot be found")
+#     # prepare ATM LSM
+#     logging.info('maskatmfile is' + maskatmfile)
+#     if not maskatmfile:
+#         sys.exit("ERROR: maskatmfile cannot be found")
 
-    if component == 'cmoroce':
-        dmask = xr.open_mfdataset(maskocefile, preprocess=xr_preproc)
-        if 'sftof' in dmask.data_vars:
-            # use fillna to have a binary max (0 land, 1 sea)
-            mask = dmask['sftof'].fillna(0)
+#     if component == 'oifs':
+#         # create mask: opening a grib and loading only lsm to avoid
+#         # inconsistencies # in the grib structure ->
+#         # see here https://github.com/ecmwf/cfgrib/issues/13
+#         mask = xr.open_mfdataset(
+#             maskatmfile,
+#             engine="cfgrib",
+#             indexpath=None,
+#             filter_by_keys={
+#                 'shortName': 'lsm'},
+#             preprocess=xr_preproc)['lsm']
 
-        # check if we need to convert from % to fraction
-        # offset should not count!
-        if mask.units:
-            offset, factor = units_converter(mask.units, 'frac')
-            mask = (mask * factor) + offset
+#     elif component in ['cmoratm', 'globo']:
+#         dmask = xr.open_mfdataset(maskatmfile, preprocess=xr_preproc)
+#         if 'sftlf' in dmask.data_vars:
+#             mask = dmask['sftlf']
+#             mask = mask / 100  # cmor mask are %
+#         elif 'lsm' in dmask.data_vars:
+#             mask = dmask['lsm']
 
-        # to keep coehrence in other operations, oceanic mask is set to be
-        # identical to atmospheric mask, i.e. 1 over land and 0 over ocean
-        mask = abs(1 - mask)
+#         # globo has a reversed mask
+#         if component == 'globo':
+#             mask = abs(1 - mask)
+#     else:
+#         sys.exit("ERROR: _make_atm_masks -> Mask undefined yet mismatch, this cannot be handled!")
 
-    else:
-        mask = None
-        sys.exit("ERROR: _make_oce_masks -> Mask undefined yet mismatch, this cannot be handled!")
+#     # safe check to operate only on single timeframe
+#     if 'time' in mask.dims:
+#         mask = mask.isel(time=0)
 
-    # safe check to operate only on single timeframe
-    if 'time' in mask.dims:
-        mask = mask.isel(time=0)
+#     # interp the mask if required
+#     if remap_dictionary is not None:
+#         if getattr(remap_dictionary, 'atmfix'):
+#             mask = remap_dictionary.atmfix(mask, keep_attrs=True)
+#         mask = remap_dictionary.atmremap(mask, keep_attrs=True)
 
-    # interp the mask if required
-    if remap_dictionary is not None:
-        if remap_dictionary['oce_fix']:
-            mask = remap_dictionary['oce_fix'](mask, keep_attrs=True)
-        mask = remap_dictionary['oce_remap'](mask, keep_attrs=True)
+#     return mask
 
-    return mask
+
+# def _make_oce_masks(component, maskocefile, remap_dictionary=None):
+#     """Create land-sea masks for oceanic model. This is used only for CMIP"""
+
+#     # prepare ocean LSM:
+#     logging.info('maskocefile is' + maskocefile)
+#     if not maskocefile:
+#         sys.exit("ERROR: maskocefile cannot be found")
+
+#     if component == 'cmoroce':
+#         dmask = xr.open_mfdataset(maskocefile, preprocess=xr_preproc)
+#         if 'sftof' in dmask.data_vars:
+#             # use fillna to have a binary max (0 land, 1 sea)
+#             mask = dmask['sftof'].fillna(0)
+
+#         # check if we need to convert from % to fraction
+#         # offset should not count!
+#         if mask.units:
+#             offset, factor = units_converter(mask.units, 'frac')
+#             mask = (mask * factor) + offset
+
+#         # to keep coehrence in other operations, oceanic mask is set to be
+#         # identical to atmospheric mask, i.e. 1 over land and 0 over ocean
+#         mask = abs(1 - mask)
+
+#     else:
+#         mask = None
+#         sys.exit("ERROR: _make_oce_masks -> Mask undefined yet mismatch, this cannot be handled!")
+
+#     # safe check to operate only on single timeframe
+#     if 'time' in mask.dims:
+#         mask = mask.isel(time=0)
+
+#     # interp the mask if required
+#     if remap_dictionary is not None:
+#         if getattr(remap_dictionary, 'ocefix'):
+#             mask = remap_dictionary.ocefix(mask, keep_attrs=True)
+#         mask = remap_dictionary.oceremap(mask, keep_attrs=True)
+
+#     return mask
 
 
 def masked_meansum(xfield, weights, mask, operation, domain, mask_type):
@@ -142,7 +140,7 @@ def masked_meansum(xfield, weights, mask, operation, domain, mask_type):
     masked = mask_field(xfield, mask_type, domain, mask)
 
     # no time dimensions
-    notimedim = [dim for dim in xfield.dims if dim != 'time']
+    notimedim = [dim for dim in xfield.dims if dim not in ['time', 'year', 'month']]
 
     # global mean
     if operation in ['average', 'mean']:
@@ -238,18 +236,39 @@ def select_region(xfield, region):
     """Trivial function to convert region definition to xarray
     sliced array to compute the PIs or global means on selected regions"""
 
-    # fixed for the order of latitudes
-    xfield = xfield.sortby('lat')
-
     if region == 'Global':
-        slicearray = xfield
-    elif region == 'North Midlat':
-        slicearray = xfield.sel(lat=slice(30, 90))
-    elif region == 'South Midlat':
-        slicearray = xfield.sel(lat=slice(-90, -30))
-    elif region == 'Tropical':
-        slicearray = xfield.sel(lat=slice(-30, 30))
+        return xfield
     else:
-        sys.exit(region + "region not supported!!!")
+        if region == 'North Midlat':
+            lat_min, lat_max = 30.0, 90.0
+        elif region == 'South Midlat':
+            lat_min, lat_max = -90.0, -30.0
+        elif region == 'Tropical':
+            lat_min, lat_max = -30.0, 30.0
+        else:
+            sys.exit(region + "region not supported!!!")
 
-    return slicearray
+        # new version more flexible than the slice one
+        return xfield.where((xfield.lat >= lat_min) & (xfield.lat <= lat_max))
+
+
+# def select_region_old(xfield, region):
+#     """Trivial function to convert region definition to xarray
+#     sliced array to compute the PIs or global means on selected regions"""
+
+#     # fixed for the order of latitudes
+#     #xfield = xfield.sortby('lat')
+
+
+#     if region == 'Global':
+#         slicearray = xfield
+#     elif region == 'North Midlat':
+#         slicearray = xfield.sel(lat=slice(30, 90))
+#     elif region == 'South Midlat':
+#         slicearray = xfield.sel(lat=slice(-90, -30))
+#     elif region == 'Tropical':
+#         slicearray = xfield.sel(lat=slice(-30, 30))
+#     else:
+#         sys.exit(region + "region not supported!!!")
+
+#     return slicearray

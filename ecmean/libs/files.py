@@ -11,49 +11,10 @@ import logging
 from glob import glob
 import yaml
 import sys
-from ecmean.libs.general import is_number, Diagnostic
 
 ##################
 # FILE FUNCTIONS #
 ##################
-
-
-def init_diagnostic(indir, argv):
-    """
-    configuration function to load config and interface files
-    and to initilized the diagnotic object
-    """
-
-    # config file (looks for it in the same dir as the .py program file
-    if argv.config:
-        cfg = load_yaml(argv.config)
-    else:
-        cfg = load_yaml(indir / '../config.yml')
-
-    # Setup all common variables, directories from arguments and config files
-    logging.info(argv)
-    diag = Diagnostic(argv, cfg)
-
-    # loading the var-to-file interface
-    # allow for both interface name or interface file
-    # fff, ext = os.path.splitext(diag.interface)
-    # if ext:
-    #    faceload = diag.interface
-    # else:
-    #    faceload = indir / Path(
-    #        'interfaces',
-    #        f'interface_{diag.interface}.yml')
-
-    # allow for both interface name or interface file
-    faceload = diag.interface
-    if not os.path.exists(faceload):
-        faceload = indir / Path(
-            'interfaces',
-            f'interface_{diag.interface}.yml')
-
-    face = load_yaml(faceload)
-
-    return cfg, face, diag
 
 
 def inifiles_priority(inidict):
@@ -76,113 +37,62 @@ def inifiles_priority(inidict):
     return file
 
 
-def var_is_there(flist, var, reference):
-    """Check if a variable is available in the input file and provide its units"""
+def var_is_there(flist, var, face):
+    """
+    Check if a variable is available in the input file and provide its units.
+    Returns:
+        isavail (bool): if the variable is found or not
+        varunit (string):  if the variable is there, its unit (None otherwise)
+    """
 
     # we expect a list obtained by glob
-    isavail = all(os.path.isfile(f) for f in flist) and len(flist) > 0
+    if not isinstance(flist, (xr.DataArray, xr.Dataset)):
+        isavail = all(os.path.isfile(f) for f in flist) and len(flist) > 0
+    else:
+        # isavail = True if var in flist else False
+        isavail = True
 
     if isavail:
         # no need of preproc here
-        xfield = xr.open_mfdataset(flist)
-
-        vars_avail = xfield.data_vars
-        units_avail = {}
-        # if I don't know the unit, assuming is a fraction
-        for i in vars_avail:
-            if hasattr(xfield[i], 'units'):
-                units_avail[i] = xfield[i].units
-            else:
-                units_avail[i] = 'frac'
-            # this is because I can't get rid of this unit
-            if units_avail[i] == '(0 - 1)':
-                units_avail[i] = 'frac'
+        if not isinstance(flist, (xr.DataArray, xr.Dataset)):
+            xfield = xr.open_mfdataset(flist)
+        else:
+            xfield = flist
 
         # if variable is derived, extract required vars
-        d = reference[var].get('derived')
-        if d:
-            # remove numbers
-            var_req = [x for x in re.split('[*+-]', d) if not is_number(x)]
-
-            # check of unit is specified in the interface file
-            varunit = reference[var].get('units')
-            if not varunit:
-                logging.info('%s is a derived var, assuming unit '
-                             'as the first of its term', var)
-                varunit = units_avail.get(var_req[0])
-        else:
-            var_req = [var]
-            varunit = units_avail.get(var)
+        var_req = _get_variables_to_load(var, face)
 
         # check if all required variables are in model output
-        for x in var_req:
-            if x not in vars_avail:
-                isavail = False
-                logging.warning("Variable %s requires %s which is not "
-                                "available in the model output. Ignoring it.", var, x)
+        if set(var_req).issubset(set(xfield.data_vars)):
+            units_avail = {}
+            # if I don't know the unit, assuming is a fraction
+            for i in xfield.data_vars:
+                units_avail[i] = getattr(xfield[i], 'units', 'frac')
+                # this is because I can't get rid of this unit
+                if units_avail[i] == '(0 - 1)':
+                    units_avail[i] = 'frac'
+        else:
+            isavail = False
+            varunit = None
+            x = [e for e in var_req if e not in xfield.data_vars]
+            logging.warning("Variable %s requires %s which is not "
+                            "available in the model output. Ignoring it.", var, ' '.join(x))
+            return isavail, varunit
+
+        # get units
+        varunit = face['variables'][var].get('units', None)
+        if not varunit:
+            varunit = units_avail.get(var_req[0])
+            if len(var_req) > 1:
+                logging.info('%s is a derived var, assuming unit '
+                             'as the first of its term', var)
+
     else:
         varunit = None
         # print(f'Not available: {var} File: {flist}')
-        logging.error("No data found for variable %s. Ignoring it.", var)
+        logging.error("No file found for variable %s. Ignoring it.", var)
 
     return isavail, varunit
-
-# def var_is_there_old(flist, var, reference):
-#     """Check if a variable is available in the input file and provide its units"""
-
-#     # we expect a list obtained by glob
-#     isavail = True
-#     for f in flist:
-#         isavail = isavail and os.path.isfile(f)
-#     isavail = isavail and (len(flist) > 0)
-
-#     if isavail:
-#         xfield = xr.open_mfdataset(flist, preprocess=xr_preproc)
-#         # vars_avail = [i for i in xfield.data_vars]
-#         vars_avail = xfield.data_vars
-#         units_avail = {}
-#         # if I don't know the unit, assuming is a fraction
-#         for i in vars_avail:
-#             try:
-#                 k = xfield[i].units
-#             except BaseException:
-#                 k = 'frac'
-#             if k == '(0 - 1)':
-#                 k = 'frac'
-#             units_avail[i] = k
-
-#         # if variable is derived, extract required vars
-#         d = reference[var].get('derived')
-#         if d:
-#             var_req = re.split('[*+-]', d)
-#             # remove numbers
-#             for x in var_req:
-#                 if is_number(x):
-#                     var_req.remove(x)
-
-#             # check of unit is specified in the interface file
-#             varunit = reference[var].get('units')
-#             if not varunit:
-#                 logging.info('%s is a derived var, assuming unit '
-#                              'as the first of its term', var)
-#                 varunit = units_avail.get(var_req[0])
-#         else:
-#             var_req = [var]
-#             varunit = units_avail.get(var)
-
-#         # check if all required variables are in model output
-#         isavail = True
-#         for x in var_req:
-#             if x not in vars_avail:
-#                 isavail = False
-#                 logging.warning("Variable %s requires %s which is not "
-#                                 "available in the model output. Ignoring it.", var, x)
-#     else:
-#         varunit = None
-#         # print(f'Not available: {var} File: {flist}')
-#         logging.error("No data found for variable %s. Ignoring it.", var)
-
-#     return isavail, varunit
 
 
 def get_clim_files(piclim, var, diag, season):
@@ -192,37 +102,25 @@ def get_clim_files(piclim, var, diag, season):
     # reference dataset and reference varname
     # as well as years when available
     dataref = piclim[var]['dataset']
-    datayear1 = piclim[var].get('year1', 'nan')
-    datayear2 = piclim[var].get('year2', 'nan')
+    datayear1 = piclim[var].get('year1', None)
+    datayear2 = piclim[var].get('year2', None)
 
     # get files for climatology
     if diag.climatology == 'RK08':
         dataname = piclim[var]['dataname']
         clim = str(diag.RESCLMDIR / f'climate_{dataref}_{dataname}.nc')
         vvvv = str(diag.RESCLMDIR / f'variance_{dataref}_{dataname}.nc')
-    elif diag.climatology in 'EC22':
-        dataname = piclim[var]['dataname']
-        clim = str(
-            diag.RESCLMDIR /
-            f'climate_{dataname}_{dataref}_{diag.resolution}_{datayear1}-{datayear2}.nc')
-        vvvv = str(
-            diag.RESCLMDIR /
-            f'variance_{dataname}_{dataref}_{diag.resolution}_{datayear1}-{datayear2}.nc')
     elif diag.climatology in 'EC23':
         if season == 'ALL':
-            clim = str(
-                diag.RESCLMDIR /
-                f'climate_average_{var}_{dataref}_{diag.resolution}_{datayear1}-{datayear2}.nc')
-            vvvv = str(
-                diag.RESCLMDIR /
-                f'climate_variance_{var}_{dataref}_{diag.resolution}_{datayear1}-{datayear2}.nc')
+            stringname = 'climate'
         else:
-            clim = str(
-                diag.RESCLMDIR /
-                f'seasons_average_{var}_{dataref}_{diag.resolution}_{datayear1}-{datayear2}.nc')
-            vvvv = str(
-                diag.RESCLMDIR /
-                f'seasons_variance_{var}_{dataref}_{diag.resolution}_{datayear1}-{datayear2}.nc')
+            stringname = 'seasons'
+        clim = str(
+            diag.RESCLMDIR /
+            f'{stringname}_average_{var}_{dataref}_{diag.resolution}_{datayear1}-{datayear2}.nc')
+        vvvv = str(
+            diag.RESCLMDIR /
+            f'{stringname}_variance_{var}_{dataref}_{diag.resolution}_{datayear1}-{datayear2}.nc')
 
     return clim, vvvv
 
@@ -266,49 +164,6 @@ def get_inifiles(face, diag):
                 ifiles[comp][name] = ''
 
     return ifiles
-
-
-# def get_inifiles_old(face, diag):
-#     """Return the inifiles from the interface, needs the component dictionary.
-#     Check if inifiles exist."""
-
-#     dictcomp = face['model']['component']
-
-#     # use a dictionary to create the list of initial files
-#     inifiles = {}
-#     for comp, filename, filein in zip(['atm', 'atm', 'oce'],
-#                                       ['maskatmfile', 'atmareafile', 'oceareafile'],
-#                                       ['inifile', 'atmfile', 'areafile']):
-
-#         inifile = face['component'][dictcomp[comp]].get(filein, '')
-
-#         # add the full path if missing
-#         inifiles[filename] = ''
-#         if inifile:
-#             if inifile[0] == '/':
-#                 inifiles[filename] = str(
-#                     _expand_filename(
-#                         inifile,
-#                         '',
-#                         diag))
-#             else:
-#                 inifiles[filename] = Path(diag.ECEDIR) / \
-#                     Path(face['model']['basedir']) / \
-#                     Path(inifile)
-#                 inifiles[filename] = str(
-#                     _expand_filename(
-#                         inifiles[filename],
-#                         '',
-#                         diag))
-
-#             # safe check if inifile exist in the experiment folder
-#             if not glob(inifiles[filename]):
-#                 inifiles[filename] = ''
-#         else:
-#             inifiles[filename] = ''
-
-#     # return dictionary values only
-#     return inifiles.values()
 
 
 def _expand_filename(fn, var, diag):
@@ -378,25 +233,54 @@ def _create_filepath(cmorname, face, diag):
     return filepath
 
 
-def make_input_filename(cmorname, varname, face, diag):
+def make_input_filename(cmorname, face, diag):
     """Create full input filepaths for the required variable and a given year
 
     Returns:
         a list of files to be loaded by xarray
     """
 
-    filepath = _create_filepath(cmorname, face, diag)
+    # if a dataarray is provided
+    if diag.xdataset is not None:
+        return diag.xdataset
 
-    # create the file structure according to the interface file
-    filename = []
-    for year in diag.years_joined:
-        filename1 = []
-        for var in varname:
-            expandfile = _expand_filename(filepath, var, diag)
-            filenames = glob(str(expandfile))
-            fname = _filter_filename_by_year(str(filepath), filenames, year)
-            filename1 = filename1 + fname
-        filename = filename + filename1
-    filename = list(dict.fromkeys(filename))  # Filter unique ones
-    logging.info("Filenames: %s", filename)
-    return filename
+    else:
+
+        # detect if it is a derived vars and get the list of var to be loaded
+        varname = _get_variables_to_load(cmorname, face)
+
+        # create filepath
+        filepath = _create_filepath(cmorname, face, diag)
+
+        # create the file structure according to the interface file
+        filename = []
+        for year in diag.years_joined:
+            filename1 = []
+            for var in varname:
+                expandfile = _expand_filename(filepath, var, diag)
+                filenames = glob(str(expandfile))
+                fname = _filter_filename_by_year(str(filepath), filenames, year)
+                filename1 = filename1 + fname
+            filename = filename + filename1
+        filename = list(dict.fromkeys(filename))  # Filter unique ones
+        logging.info("Filenames: %s", filename)
+        return filename
+
+
+def _get_variables_to_load(var, face):
+    """Function to extract from the interface file the list of derived variable,
+    i.e. the real variables to be loaded, for each of the cmorname introduced in the
+    interface file
+
+    Args:
+        var: the cmorname variable of the data to be loaded
+        face: the interface file
+    """
+
+    if 'derived' in face['variables'][var].keys():
+        cmd = face['variables'][var]['derived']
+        dervars = [x for x in re.split('[*+-/]', cmd) if not x.isdigit()]
+    else:
+        dervars = [var]
+
+    return dervars

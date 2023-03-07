@@ -14,6 +14,9 @@ global:
   oce_vars: [tos]
   ice_vars: [siconc_north, siconc_south]
   tab_vars: [pr, tos]
+  regions: ['Global', 'North Midlat', 'Tropical', 'South Midlat']
+  seasons: ['ALL', 'JJA']
+
 
 PI: 
   2d_vars:

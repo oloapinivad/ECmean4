@@ -15,15 +15,6 @@ Welcome to ECmean4's documentation!
    performanceindices
    globalmean
 
-ECmean4 code
-^^^^^^^^^^^^^^^
-
-.. autosummary::
-   :toctree: _autosummary
-   :recursive:
-
-   ecmean
-
 Indices and tables
 ==================
 

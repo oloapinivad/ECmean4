@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 '''
-Shared functions for ECmean4
+Shared class for ECmean4 units
 '''
 
 #############################
@@ -12,27 +12,162 @@ import logging
 import sys
 
 
-def units_wrapper(var, varunit, clim, face):
-    """
-    Wrapper function for units computation: provides check for integral quantities,
-    estimate offset and factor of conversion and check the fluxes direction
-    """
+class UnitsHandler():
 
-    logging.info(var)
-    logging.info(varunit + ' ---> ' + clim[var]['units'])
+    def __init__(self, var=None, org_units=None, tgt_units=None,
+                 org_direction='down', tgt_direction='down',
+                 operation='mean', cumulation_time=None,
+                 clim=None, face=None, convert=True):
+        """
+        Class for handling units and their conversion
 
-    # adjust integrated quantities
-    new_units = _units_are_integrals(varunit, clim[var])
+        Args:
+            var (string): variable name, necessary for ECmean4 calls
+            org_units (string): original units
+            tgt_units (string): target units
+            org_direction (string): down or up, direction for fluxes
+            tgt_direction (string): down or up, direction for fluxes
+            operation (string): mean or integral operation for target units
+            cumulation_time (integer): expressed in seconds, cumulation time for fluxes
+            clim (dict): climatology dictionary for ECmean4 calls
+            face (dict): interface dictionary for Ecmean4 calss
+            convert (bool): if you want to perform conversion immediately
 
-    # unit conversion based on metpy
-    offset, factor = units_converter(new_units, clim[var]['units'])
+        Returns:
+            offset (float): units offset of conversion
+            factor (float): units factor of conversion
+        """
 
-    # sign adjustment (for heat fluxes)
-    factor = factor * \
-        directions_match(face['variables'][var], clim[var])
-    logging.debug('Offset %f, Factor %f', offset, factor)
+        # generic object initialization
+        self.var = var
+        self.org_units = org_units
+        self.tgt_units = tgt_units
+        self.org_direction = org_direction
+        self.tgt_direction = tgt_direction
+        self.cumulation_time = cumulation_time
+        self.operation = operation
 
-    return offset, factor
+        # init in the format from ecmean
+        if face and clim:
+            self.init_ecmean(clim, face)
+
+        logging.info(vars(self))
+        # if units are defined and convert called
+        if convert and self.org_units and self.tgt_units:
+
+            self.parse_units()
+            self.units_are_integrals()
+            self.offset, self.factor = self.units_converter()
+
+    def init_ecmean(self, clim, face):
+        """Specific initialization used within ECmean"""
+
+        if not self.org_units:
+            logging.warning('Source unit undefined, assuming fraction')
+            self.org_units = 'frac'
+
+        if clim[self.var]['units']:
+            self.tgt_units = clim[self.var]['units']
+        else:
+            logging.warning('Target unit undefined, assuming fraction')
+            self.tgt_units = 'frac'
+
+        self.org_direction = face['variables'][self.var].get('direction', 'down')
+        self.tgt_direction = clim[self.var].get('direction', 'down')
+        self.operation = clim[self.var].get('operation', 'mean')
+        self.cumulation_time = face['variables'][self.var].get('cumulation_time', None)
+
+    def parse_units(self):
+
+        """Parse units once defined with metpy.units (i.e. pint)"""
+
+        self.org_units = units(self.org_units)
+        self.tgt_units = units(self.tgt_units)
+
+
+    def units_are_integrals(self):
+        """Check functions for spatially integrated variables"""
+
+        if self.operation in ['integral', 'sum']:
+            self.org_units = self.org_units * units('m^2')
+
+    def units_converter(self):
+        """Units conversion using metpy and pint.
+        From a org_units convert to tgt_units providing offset and factor.
+        Some assumptions are done for water fluxes and cumulated fluxes.
+        It will not work if BOTH factor and offset are required"""
+
+        units_relation = (self.org_units / self.tgt_units).to_base_units()
+        logging.info(units_relation)
+
+        if units_relation.units == units('dimensionless'):
+
+            if units_relation.magnitude != 1:
+                logging.info('Unit conversion required...')
+                offset_standard = 0 * self.org_units
+                offset = offset_standard.to(self.tgt_units).magnitude
+                if offset == 0:
+                    factor_standard = 1 * self.org_units
+                    factor = factor_standard.to(self.tgt_units).magnitude
+                else:
+                    factor = 1.
+            else:
+                offset = 0.
+                factor = 1.
+
+        elif units_relation.units == units('kg / m^3'):
+            logging.info("Assuming this as a water flux! Am I correct?")
+            logging.info("Dividing by water density...")
+            density_water = units('kg / m^3') * 1000
+            offset = 0.
+            factor_standard = 1 * self.org_units
+            factor = (factor_standard / density_water).to(self.tgt_units).magnitude
+
+        elif units_relation.units == units('s'):
+            logging.info("Assuming this is a cumulated flux...")
+            logging.info("Dividing by cumulation time (expressed in seconds)...")
+            if self.cumulation_time:
+                cumtime = units('s') * self.cumulation_time
+                offset = 0.
+                factor_standard = 1 * self.org_units
+                factor = (factor_standard / cumtime).to(self.tgt_units).magnitude
+            else:
+                logging.error('This variable seems cumulated over time but has no cumulation time defined')
+                sys.exit("ERROR: Units mismatch, this cannot be handled!")
+
+        else:
+            logging.error(units_relation)
+            sys.exit("ERROR: Units mismatch, this cannot be handled!")
+
+        if self.org_direction != self.tgt_direction:
+            factor = -1. * factor
+
+        logging.info('Offset is ' + str(offset))
+        logging.info('Factor is ' + str(factor))
+        return offset, factor
+
+
+# def units_wrapper(var, varunit, clim, face):
+#     """
+#     Wrapper function for units computation: provides check for integral quantities,
+#     estimate offset and factor of conversion and check the fluxes direction
+#     """
+
+#     logging.info(var)
+#     logging.info(varunit + ' ---> ' + clim[var]['units'])
+
+#     # adjust integrated quantities
+#     new_units = _units_are_integrals(varunit, clim[var])
+
+#     # unit conversion based on metpy
+#     offset, factor = units_converter(new_units, clim[var]['units'])
+
+#     # sign adjustment (for heat fluxes)
+#     factor = factor * \
+#         directions_match(face['variables'][var], clim[var])
+#     logging.debug('Offset %f, Factor %f', offset, factor)
+
+#     return offset, factor
 
 
 def units_extra_definition():
@@ -41,69 +176,9 @@ def units_extra_definition():
     # special units definition
     # needed to work with metpy 1.4.0 see
     # https://github.com/Unidata/MetPy/issues/2884
-    units._on_redefinition = 'warn'
+    units._on_redefinition = 'ignore'
     units.define('fraction = [] = frac')
     units.define('psu = 1e-3 frac')
     units.define('PSU = 1e-3 frac')
     units.define('million = 1e6 = M')
     units.define('Sv = 1e+6 m^3/s')  # Replace Sievert with Sverdrup
-
-
-def units_converter(org_units, tgt_units):
-    """Units conversion using metpy and pint.
-    From a org_units convert to tgt_units providing offset and factor.
-    Some assumptions are done for precipitation field: must be extended
-    to other vars. It will not work if BOTH factor and offset are required"""
-
-    units_relation = (units(org_units) / units(tgt_units)).to_base_units()
-    logging.info(units_relation)
-    if units_relation.magnitude != 1:
-        logging.info('Unit conversion required...')
-        offset_standard = 0 * units(org_units)
-        factor_standard = 1 * units(org_units)
-        if units_relation.units == units('dimensionless'):
-            offset = offset_standard.to(tgt_units).magnitude
-            if offset == 0:
-                factor = factor_standard.to(tgt_units).magnitude
-            else:
-                factor = 1.
-
-        elif units_relation.units == units('kg / m^3'):
-            logging.info("Assuming this as a water flux! Am I correct?")
-            logging.info("Dividing by water density...")
-            density_water = units('kg / m^3') * 1000
-            offset = 0.
-            factor = (factor_standard / density_water).to(tgt_units).magnitude
-
-        else:
-            logging.error(units_relation)
-            sys.exit("ERROR: Units mismatch, this cannot be handled!")
-    else:
-        offset = 0.
-        factor = 1.
-
-    logging.info('Offset is ' + str(offset))
-    logging.info('Factor is ' + str(factor))
-    return offset, factor
-
-
-def _units_are_integrals(org_units, ref_var):
-    """Check functions for spatially integrated variables"""
-
-    if 'operation' in ref_var.keys():
-        new_units = str((units(org_units) * units('m^2')).units)
-    else:
-        new_units = org_units
-    return new_units
-
-
-def directions_match(org, dst):
-    """Check function for fluxes direction: they should match. Default is down"""
-
-    direction_org = org.get('direction', 'down')
-    direction_dst = dst.get('direction', 'down')
-    if direction_org != direction_dst:
-        factor = -1.
-    else:
-        factor = 1.
-    return factor
