@@ -39,7 +39,8 @@ def check_time_axis(xtime, years):
     """Check if we have 12 months per year and if the required years
     have been found in the NetCDF files. """
 
-    unique, counts = np.unique(xtime.dt.month, return_counts=True)
+    #unique, counts = np.unique(xtime.dt.month, return_counts=True)
+    unique, counts = np.unique(xtime.time.resample(time='1M').mean(), return_counts=True) 
     if len(unique) != 12 or not all(counts == counts[0]):
         logging.warning('Check your data: some months might be missing...')
 
@@ -102,6 +103,15 @@ def weight_split(a, n):
         count = elists.index(min(elists))
 
     return olists
+
+def check_interface(var, face): 
+    """Check if a var is defined in the interface file"""
+
+    if var in face['variables']:
+        return True
+    else:
+        logging.warning(f'{var} is not defined in the interface file, skipping it!')
+        return False
 
 
 def get_domain(var, face):

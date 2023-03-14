@@ -58,7 +58,7 @@ component:
   nemo:
     maskfile: ''
     gridfile: ''
-    areafile: 'nemo-initial-state.nc'
+    areafile: 'domain_cfg.nc'
 
 # Definition of individual variables
 variables:
