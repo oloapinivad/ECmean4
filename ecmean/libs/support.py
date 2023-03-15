@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 '''
-Shared functions for XArray ECmean4
+Shared functions for Support class for ECmean4
 '''
 
 import logging
@@ -12,10 +12,6 @@ from ecmean.libs.ncfixers import xr_preproc
 from ecmean.libs.files import inifiles_priority
 from ecmean.libs.areas import area_cell
 from ecmean.libs.units import UnitsHandler
-
-###########################
-# INTERPOLATION FUNCTIONS #
-###########################
 
 
 class Supporter():
@@ -176,10 +172,13 @@ class Supporter():
         """Loading files for area and interpolation"""
 
         # loading and examining atmospheric file
-        logging.info(f'{comp}mareafile is ' + areafile)
-        if not areafile:
-            sys.exit(f'ERROR: {comp}reafile cannot be found')
-        return xr.open_mfdataset(areafile, preprocess=xr_preproc).load()
+        if areafile:
+            logging.info(f'{comp}mareafile is ' + areafile)
+            if not areafile:
+                sys.exit(f'ERROR: {comp}reafile cannot be found')
+            return xr.open_mfdataset(areafile, preprocess=xr_preproc).load()
+        else:
+            sys.exit('ERROR: Cannot find any file to load! Does your experiment exit?')
 
     def make_areas(self, gridtype, xfield):
         """Create weights for area operations.
@@ -190,7 +189,7 @@ class Supporter():
             area = xfield['areacello']
         elif 'cell_area' in xfield.data_vars:  # as ECE4 NEMO case for nemo-initial-state.nc
             area = xfield['cell_area']
-        elif 'e1t' in xfield.data_vars:  # ECE4 NEMO case for domaing_cfg.nc, deprecated
+        elif 'e1t' in xfield.data_vars:  # ECE4 NEMO case for domaing_cfg.nc
             area = xfield['e1t'] * xfield['e2t']
         else:  # automatic solution, wish you luck!
             area = area_cell(xfield, gridtype)
@@ -317,129 +316,3 @@ def identify_grid(xfield):
         sys.exit("Cannot find any lon/lat dimension, aborting...")
 
     return gridtype
-
-# def remap_dictionary(component, atmdict, ocedict, target_grid):
-#     """Create a dicitionary with atmospheric and oceanic weights for
-#     interpolation. There is an option of fix grid before the real
-#     interpolation: this is used for Gaussian reduced grids"""
-
-#     atmareafile = inifiles_priority(atmdict)
-#     atmfix, atmremap = _make_atm_interp_weights(
-#         component['atm'], atmareafile, target_grid)
-
-#     # get oceanic areas, assuming AMIP if no oceanic area is found
-#     oceareafile = inifiles_priority(ocedict)
-#     if oceareafile:
-#         ocefix, oceremap = _make_oce_interp_weights(
-#             component['oce'], oceareafile, target_grid)
-#     else:
-#         logging.warning("Ocereafile cannot be found, assuming this is an AMIP run")
-#         ocefix = None
-#         oceremap = None
-
-#     remap = {
-#         'atm_fix': atmfix,
-#         'atm_remap': atmremap,
-#         'oce_fix': ocefix,
-#         'oce_remap': oceremap,
-#     }
-
-#     return remap
-
-
-# def _make_atm_interp_weights(component, atmareafile, target_grid):
-#     """Create atmospheric interpolator"""
-
-#     logging.debug('Atmareafile is ' + atmareafile)
-#     if not atmareafile:
-#         sys.exit("ERROR: Atmareafile cannot be found")
-
-#     xfield = xr.open_mfdataset(atmareafile, preprocess=xr_preproc).load()
-#     gridtype = identify_grid(xfield)
-#     logging.warning(f'Atmosphere grid is is a {gridtype} grid!')
-
-#     if component == 'oifs':
-
-#         # this is to get lon and lat from the Equator
-#         xname = list(xfield.data_vars)[-1]
-#         m = xfield[xname].isel(time=0).load()
-#         # g = sorted(list(set(m.lat.data)))
-#         # f = sorted(list(m.sel(cell=m.lat == g[int(len(g) / 2)]).lon.data))
-#         # use numpy since it is faster
-#         g = np.unique(m.lat.data)
-#         f = np.unique(m.sel(cell=m.lat == g[int(len(g) / 2)]).lon.data)
-
-#         # this creates a a gaussian non reduced grid
-#         ds_out = xr.Dataset({"lon": (["lon"], f), "lat": (["lat"], g)})
-
-#         # use nearest neighbour to remap to gaussian regular
-#         fix = xe.Regridder(
-#             xfield[xname],
-#             ds_out,
-#             method="nearest_s2d",
-#             locstream_in=True,
-#             periodic=True)
-
-#         # create bilinear interpolator
-#         interp = xe.Regridder(
-#             fix(xfield[xname]), target_grid, periodic=True, method="bilinear")
-
-#     elif component in ['cmoratm', 'globo']:
-
-#         fix = None
-#         interp = xe.Regridder(
-#             xfield,
-#             target_grid,
-#             periodic=True,
-#             method="bilinear")
-
-#     else:
-#         sys.exit(
-#             "ERROR: Atm weights not defined for this component, this cannot be handled!")
-
-#     return fix, interp
-
-
-# def _make_oce_interp_weights(component, oceareafile, target_grid):
-#     """Create oceanic interpolator weights"""
-
-#     logging.debug('Oceareafile is ' + oceareafile)
-#     if not oceareafile:
-#         sys.exit("ERROR: Oceareafile cannot be found")
-
-#     xfield = xr.open_mfdataset(oceareafile, preprocess=xr_preproc).load()
-#     gridtype = identify_grid(xfield)
-#     logging.warning(f'Ocean grid is is a {gridtype} grid!')
-
-#     if component in ['nemo', 'cmoroce']:
-#         if 'areacello' in xfield.data_vars:  # CMOR case
-#             xname = 'areacello'
-#         elif 'cell_area' in xfield.data_vars:  # ECE4 NEMO case for nemo-initial-state.nc
-#             xname = 'cell_area'
-#         else:
-#             xname = list(xfield.data_vars)[-1]
-#     else:
-#         sys.exit(
-#             "ERROR: Oce weights not defined for this component, this cannot be handled!")
-
-#     if gridtype in ['unstructured']:
-#         # print("Detecting a unstructured grid, using nearest neighbour!")
-#         fix = None
-#         interp = xe.Regridder(
-#             xfield[xname],
-#             target_grid,
-#             method="nearest_s2d",
-#             locstream_in=True,
-#             periodic=True)
-
-#     else:
-#        # print("Detecting regular or curvilinear grid, using bilinear!")
-#         fix = None
-#         interp = xe.Regridder(
-#             xfield[xname],
-#             target_grid,
-#             method="bilinear",
-#             periodic=True,
-#             ignore_degenerate=True)
-
-#     return fix, interp
