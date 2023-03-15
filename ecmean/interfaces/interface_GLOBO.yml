@@ -18,7 +18,7 @@ model:
   basedir: '{expname}'
   component:
     atm: globo
-    oce: fesom
+    oce: nemo
 
 # Definition of filetypes (specific for each component)
 # Each variable belongs to a filetype
@@ -39,9 +39,9 @@ filetype:
 component:
   globo:
     maskfile: 'GLOBONE_BCs.nc'
-    gridfile: 'GLOBONE_atm_6hrs_{year1}.nc'
+    gridfile: ''
     areafile: ''
-  fesom:
+  nemo:
     maskfile: ''
     gridfile: ''
     areafile: ''
@@ -145,3 +145,11 @@ variables:
     varname: 'Precip. minus evap. (ocean)'
     derived: 'pr+evspsbl'
     filetype: atm_6hrs
+  siconc:
+    varname: 'Sea-Ice Concentration'
+    derived: sic
+    filetype: atm_6hrs
+  tos:
+    varname: 'SST'
+    filetype: atm_6hrs
+

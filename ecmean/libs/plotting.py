@@ -41,7 +41,7 @@ def heatmap_comparison_pi(relative_table, diag, filemap):
     chart = sns.heatmap(myfield, norm=divnorm, cmap=pal,
                         cbar_kws={"ticks": tictoc, 'label': title},
                         ax=axs, annot=True, linewidth=0.5, fmt='.2f',
-                        annot_kws={'fontsize': 11, 'fontweight': 'bold'})
+                        annot_kws={'fontsize': 14, 'fontweight': 'bold'})
     chart = chart.set_facecolor('whitesmoke')
     axs.set_title(f'{title} {diag.modelname} {diag.expname} {diag.year1} {diag.year2}', fontsize=25)
     axs.vlines(list(range(sss, tot + sss, sss)), ymin=-1, ymax=len(myfield.index), colors='k')
@@ -83,7 +83,7 @@ def heatmap_comparison_gm(data_table, mean_table, std_table, diag, filemap):
     sss = (len(set([tup[1] for tup in clean.columns])))
 
     chart = sns.heatmap(clean, annot=data_table[mask], vmin=-thr - 0.5, vmax=thr + 0.5, center=0,
-                        annot_kws={'va': 'bottom', 'fontsize': 12},
+                        annot_kws={'va': 'bottom', 'fontsize': 14},
                         cbar_kws={'ticks': tictoc,
                                   'label': 'Model Bias \n (standard deviation of interannual variability from observations)'},
                         fmt='.2f', cmap=pal)

@@ -19,7 +19,7 @@ import xarray as xr
 import yaml
 from ecmean.libs.diagnostic import Diagnostic
 from ecmean.libs.general import weight_split, get_domain, dict_to_dataframe, \
-    numeric_loglevel, check_time_axis, init_mydict
+    numeric_loglevel, check_time_axis, init_mydict, check_interface
 from ecmean.libs.files import var_is_there, get_inifiles, load_yaml, \
     make_input_filename, get_clim_files
 from ecmean.libs.formula import formula_wrapper
@@ -56,151 +56,152 @@ def pi_worker(util, piclim, face, diag, field_3d, varstat, varlist):
 
     for var in varlist:
 
-        # get domain
-        domain = get_domain(var, face)
-
-        # get masks
-        domain_mask = getattr(util, domain + 'mask')
-
-        # check if required variables are there: use interface file
-        # check into first file, and load also model variable units
-        infile = make_input_filename(var, face, diag)
-
-        # check if var is available
-        isavail, varunit = var_is_there(infile, var, face)
-
         # store NaN in dict (can't use defaultdict due to multiprocessing)
-        # result = defaultdict(lambda: defaultdict(lambda : float('NaN')))
         result = init_mydict(diag.seasons, diag.regions)
 
-        # if the variable is available
-        if isavail:
+        if check_interface(var, face):
 
-            # perform the unit conversion extracting offset and factor
-            units_handler = UnitsHandler(var, org_units=varunit, clim=piclim, face=face)
-            offset, factor = units_handler.offset, units_handler.factor
+            # get domain
+            domain = get_domain(var, face)
 
-            # open file: chunking on time only, might be improved
-            if not isinstance(infile, (xr.DataArray, xr.Dataset)):
-                xfield = xr.open_mfdataset(infile, preprocess=xr_preproc, chunks={'time': 12})
-            else:
-                xfield = infile
+            # get masks
+            domain_mask = getattr(util, domain + 'mask')
 
-            # in case of big files with multi year, be sure of having opened the right records
-            xfield = xfield.sel(time=xfield.time.dt.year.isin(diag.years_joined))
+            # check if required variables are there: use interface file
+            # check into first file, and load also model variable units
+            infile = make_input_filename(var, face, diag)
 
-            # check time axis
-            check_time_axis(xfield.time, diag.years_joined)
+            # check if var is available
+            isavail, varunit = var_is_there(infile, var, face)
 
-            # get the data-array field for the required var
-            outfield = formula_wrapper(var, face, xfield)
+            # if the variable is available
+            if isavail:
 
-            # mean over time and fixing of the units
-            for season in diag.seasons:
+                # perform the unit conversion extracting offset and factor
+                units_handler = UnitsHandler(var, org_units=varunit, clim=piclim, face=face)
+                offset, factor = units_handler.offset, units_handler.factor
 
-                logging.info(season)
-
-                # copy of the full field
-                tmean = outfield.copy(deep=True)
-
-                # get filenames for climatology
-                clim, vvvv = get_clim_files(piclim, var, diag, season)
-
-                # open climatology files, fix their metadata
-                cfield = adjust_clim_file(xr.open_mfdataset(clim, preprocess=xr_preproc))
-                vfield = adjust_clim_file(xr.open_mfdataset(vvvv, preprocess=xr_preproc), remove_zero=True)
-
-                # season selection
-                if season != 'ALL':
-                    tmean = tmean.sel(time=tmean.time.dt.season.isin(season))
-                    cfield = cfield.sel(time=cfield.time.dt.season.isin(season))
-                    vfield = vfield.sel(time=vfield.time.dt.season.isin(season))
-
-                # averaging
-                tmean = tmean.mean(dim='time')
-                cfield = cfield.load()  # this ensure no crash with multiprocessing
-                vfield = vfield.load()
-
-                # safe check for old RK08 which has a different format
-                if diag.climatology != 'RK08':
-                    cfield = cfield.mean(dim='time')
-                    vfield = vfield.mean(dim='time')
-
-                tmean = tmean * factor + offset
-
-                # this computation is required to ensure that file access is
-                # done in a correct way. resource errors found if disabled in some
-                # specific configuration
-                tmean = tmean.compute()
-
-                # apply interpolation, if fixer is availble and with different
-                # grids
-                fix = getattr(util, f'{domain}fix')
-                remap = getattr(util, f'{domain}remap')
-
-                if fix:
-                    tmean = fix(tmean, keep_attrs=True)
-                try:
-                    final = remap(tmean, keep_attrs=True)
-                except ValueError:
-                    logging.error(f'Cannot interpolate {var} with the current weights...')
-                    continue
-
-                # vertical interpolation
-                if var in field_3d:
-
-                    # xarray interpolation on plev, forcing to be in Pascal
-                    final = final.metpy.convert_coordinate_units('plev', 'Pa')
-                    if set(final['plev'].data) != set(cfield['plev'].data):
-                        logging.warning(var + ': Need to interpolate vertical levels...')
-                        final = final.interp(plev=cfield['plev'].data, method='linear')
-
-                        # safety check for missing values
-                        sample = final.isel(lon=0, lat=0)
-                        if np.sum(np.isnan(sample)) != 0:
-                            logging.warning(var + ': You have NaN after the interpolation, this will affect your PIs...')
-                            levnan = cfield['plev'].where(np.isnan(sample))
-                            logging.warning(levnan[~np.isnan(levnan)]._to_dataframe)
-
-                    # zonal mean
-                    final = final.mean(dim='lon')
-
-                    # compute PI
-                    complete = (final - cfield)**2 / vfield
-
-                    # compute vertical bounds as weights
-                    bounds_lev = guess_bounds(complete['plev'], name='plev')
-                    bounds = abs(bounds_lev[:, 0] - bounds_lev[:, 1])
-                    ww = xr.DataArray(
-                        bounds, coords=[
-                            complete['plev']], dims=['plev'])
-
-                    # vertical mean
-                    outarray = complete.weighted(ww).mean(dim='plev')
-
-                # horizontal averaging with land-sea mask
+                # open file: chunking on time only, might be improved
+                if not isinstance(infile, (xr.DataArray, xr.Dataset)):
+                    xfield = xr.open_mfdataset(infile, preprocess=xr_preproc, chunks={'time': 12})
                 else:
+                    xfield = infile
 
-                    complete = (final - cfield)**2 / vfield
-                    outarray = mask_field(xfield=complete,
-                                          mask_type=piclim[var]['mask'],
-                                          dom=domain, mask=domain_mask)
+                # in case of big files with multi year, be sure of having opened the right records
+                xfield = xfield.sel(time=xfield.time.dt.year.isin(diag.years_joined))
 
-                # loop on different regions
-                for region in diag.regions:
+                # check time axis
+                check_time_axis(xfield.time, diag.years_joined)
 
-                    slicearray = select_region(outarray, region)
+                # get the data-array field for the required var
+                outfield = formula_wrapper(var, face, xfield)
 
-                    # latitude-based averaging
-                    weights = np.cos(np.deg2rad(slicearray.lat))
-                    out = slicearray.weighted(weights).mean().data
+                # mean over time and fixing of the units
+                for season in diag.seasons:
 
-                    # store the PI
-                    result[season][region] = round(float(out), 3)
+                    logging.info(season)
 
-                    # diagnostic
-                    if diag.fverb and region == 'Global':
-                        print('PI for', region, season, var, result[season][region])
+                    # copy of the full field
+                    tmean = outfield.copy(deep=True)
+
+                    # get filenames for climatology
+                    clim, vvvv = get_clim_files(piclim, var, diag, season)
+
+                    # open climatology files, fix their metadata
+                    cfield = adjust_clim_file(xr.open_mfdataset(clim, preprocess=xr_preproc))
+                    vfield = adjust_clim_file(xr.open_mfdataset(vvvv, preprocess=xr_preproc), remove_zero=True)
+
+                    # season selection
+                    if season != 'ALL':
+                        tmean = tmean.sel(time=tmean.time.dt.season.isin(season))
+                        cfield = cfield.sel(time=cfield.time.dt.season.isin(season))
+                        vfield = vfield.sel(time=vfield.time.dt.season.isin(season))
+
+                    # averaging
+                    tmean = tmean.mean(dim='time')
+                    cfield = cfield.load()  # this ensure no crash with multiprocessing
+                    vfield = vfield.load()
+
+                    # safe check for old RK08 which has a different format
+                    if diag.climatology != 'RK08':
+                        cfield = cfield.mean(dim='time')
+                        vfield = vfield.mean(dim='time')
+
+                    tmean = tmean * factor + offset
+
+                    # this computation is required to ensure that file access is
+                    # done in a correct way. resource errors found if disabled in some
+                    # specific configuration
+                    tmean = tmean.compute()
+
+                    # apply interpolation, if fixer is availble and with different
+                    # grids
+                    fix = getattr(util, f'{domain}fix')
+                    remap = getattr(util, f'{domain}remap')
+
+                    if fix:
+                        tmean = fix(tmean, keep_attrs=True)
+                    try:
+                        final = remap(tmean, keep_attrs=True)
+                    except ValueError:
+                        logging.error(f'Cannot interpolate {var} with the current weights...')
+                        continue
+
+                    # vertical interpolation
+                    if var in field_3d:
+
+                        # xarray interpolation on plev, forcing to be in Pascal
+                        final = final.metpy.convert_coordinate_units('plev', 'Pa')
+                        if set(final['plev'].data) != set(cfield['plev'].data):
+                            logging.warning(var + ': Need to interpolate vertical levels...')
+                            final = final.interp(plev=cfield['plev'].data, method='linear')
+
+                            # safety check for missing values
+                            sample = final.isel(lon=0, lat=0)
+                            if np.sum(np.isnan(sample)) != 0:
+                                logging.warning(var + ': You have NaN after the interpolation, this will affect your PIs...')
+                                levnan = cfield['plev'].where(np.isnan(sample))
+                                logging.warning(levnan[~np.isnan(levnan)].data)
+
+                        # zonal mean
+                        final = final.mean(dim='lon')
+
+                        # compute PI
+                        complete = (final - cfield)**2 / vfield
+
+                        # compute vertical bounds as weights
+                        bounds_lev = guess_bounds(complete['plev'], name='plev')
+                        bounds = abs(bounds_lev[:, 0] - bounds_lev[:, 1])
+                        ww = xr.DataArray(
+                            bounds, coords=[
+                                complete['plev']], dims=['plev'])
+
+                        # vertical mean
+                        outarray = complete.weighted(ww).mean(dim='plev')
+
+                    # horizontal averaging with land-sea mask
+                    else:
+
+                        complete = (final - cfield)**2 / vfield
+                        outarray = mask_field(xfield=complete,
+                                            mask_type=piclim[var]['mask'],
+                                            dom=domain, mask=domain_mask)
+
+                    # loop on different regions
+                    for region in diag.regions:
+
+                        slicearray = select_region(outarray, region)
+
+                        # latitude-based averaging
+                        weights = np.cos(np.deg2rad(slicearray.lat))
+                        out = slicearray.weighted(weights).mean().data
+
+                        # store the PI
+                        result[season][region] = round(float(out), 3)
+
+                        # diagnostic
+                        if diag.fverb and region == 'Global':
+                            print('PI for', region, season, var, result[season][region])
 
         # nested dictionary, to be redifend as a dict to remove lambdas
         varstat[var] = result

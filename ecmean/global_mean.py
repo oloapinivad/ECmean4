@@ -22,7 +22,7 @@ import xarray as xr
 import yaml
 from ecmean.libs.diagnostic import Diagnostic
 from ecmean.libs.general import weight_split, write_tuning_table, get_domain, \
-    numeric_loglevel, check_time_axis, dict_to_dataframe, init_mydict
+    numeric_loglevel, check_time_axis, dict_to_dataframe, init_mydict, check_interface
 from ecmean.libs.files import var_is_there, get_inifiles, load_yaml, make_input_filename
 from ecmean.libs.formula import formula_wrapper
 from ecmean.libs.masks import masked_meansum, select_region
@@ -54,85 +54,88 @@ def gm_worker(util, ref, face, diag, varmean, vartrend, varlist):
 
     for var in varlist:
 
-        # get domain
-        domain = get_domain(var, face)
-
-        # compute weights
-        weights = getattr(util, domain + 'area')
-        domain_mask = getattr(util, domain + 'mask')
-
-        # get input files/fielf
-        infile = make_input_filename(var, face, diag)
-
-        # check if variables are available
-        isavail, varunit = var_is_there(infile, var, face)
-
         # create empty nested dictionaries
         result = init_mydict(diag.seasons, diag.regions)
         trend = init_mydict(diag.seasons, diag.regions)
 
-        if isavail:
+        # check if the variable is in the interface file
+        if check_interface(var, face): 
 
-            # perform the unit conversion extracting offset and factor
-            units_handler = UnitsHandler(var, org_units=varunit, clim=ref, face=face)
-            offset, factor = units_handler.offset, units_handler.factor
+            # get domain
+            domain = get_domain(var, face)
 
-            # load the object
-            if not isinstance(infile, (xr.DataArray, xr.Dataset)):
-                xfield = xr.open_mfdataset(infile, preprocess=xr_preproc, chunks={'time': 12})
-            else:
-                xfield = infile
+            # compute weights
+            weights = getattr(util, domain + 'area')
+            domain_mask = getattr(util, domain + 'mask')
 
-            # in case of big files with multi year, be sure of having opened the right records
-            xfield = xfield.sel(time=xfield.time.dt.year.isin(diag.years_joined))
+            # get input files/fielf
+            infile = make_input_filename(var, face, diag)
 
-            # check time axis
-            check_time_axis(xfield.time, diag.years_joined)
+            # check if variables are available
+            isavail, varunit = var_is_there(infile, var, face)
 
-            # get the data-array field for the required var
-            cfield = formula_wrapper(var, face, xfield).compute()
+            if isavail:
 
-            for season in diag.seasons:
+                # perform the unit conversion extracting offset and factor
+                units_handler = UnitsHandler(var, org_units=varunit, clim=ref, face=face)
+                offset, factor = units_handler.offset, units_handler.factor
 
-                # copy of the full field
-                tfield = cfield.copy(deep=True)
-
-                if season != 'ALL':
-                    tfield = tfield.sel(time=cfield.time.dt.season.isin(season))
-
-                if diag.ftrend:
-                    # this does not consider continuous seasons for DJF, but JF+D
-                    tfield = tfield.groupby('time.year').mean('time')
+                # load the object
+                if not isinstance(infile, (xr.DataArray, xr.Dataset)):
+                    xfield = xr.open_mfdataset(infile, preprocess=xr_preproc, chunks={'time': 12})
                 else:
-                    tfield = tfield.mean(dim='time')
+                    xfield = infile
 
-                for region in diag.regions:
+                # in case of big files with multi year, be sure of having opened the right records
+                xfield = xfield.sel(time=xfield.time.dt.year.isin(diag.years_joined))
 
-                    slicefield = select_region(tfield, region)
-                    sliceweights = select_region(weights, region)
-                    if isinstance(domain_mask, xr.DataArray):
-                        slicemask = select_region(domain_mask, region)
-                    else:
-                        slicemask = 0.
+                # check time axis
+                check_time_axis(xfield.time, diag.years_joined)
 
-                    # final operation on the field
-                    a = masked_meansum(
-                        xfield=slicefield, weights=sliceweights, mask=slicemask,
-                        operation=ref[var].get('operation', 'mean'),
-                        mask_type=ref[var].get('mask', 'global'),
-                        domain=domain)
+                # get the data-array field for the required var
+                cfield = formula_wrapper(var, face, xfield).compute()
 
-                    try:
-                        x = a.compute()
-                    except BaseException:
-                        x = a
-                    result[season][region] = float((np.nanmean(x) + offset) * factor)
+                for season in diag.seasons:
+
+                    # copy of the full field
+                    tfield = cfield.copy(deep=True)
+
+                    if season != 'ALL':
+                        tfield = tfield.sel(time=cfield.time.dt.season.isin(season))
 
                     if diag.ftrend:
-                        if (len(x) == len(diag.years_joined)):
-                            trend[season][region] = np.polyfit(diag.years_joined, x, 1)[0]
-                    if diag.fverb and season == 'ALL' and region == 'Global':
-                        print('Average', var, season, region, result[season][region])
+                        # this does not consider continuous seasons for DJF, but JF+D
+                        tfield = tfield.groupby('time.year').mean('time')
+                    else:
+                        tfield = tfield.mean(dim='time')
+
+                    for region in diag.regions:
+
+                        slicefield = select_region(tfield, region)
+                        sliceweights = select_region(weights, region)
+                        if isinstance(domain_mask, xr.DataArray):
+                            slicemask = select_region(domain_mask, region)
+                        else:
+                            slicemask = 0.
+
+                        # final operation on the field
+                        a = masked_meansum(
+                            xfield=slicefield, weights=sliceweights, mask=slicemask,
+                            operation=ref[var].get('operation', 'mean'),
+                            mask_type=ref[var].get('mask', 'global'),
+                            domain=domain)
+
+                        try:
+                            x = a.compute()
+                        except BaseException:
+                            x = a
+                        result[season][region] = float((np.nanmean(x) + offset) * factor)
+
+                        if diag.ftrend:
+                            if (len(x) == len(diag.years_joined)):
+                                trend[season][region] = np.polyfit(diag.years_joined, x, 1)[0]
+                        if diag.fverb and season == 'ALL' and region == 'Global':
+                            print('Average', var, season, region, result[season][region])
 
         # nested dictionary, to be redifend as a dict to remove lambdas
         varmean[var] = result
