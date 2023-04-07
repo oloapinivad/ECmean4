@@ -3,3 +3,4 @@ include ecmean/reference/*.yml
 include ecmean/climatology/*/*.yml
 include ecmean/climatology/*/*.yml
 include ecmean/climatology/*/*/*.nc
+include docs/*.png

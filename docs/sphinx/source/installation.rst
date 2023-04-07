@@ -27,7 +27,11 @@ Then you should activate the environment ::
 
     > conda activate ECmean4
 
-Finally you can install the development package of ECmean4 ::
+Finally you can install ECmean4 directly from pip ::
+
+    > pip install ECmean4
+
+In alterantive, you can install the development package of ECmean4 ::
 
     > pip install -e .
 
