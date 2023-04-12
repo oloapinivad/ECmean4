@@ -6,10 +6,10 @@ Shared functions for XArray ECmean4
 import os
 import re
 import logging
-import yaml
 import sys
-from pathlib import Path
+import yaml
 import xarray as xr
+from pathlib import Path
 from glob import glob
 
 
@@ -154,7 +154,7 @@ def get_inifiles(face, diag):
                         Path(inifile)
 
                 ifiles[comp][name] = str(_expand_filename(inifile, '', diag))
-                logging.info(f'%s{name} for component {comp} is: {ifiles[comp][name]}')
+                logging.info(f'{name} for component {comp} is: {ifiles[comp][name]}')
 
                 # safe check if inifile exist
                 if not glob(ifiles[comp][name]):
@@ -197,7 +197,7 @@ def _filter_filename_by_year(template, filenames, year):
         else:
             year2 = year1
         # filter names
-        filternames = [filenames[i] for i in range(len(year1)) 
+        filternames = [filenames[i] for i in range(len(year1))
                        if year >= year1[i] and year <= year2[i]]
     else:
         # this is introduced for file that does not have year in their filename
