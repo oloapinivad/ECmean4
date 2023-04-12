@@ -64,7 +64,7 @@ def _operation(token, xdataset):
                 dct[k] = float(k)
             else:
                 dct[k] = xdataset[k]
-               
+
     # apply operators to all occurrences, from top priority
     # so far this is not parsing parenthesis
     code = 0

@@ -3,9 +3,9 @@
 Shared functions for XArray ECmean4
 '''
 
-import numpy as np
 import logging
 import sys
+import numpy as np
 import xarray as xr
 
 ##################################
@@ -41,7 +41,7 @@ def guess_bounds(axis, name='lon'):
     # safety check, to be generalized
     if name in 'lat':
         max_bounds[-1] = 90
-        min_bounds[0] = (-90)
+        min_bounds[0] = -90
     if name in 'plev':
         min_bounds[0] = 0
         max_bounds[-1] = 100000
@@ -186,13 +186,13 @@ def area_cell(xfield, gridtype=None, formula='triangles'):
         sys.exit('Gridtype undefined!')
 
     # compute the area
-    area_cell = _area_computation(bounds_lon, bounds_lat, formula=formula, full_lat=full_lat)
+    area = _area_computation(bounds_lon, bounds_lat, formula=formula, full_lat=full_lat)
 
     if gridtype in ['gaussian', 'lonlat']:
-        area_cell = area_cell.reshape([len(xfield['lat']), len(xfield['lon'])])
+        area = area.reshape([len(xfield['lat']), len(xfield['lon'])])
 
     # since we are using numpy need to bring them back into xarray dataset
-    outfield = xr.DataArray(area_cell, dims=area_dims, coords=xfield.coords, name='area')
+    outfield = xr.DataArray(area, dims=area_dims, coords=xfield.coords, name='area')
 
     # check the total area
     logging.info('Total Earth Surface: %s Km2',
