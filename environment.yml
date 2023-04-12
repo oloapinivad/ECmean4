@@ -3,7 +3,7 @@
 # or 
 # conda env create -f environment.yml
 
-name : ECmeanX
+name : ECmean4
 channels:
   - conda-forge
 dependencies:
