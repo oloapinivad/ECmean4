@@ -13,7 +13,7 @@ dependencies:
   - dask
   - xarray
   - xesmf
-  - numba::numba
+  - numba
   - esmpy
   - metpy
   - tabulate
