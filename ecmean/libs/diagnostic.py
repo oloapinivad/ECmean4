@@ -138,9 +138,10 @@ class Diagnostic():
             logging.error('only EC23 climatology support multiple seasons! Keeping only yearly seasons!')
             self.seasons = ['ALL']
 
-        self.CLMDIR = Path(
-            os.path.expandvars(
-                cfg['dirs']['clm']),
-            self.climatology)
+        #self.CLMDIR = Path(
+        #    os.path.expandvars(
+        #        cfg['dirs']['clm']),
+        #    self.climatology)
+        self.CLMDIR = Path(self.indir, '../climatology', self.climatology)
         self.RESCLMDIR = Path(self.CLMDIR, self.resolution)
         self.climfile = self.CLMDIR / f'pi_climatology_{self.climatology}.yml'

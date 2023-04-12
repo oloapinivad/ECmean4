@@ -6,16 +6,21 @@
 name : ECmean4
 channels:
   - conda-forge
+  - numba
 dependencies:
-  - python>=3.8,<3.11
+  - python>=3.8
   - netcdf4 
   - dask
   - xarray
   - xesmf
-  - esmpy<=8.3.1
+  - numba=0.57.0rc1
+  - esmpy
   - metpy
   - tabulate
   - cfgrib
   - seaborn
   - pytest
   - coverage
+  - pip
+  - pip:
+    - sparse
