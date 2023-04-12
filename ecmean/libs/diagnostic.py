@@ -39,7 +39,7 @@ class Diagnostic():
         self.funcname = args.funcname.split(".")[1]
         if self.year1 == self.year2:
             self.ftrend = False
-        logging.info('Welcome to ECmean4: Running %s', self.funcname)
+        print('Welcome to ECmean4: Running %s!', self.funcname)
 
         #  These are here in prevision of future expansion to CMOR
         self.grid = '*'
@@ -56,9 +56,9 @@ class Diagnostic():
             cfg = load_yaml(self.indir / '../../config.yml')
 
         # Various input and output directories
-        self.ECEDIR = Path(os.path.expandvars(cfg['dirs']['exp']))
-        self.TABDIR = Path(os.path.expandvars(cfg['dirs']['tab']))
-        self.FIGDIR = Path(os.path.expandvars(cfg['dirs']['fig']))
+        self.ecedir = Path(os.path.expandvars(cfg['dirs']['exp']))
+        self.tabdir = Path(os.path.expandvars(cfg['dirs']['tab']))
+        self.figdir = Path(os.path.expandvars(cfg['dirs']['fig']))
 
         # init for global mean
         if self.funcname == 'global_mean':
@@ -112,7 +112,7 @@ class Diagnostic():
         if self.linefile:
             self.ftable = True
         else:
-            self.linefile = self.TABDIR / 'global_means.txt'
+            self.linefile = self.tabdir / 'global_means.txt'
 
     def cfg_performance_indices(self, cfg):
         """Set up configuration for performance indices"""
@@ -138,10 +138,10 @@ class Diagnostic():
             logging.error('Only EC23 climatology supports multiple seasons! Keeping only yearly seasons!')
             self.seasons = ['ALL']
 
-        #self.CLMDIR = Path(
+        #self.clmdir = Path(
         #    os.path.expandvars(
         #        cfg['dirs']['clm']),
         #    self.climatology)
-        self.CLMDIR = Path(self.indir, '../climatology', self.climatology)
-        self.RESCLMDIR = Path(self.CLMDIR, self.resolution)
-        self.climfile = self.CLMDIR / f'pi_climatology_{self.climatology}.yml'
+        self.clmdir = Path(self.indir, '../climatology', self.climatology)
+        self.resclmdir = Path(self.clmdir, self.resolution)
+        self.climfile = self.clmdir / f'pi_climatology_{self.climatology}.yml'

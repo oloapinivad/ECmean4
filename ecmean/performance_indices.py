@@ -251,8 +251,8 @@ def performance_indices(exp, year1, year2,
     piclim = load_yaml(diag.climfile)
 
     # Create missing folders
-    os.makedirs(diag.TABDIR, exist_ok=True)
-    os.makedirs(diag.FIGDIR, exist_ok=True)
+    os.makedirs(diag.tabdir, exist_ok=True)
+    os.makedirs(diag.figdir, exist_ok=True)
 
     # new bunch of functions to set grids, create correction command, masks
     # and areas
@@ -319,7 +319,7 @@ def performance_indices(exp, year1, year2,
         ordered[item] = varstat[item]
 
     # dump the yaml file for PI, including all the seasons (need to copy to avoid mess)
-    yamlfile = diag.TABDIR / \
+    yamlfile = diag.tabdir / \
         f'PI4_{diag.climatology}_{diag.expname}_{diag.modelname}_r1i1p1f1_{diag.year1}_{diag.year2}.yml'
     with open(yamlfile, 'w', encoding='utf-8') as file:
         yaml.safe_dump(ordered, file, default_flow_style=False, sort_keys=False)
@@ -359,7 +359,7 @@ def performance_indices(exp, year1, year2,
         cmip6_table = cmip6_table[lll]
 
         # call the heatmap routine for a plot
-        mapfile = diag.FIGDIR / \
+        mapfile = diag.figdir / \
             f'PI4_{diag.climatology}_{diag.expname}_{diag.modelname}_r1i1p1f1_{diag.year1}_{diag.year2}.pdf'
         # heatmap_comparison_old(data_table, diag, mapfile)
         heatmap_comparison_pi(cmip6_table, diag, mapfile)

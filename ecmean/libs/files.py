@@ -109,18 +109,18 @@ def get_clim_files(piclim, var, diag, season):
     # get files for climatology
     if diag.climatology == 'RK08':
         dataname = piclim[var]['dataname']
-        clim = str(diag.RESCLMDIR / f'climate_{dataref}_{dataname}.nc')
-        vvvv = str(diag.RESCLMDIR / f'variance_{dataref}_{dataname}.nc')
+        clim = str(diag.resclmdir / f'climate_{dataref}_{dataname}.nc')
+        vvvv = str(diag.resclmdir / f'variance_{dataref}_{dataname}.nc')
     elif diag.climatology in 'EC23':
         if season == 'ALL':
             stringname = 'climate'
         else:
             stringname = 'seasons'
         clim = str(
-            diag.RESCLMDIR /
+            diag.resclmdir /
             f'{stringname}_average_{var}_{dataref}_{diag.resolution}_{datayear1}-{datayear2}.nc')
         vvvv = str(
-            diag.RESCLMDIR /
+            diag.resclmdir /
             f'{stringname}_variance_{var}_{dataref}_{diag.resolution}_{datayear1}-{datayear2}.nc')
 
     return clim, vvvv
@@ -149,7 +149,7 @@ def get_inifiles(face, diag):
             inifile = dictnames[name]
             if inifile:
                 if inifile[0] != '/':
-                    inifile = Path(diag.ECEDIR) / \
+                    inifile = Path(diag.ecedir) / \
                         Path(face['model']['basedir']) / \
                         Path(inifile)
 
@@ -226,7 +226,7 @@ def _create_filepath(cmorname, face, diag):
     """Create filepath with wildcards"""
 
     filetype = face['variables'][cmorname]['filetype']
-    filepath = Path(diag.ECEDIR) / \
+    filepath = Path(diag.ecedir) / \
         Path(face['model']['basedir']) / \
         Path(face['filetype'][filetype]['dir']) / \
         Path(face['filetype'][filetype]['filename'])

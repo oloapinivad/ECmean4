@@ -185,8 +185,8 @@ def global_mean(exp, year1, year2,
     ref = load_yaml(diag.reffile)
 
     # Create missing folders
-    os.makedirs(diag.TABDIR, exist_ok=True)
-    os.makedirs(diag.FIGDIR, exist_ok=True)
+    os.makedirs(diag.tabdir, exist_ok=True)
+    os.makedirs(diag.figdir, exist_ok=True)
 
     # Can probably be cleaned up further
     comp = face['model']['component']  # Get component for each domain
@@ -270,7 +270,7 @@ def global_mean(exp, year1, year2,
     head = head + ['Obs.', 'Dataset', 'Years']
 
     # write the file with tabulate
-    tablefile = diag.TABDIR / \
+    tablefile = diag.tabdir / \
         f'global_mean_{diag.expname}_{diag.modelname}_{diag.ensemble}_{diag.year1}_{diag.year2}.txt'
     if diag.fverb:
         print(tablefile)
@@ -283,7 +283,7 @@ def global_mean(exp, year1, year2,
         ordered[var] = varmean[var]
 
     # dump the yaml file for global_mean, including all the seasons
-    yamlfile = diag.TABDIR / \
+    yamlfile = diag.tabdir / \
         f'global_mean_{diag.expname}_{diag.modelname}_{diag.ensemble}_{diag.year1}_{diag.year2}.yml'
     with open(yamlfile, 'w', encoding='utf-8') as file:
         yaml.safe_dump(ordered, file, default_flow_style=False, sort_keys=False)
@@ -305,7 +305,7 @@ def global_mean(exp, year1, year2,
     logging.info(data_table)
 
     # call the heatmap routine for a plot
-    mapfile = diag.FIGDIR / \
+    mapfile = diag.figdir / \
         f'global_mean_{diag.expname}_{diag.modelname}_r1i1p1f1_{diag.year1}_{diag.year2}.pdf'
 
     heatmap_comparison_gm(data_table, mean_table, std_table, diag, mapfile)
