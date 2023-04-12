@@ -6,6 +6,7 @@
 name : ECmean4
 channels:
   - conda-forge
+  - numba
 dependencies:
   - python=>3.8
   - netcdf4 
