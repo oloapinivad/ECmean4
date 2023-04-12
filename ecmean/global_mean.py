@@ -126,15 +126,15 @@ def gm_worker(util, ref, face, diag, varmean, vartrend, varlist):
                             mask_type=ref[var].get('mask', 'global'),
                             domain=domain)
 
-                        try:
-                            xout = avg.compute()
-                        except BaseException:
-                            xout = avg
-                        result[season][region] = float((np.nanmean(xout) + offset) * factor)
+                        # if dask delayead object, compute
+                        if isinstance(avg, dask.array.core.Array):
+                            avg = avg.compute()
+
+                        result[season][region] = float((np.nanmean(avg) + offset) * factor)
 
                         if diag.ftrend:
-                            if len(xout) == len(diag.years_joined):
-                                trend[season][region] = np.polyfit(diag.years_joined, xout, 1)[0]
+                            if len(avg) == len(diag.years_joined):
+                                trend[season][region] = np.polyfit(diag.years_joined, avg, 1)[0]
                         if diag.fverb and season == 'ALL' and region == 'Global':
                             print('Average', var, season, region, result[season][region])
 

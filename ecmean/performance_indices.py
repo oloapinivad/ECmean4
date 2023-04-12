@@ -17,6 +17,7 @@ from multiprocessing import Process, Manager
 import numpy as np
 import xarray as xr
 import yaml
+import dask
 from ecmean.libs.diagnostic import Diagnostic
 from ecmean.libs.general import weight_split, get_domain, dict_to_dataframe, \
     numeric_loglevel, check_time_axis, init_mydict, check_interface
@@ -33,7 +34,6 @@ from ecmean.libs.parser import parse_arguments
 
 
 # temporary disabling the scheduler
-import dask
 dask.config.set(scheduler="synchronous")
 
 
@@ -108,8 +108,10 @@ def pi_worker(util, piclim, face, diag, field_3d, varstat, varlist):
                     clim, vvvv = get_clim_files(piclim, var, diag, season)
 
                     # open climatology files, fix their metadata
-                    cfield = adjust_clim_file(xr.open_mfdataset(clim, preprocess=xr_preproc))
-                    vfield = adjust_clim_file(xr.open_mfdataset(vvvv, preprocess=xr_preproc), remove_zero=True)
+                    cfield = adjust_clim_file(
+                        xr.open_mfdataset(clim, preprocess=xr_preproc))
+                    vfield = adjust_clim_file(
+                        xr.open_mfdataset(vvvv, preprocess=xr_preproc), remove_zero=True)
 
                     # season selection
                     if season != 'ALL':
@@ -144,7 +146,7 @@ def pi_worker(util, piclim, face, diag, field_3d, varstat, varlist):
                     try:
                         final = remap(tmean, keep_attrs=True)
                     except ValueError:
-                        logging.error(f'Cannot interpolate {var} with the current weights...')
+                        logging.error('Cannot interpolate %s with the current weights...', var)
                         continue
 
                     # vertical interpolation
@@ -153,13 +155,13 @@ def pi_worker(util, piclim, face, diag, field_3d, varstat, varlist):
                         # xarray interpolation on plev, forcing to be in Pascal
                         final = final.metpy.convert_coordinate_units('plev', 'Pa')
                         if set(final['plev'].data) != set(cfield['plev'].data):
-                            logging.warning(var + ': Need to interpolate vertical levels...')
+                            logging.warning('%s: Need to interpolate vertical levels...', var)
                             final = final.interp(plev=cfield['plev'].data, method='linear')
 
                             # safety check for missing values
                             sample = final.isel(lon=0, lat=0)
                             if np.sum(np.isnan(sample)) != 0:
-                                logging.warning(var + ': You have NaN after the interpolation, this will affect your PIs...')
+                                logging.warning('%s: You have NaN after the interpolation, this will affect your PIs...', var)
                                 levnan = cfield['plev'].where(np.isnan(sample))
                                 logging.warning(levnan[~np.isnan(levnan)].data)
 
@@ -172,12 +174,12 @@ def pi_worker(util, piclim, face, diag, field_3d, varstat, varlist):
                         # compute vertical bounds as weights
                         bounds_lev = guess_bounds(complete['plev'], name='plev')
                         bounds = abs(bounds_lev[:, 0] - bounds_lev[:, 1])
-                        ww = xr.DataArray(
+                        www = xr.DataArray(
                             bounds, coords=[
                                 complete['plev']], dims=['plev'])
 
                         # vertical mean
-                        outarray = complete.weighted(ww).mean(dim='plev')
+                        outarray = complete.weighted(www).mean(dim='plev')
 
                     # horizontal averaging with land-sea mask
                     else:
@@ -287,7 +289,7 @@ def performance_indices(exp, year1, year2,
     # loop on the variables, create the parallel process
     for varlist in weight_split(diag.field_all, diag.numproc):
 
-        p = Process(
+        core = Process(
             target=pi_worker,
             args=(
                 util_dictionary,
@@ -297,8 +299,8 @@ def performance_indices(exp, year1, year2,
                 diag.field_3d,
                 varstat,
                 varlist))
-        p.start()
-        processes.append(p)
+        core.start()
+        processes.append(core)
 
     # wait for the processes to finish
     for proc in processes:
@@ -319,7 +321,7 @@ def performance_indices(exp, year1, year2,
     # dump the yaml file for PI, including all the seasons (need to copy to avoid mess)
     yamlfile = diag.TABDIR / \
         f'PI4_{diag.climatology}_{diag.expname}_{diag.modelname}_r1i1p1f1_{diag.year1}_{diag.year2}.yml'
-    with open(yamlfile, 'w') as file:
+    with open(yamlfile, 'w', encoding='utf-8') as file:
         yaml.safe_dump(ordered, file, default_flow_style=False, sort_keys=False)
 
     # to this date, only EC23 support comparison with CMIP6 data
