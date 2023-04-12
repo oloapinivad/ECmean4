@@ -4,10 +4,10 @@ Shared diagnostic class for ECmean4
 '''
 
 import os
+import sys
 import logging
 from pathlib import Path
 import xarray as xr
-import sys
 from ecmean.libs.files import load_yaml
 
 ####################
@@ -39,7 +39,7 @@ class Diagnostic():
         self.funcname = args.funcname.split(".")[1]
         if self.year1 == self.year2:
             self.ftrend = False
-        print(self.funcname)
+        logging.info('Welcome to ECmean4: Running %s', self.funcname)
 
         #  These are here in prevision of future expansion to CMOR
         self.grid = '*'
@@ -135,7 +135,7 @@ class Diagnostic():
 
         # hard-coded seasons (due to climatological dataset)
         if self.climatology in ['EC22', 'RK08']:
-            logging.error('only EC23 climatology support multiple seasons! Keeping only yearly seasons!')
+            logging.error('Only EC23 climatology supports multiple seasons! Keeping only yearly seasons!')
             self.seasons = ['ALL']
 
         #self.CLMDIR = Path(
