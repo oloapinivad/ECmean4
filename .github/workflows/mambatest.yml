@@ -34,7 +34,8 @@ jobs:
         environment-name: ECmean4
         cache-downloads: true
         cache-env: true
-        channels: numba,conda-forge
+        channels: conda-forge,numba
+        channel_priority: flexible
         extra-specs: |
             python=${{ matrix.python-version }}
     - name: Install ECmean4
