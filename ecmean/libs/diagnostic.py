@@ -39,7 +39,7 @@ class Diagnostic():
         self.funcname = args.funcname.split(".")[1]
         if self.year1 == self.year2:
             self.ftrend = False
-        print('Welcome to ECmean4: Running %s!', self.funcname)
+        print(f'Welcome to ECmean4: Running {self.funcname}!')
 
         #  These are here in prevision of future expansion to CMOR
         self.grid = '*'
