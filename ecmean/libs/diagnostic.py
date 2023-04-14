@@ -9,6 +9,7 @@ import logging
 from pathlib import Path
 import xarray as xr
 from ecmean.libs.files import load_yaml
+from ecmean import __version__
 
 ####################
 # DIAGNOSTIC CLASS #
@@ -16,6 +17,7 @@ from ecmean.libs.files import load_yaml
 
 
 class Diagnostic():
+
     """General container class for common variables"""
 
     def __init__(self, args):
@@ -37,9 +39,10 @@ class Diagnostic():
         self.resolution = getattr(args, 'resolution', '')
         self.ensemble = getattr(args, 'ensemble', 'r1i1p1f1')
         self.funcname = args.funcname.split(".")[1]
+        self.version = __version__
         if self.year1 == self.year2:
             self.ftrend = False
-        print(f'Welcome to ECmean4: Running {self.funcname}!')
+        print(f'Welcome to ECmean4 v{self.version}: Running {self.funcname}!')
 
         #  These are here in prevision of future expansion to CMOR
         self.grid = '*'
