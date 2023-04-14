@@ -3,11 +3,11 @@
 Shared functions for Support class for ECmean4
 '''
 
+import sys
 import logging
 import xarray as xr
 import xesmf as xe
 import numpy as np
-import sys
 from ecmean.libs.ncfixers import xr_preproc
 from ecmean.libs.files import inifiles_priority
 from ecmean.libs.areas import area_cell
@@ -15,6 +15,11 @@ from ecmean.libs.units import UnitsHandler
 
 
 class Supporter():
+
+    """
+    Support class for ECmean4, including areas and masks to be used
+    in global mean and performance indices
+    """
 
     def __init__(self, component, atmdict, ocedict, areas=True, remap=False, targetgrid=None):
         """Class for masks, areas and interpolation (xESMF-based)
@@ -40,7 +45,7 @@ class Supporter():
         # loading and examining atmospheric file
         self.atmfield = self.load_field(self.atmareafile, comp='atm')
         self.atmgridtype = identify_grid(self.atmfield)
-        logging.warning(f'Atmosphere grid is is a {self.atmgridtype} grid!')
+        logging.warning('Atmosphere grid is is a %s grid!', self.atmgridtype)
 
         # compute atmopheric area
         if areas:
@@ -57,7 +62,7 @@ class Supporter():
         if self.oceareafile:
             self.ocefield = self.load_field(self.oceareafile, comp='oce')
             self.ocegridtype = identify_grid(self.ocefield)
-            logging.warning(f'Oceanic grid is is a {self.ocegridtype} grid!')
+            logging.warning('Oceanic grid is is a %s grid!', self.ocegridtype)
 
             # compute oceanic area
             if areas:
@@ -85,7 +90,7 @@ class Supporter():
         """Create land-sea masks for atmosphere model"""
 
         # prepare ATM LSM
-        logging.info('maskatmfile is' + self.atmmaskfile)
+        logging.info('maskatmfile is %s', self.atmmaskfile)
         if not self.atmmaskfile:
             sys.exit("ERROR: maskatmfile cannot be found")
 
@@ -113,7 +118,7 @@ class Supporter():
             if self.atmcomponent == 'globo':
                 mask = abs(1 - mask)
         else:
-            sys.exit("ERROR: _make_atm_masks -> Mask undefined yet mismatch, this cannot be handled!")
+            raise KeyError("ERROR: _make_atm_masks -> Mask undefined yet mismatch, this cannot be handled!")
 
         # safe check to operate only on single timeframe
         if 'time' in mask.dims:
@@ -131,7 +136,7 @@ class Supporter():
         """Create land-sea masks for oceanic model. This is used only for CMIP"""
 
         # prepare ocean LSM:
-        logging.info('maskocefile is' + self.ocemaskfile)
+        logging.info('maskocefile is %s', self.ocemaskfile)
         if not self.ocemaskfile:
             sys.exit("ERROR: maskocefile cannot be found")
 
@@ -154,7 +159,7 @@ class Supporter():
             mask = abs(1 - mask)
 
         else:
-            sys.exit("ERROR: _make_oce_masks -> Mask undefined yet mismatch, this cannot be handled!")
+            raise KeyError("ERROR: _make_oce_masks -> Mask undefined yet mismatch, this cannot be handled!")
 
         # safe check to operate only on single timeframe
         if 'time' in mask.dims:
@@ -175,10 +180,10 @@ class Supporter():
         if areafile:
             logging.info(f'{comp}mareafile is ' + areafile)
             if not areafile:
-                sys.exit(f'ERROR: {comp}reafile cannot be found')
+                raise FileExistsError(f'ERROR: {comp}reafile cannot be found')
             return xr.open_mfdataset(areafile, preprocess=xr_preproc).load()
         else:
-            sys.exit('ERROR: Cannot find any file to load! Does your experiment exit?')
+            raise FileExistsError('ERROR: Cannot find any file to load! Does your experiment exit?')
 
     def make_areas(self, gridtype, xfield):
         """Create weights for area operations.

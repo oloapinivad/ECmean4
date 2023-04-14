@@ -154,7 +154,7 @@ def get_inifiles(face, diag):
                         Path(inifile)
 
                 ifiles[comp][name] = str(_expand_filename(inifile, '', diag))
-                logging.info(f'{name} for component {comp} is: {ifiles[comp][name]}')
+                logging.info('%s for component %s is: %s', name, comp, ifiles[comp][name])
 
                 # safe check if inifile exist
                 if not glob(ifiles[comp][name]):

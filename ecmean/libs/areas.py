@@ -213,9 +213,9 @@ def _area_computation(bounds_lon, bounds_lat, formula='triangles', full_lat=None
         p2 = _lonlat_to_sphere(bounds_lon[:, 0], bounds_lat[:, 1]).transpose()
         p3 = _lonlat_to_sphere(bounds_lon[:, 1], bounds_lat[:, 1]).transpose()
         p4 = _lonlat_to_sphere(bounds_lon[:, 1], bounds_lat[:, 0]).transpose()
-        area_cell = _vector_spherical_triangle(
+        area = _vector_spherical_triangle(
             p1, p2, p3) + _vector_spherical_triangle(p1, p4, p3)
-        area_cell = area_cell * earth_radius**2
+        area = area * earth_radius**2
     else:
 
         # cell dimension
@@ -237,6 +237,6 @@ def _area_computation(bounds_lon, bounds_lat, formula='triangles', full_lat=None
         arclat = earth_radius * np.deg2rad(dlat)
 
         # trapezoid area
-        area_cell = (arclon1 + arclon2) * arclat / 2
+        area = (arclon1 + arclon2) * arclat / 2
 
-    return area_cell
+    return area
