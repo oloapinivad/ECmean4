@@ -21,6 +21,7 @@ dependencies:
   - seaborn
   - pytest
   - coverage
+  - sphinx<7.0
   - pip
   - pip:
     - sparse
