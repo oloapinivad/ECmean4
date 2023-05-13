@@ -3,7 +3,7 @@
 # or 
 # conda env create -f environment.yml
 
-name : ECmean4
+name : ecmean
 channels:
   - conda-forge
   - numba
@@ -13,8 +13,8 @@ dependencies:
   - dask
   - xarray
   - xesmf
-  - numba
   - esmpy
+  - numba
   - metpy
   - tabulate
   - cfgrib
