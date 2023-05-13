@@ -71,6 +71,8 @@ jobs:
         environment-file: environment.yml
         environment-name: ecmean
         cache-downloads: true
+        extra-specs: |
+          python=3.10
     - name: Install ECmean4
       run: |
         python -m pip install --editable .
