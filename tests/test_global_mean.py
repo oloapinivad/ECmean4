@@ -40,10 +40,9 @@ def test_global_mean_amip_xdataset():
     assert cmp(thefile, 'tests/table/global_mean_amip_1990_1990.ref')
 
 # call on historical CMIP6
-def test_global_mean_cmip6():
+def test_global_mean_CMIP6():
     thefile = 'tests/table/global_mean_historical_EC-Earth3_r1i1p1f1_1990_1991.txt'
     if os.path.isfile(thefile):
         os.remove(thefile)
-    global_mean(exp='historical', year1=1990, year2=1991, numproc=2,
-                config='tests/config_CMIP6.yml', trend=True)
+    global_mean(exp='historical', year1=1990, year2=1991, numproc=2, config='tests/config_CMIP6.yml', trend=True)
     assert cmp(thefile, 'tests/table/global_mean_CMIP6_1990_1991.ref')
