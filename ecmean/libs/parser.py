@@ -4,7 +4,7 @@ Shared functions for Ecmean4: parsers arguments from command line
 '''
 
 import argparse
-
+from ecmean import __version__
 
 def parse_arguments(args, script):
     """Parse CLI arguments for global mean
@@ -36,6 +36,8 @@ def parse_arguments(args, script):
                         help='do not print anything to std output')
     parser.add_argument('-v', '--loglevel', type=str, default='WARNING',
                         help='define the level of logging.')
+    parser.add_argument('--version', action='version',
+                        version='%(prog)s ' + __version__)
 
     # specific to global mean
     if script == 'gm':

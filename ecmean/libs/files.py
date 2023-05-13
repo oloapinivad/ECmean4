@@ -5,12 +5,13 @@ Shared functions for XArray ECmean4
 
 import os
 import re
+import logging
+import sys
+import yaml
 import xarray as xr
 from pathlib import Path
-import logging
 from glob import glob
-import yaml
-import sys
+
 
 ##################
 # FILE FUNCTIONS #
@@ -108,18 +109,18 @@ def get_clim_files(piclim, var, diag, season):
     # get files for climatology
     if diag.climatology == 'RK08':
         dataname = piclim[var]['dataname']
-        clim = str(diag.RESCLMDIR / f'climate_{dataref}_{dataname}.nc')
-        vvvv = str(diag.RESCLMDIR / f'variance_{dataref}_{dataname}.nc')
+        clim = str(diag.resclmdir / f'climate_{dataref}_{dataname}.nc')
+        vvvv = str(diag.resclmdir / f'variance_{dataref}_{dataname}.nc')
     elif diag.climatology in 'EC23':
         if season == 'ALL':
             stringname = 'climate'
         else:
             stringname = 'seasons'
         clim = str(
-            diag.RESCLMDIR /
+            diag.resclmdir /
             f'{stringname}_average_{var}_{dataref}_{diag.resolution}_{datayear1}-{datayear2}.nc')
         vvvv = str(
-            diag.RESCLMDIR /
+            diag.resclmdir /
             f'{stringname}_variance_{var}_{dataref}_{diag.resolution}_{datayear1}-{datayear2}.nc')
 
     return clim, vvvv
@@ -148,12 +149,12 @@ def get_inifiles(face, diag):
             inifile = dictnames[name]
             if inifile:
                 if inifile[0] != '/':
-                    inifile = Path(diag.ECEDIR) / \
+                    inifile = Path(diag.ecedir) / \
                         Path(face['model']['basedir']) / \
                         Path(inifile)
 
                 ifiles[comp][name] = str(_expand_filename(inifile, '', diag))
-                logging.info(f'{name} for component {comp} is: {ifiles[comp][name]}')
+                logging.info('%s for component %s is: %s', name, comp, ifiles[comp][name])
 
                 # safe check if inifile exist
                 if not glob(ifiles[comp][name]):
@@ -166,11 +167,11 @@ def get_inifiles(face, diag):
     return ifiles
 
 
-def _expand_filename(fn, var, diag):
+def _expand_filename(filenames, var, diag):
     """Expands a path (filename or dir) for var, expname, frequency, ensemble etc.
     and environment variables. Years are set as a wildcard and filtered by _filter_by_year"""
 
-    return Path(str(os.path.expandvars(fn)).format(
+    return Path(str(os.path.expandvars(filenames)).format(
         expname=diag.expname,
         year1='*',
         year2='*',
@@ -196,14 +197,15 @@ def _filter_filename_by_year(template, filenames, year):
         else:
             year2 = year1
         # filter names
-        filternames = [filenames[i] for i in range(len(year1)) if year >= year1[i] and year <= year2[i]]
+        filternames = [filenames[i] for i in range(len(year1))
+                       if year >= year1[i] and year <= year2[i]]
     else:
         # this is introduced for file that does not have year in their filename
         filternames = filenames
 
     # safety warning if something is missing
     if not filternames and len(filenames) > 0:
-        logging.warning('Data for year ' + str(year) + ' has not been found!')
+        logging.warning('Data for year %s has not been found!', str(year))
 
     logging.info('Filtered filenames: %s', filternames)
     return filternames
@@ -224,7 +226,7 @@ def _create_filepath(cmorname, face, diag):
     """Create filepath with wildcards"""
 
     filetype = face['variables'][cmorname]['filetype']
-    filepath = Path(diag.ECEDIR) / \
+    filepath = Path(diag.ecedir) / \
         Path(face['model']['basedir']) / \
         Path(face['filetype'][filetype]['dir']) / \
         Path(face['filetype'][filetype]['filename'])

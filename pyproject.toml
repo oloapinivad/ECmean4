@@ -4,16 +4,17 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "ECmean4"
-version = "0.1.0"
+dynamic = ["version"]
 authors = [
   { name="Paolo Davini", email="p.davini@isac.cnr.it" },
   { name="Jost von Hardenberg", email="jost.hardenberg@polito.it" } 
 ]
 description = "ECmean4 Global Climate Model lightweight evaluation tool"
 readme = "README.md"
-requires-python = ">=3.7, <3.11"
+requires-python = ">=3.8"
 classifiers = [
     "Programming Language :: Python :: 3",
+    "Intended Audience :: Science/Research",
     "License :: OSI Approved :: Apache Software License",
     "Operating System :: OS Independent",
 ]
@@ -41,13 +42,19 @@ docs = [
 ]
 
 all = [
-    "scriptengine[tests,docs]"
+    "ecmean[tests,docs]"
 ]
 
 [project.urls]
 "Homepage" = "https://github.com/oloapinivad/ECmean4"
+"Repository" = "https://github.com/oloapinivad/ECmean4"
+"Documentation" = "https://ecmean4.readthedocs.io/en/latest/"
 "Bug Tracker" = "https://github.com/oloapinivad/ECmean4/issues"
+
 
 [project.scripts]
 global_mean = "ecmean.global_mean:gm_entry_point"
 performance_indices = "ecmean.performance_indices:pi_entry_point"
+
+[tool.setuptools.dynamic]
+version = {attr = "ecmean.__version__"}

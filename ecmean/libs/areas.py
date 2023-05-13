@@ -3,9 +3,9 @@
 Shared functions for XArray ECmean4
 '''
 
-import numpy as np
 import logging
 import sys
+import numpy as np
 import xarray as xr
 
 ##################################
@@ -41,7 +41,7 @@ def guess_bounds(axis, name='lon'):
     # safety check, to be generalized
     if name in 'lat':
         max_bounds[-1] = 90
-        min_bounds[0] = (-90)
+        min_bounds[0] = -90
     if name in 'plev':
         min_bounds[0] = 0
         max_bounds[-1] = 100000
@@ -186,13 +186,13 @@ def area_cell(xfield, gridtype=None, formula='triangles'):
         sys.exit('Gridtype undefined!')
 
     # compute the area
-    area_cell = _area_computation(bounds_lon, bounds_lat, formula=formula, full_lat=full_lat)
+    area = _area_computation(bounds_lon, bounds_lat, formula=formula, full_lat=full_lat)
 
     if gridtype in ['gaussian', 'lonlat']:
-        area_cell = area_cell.reshape([len(xfield['lat']), len(xfield['lon'])])
+        area = area.reshape([len(xfield['lat']), len(xfield['lon'])])
 
     # since we are using numpy need to bring them back into xarray dataset
-    outfield = xr.DataArray(area_cell, dims=area_dims, coords=xfield.coords, name='area')
+    outfield = xr.DataArray(area, dims=area_dims, coords=xfield.coords, name='area')
 
     # check the total area
     logging.info('Total Earth Surface: %s Km2',
@@ -213,9 +213,9 @@ def _area_computation(bounds_lon, bounds_lat, formula='triangles', full_lat=None
         p2 = _lonlat_to_sphere(bounds_lon[:, 0], bounds_lat[:, 1]).transpose()
         p3 = _lonlat_to_sphere(bounds_lon[:, 1], bounds_lat[:, 1]).transpose()
         p4 = _lonlat_to_sphere(bounds_lon[:, 1], bounds_lat[:, 0]).transpose()
-        area_cell = _vector_spherical_triangle(
+        area = _vector_spherical_triangle(
             p1, p2, p3) + _vector_spherical_triangle(p1, p4, p3)
-        area_cell = area_cell * earth_radius**2
+        area = area * earth_radius**2
     else:
 
         # cell dimension
@@ -237,6 +237,6 @@ def _area_computation(bounds_lon, bounds_lat, formula='triangles', full_lat=None
         arclat = earth_radius * np.deg2rad(dlat)
 
         # trapezoid area
-        area_cell = (arclon1 + arclon2) * arclat / 2
+        area = (arclon1 + arclon2) * arclat / 2
 
-    return area_cell
+    return area

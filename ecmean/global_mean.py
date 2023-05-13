@@ -20,6 +20,8 @@ from tabulate import tabulate
 import numpy as np
 import xarray as xr
 import yaml
+import dask
+
 from ecmean.libs.diagnostic import Diagnostic
 from ecmean.libs.general import weight_split, write_tuning_table, get_domain, \
     numeric_loglevel, check_time_axis, dict_to_dataframe, init_mydict, check_interface
@@ -32,7 +34,6 @@ from ecmean.libs.ncfixers import xr_preproc
 from ecmean.libs.parser import parse_arguments
 from ecmean.libs.plotting import heatmap_comparison_gm
 
-import dask
 dask.config.set(scheduler="synchronous")
 
 
@@ -59,7 +60,7 @@ def gm_worker(util, ref, face, diag, varmean, vartrend, varlist):
         trend = init_mydict(diag.seasons, diag.regions)
 
         # check if the variable is in the interface file
-        if check_interface(var, face): 
+        if check_interface(var, face):
 
             # get domain
             domain = get_domain(var, face)
@@ -119,21 +120,21 @@ def gm_worker(util, ref, face, diag, varmean, vartrend, varlist):
                             slicemask = 0.
 
                         # final operation on the field
-                        a = masked_meansum(
+                        avg = masked_meansum(
                             xfield=slicefield, weights=sliceweights, mask=slicemask,
                             operation=ref[var].get('operation', 'mean'),
                             mask_type=ref[var].get('mask', 'global'),
                             domain=domain)
 
-                        try:
-                            x = a.compute()
-                        except BaseException:
-                            x = a
-                        result[season][region] = float((np.nanmean(x) + offset) * factor)
+                        # if dask delayead object, compute
+                        if isinstance(avg, dask.array.core.Array):
+                            avg = avg.compute()
+
+                        result[season][region] = float((np.nanmean(avg) + offset) * factor)
 
                         if diag.ftrend:
-                            if (len(x) == len(diag.years_joined)):
-                                trend[season][region] = np.polyfit(diag.years_joined, x, 1)[0]
+                            if len(avg) == len(diag.years_joined):
+                                trend[season][region] = np.polyfit(diag.years_joined, avg, 1)[0]
                         if diag.fverb and season == 'ALL' and region == 'Global':
                             print('Average', var, season, region, result[season][region])
 
@@ -184,8 +185,8 @@ def global_mean(exp, year1, year2,
     ref = load_yaml(diag.reffile)
 
     # Create missing folders
-    os.makedirs(diag.TABDIR, exist_ok=True)
-    os.makedirs(diag.FIGDIR, exist_ok=True)
+    os.makedirs(diag.tabdir, exist_ok=True)
+    os.makedirs(diag.figdir, exist_ok=True)
 
     # Can probably be cleaned up further
     comp = face['model']['component']  # Get component for each domain
@@ -211,10 +212,10 @@ def global_mean(exp, year1, year2,
 
     # loop on the variables, create the parallel process
     for varlist in weight_split(diag.var_all, diag.numproc):
-        p = Process(target=gm_worker, args=(util_dictionary, ref, face, diag,
+        core = Process(target=gm_worker, args=(util_dictionary, ref, face, diag,
                                             varmean, vartrend, varlist))
-        p.start()
-        processes.append(p)
+        core.start()
+        processes.append(core)
 
     # wait for the processes to finish
     for proc in processes:
@@ -237,8 +238,8 @@ def global_mean(exp, year1, year2,
         gamma = ref[var]
         # get the predifined value or the ALL GLobal one
         if isinstance(gamma['obs'], dict):
-            ff = gamma['obs']['ALL']['Global']
-            outval = str(ff['mean']) + u'\u00B1' + str(ff['std'])
+            tabval = gamma['obs']['ALL']['Global']
+            outval = str(tabval['mean']) + '\u00B1' + str(tabval['std'])
         else:
             outval = gamma['obs']
 
@@ -269,12 +270,12 @@ def global_mean(exp, year1, year2,
     head = head + ['Obs.', 'Dataset', 'Years']
 
     # write the file with tabulate
-    tablefile = diag.TABDIR / \
+    tablefile = diag.tabdir / \
         f'global_mean_{diag.expname}_{diag.modelname}_{diag.ensemble}_{diag.year1}_{diag.year2}.txt'
     if diag.fverb:
         print(tablefile)
-    with open(tablefile, 'w', encoding='utf-8') as f:
-        f.write(tabulate(global_table, headers=head, stralign='center', tablefmt='orgtbl'))
+    with open(tablefile, 'w', encoding='utf-8') as out:
+        out.write(tabulate(global_table, headers=head, stralign='center', tablefmt='orgtbl'))
 
     # required to avoid problem with multiprocessing
     ordered = {}
@@ -282,9 +283,9 @@ def global_mean(exp, year1, year2,
         ordered[var] = varmean[var]
 
     # dump the yaml file for global_mean, including all the seasons
-    yamlfile = diag.TABDIR / \
+    yamlfile = diag.tabdir / \
         f'global_mean_{diag.expname}_{diag.modelname}_{diag.ensemble}_{diag.year1}_{diag.year2}.yml'
-    with open(yamlfile, 'w') as file:
+    with open(yamlfile, 'w', encoding='utf-8') as file:
         yaml.safe_dump(ordered, file, default_flow_style=False, sort_keys=False)
 
     # set longname, get units
@@ -300,13 +301,11 @@ def global_mean(exp, year1, year2,
     std_table = dict_to_dataframe(obsstd)
     for table in [data_table, mean_table, std_table]:
         table.index = table.index + ' [' + units_list + ']'
-    # data_table.index = data_table.index + ' [' + units_list + ']'
-    # mean_table.index = mean_table.index + ' [' + units_list + ']'
-    # std_table.index = std_table.index + ' [' + units_list + ']'
+
     logging.info(data_table)
 
     # call the heatmap routine for a plot
-    mapfile = diag.FIGDIR / \
+    mapfile = diag.figdir / \
         f'global_mean_{diag.expname}_{diag.modelname}_r1i1p1f1_{diag.year1}_{diag.year2}.pdf'
 
     heatmap_comparison_gm(data_table, mean_table, std_table, diag, mapfile)

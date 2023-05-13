@@ -30,7 +30,7 @@ def numeric_loglevel(loglevel):
     # currently basic definition trought the text
     numeric_level = getattr(logging, loglevel.upper(), None)
     if not isinstance(numeric_level, int):
-        raise ValueError('Invalid log level: %s' % loglevel)
+        raise ValueError(f'Invalid log level: {loglevel}')
 
     return numeric_level
 
@@ -40,7 +40,7 @@ def check_time_axis(xtime, years):
     have been found in the NetCDF files. """
 
     #unique, counts = np.unique(xtime.dt.month, return_counts=True)
-    unique, counts = np.unique(xtime.time.resample(time='1M').mean(), return_counts=True) 
+    unique, counts = np.unique(xtime.time.resample(time='1M').mean(), return_counts=True)
     if len(unique) != 12 or not all(counts == counts[0]):
         logging.warning('Check your data: some months might be missing...')
 
@@ -66,10 +66,12 @@ def check_time_axis(xtime, years):
 #     return (iterable[i*k+min(i, m):(i+1)*k+min(i+1, m)] for i in range(num))
 
 def runtime_weights(varlist):
-    """Define the weights to estimate the best repartition of the cores
+    """
+    Define the weights to estimate the best repartition of the cores
     This is done a-priori, considering that 
     1) compound variables are more difficult to compute
-    2) 3d variables requires more evaluation"""
+    2) 3d variables requires more evaluation
+    """
 
     w = {}
     for k in varlist:
@@ -86,9 +88,11 @@ def runtime_weights(varlist):
 
 
 def weight_split(a, n):
-    """use the weights by runtime_weights to provide a number of n chunks based on the
+    """
+    Use the weights by runtime_weights to provide a number of n chunks based on the
     minimum possible value of each chunk computing time. Then, provide the list of variables
-    to be used in the multiprocessing routine"""
+    to be used in the multiprocessing routine
+    """
 
     ws = sorted(runtime_weights(a).items(), key=lambda x: x[1], reverse=True)
     ordered = dict(ws)
@@ -97,20 +101,25 @@ def weight_split(a, n):
     olists = [[] for _ in range(n)]
 
     count = 0
-    for f in ordered.keys():
-        elists[count].append(ordered[f])
-        olists[count].append(f)
+    for fff, value in ordered.items():
+        elists[count].append(value)
+        olists[count].append(fff)
         count = elists.index(min(elists))
+
+    #for f in ordered.keys():
+    #    elists[count].append(ordered[f])
+    #    olists[count].append(f)
+    #    count = elists.index(min(elists))
 
     return olists
 
-def check_interface(var, face): 
+def check_interface(var, face):
     """Check if a var is defined in the interface file"""
 
     if var in face['variables']:
         return True
     else:
-        logging.warning(f'{var} is not defined in the interface file, skipping it!')
+        logging.warning('%s is not defined in the interface file, skipping it!', var)
         return False
 
 

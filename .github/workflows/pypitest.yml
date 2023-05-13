@@ -24,10 +24,10 @@ jobs:
     steps:
     - uses: actions/checkout@v3
     - name: provision-with-micromamba
-      uses: mamba-org/provision-with-micromamba@v14
+      uses: mamba-org/provision-with-micromamba@v15
       with:
         environment-file: environment.yml
-        environment-name: ECmean4
+        environment-name: ecmean
         cache-downloads: true
         extra-specs: |
             python=${{ matrix.python-version }}

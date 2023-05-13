@@ -56,7 +56,7 @@ The required packages are listed in ``environment.yml``.
 A secondary environment available in  ``ecmean/utils/dev_environment.yml`` can be used for development. 
 
 .. warning::
-	Python >=3.8 is requested, but Python 3.11 is so far not supported due to conflicting packages
+	Python >=3.8 is requested
 
 
 

@@ -7,12 +7,17 @@ Shared class for ECmean4 units
 # UNIT ADJUSTMENT FUNCTIONS #
 #############################
 
-from metpy.units import units
 import logging
 import sys
+from metpy.units import units
+
 
 
 class UnitsHandler():
+
+    """
+    Class for dealing with units format and conversion within ECmean4
+    """
 
     def __init__(self, var=None, org_units=None, tgt_units=None,
                  org_direction='down', tgt_direction='down',
@@ -142,8 +147,8 @@ class UnitsHandler():
         if self.org_direction != self.tgt_direction:
             factor = -1. * factor
 
-        logging.info('Offset is ' + str(offset))
-        logging.info('Factor is ' + str(factor))
+        logging.info('Offset is %s', str(offset))
+        logging.info('Factor is %s', str(factor))
         return offset, factor
 
 
