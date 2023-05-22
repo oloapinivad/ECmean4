@@ -12,6 +12,7 @@ __author__ = "Paolo Davini (p.davini@isac.cnr.it), Sep 2022."
 
 import os
 import sys
+import logging
 import argparse
 from multiprocessing import Process, Manager
 from time import time
@@ -52,6 +53,8 @@ def gm_worker(util, ref, face, diag, varmean, vartrend, varlist):
     Returns:
         vartrend and varmean under the form of a dictionaries
     """
+
+    loggy = logging.getLogger(__name__)
 
     for var in varlist:
 
