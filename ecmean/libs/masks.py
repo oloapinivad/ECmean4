@@ -10,7 +10,7 @@ import xarray as xr
 # MASK-RELATED FUNCTIONS #
 ##########################
 
-
+loggy = logging.getLogger(__name__)
 
 def masked_meansum(xfield, weights, mask, operation, domain, mask_type):
     """For global variables evaluate the weighted averaged
@@ -67,7 +67,7 @@ def mask_field(xfield, mask_type, dom, mask):
             if isinstance(mask, xr.DataArray):
                 out = xfield.where(mask.data < 0.5)
             else:
-                logging.warning('No oceanic mask available for oceanic vars, this might lead to inconsistent results...')
+                loggy.warning('No oceanic mask available for oceanic vars, this might lead to inconsistent results...')
                 out = xfield
         elif dom == 'atm':
 

@@ -8,6 +8,7 @@ import numpy as np
 import dask.array as da
 import matplotlib.pyplot as plt
 
+loggy = logging.getLogger(__name__)
 
 def variance_threshold(xvariance):
     """this defines the two thresholds (high and low) for filtering the dataset
@@ -99,7 +100,7 @@ def mask_from_field(xfield):
     """get the domain to be passed to the climatology .yml file from the number of
     missing point. Special treatment for sea ice. Use with caution."""
     ratio = float(xfield.count() / np.prod(np.array(xfield.shape)))
-    logging.info(ratio)
+    loggy.info(ratio)
     if ratio < 0.2:  # this is a special case for ice, need to be double checked
         mask = 'ocean'
     elif 0.2 < ratio < 0.3:
@@ -112,5 +113,5 @@ def mask_from_field(xfield):
         mask = 'undefined'
         raise ValueError('ERROR: cant recognize mask')
 
-    logging.debug(mask)
+    loggy.debug(mask)
     return mask

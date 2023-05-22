@@ -10,7 +10,7 @@ Shared class for ECmean4 units
 import logging
 from metpy.units import units
 
-
+loggy = logging.getLogger(__name__)
 
 class UnitsHandler():
     """
@@ -54,7 +54,7 @@ class UnitsHandler():
         if face and clim:
             self.init_ecmean(clim, face)
 
-        logging.info(vars(self))
+        loggy.info(vars(self))
         # if units are defined and convert called
         if convert and self.org_units and self.tgt_units:
 
@@ -66,13 +66,13 @@ class UnitsHandler():
         """Specific initialization used within ECmean"""
 
         if not self.org_units:
-            logging.warning('Source unit undefined, assuming fraction')
+            loggy.warning('Source unit undefined, assuming fraction')
             self.org_units = 'frac'
 
         if clim[self.var]['units']:
             self.tgt_units = clim[self.var]['units']
         else:
-            logging.warning('Target unit undefined, assuming fraction')
+            loggy.warning('Target unit undefined, assuming fraction')
             self.tgt_units = 'frac'
 
         self.org_direction = face['variables'][self.var].get('direction', 'down')
@@ -101,12 +101,12 @@ class UnitsHandler():
         It will not work if BOTH factor and offset are required"""
 
         units_relation = (self.org_units / self.tgt_units).to_base_units()
-        logging.info(units_relation)
+        loggy.info(units_relation)
 
         if units_relation.units == units('dimensionless'):
 
             if units_relation.magnitude != 1:
-                logging.info('Unit conversion required...')
+                loggy.info('Unit conversion required...')
                 offset_standard = 0 * self.org_units
                 offset = offset_standard.to(self.tgt_units).magnitude
                 if offset == 0:
@@ -119,34 +119,34 @@ class UnitsHandler():
                 factor = 1.
 
         elif units_relation.units == units('kg / m^3'):
-            logging.info("Assuming this as a water flux! Am I correct?")
-            logging.info("Dividing by water density...")
+            loggy.info("Assuming this as a water flux! Am I correct?")
+            loggy.info("Dividing by water density...")
             density_water = units('kg / m^3') * 1000
             offset = 0.
             factor_standard = 1 * self.org_units
             factor = (factor_standard / density_water).to(self.tgt_units).magnitude
 
         elif units_relation.units == units('s'):
-            logging.info("Assuming this is a cumulated flux...")
-            logging.info("Dividing by cumulation time (expressed in seconds)...")
+            loggy.info("Assuming this is a cumulated flux...")
+            loggy.info("Dividing by cumulation time (expressed in seconds)...")
             if self.cumulation_time:
                 cumtime = units('s') * self.cumulation_time
                 offset = 0.
                 factor_standard = 1 * self.org_units
                 factor = (factor_standard / cumtime).to(self.tgt_units).magnitude
             else:
-                logging.error('This variable seems cumulated over time but has no cumulation time defined')
-                sys.exit("ERROR: Units mismatch, this cannot be handled!")
+                loggy.error('This variable seems cumulated over time but has no cumulation time defined')
+                raise ValueError("ERROR: Units mismatch, this cannot be handled!")
 
         else:
-            logging.error(units_relation)
+            loggy.error(units_relation)
             raise ValueError("ERROR: Units mismatch, this cannot be handled!")
 
         if self.org_direction != self.tgt_direction:
             factor = -1. * factor
 
-        logging.info('Offset is %s', str(offset))
-        logging.info('Factor is %s', str(factor))
+        loggy.info('Offset is %s', str(offset))
+        loggy.info('Factor is %s', str(factor))
         return offset, factor
 
 

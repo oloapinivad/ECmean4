@@ -10,8 +10,8 @@
 
 import sys
 import os
-import argparse
 import logging
+import argparse
 from time import time
 from multiprocessing import Process, Manager
 import numpy as np
@@ -20,7 +20,7 @@ import yaml
 import dask
 from ecmean.libs.diagnostic import Diagnostic
 from ecmean.libs.general import weight_split, get_domain, dict_to_dataframe, \
-    numeric_loglevel, check_time_axis, init_mydict, check_interface
+   check_time_axis, init_mydict, check_interface
 from ecmean.libs.files import var_is_there, get_inifiles, load_yaml, \
     make_input_filename, get_clim_files
 from ecmean.libs.formula import formula_wrapper
@@ -31,6 +31,7 @@ from ecmean.libs.units import units_extra_definition, UnitsHandler
 from ecmean.libs.ncfixers import xr_preproc, adjust_clim_file
 from ecmean.libs.plotting import heatmap_comparison_pi
 from ecmean.libs.parser import parse_arguments
+from ecmean.libs.loggy import setup_logger
 
 
 # temporary disabling the scheduler
@@ -53,6 +54,8 @@ def pi_worker(util, piclim, face, diag, field_3d, varstat, varlist):
         vartrend under the form of a dictionaries
 
     """
+
+    loggy = logging.getLogger(__name__)
 
     for var in varlist:
 
@@ -99,7 +102,7 @@ def pi_worker(util, piclim, face, diag, field_3d, varstat, varlist):
                 # mean over time and fixing of the units
                 for season in diag.seasons:
 
-                    logging.info(season)
+                    loggy.info(season)
 
                     # copy of the full field
                     tmean = outfield.copy(deep=True)
@@ -146,7 +149,7 @@ def pi_worker(util, piclim, face, diag, field_3d, varstat, varlist):
                     try:
                         final = remap(tmean, keep_attrs=True)
                     except ValueError:
-                        logging.error('Cannot interpolate %s with the current weights...', var)
+                        loggy.error('Cannot interpolate %s with the current weights...', var)
                         continue
 
                     # vertical interpolation
@@ -155,15 +158,15 @@ def pi_worker(util, piclim, face, diag, field_3d, varstat, varlist):
                         # xarray interpolation on plev, forcing to be in Pascal
                         final = final.metpy.convert_coordinate_units('plev', 'Pa')
                         if set(final['plev'].data) != set(cfield['plev'].data):
-                            logging.warning('%s: Need to interpolate vertical levels...', var)
+                            loggy.warning('%s: Need to interpolate vertical levels...', var)
                             final = final.interp(plev=cfield['plev'].data, method='linear')
 
                             # safety check for missing values
                             sample = final.isel(lon=0, lat=0)
                             if np.sum(np.isnan(sample)) != 0:
-                                logging.warning('%s: You have NaN after the interpolation, this will affect your PIs...', var)
+                                loggy.warning('%s: You have NaN after the interpolation, this will affect your PIs...', var)
                                 levnan = cfield['plev'].where(np.isnan(sample))
-                                logging.warning(levnan[~np.isnan(levnan)].data)
+                                loggy.warning(levnan[~np.isnan(levnan)].data)
 
                         # zonal mean
                         final = final.mean(dim='lon')
@@ -241,7 +244,8 @@ def performance_indices(exp, year1, year2,
     argv = argparse.Namespace(**locals())
 
     # set loglevel
-    logging.basicConfig(level=numeric_loglevel(argv.loglevel))
+    #logging.basicConfig(level=numeric_loglevel(argv.loglevel))
+    loggy = setup_logger(level=argv.loglevel)
 
     tic = time()
 
@@ -345,7 +349,7 @@ def performance_indices(exp, year1, year2,
 
         # convert output dictionary to pandas dataframe
         data_table = dict_to_dataframe(plotted)
-        logging.info(data_table)
+        loggy.info(data_table)
 
 
         # relative pi with re-ordering of rows

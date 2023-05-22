@@ -12,6 +12,7 @@ from ecmean.libs.files import inifiles_priority
 from ecmean.libs.areas import area_cell
 from ecmean.libs.units import UnitsHandler
 
+loggy = logging.getLogger(__name__)
 
 class Supporter():
 
@@ -44,7 +45,7 @@ class Supporter():
         # loading and examining atmospheric file
         self.atmfield = self.load_field(self.atmareafile, comp='atm')
         self.atmgridtype = identify_grid(self.atmfield)
-        logging.warning('Atmosphere grid is is a %s grid!', self.atmgridtype)
+        loggy.warning('Atmosphere grid is is a %s grid!', self.atmgridtype)
 
         # compute atmopheric area
         if areas:
@@ -61,7 +62,7 @@ class Supporter():
         if self.oceareafile:
             self.ocefield = self.load_field(self.oceareafile, comp='oce')
             self.ocegridtype = identify_grid(self.ocefield)
-            logging.warning('Oceanic grid is is a %s grid!', self.ocegridtype)
+            loggy.warning('Oceanic grid is is a %s grid!', self.ocegridtype)
 
             # compute oceanic area
             if areas:
@@ -80,16 +81,16 @@ class Supporter():
                     self.ocemask = self.atmmask
                 # otherwise, no solution!
                 else:
-                    logging.warning('Oceanic mask not found!')
+                    loggy.warning('Oceanic mask not found!')
 
         else:
-            logging.warning("Ocereafile cannot be found, assuming this is an AMIP run")
+            loggy.warning("Ocereafile cannot be found, assuming this is an AMIP run")
 
     def make_atm_masks(self):
         """Create land-sea masks for atmosphere model"""
 
         # prepare ATM LSM
-        logging.info('maskatmfile is %s', self.atmmaskfile)
+        loggy.info('maskatmfile is %s', self.atmmaskfile)
         if not self.atmmaskfile:
             raise KeyError("ERROR: maskatmfile cannot be found")
 
@@ -135,7 +136,7 @@ class Supporter():
         """Create land-sea masks for oceanic model. This is used only for CMIP"""
 
         # prepare ocean LSM:
-        logging.info('maskocefile is %s', self.ocemaskfile)
+        loggy.info('maskocefile is %s', self.ocemaskfile)
         if not self.ocemaskfile:
             raise KeyError("ERROR: maskocefile cannot be found")
 
@@ -177,7 +178,7 @@ class Supporter():
 
         # loading and examining atmospheric file
         if areafile:
-            logging.info(f'{comp}mareafile is ' + areafile)
+            loggy.info(f'{comp}mareafile is ' + areafile)
             if not areafile:
                 raise FileExistsError(f'ERROR: {comp}reafile cannot be found')
             return xr.open_mfdataset(areafile, preprocess=xr_preproc).load()

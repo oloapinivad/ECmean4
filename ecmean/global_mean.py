@@ -13,7 +13,6 @@ __author__ = "Paolo Davini (p.davini@isac.cnr.it), Sep 2022."
 import os
 import sys
 import argparse
-import logging
 from multiprocessing import Process, Manager
 from time import time
 from tabulate import tabulate
@@ -24,7 +23,7 @@ import dask
 
 from ecmean.libs.diagnostic import Diagnostic
 from ecmean.libs.general import weight_split, write_tuning_table, get_domain, \
-    numeric_loglevel, check_time_axis, dict_to_dataframe, init_mydict, check_interface
+    check_time_axis, dict_to_dataframe, init_mydict, check_interface
 from ecmean.libs.files import var_is_there, get_inifiles, load_yaml, make_input_filename
 from ecmean.libs.formula import formula_wrapper
 from ecmean.libs.masks import masked_meansum, select_region
@@ -33,6 +32,7 @@ from ecmean.libs.units import units_extra_definition, UnitsHandler
 from ecmean.libs.ncfixers import xr_preproc
 from ecmean.libs.parser import parse_arguments
 from ecmean.libs.plotting import heatmap_comparison_gm
+from ecmean.libs.loggy import setup_logger
 
 dask.config.set(scheduler="synchronous")
 
@@ -177,7 +177,8 @@ def global_mean(exp, year1, year2,
     argv = argparse.Namespace(**locals())
 
     # set loglevel
-    logging.basicConfig(level=numeric_loglevel(argv.loglevel))
+    #logging.basicConfig(level=numeric_loglevel(argv.loglevel))
+    loggy = setup_logger(level=argv.loglevel)
 
     # initialize the diag class, load the inteface and the reference file
     diag = Diagnostic(argv)
@@ -302,7 +303,7 @@ def global_mean(exp, year1, year2,
     for table in [data_table, mean_table, std_table]:
         table.index = table.index + ' [' + units_list + ']'
 
-    logging.info(data_table)
+    loggy.info(data_table)
 
     # call the heatmap routine for a plot
     mapfile = diag.figdir / \

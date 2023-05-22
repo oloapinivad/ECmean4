@@ -23,6 +23,7 @@ import numpy as np
 #     except ValueError:
 #         return False
 
+loggy = logging.getLogger(__name__)
 
 def numeric_loglevel(loglevel):
     """Define the logging level """
@@ -42,15 +43,15 @@ def check_time_axis(xtime, years):
     #unique, counts = np.unique(xtime.dt.month, return_counts=True)
     unique, counts = np.unique(xtime.time.resample(time='1M').mean(), return_counts=True)
     if len(unique) != 12 or not all(counts == counts[0]):
-        logging.warning('Check your data: some months might be missing...')
+        loggy.warning('Check your data: some months might be missing...')
 
     # apparently this is already satisfied by the file browsing
     # set1=set(years)
     # set2=set(xtime.dt.year.values)
     # missing = list(set1.difference(set2))
     # if missing:
-    #     logging.warning('Some years are missing')
-    #     logging.warning(missing)
+    #     loggy.warning('Some years are missing')
+    #     loggy.warning(missing)
 
 
 # def chunks(iterable, num):
@@ -119,7 +120,7 @@ def check_interface(var, face):
     if var in face['variables']:
         return True
     else:
-        logging.warning('%s is not defined in the interface file, skipping it!', var)
+        loggy.warning('%s is not defined in the interface file, skipping it!', var)
         return False
 
 
