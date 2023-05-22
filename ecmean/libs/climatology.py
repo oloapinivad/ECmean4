@@ -3,7 +3,6 @@
 Shared functions for Xarray to create climatology
 '''
 
-import sys
 import logging
 import numpy as np
 import dask.array as da
@@ -111,7 +110,7 @@ def mask_from_field(xfield):
         mask = 'global'
     else:
         mask = 'undefined'
-        sys.exit('ERROR: cant recognize mask')
+        raise ValueError('ERROR: cant recognize mask')
 
     logging.debug(mask)
     return mask

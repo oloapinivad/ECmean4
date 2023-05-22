@@ -6,11 +6,10 @@ Shared functions for XArray ECmean4
 import os
 import re
 import logging
-import sys
-import yaml
-import xarray as xr
 from pathlib import Path
 from glob import glob
+import yaml
+import xarray as xr
 
 
 ##################
@@ -218,7 +217,7 @@ def load_yaml(infile):
         with open(infile, 'r', encoding='utf-8') as file:
             cfg = yaml.load(file, Loader=yaml.FullLoader)
     except IOError:
-        sys.exit(f'ERROR: {infile} not found: you need to have this configuration file!')
+        raise IOError(f'ERROR: {infile} not found: you need to have this configuration file!')
     return cfg
 
 

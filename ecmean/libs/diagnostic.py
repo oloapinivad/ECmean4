@@ -4,7 +4,6 @@ Shared diagnostic class for ECmean4
 '''
 
 import os
-import sys
 import logging
 from pathlib import Path
 import xarray as xr
@@ -89,7 +88,7 @@ class Diagnostic():
                 logging.warning('You asked to use your own xarray dataset/datarray...')
                 self.xdataset = args.xdataset
             else:
-                sys.exit('Cannot used the xdataset, is not Xarray object')
+                raise ValueError('Cannot used the xdataset, is not Xarray object')
         else:
             self.xdataset = None
 

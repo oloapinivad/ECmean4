@@ -3,7 +3,6 @@
 Shared functions for Support class for ECmean4
 '''
 
-import sys
 import logging
 import xarray as xr
 import xesmf as xe
@@ -92,7 +91,7 @@ class Supporter():
         # prepare ATM LSM
         logging.info('maskatmfile is %s', self.atmmaskfile)
         if not self.atmmaskfile:
-            sys.exit("ERROR: maskatmfile cannot be found")
+            raise KeyError("ERROR: maskatmfile cannot be found")
 
         if self.atmcomponent == 'oifs':
             # create mask: opening a grib and loading only lsm to avoid
@@ -138,7 +137,7 @@ class Supporter():
         # prepare ocean LSM:
         logging.info('maskocefile is %s', self.ocemaskfile)
         if not self.ocemaskfile:
-            sys.exit("ERROR: maskocefile cannot be found")
+            raise KeyError("ERROR: maskocefile cannot be found")
 
         if self.ocecomponent == 'cmoroce':
             dmask = xr.open_mfdataset(self.ocemaskfile, preprocess=xr_preproc)
@@ -235,7 +234,7 @@ class Supporter():
                 method="bilinear")
 
         else:
-            sys.exit(
+            raise KeyError(
                 "ERROR: Atm weights not defined for this component, this cannot be handled!")
 
         return fix, remap
@@ -252,7 +251,7 @@ class Supporter():
                 # tentative extraction
                 xname = list(xfield.data_vars)[-1]
         else:
-            sys.exit(
+            raise KeyError(
                 "ERROR: Oce weights not defined for this component, this cannot be handled!")
 
         if self.ocegridtype in ['unstructured']:
@@ -318,6 +317,6 @@ def identify_grid(xfield):
                 else:
                     gridtype = 'unstructured'
     else:
-        sys.exit("Cannot find any lon/lat dimension, aborting...")
+        raise ValueError("Cannot find any lon/lat dimension, aborting...")
 
     return gridtype

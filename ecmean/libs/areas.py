@@ -4,7 +4,6 @@ Shared functions for XArray ECmean4
 '''
 
 import logging
-import sys
 import numpy as np
 import xarray as xr
 
@@ -131,7 +130,7 @@ def area_cell(xfield, gridtype=None, formula='triangles'):
 
         # checking
         if blondim is None and blatdim is None:
-            sys.exit(
+            raise ValueError(
                 "ERROR: Can't find any lon/lat boundaries and grid is unstructured, need some help!")
 
         logging.info('Unstructured grid, special ECE4 treatment...')
@@ -183,7 +182,7 @@ def area_cell(xfield, gridtype=None, formula='triangles'):
         area_dims = ('lat', 'lon')
 
     else:
-        sys.exit('Gridtype undefined!')
+        raise ValueError('Gridtype undefined!')
 
     # compute the area
     area = _area_computation(bounds_lon, bounds_lat, formula=formula, full_lat=full_lat)

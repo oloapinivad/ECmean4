@@ -8,13 +8,11 @@ Shared class for ECmean4 units
 #############################
 
 import logging
-import sys
 from metpy.units import units
 
 
 
 class UnitsHandler():
-
     """
     Class for dealing with units format and conversion within ECmean4
     """
@@ -142,7 +140,7 @@ class UnitsHandler():
 
         else:
             logging.error(units_relation)
-            sys.exit("ERROR: Units mismatch, this cannot be handled!")
+            raise ValueError("ERROR: Units mismatch, this cannot be handled!")
 
         if self.org_direction != self.tgt_direction:
             factor = -1. * factor
