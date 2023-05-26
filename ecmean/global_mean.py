@@ -283,7 +283,7 @@ def global_mean(exp, year1, year2,
     tablefile = diag.tabdir / \
         f'global_mean_{diag.expname}_{diag.modelname}_{diag.ensemble}_{diag.year1}_{diag.year2}.txt'
     if diag.fverb:
-        print(tablefile)
+        loggy.info(tablefile)
     with open(tablefile, 'w', encoding='utf-8') as out:
         out.write(tabulate(global_table, headers=head, stralign='center', tablefmt='orgtbl'))
 
@@ -323,13 +323,14 @@ def global_mean(exp, year1, year2,
     # Print appending one line to table (for tuning)
     if diag.ftable:
         if diag.fverb:
-            print(diag.linefile)
+            loggy.info(diag.linefile)
         write_tuning_table(diag.linefile, varmean, diag.var_table, diag, ref)
 
     toc = time()
     # evaluate tic-toc time of postprocessing
     if diag.fverb:
-        print('Postproc done in {:.4f} seconds'.format(toc - tic))
+       print(f"Postproc done in {toc - tic:.4f} seconds")
+
 
 
 def gm_entry_point():
