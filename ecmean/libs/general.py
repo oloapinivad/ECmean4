@@ -114,14 +114,21 @@ def weight_split(a, n):
 
     return olists
 
-def check_interface(var, face):
+def check_var_interface(var, face):
     """Check if a var is defined in the interface file"""
 
     if var in face['variables']:
         return True
-    else:
-        loggy.warning('%s is not defined in the interface file, skipping it!', var)
-        return False
+
+    loggy.warning('%s is not defined in the interface file, skipping it!', var)
+    return False
+    
+def check_var_climatology(varlist, reference):
+    """Check if a var is defined in the climatology/reference file"""
+
+    missing = [element for element in varlist if element not in reference]
+    if len(missing) > 0:
+        raise KeyError(f'Variable/Variables {missing} is/are not defined in the climatology, aborting!')
 
 
 def get_domain(var, face):

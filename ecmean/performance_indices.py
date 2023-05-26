@@ -20,7 +20,7 @@ import yaml
 import dask
 from ecmean.libs.diagnostic import Diagnostic
 from ecmean.libs.general import weight_split, get_domain, dict_to_dataframe, \
-   check_time_axis, init_mydict, check_interface
+   check_time_axis, init_mydict, check_var_interface, check_var_climatology
 from ecmean.libs.files import var_is_there, get_inifiles, load_yaml, \
     make_input_filename, get_clim_files
 from ecmean.libs.formula import formula_wrapper
@@ -62,7 +62,7 @@ def pi_worker(util, piclim, face, diag, field_3d, varstat, varlist):
         # store NaN in dict (can't use defaultdict due to multiprocessing)
         result = init_mydict(diag.seasons, diag.regions)
 
-        if check_interface(var, face):
+        if check_var_interface(var, face):
 
             # get domain
             domain = get_domain(var, face)
@@ -253,6 +253,9 @@ def performance_indices(exp, year1, year2,
     diag = Diagnostic(argv)
     face = load_yaml(diag.interface)
     piclim = load_yaml(diag.climfile)
+
+    # check that everyhing is there
+    check_var_climatology(diag.field_all, piclim.keys())
 
     # Create missing folders
     os.makedirs(diag.tabdir, exist_ok=True)

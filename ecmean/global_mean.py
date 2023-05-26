@@ -24,7 +24,8 @@ import dask
 
 from ecmean.libs.diagnostic import Diagnostic
 from ecmean.libs.general import weight_split, write_tuning_table, get_domain, \
-    check_time_axis, dict_to_dataframe, init_mydict, check_interface
+    check_time_axis, dict_to_dataframe, init_mydict, \
+        check_var_interface, check_var_climatology
 from ecmean.libs.files import var_is_there, get_inifiles, load_yaml, make_input_filename
 from ecmean.libs.formula import formula_wrapper
 from ecmean.libs.masks import masked_meansum, select_region
@@ -62,8 +63,9 @@ def gm_worker(util, ref, face, diag, varmean, vartrend, varlist):
         result = init_mydict(diag.seasons, diag.regions)
         trend = init_mydict(diag.seasons, diag.regions)
 
+
         # check if the variable is in the interface file
-        if check_interface(var, face):
+        if check_var_interface(var, face):
 
             # get domain
             domain = get_domain(var, face)
@@ -139,7 +141,7 @@ def gm_worker(util, ref, face, diag, varmean, vartrend, varlist):
                             if len(avg) == len(diag.years_joined):
                                 trend[season][region] = np.polyfit(diag.years_joined, avg, 1)[0]
                         if diag.fverb and season == 'ALL' and region == 'Global':
-                            print('Average', var, season, region, result[season][region])
+                            print('Average:', var, season, region, result[season][region])
 
         # nested dictionary, to be redifend as a dict to remove lambdas
         varmean[var] = result
@@ -188,6 +190,9 @@ def global_mean(exp, year1, year2,
     face = load_yaml(diag.interface)
     ref = load_yaml(diag.reffile)
 
+    # check that everyhing is there
+    check_var_climatology(diag.var_all, ref.keys())
+
     # Create missing folders
     os.makedirs(diag.tabdir, exist_ok=True)
     os.makedirs(diag.figdir, exist_ok=True)
@@ -214,6 +219,7 @@ def global_mean(exp, year1, year2,
     processes = []
     tic = time()
 
+
     # loop on the variables, create the parallel process
     for varlist in weight_split(diag.var_all, diag.numproc):
         core = Process(target=gm_worker, args=(util_dictionary, ref, face, diag,
@@ -229,7 +235,7 @@ def global_mean(exp, year1, year2,
 
     # evaluate tic-toc time  of execution
     if diag.fverb:
-        print('Done in {:.4f} seconds'.format(toc - tic))
+        loggy.info('Done in {:.4f} seconds'.format(toc - tic))
 
     tic = time()
 
