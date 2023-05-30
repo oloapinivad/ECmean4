@@ -21,35 +21,66 @@ You can also run it from the specific python script in ``ecmean`` library ::
 
         ./performance_indices.py EXP Y1 Y2
 
-- `Positional arguments`:
+Positional Arguments
+--------------------
 
-  EXP                   
-    experiment identification
+* ``EXP``
+  Experiment identification.
 
-  Y1                    
-    starting year of analysis
+* ``Y1``
+  Starting year of analysis.
 
-  Y2                   
-    final year of analysis
+* ``Y2``
+  Final year of analysis.
 
-- `Optional arguments`:
 
-  -h, --help            show this help message and exit
-  -s, --silent          do not print anything to std output
-  -v LOGLEVEL, --loglevel LOGLEVEL
-                        define the level of logging. default: error
-  -j NUMPROC            number of processors to use
-  -c CONFIG, --config CONFIG
-                        set up a specific configuration file (config.yml is default)
-  -i INTERFACE, --interface INTERFACE
-                        set up a specific interface file (override config.yml)
-  -m MODEL, --model MODEL
-                        model name
-  -e ENSEMBLE, --ensemble ENSEMBLE
-                        variant label (i.e. ripf number for cmor)
-  -d, --debug           activate cdo debugging
-  -k CLIMATOLOGY        which climatology you want to use (EC23: default, RK08 alternative under update)
-  -r RESOLUTION         only EC22: resolution of the climatology (r180x90 or r360x180)
+Optional Arguments
+------------------
+
+- .. option:: -h, --help
+
+    Show this help message and exit.
+
+- .. option:: -s, --silent
+
+    Do not print anything to std output.
+
+- .. option:: -v LOGLEVEL, --loglevel LOGLEVEL
+
+    Define the level of logging. Default: error.
+
+- .. option:: -j NUMPROC
+
+    Specify the number of processors to use.
+
+- .. option:: -c CONFIG, --config CONFIG
+
+    Set up a specific configuration file (config.yml is default).
+
+- .. option:: -i INTERFACE, --interface INTERFACE
+
+    Set up a specific interface file (override config.yml).
+
+- .. option:: -m MODEL, --model MODEL
+
+    Specify the model name.
+
+- .. option:: -e ENSEMBLE, --ensemble ENSEMBLE
+
+    Specify the variant label (i.e., ripf number for cmor).
+
+- .. option:: -d, --debug
+
+    Activate CDO debugging.
+
+- .. option:: -k CLIMATOLOGY
+
+    Specify the climatology you want to use (EC23: default).
+
+- .. option:: -r RESOLUTION
+
+    Only EC22: Specify the resolution of the climatology (r180x90 or r360x180).
+
 
 Example 
 ^^^^^^^

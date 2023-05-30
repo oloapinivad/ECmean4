@@ -23,7 +23,8 @@ Alternative, you also run the python script in ``ecmean`` library ::
 
         ./global_mean.py EXP Y1 Y2
 
-- `Positional arguments`:
+Positional Arguments
+--------------------
 
   EXP                   
     experiment identification
@@ -34,19 +35,53 @@ Alternative, you also run the python script in ``ecmean`` library ::
   Y2                   
     final year of analysis
 
-- `Optional arguments`:
+Optional Arguments
+------------------
 
-  -h, --help            	show this help message and exit
-  -s, --silent          	do not print anything to std output
-  -t, --trend           	compute trends on multiple years (only in the table format)
-  -l, --line            	appends also single line to a table
-  -c CONFIG, --config CONFIG	set up a specific configuration file (config.yml is default)
-  -i INTERFACE, --interface INTERFACE   set up a specific interface file (override config.yml)
-  -o FILE, --output FILE        path of output one-line table
-  -m MODEL, --model MODEL       model name (override config.yml)
-  -v LOGLEVEL, --loglevel LOGLEVEL      define the level of logging. Default is warning.
-  -j NUMPROC                    number of processors to use
-  -e ENSEMBLE, --ensemble ENSEMBLE      variant label (ripf number for cmor)
+.. option:: -h, --help
+
+   Show this help message and exit.
+
+.. option:: -s, --silent
+
+   Do not print anything to standard output.
+
+.. option:: -t, --trend
+
+   Compute trends on multiple years. This option is only available in table format.
+
+.. option:: -l, --line
+
+   Append a single line to the table.
+
+.. option:: -c CONFIG, --config CONFIG
+
+   Set up a specific configuration file. The default is ``config.yml``.
+
+.. option:: -i INTERFACE, --interface INTERFACE
+
+   Set up a specific interface file, overriding the configuration specified in ``config.yml``.
+
+.. option:: -o FILE, --output FILE
+
+   Specify the path of the output one-line table.
+
+.. option:: -m MODEL, --model MODEL
+
+   Specify the model name, overriding the configuration specified in ``config.yml``.
+
+.. option:: -v LOGLEVEL, --loglevel LOGLEVEL
+
+   Define the level of logging. The default is 'warning'.
+
+.. option:: -j NUMPROC
+
+   Specify the number of processors to use.
+
+.. option:: -e ENSEMBLE, --ensemble ENSEMBLE
+
+   Specify the variant label (ripf number for cmor).
+
 
 Example
 ^^^^^^^
