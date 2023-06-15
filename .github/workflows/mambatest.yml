@@ -37,14 +37,9 @@ jobs:
         cache-environment: true
         condarc: |
           channels:
-            - numba
             - conda-forge
         create-args: >-
             python=${{ matrix.python-version }}
-    - name: Install ECmean4
-      run: |
-        # install package
-        python -m pip install --editable .
     - name: Install Flake8
       run: |
         # install package
@@ -73,13 +68,6 @@ jobs:
         environment-file: environment.yml
         environment-name: ecmean
         cache-downloads: true
-    - name: Install ECmean4
-      run: |
-        python -m pip install --editable .
-    - name: Install coverage tools
-      run: |
-        python -m pip install coverage
-        python -m pip install coveralls
     - name: Run coverage
       run: |
         coverage run -m pytest

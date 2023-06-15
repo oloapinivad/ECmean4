@@ -2,10 +2,25 @@ Installation
 ============
 
 
-ECmean4 is a lightweight python package. We recommended to do it within a conda or better a mamba environment. 
-For the moment 
+ECmean4 is a lightweight python package. There are two main path to install it, and they both relies on 
+setting up a conda or better a mamba environment. 
 
-You can freely clone from the Github Repository ::
+Using PyPi
+----------
+
+This is the simplest way: it will bring you the last version available on PyPi
+You can create a conda/mamba environment which incudes the python and XESMF dependencies, and then install ECmean4 ::
+
+    > mamba create -n ecmean "python>=3.8" xesmf
+    > mamba activate ecmean
+    > pip install ECmean4
+
+Using GitHub
+------------
+
+This method will allow you to have access at the most updated ECmean4 version but it requires a bit more of effort.
+
+You should freely clone from the Github Repository ::
 
     > git clone https://github.com/oloapinivad/ECmean4.git
     
@@ -21,19 +36,11 @@ Then you can through the ECmean4 folder ::
 
 and then you can set up the conda/mamba environment ::
 
-    > conda env create --name ECmean4 -f environment.yml
+    > conda env create --name ecmean -f environment.yml
 
 Then you should activate the environment ::
 
-    > conda activate ECmean4
-
-You can then install ECmean4 directly from pip ::
-
-    > pip install ECmean4
-
-In alternative, you can install the latest commit using the development version ECmean4 ::
-
-    > pip install -e .
+    > conda activate ecmean
 
 .. warning::
 	Please note that although ECmean4 is distributed via pypi, it depends on packages that currently are available only on conda-forge. 
@@ -56,7 +63,7 @@ You can also run tests by simply calling ``pytest`` - as long as you have the co
 Requirements
 ------------
 
-The required packages are listed in ``environment.yml``. 
+The required packages are listed in ``environment.yml`` and in ``pyproject.toml``.
 A secondary environment available in  ``ecmean/utils/dev_environment.yml`` can be used for development. 
 
 .. warning::

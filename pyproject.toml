@@ -38,12 +38,12 @@ tests = [
 ]
 
 docs = [
-    "sphinx",
+    "sphinx<7.0",
     "sphinx-rtd-theme"
 ]
 
 all = [
-    "ecmean[tests,docs]"
+    "ECmean4[tests,docs]"
 ]
 
 [project.urls]
