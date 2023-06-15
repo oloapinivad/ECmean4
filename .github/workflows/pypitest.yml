@@ -6,8 +6,6 @@ on:
   workflow_dispatch:
   schedule:
     - cron: "0 3 * * 1" #run every Tuesday night at 2AM UTC
-  pull_request:
-    branches: [ main ]
 
 permissions:
   contents: read
