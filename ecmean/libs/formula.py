@@ -9,6 +9,9 @@ Shared functions for ECmean4. Set of formula based tools
 
 import operator
 import re
+import logging
+
+loggy = logging.getLogger(__name__)
 
 def formula_wrapper(var, face, xfield):
     """

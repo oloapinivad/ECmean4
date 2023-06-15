@@ -4,7 +4,6 @@ Shared diagnostic class for ECmean4
 '''
 
 import os
-import sys
 import logging
 from pathlib import Path
 import xarray as xr
@@ -15,6 +14,7 @@ from ecmean import __version__
 # DIAGNOSTIC CLASS #
 ####################
 
+loggy = logging.getLogger(__name__)
 
 class Diagnostic():
 
@@ -27,7 +27,6 @@ class Diagnostic():
         self.year1 = args.year1
         self.year2 = args.year2
         self.years_joined = list(range(self.year1, self.year2 + 1))
-        self.fverb = not args.silent
         self.ftable = getattr(args, 'line', False)
         self.ftrend = getattr(args, 'trend', False)
         self.linefile = getattr(args, 'output', None)
@@ -86,10 +85,10 @@ class Diagnostic():
         # load the possible xarray dataset
         if args.xdataset is not None:
             if isinstance(args.xdataset, (xr.DataArray, xr.Dataset)):
-                logging.warning('You asked to use your own xarray dataset/datarray...')
+                loggy.warning('You asked to use your own xarray dataset/datarray...')
                 self.xdataset = args.xdataset
             else:
-                sys.exit('Cannot used the xdataset, is not Xarray object')
+                raise ValueError('Cannot used the xdataset, is not Xarray object')
         else:
             self.xdataset = None
 
@@ -130,7 +129,7 @@ class Diagnostic():
 
         # hard-coded resolution (due to climatological dataset)
         if self.climatology == 'RK08':
-            logging.error('RK08 can work only with r180x91 grid')
+            loggy.error('RK08 can work only with r180x91 grid')
             self.resolution = 'r180x91'
         else:
             if not self.resolution:
@@ -138,7 +137,7 @@ class Diagnostic():
 
         # hard-coded seasons (due to climatological dataset)
         if self.climatology in ['EC22', 'RK08']:
-            logging.error('Only EC23 climatology supports multiple seasons! Keeping only yearly seasons!')
+            loggy.error('Only EC23 climatology supports multiple seasons! Keeping only yearly seasons!')
             self.seasons = ['ALL']
 
         #self.clmdir = Path(

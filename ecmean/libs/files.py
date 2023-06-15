@@ -6,12 +6,12 @@ Shared functions for XArray ECmean4
 import os
 import re
 import logging
-import sys
-import yaml
-import xarray as xr
 from pathlib import Path
 from glob import glob
+import yaml
+import xarray as xr
 
+loggy = logging.getLogger(__name__)
 
 ##################
 # FILE FUNCTIONS #
@@ -76,7 +76,7 @@ def var_is_there(flist, var, face):
             isavail = False
             varunit = None
             x = [e for e in var_req if e not in xfield.data_vars]
-            logging.warning("Variable %s requires %s which is not "
+            loggy.warning("Variable %s requires %s which is not "
                             "available in the model output. Ignoring it.", var, ' '.join(x))
             return isavail, varunit
 
@@ -85,13 +85,13 @@ def var_is_there(flist, var, face):
         if not varunit:
             varunit = units_avail.get(var_req[0])
             if len(var_req) > 1:
-                logging.info('%s is a derived var, assuming unit '
+                loggy.info('%s is a derived var, assuming unit '
                              'as the first of its term', var)
 
     else:
         varunit = None
         # print(f'Not available: {var} File: {flist}')
-        logging.error("No file found for variable %s. Ignoring it.", var)
+        loggy.error("No file found for variable %s. Ignoring it.", var)
 
     return isavail, varunit
 
@@ -154,11 +154,11 @@ def get_inifiles(face, diag):
                         Path(inifile)
 
                 ifiles[comp][name] = str(_expand_filename(inifile, '', diag))
-                logging.info('%s for component %s is: %s', name, comp, ifiles[comp][name])
+                loggy.info('%s for component %s is: %s', name, comp, ifiles[comp][name])
 
                 # safe check if inifile exist
                 if not glob(ifiles[comp][name]):
-                    logging.warning('Inifile %s cannot be found!', ifiles[comp][name])
+                    loggy.warning('Inifile %s cannot be found!', ifiles[comp][name])
                     ifiles[comp][name] = ''
 
             else:
@@ -205,9 +205,9 @@ def _filter_filename_by_year(template, filenames, year):
 
     # safety warning if something is missing
     if not filternames and len(filenames) > 0:
-        logging.warning('Data for year %s has not been found!', str(year))
+        loggy.warning('Data for year %s has not been found!', str(year))
 
-    logging.info('Filtered filenames: %s', filternames)
+    loggy.info('Filtered filenames: %s', filternames)
     return filternames
 
 
@@ -218,7 +218,7 @@ def load_yaml(infile):
         with open(infile, 'r', encoding='utf-8') as file:
             cfg = yaml.load(file, Loader=yaml.FullLoader)
     except IOError:
-        sys.exit(f'ERROR: {infile} not found: you need to have this configuration file!')
+        raise IOError(f'ERROR: {infile} not found: you need to have this configuration file!')
     return cfg
 
 
@@ -230,7 +230,7 @@ def _create_filepath(cmorname, face, diag):
         Path(face['model']['basedir']) / \
         Path(face['filetype'][filetype]['dir']) / \
         Path(face['filetype'][filetype]['filename'])
-    logging.info('Filepath: %s', filepath)
+    loggy.info('Filepath: %s', filepath)
 
     return filepath
 
@@ -265,7 +265,7 @@ def make_input_filename(cmorname, face, diag):
                 filename1 = filename1 + fname
             filename = filename + filename1
         filename = list(dict.fromkeys(filename))  # Filter unique ones
-        logging.info("Filenames: %s", filename)
+        loggy.info("Filenames: %s", filename)
         return filename
 
 

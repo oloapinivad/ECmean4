@@ -12,8 +12,8 @@ __author__ = "Paolo Davini (p.davini@isac.cnr.it), Sep 2022."
 
 import os
 import sys
-import argparse
 import logging
+import argparse
 from multiprocessing import Process, Manager
 from time import time
 from tabulate import tabulate
@@ -24,7 +24,8 @@ import dask
 
 from ecmean.libs.diagnostic import Diagnostic
 from ecmean.libs.general import weight_split, write_tuning_table, get_domain, \
-    numeric_loglevel, check_time_axis, dict_to_dataframe, init_mydict, check_interface
+    check_time_axis, dict_to_dataframe, init_mydict, \
+        check_var_interface, check_var_climatology
 from ecmean.libs.files import var_is_there, get_inifiles, load_yaml, make_input_filename
 from ecmean.libs.formula import formula_wrapper
 from ecmean.libs.masks import masked_meansum, select_region
@@ -33,6 +34,7 @@ from ecmean.libs.units import units_extra_definition, UnitsHandler
 from ecmean.libs.ncfixers import xr_preproc
 from ecmean.libs.parser import parse_arguments
 from ecmean.libs.plotting import heatmap_comparison_gm
+from ecmean.libs.loggy import setup_logger
 
 dask.config.set(scheduler="synchronous")
 
@@ -53,14 +55,17 @@ def gm_worker(util, ref, face, diag, varmean, vartrend, varlist):
         vartrend and varmean under the form of a dictionaries
     """
 
+    loggy = logging.getLogger(__name__)
+
     for var in varlist:
 
         # create empty nested dictionaries
         result = init_mydict(diag.seasons, diag.regions)
         trend = init_mydict(diag.seasons, diag.regions)
 
+
         # check if the variable is in the interface file
-        if check_interface(var, face):
+        if check_var_interface(var, face):
 
             # get domain
             domain = get_domain(var, face)
@@ -135,8 +140,8 @@ def gm_worker(util, ref, face, diag, varmean, vartrend, varlist):
                         if diag.ftrend:
                             if len(avg) == len(diag.years_joined):
                                 trend[season][region] = np.polyfit(diag.years_joined, avg, 1)[0]
-                        if diag.fverb and season == 'ALL' and region == 'Global':
-                            print('Average', var, season, region, result[season][region])
+                        if season == 'ALL' and region == 'Global':
+                            print('Average:', var, season, region, result[season][region])
 
         # nested dictionary, to be redifend as a dict to remove lambdas
         varmean[var] = result
@@ -177,12 +182,16 @@ def global_mean(exp, year1, year2,
     argv = argparse.Namespace(**locals())
 
     # set loglevel
-    logging.basicConfig(level=numeric_loglevel(argv.loglevel))
+    #logging.basicConfig(level=numeric_loglevel(argv.loglevel))
+    loggy = setup_logger(level=argv.loglevel)
 
     # initialize the diag class, load the inteface and the reference file
     diag = Diagnostic(argv)
     face = load_yaml(diag.interface)
     ref = load_yaml(diag.reffile)
+
+    # check that everyhing is there
+    check_var_climatology(diag.var_all, ref.keys())
 
     # Create missing folders
     os.makedirs(diag.tabdir, exist_ok=True)
@@ -210,6 +219,7 @@ def global_mean(exp, year1, year2,
     processes = []
     tic = time()
 
+
     # loop on the variables, create the parallel process
     for varlist in weight_split(diag.var_all, diag.numproc):
         core = Process(target=gm_worker, args=(util_dictionary, ref, face, diag,
@@ -224,8 +234,7 @@ def global_mean(exp, year1, year2,
     toc = time()
 
     # evaluate tic-toc time  of execution
-    if diag.fverb:
-        print('Done in {:.4f} seconds'.format(toc - tic))
+    loggy.warning('Analysis done in {:.4f} seconds'.format(toc - tic))
 
     tic = time()
 
@@ -272,8 +281,7 @@ def global_mean(exp, year1, year2,
     # write the file with tabulate
     tablefile = diag.tabdir / \
         f'global_mean_{diag.expname}_{diag.modelname}_{diag.ensemble}_{diag.year1}_{diag.year2}.txt'
-    if diag.fverb:
-        print(tablefile)
+    loggy.info('Table file is: %s', tablefile)
     with open(tablefile, 'w', encoding='utf-8') as out:
         out.write(tabulate(global_table, headers=head, stralign='center', tablefmt='orgtbl'))
 
@@ -285,6 +293,7 @@ def global_mean(exp, year1, year2,
     # dump the yaml file for global_mean, including all the seasons
     yamlfile = diag.tabdir / \
         f'global_mean_{diag.expname}_{diag.modelname}_{diag.ensemble}_{diag.year1}_{diag.year2}.yml'
+    loggy.info('YAML file is: %s', tablefile)
     with open(yamlfile, 'w', encoding='utf-8') as file:
         yaml.safe_dump(ordered, file, default_flow_style=False, sort_keys=False)
 
@@ -302,24 +311,24 @@ def global_mean(exp, year1, year2,
     for table in [data_table, mean_table, std_table]:
         table.index = table.index + ' [' + units_list + ']'
 
-    logging.info(data_table)
+    loggy.debug(data_table)
 
     # call the heatmap routine for a plot
     mapfile = diag.figdir / \
         f'global_mean_{diag.expname}_{diag.modelname}_r1i1p1f1_{diag.year1}_{diag.year2}.pdf'
+    loggy.info('Figure file is: %s', mapfile)
 
     heatmap_comparison_gm(data_table, mean_table, std_table, diag, mapfile)
 
     # Print appending one line to table (for tuning)
     if diag.ftable:
-        if diag.fverb:
-            print(diag.linefile)
+        loggy.info('Line file is: %s', diag.linefile)
         write_tuning_table(diag.linefile, varmean, diag.var_table, diag, ref)
 
     toc = time()
     # evaluate tic-toc time of postprocessing
-    if diag.fverb:
-        print('Postproc done in {:.4f} seconds'.format(toc - tic))
+    loggy.warning(f"Postproc done in {toc - tic:.4f} seconds")
+
 
 
 def gm_entry_point():
@@ -332,7 +341,7 @@ def gm_entry_point():
 
     global_mean(exp=args.exp, year1=args.year1, year2=args.year2,
                 numproc=args.numproc,
-                silent=args.silent, trend=args.trend, line=args.line,
+                trend=args.trend, line=args.line,
                 output=args.output, loglevel=args.loglevel,
                 interface=args.interface, config=args.config,
                 model=args.model, ensemble=args.ensemble)

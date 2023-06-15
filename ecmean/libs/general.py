@@ -23,16 +23,17 @@ import numpy as np
 #     except ValueError:
 #         return False
 
+loggy = logging.getLogger(__name__)
 
-def numeric_loglevel(loglevel):
-    """Define the logging level """
-    # log level with logging
-    # currently basic definition trought the text
-    numeric_level = getattr(logging, loglevel.upper(), None)
-    if not isinstance(numeric_level, int):
-        raise ValueError(f'Invalid log level: {loglevel}')
+# def numeric_loglevel(loglevel):
+#     """Define the logging level """
+#     # log level with logging
+#     # currently basic definition trought the text
+#     numeric_level = getattr(logging, loglevel.upper(), None)
+#     if not isinstance(numeric_level, int):
+#         raise ValueError(f'Invalid log level: {loglevel}')
 
-    return numeric_level
+#     return numeric_level
 
 
 def check_time_axis(xtime, years):
@@ -40,17 +41,19 @@ def check_time_axis(xtime, years):
     have been found in the NetCDF files. """
 
     #unique, counts = np.unique(xtime.dt.month, return_counts=True)
-    unique, counts = np.unique(xtime.time.resample(time='1M').mean(), return_counts=True)
+    #unique, counts = np.unique(xtime.time.resample(time='1M').mean(), return_counts=True)
+    unique, counts = np.unique(xtime.time.dt.month, return_counts=True)
     if len(unique) != 12 or not all(counts == counts[0]):
-        logging.warning('Check your data: some months might be missing...')
+        loggy.warning('Check your data: some months might be missing...')
+        loggy.warning('Month counts: %s', counts)
 
-    # apparently this is already satisfied by the file browsing
-    # set1=set(years)
-    # set2=set(xtime.dt.year.values)
-    # missing = list(set1.difference(set2))
-    # if missing:
-    #     logging.warning('Some years are missing')
-    #     logging.warning(missing)
+    # apparently this is also satisfied by the file browsing
+    set1=set(years)
+    set2=set(xtime.dt.year.values)
+    missing = list(set1.difference(set2))
+    if missing:
+        loggy.warning('Check your data: some years are missing')
+        loggy.warning('Year missing: %s', missing)
 
 
 # def chunks(iterable, num):
@@ -113,14 +116,21 @@ def weight_split(a, n):
 
     return olists
 
-def check_interface(var, face):
+def check_var_interface(var, face):
     """Check if a var is defined in the interface file"""
 
     if var in face['variables']:
         return True
-    else:
-        logging.warning('%s is not defined in the interface file, skipping it!', var)
-        return False
+
+    loggy.warning('%s is not defined in the interface file, skipping it!', var)
+    return False
+    
+def check_var_climatology(varlist, reference):
+    """Check if a var is defined in the climatology/reference file"""
+
+    missing = [element for element in varlist if element not in reference]
+    if len(missing) > 0:
+        raise KeyError(f'Variable/Variables {missing} is/are not defined in the climatology, aborting!')
 
 
 def get_domain(var, face):

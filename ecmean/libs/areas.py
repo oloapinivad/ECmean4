@@ -4,7 +4,6 @@ Shared functions for XArray ECmean4
 '''
 
 import logging
-import sys
 import numpy as np
 import xarray as xr
 
@@ -20,6 +19,7 @@ import xarray as xr
 #             break
 #     return grid_type[0]
 
+loggy = logging.getLogger(__name__)
 
 def guess_bounds(axis, name='lon'):
     """Basic function that estimates the boundaries for lon and lat if they are not
@@ -115,7 +115,7 @@ def area_cell(xfield, gridtype=None, formula='triangles'):
         xfield = xfield.isel(time=0)
 
     if all(x in xfield.data_vars for x in ['lon_bnds', 'lat_bnds']):
-        logging.debug('cmor lon/lat_bounds found...')
+        loggy.debug('cmor lon/lat_bounds found...')
         cmor_bounds = True
     else:
         cmor_bounds = False
@@ -123,7 +123,7 @@ def area_cell(xfield, gridtype=None, formula='triangles'):
     # this is a nightmare, so far working only for ECE4 gaussian reduced
     if gridtype in ['unstructured', 'gaussian_reduced', 'curvilinear']:
 
-        logging.info('Curvilinear/Unstructured grid, tryin to get grid info...')
+        loggy.info('Curvilinear/Unstructured grid, tryin to get grid info...')
 
         # use next to assign the first occurence in data vars for the boundaries
         blondim = next((t for t in xfield.data_vars if t in ['lon_bnds', 'bounds_lon']), None)
@@ -131,10 +131,10 @@ def area_cell(xfield, gridtype=None, formula='triangles'):
 
         # checking
         if blondim is None and blatdim is None:
-            sys.exit(
+            raise ValueError(
                 "ERROR: Can't find any lon/lat boundaries and grid is unstructured, need some help!")
 
-        logging.info('Unstructured grid, special ECE4 treatment...')
+        loggy.info('Unstructured grid, special ECE4 treatment...')
         # ATTENTION: this is a very specific ECE4 definition, it will not work
         # with other unstructured grids. The assumption of the vertex position
         # is absolutely random. Needs to be generalized.
@@ -154,14 +154,14 @@ def area_cell(xfield, gridtype=None, formula='triangles'):
 
             # if dimension is not called bnds, rename it
             if 'bnds' not in xfield.dims:
-                logging.info('bnds not found, trying to rename it...')
+                loggy.info('bnds not found, trying to rename it...')
                 bdim = [g for g in xfield.dims if g not in ['lon', 'lat', 'time']][0]
                 xfield = xfield.rename_dims({bdim: "bnds"})
 
         # else use guess_bounds() and expand the xarray dataset including them
         if not cmor_bounds:
 
-            logging.debug('Bounds estimation from lon/lat...')
+            loggy.debug('Bounds estimation from lon/lat...')
             # create and xarray dataset which the boundaries
             xfield['lat_bnds'] = (('lat', 'bnds'), guess_bounds(xfield['lat'], name='lat'))
             xfield['lon_bnds'] = (('lon', 'bnds'), guess_bounds(xfield['lon'], name='lon'))
@@ -183,7 +183,7 @@ def area_cell(xfield, gridtype=None, formula='triangles'):
         area_dims = ('lat', 'lon')
 
     else:
-        sys.exit('Gridtype undefined!')
+        raise ValueError('Gridtype undefined!')
 
     # compute the area
     area = _area_computation(bounds_lon, bounds_lat, formula=formula, full_lat=full_lat)
@@ -195,7 +195,7 @@ def area_cell(xfield, gridtype=None, formula='triangles'):
     outfield = xr.DataArray(area, dims=area_dims, coords=xfield.coords, name='area')
 
     # check the total area
-    logging.info('Total Earth Surface: %s Km2',
+    loggy.info('Total Earth Surface: %s Km2',
                  str(outfield.sum().values / 10**6))
 
     return outfield

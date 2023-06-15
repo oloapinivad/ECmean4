@@ -9,15 +9,15 @@
     This is made to run on CNR-ISAC machina 'Wilma' only
 """
 
-from ecmean.performance_indices import performance_indices
-from ecmean.global_mean import global_mean
+import shutil
+import os
 import timeit
+from datetime import date
 import pandas as pd
 import seaborn as sns
 import matplotlib.pyplot as plt
-from datetime import date
-import shutil
-import os
+from ecmean.performance_indices import performance_indices
+from ecmean.global_mean import global_mean
 
 expname = 'historical'
 refclim = 'EC23'
@@ -75,7 +75,7 @@ for model in models:
                     single = timeit.timeit(lambda: performance_indices(expname, year1, year2, config=benchconfig,
                                                                        model=model, numproc=nproc,
                                                                        climatology=refclim, ensemble=ensemble,
-                                                                       loglevel='warning'), number=nrepeat)
+                                                                       loglevel='info'), number=nrepeat)
                     # sys.argv = [expname, str(year1), str(year2), '--config', benchconfig,
                     #            '--model', model, '-j', str(nproc), '-k', refclim, '-e', ensemble, '-v', 'warning']
                     # single = timeit.timeit(lambda: pi_main(sys.argv), number=nrepeat)

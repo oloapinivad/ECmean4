@@ -27,13 +27,17 @@ Then you should activate the environment ::
 
     > conda activate ECmean4
 
-Finally you can install ECmean4 directly from pip ::
+You can then install ECmean4 directly from pip ::
 
     > pip install ECmean4
 
-In alterantive, you can install the development package of ECmean4 ::
+In alternative, you can install the latest commit using the development version ECmean4 ::
 
     > pip install -e .
+
+.. warning::
+	Please note that although ECmean4 is distributed via pypi, it depends on packages that currently are available only on conda-forge. 
+    Therefore, the installation via pip requires the creation of a conda environment
 
 Checking everything is ok
 -------------------------
