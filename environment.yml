@@ -6,22 +6,12 @@
 name : ecmean
 channels:
   - conda-forge
-  - numba
 dependencies:
   - python=>3.8
-  - netcdf4 
-  - dask
-  - xarray
+  - libnetcdf
   - xesmf
   - esmpy
-  - numba
-  - metpy
-  - tabulate
-  - cfgrib
-  - seaborn
-  - pytest
-  - coverage
-  - sphinx<7.0
   - pip
   - pip:
-    - sparse
+    - -e .[all]
+
