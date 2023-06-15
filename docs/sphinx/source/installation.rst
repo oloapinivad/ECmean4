@@ -39,11 +39,11 @@ Then you can through the ECmean4 folder ::
 
 and then you can set up the conda/mamba environment ::
 
-    > conda env create --name ecmean -f environment.yml
+    > mamba env create --name ecmean -f environment.yml
 
 Then you should activate the environment ::
 
-    > conda activate ecmean
+    > mamba activate ecmean
 
 
 Checking everything is ok
