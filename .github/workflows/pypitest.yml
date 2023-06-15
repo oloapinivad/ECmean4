@@ -6,6 +6,8 @@ on:
   workflow_dispatch:
   schedule:
     - cron: "0 3 * * 1" #run every Tuesday night at 2AM UTC
+  pull_request:
+    branches: [ main ]
 
 permissions:
   contents: read
@@ -21,19 +23,18 @@ jobs:
     defaults:
       run:
         shell: bash -el {0}
+
     steps:
-    - uses: actions/checkout@v3
-    - name: provision-with-micromamba
-      uses: mamba-org/provision-with-micromamba@v15
+    - uses: mamba-org/setup-micromamba@v1
       with:
-        environment-file: environment.yml
         environment-name: ecmean
         cache-downloads: true
-        cache-env: true
-        channels: conda-forge,numba
-        channel-priority: flexible
-        extra-specs: |
-            python=${{ matrix.python-version }}
+        cache-environment: true
+        create-args: >-
+          python=${{ matrix.python-version }}
+          esmpy
+          eccodes
+          pytest
     - name: Install ECmean4
       run: |
         # install package
