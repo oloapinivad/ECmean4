@@ -29,15 +29,17 @@ jobs:
     steps:
     - uses: actions/checkout@v3
     - name: provision-with-micromamba
-      uses: mamba-org/provision-with-micromamba@v15
+      uses: mamba-org/setup-micromamba@v1
       with:
         environment-file: environment.yml
         environment-name: ecmean
         cache-downloads: true
-        cache-env: true
-        channels: conda-forge,numba
-        channel-priority: flexible
-        extra-specs: |
+        cache-environment: true
+        condarc: |
+          channels:
+            - numba
+            - conda-forge
+        create-args: >-
             python=${{ matrix.python-version }}
     - name: Install ECmean4
       run: |
@@ -66,7 +68,7 @@ jobs:
     steps:
     - uses: actions/checkout@v3
     - name: provision-with-micromamba
-      uses: mamba-org/provision-with-micromamba@v15
+      uses: mamba-org/setup-micromamba@v1
       with:
         environment-file: environment.yml
         environment-name: ecmean
