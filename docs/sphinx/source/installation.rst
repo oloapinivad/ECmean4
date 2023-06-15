@@ -2,21 +2,22 @@ Installation
 ============
 
 
-ECmean4 is a lightweight python package. There are two main path to install it, and they both relies on 
-setting up a conda or better a mamba environment. 
+ECmean4 is a lightweight python package, but it depends on some binaries for interpolation and netcdf/grib data access, thus both installation options requires conda/mamba. 
+We recommend to use `mamba <https://mamba.readthedocs.io/en/latest/user_guide/mamba.html>_` since it is lighter and deal in a better way with dependencies.
 
 Using PyPi
 ----------
 
-This is the simplest way: it will bring you the last version available on PyPi
-You can create a conda/mamba environment which incudes the python and XESMF dependencies, and then install ECmean4 ::
+.. warning::
+	Please note that although ECmean4 is distributed via PyPi, it depends on packages that currently are available only on conda-forge. Therefore, the installation via pip requires the creation of a conda environment.
+
+
+It will bring you the last version available on PyPi.
+You can create a conda/mamba environment which incudes the python and xESMF dependencies, and then install ECmean4 ::
 
     > mamba create -n ecmean "python>=3.8" xesmf
     > mamba activate ecmean
     > pip install ECmean4
-
-.. warning::
-	Please note that although ECmean4 is distributed via pypi, it depends on packages that currently are available only on conda-forge. Therefore, the installation via pip requires the creation of a conda environment.
 
 Using GitHub
 ------------
@@ -64,7 +65,7 @@ Requirements
 ------------
 
 The required packages are listed in ``environment.yml`` and in ``pyproject.toml``.
-A secondary environment available in  ``ecmean/utils/dev_environment.yml`` can be used for development. 
+A secondary environment available in  ``dev-environment.yml`` can be used for development, including testing capabilities and jupyter notebooks. 
 
 .. warning::
 	Python >=3.8 is requested

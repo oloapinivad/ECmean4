@@ -14,5 +14,5 @@ dependencies:
   - esmpy
   - pip
   - pip:
-    - -e .[all]
+    - -e .
 

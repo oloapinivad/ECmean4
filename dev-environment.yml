@@ -1,0 +1,23 @@
+# Create the ECmean4 development environment:
+# mamba env create -f dev-environment.yml 
+# or 
+# conda env create -f dev-environment.yml
+
+name : ecmean
+channels:
+  - conda-forge
+dependencies:
+  - python=>3.8
+  - libnetcdf
+  - xesmf
+  - eccodes
+  - esmpy
+  - cdo
+  - ncview
+  - ipykernel
+  - flake8
+  - autopep8
+  - pip
+  - pip:
+    - -e .[all]
+
