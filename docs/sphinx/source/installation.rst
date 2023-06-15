@@ -3,7 +3,7 @@ Installation
 
 
 ECmean4 is a lightweight python package, but it depends on some binaries for interpolation and netcdf/grib data access, thus both installation options requires conda/mamba. 
-We recommend to use `mamba <https://mamba.readthedocs.io/en/latest/user_guide/mamba.html>_` since it is lighter and deal in a better way with dependencies.
+We recommend to use `mamba <https://mamba.readthedocs.io/en/latest/user_guide/mamba.html>`_ since it provides a lighter and deal in a better way with dependencies.
 
 Using PyPi
 ----------
@@ -13,9 +13,9 @@ Using PyPi
 
 
 It will bring you the last version available on PyPi.
-You can create a conda/mamba environment which incudes the python and xESMF dependencies, and then install ECmean4 ::
+You can create a conda/mamba environment which incudes the python, `eccodes <https://github.com/ecmwf/eccodes-python>`_ and `xESMF <https://xesmf.readthedocs.io/en/latest/>`_ dependencies, and then install ECmean4 ::
 
-    > mamba create -n ecmean "python>=3.8" xesmf
+    > mamba create -n ecmean "python>=3.8" xesmf eccodes
     > mamba activate ecmean
     > pip install ECmean4
 
