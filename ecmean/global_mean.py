@@ -22,15 +22,14 @@ import xarray as xr
 import yaml
 import dask
 
-from ecmean.libs.diagnostic import Diagnostic
+from ecmean import Diagnostic, Supporter, UnitsHandler
 from ecmean.libs.general import weight_split, write_tuning_table, get_domain, \
     check_time_axis, dict_to_dataframe, init_mydict, \
         check_var_interface, check_var_climatology
 from ecmean.libs.files import var_is_there, get_inifiles, load_yaml, make_input_filename
 from ecmean.libs.formula import formula_wrapper
 from ecmean.libs.masks import masked_meansum, select_region
-from ecmean.libs.support import Supporter
-from ecmean.libs.units import units_extra_definition, UnitsHandler
+from ecmean.libs.units import units_extra_definition
 from ecmean.libs.ncfixers import xr_preproc
 from ecmean.libs.parser import parse_arguments
 from ecmean.libs.plotting import heatmap_comparison_gm
