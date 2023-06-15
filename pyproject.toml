@@ -21,6 +21,7 @@ classifiers = [
 dependencies = [
     "xarray",
     "netcdf4",
+    "numba",
     "dask",
     "esmpy",
     "metpy",

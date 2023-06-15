@@ -205,7 +205,7 @@ def pi_worker(util, piclim, face, diag, field_3d, varstat, varlist):
                         result[season][region] = round(float(out), 3)
 
                         # diagnostic
-                        if diag.fverb and region == 'Global':
+                        if region == 'Global':
                             print('PI for', region, season, var, result[season][region])
 
         # nested dictionary, to be redifend as a dict to remove lambdas
@@ -289,8 +289,7 @@ def performance_indices(exp, year1, year2,
     processes = []
 
     toc = time()
-    if diag.fverb:
-        print('Preproc in {:.4f} seconds'.format(toc - tic))
+    loggy.warning('Preproc in {:.4f} seconds'.format(toc - tic))
     tic = time()
 
     # loop on the variables, create the parallel process
@@ -315,8 +314,7 @@ def performance_indices(exp, year1, year2,
 
     toc = time()
     # evaluate tic-toc time  of execution
-    if diag.fverb:
-        print('Done in {:.4f} seconds'.format(toc - tic) + ' with ' + str(diag.numproc) + ' processors')
+    loggy.warning('Done in {:.4f} seconds'.format(toc - tic) + ' with ' + str(diag.numproc) + ' processors')
 
     tic = time()
 
@@ -373,8 +371,7 @@ def performance_indices(exp, year1, year2,
 
     toc = time()
     # evaluate tic-toc time of postprocessing
-    if diag.fverb:
-        print('Postproc done in {:.4f} seconds'.format(toc - tic))
+    loggy.warning('Postproc done in {:.4f} seconds'.format(toc - tic))
 
 
 def pi_entry_point():
@@ -387,7 +384,6 @@ def pi_entry_point():
 
     performance_indices(exp=args.exp, year1=args.year1, year2=args.year2,
                         numproc=args.numproc,
-                        silent=args.silent,
                         loglevel=args.loglevel,
                         climatology=args.climatology,
                         interface=args.interface, config=args.config,

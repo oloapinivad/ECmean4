@@ -27,7 +27,6 @@ class Diagnostic():
         self.year1 = args.year1
         self.year2 = args.year2
         self.years_joined = list(range(self.year1, self.year2 + 1))
-        self.fverb = not args.silent
         self.ftable = getattr(args, 'line', False)
         self.ftrend = getattr(args, 'trend', False)
         self.linefile = getattr(args, 'output', None)
