@@ -14,6 +14,7 @@ Welcome to ECmean4's documentation!
    configuration
    performanceindices
    globalmean
+   api_reference
 
 Indices and tables
 ==================

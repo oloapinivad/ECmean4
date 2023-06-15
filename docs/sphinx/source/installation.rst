@@ -15,6 +15,9 @@ You can create a conda/mamba environment which incudes the python and XESMF depe
     > mamba activate ecmean
     > pip install ECmean4
 
+.. warning::
+	Please note that although ECmean4 is distributed via pypi, it depends on packages that currently are available only on conda-forge. Therefore, the installation via pip requires the creation of a conda environment.
+
 Using GitHub
 ------------
 
@@ -42,9 +45,6 @@ Then you should activate the environment ::
 
     > conda activate ecmean
 
-.. warning::
-	Please note that although ECmean4 is distributed via pypi, it depends on packages that currently are available only on conda-forge. 
-    Therefore, the installation via pip requires the creation of a conda environment
 
 Checking everything is ok
 -------------------------

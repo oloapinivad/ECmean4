@@ -17,10 +17,15 @@ from ecmean import __version__
 loggy = logging.getLogger(__name__)
 
 class Diagnostic():
-
     """General container class for common variables"""
 
     def __init__(self, args):
+        """
+        Initialize the Diagnostic instance.
+
+        Args:
+            args: Arguments from command line/function.
+        """
 
         # arguments from command line/function
         self.expname = args.exp
@@ -93,7 +98,15 @@ class Diagnostic():
             self.xdataset = None
 
     def cfg_global_mean(self, cfg):
-        """Set up configuration details for global mean"""
+        """
+        Set up configuration details for global mean.
+
+        Args:
+            cfg: Configuration details.
+
+        Returns:
+            None
+        """
 
         self.regions = cfg['global']['regions']
         self.seasons = cfg['global']['seasons']
@@ -117,7 +130,15 @@ class Diagnostic():
             self.linefile = self.tabdir / 'global_means.txt'
 
     def cfg_performance_indices(self, cfg):
-        """Set up configuration for performance indices"""
+        """
+        Set up configuration for performance indices.
+
+        Args:
+            cfg: Configuration details.
+
+        Returns:
+            None
+        """
 
         self.regions = cfg['PI']['regions']
         self.seasons = cfg['PI']['seasons']

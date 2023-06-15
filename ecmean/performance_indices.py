@@ -18,7 +18,7 @@ import numpy as np
 import xarray as xr
 import yaml
 import dask
-from ecmean.libs.diagnostic import Diagnostic
+from ecmean import Diagnostic, Supporter, UnitsHandler
 from ecmean.libs.general import weight_split, get_domain, dict_to_dataframe, \
    check_time_axis, init_mydict, check_var_interface, check_var_climatology
 from ecmean.libs.files import var_is_there, get_inifiles, load_yaml, \
@@ -26,8 +26,7 @@ from ecmean.libs.files import var_is_there, get_inifiles, load_yaml, \
 from ecmean.libs.formula import formula_wrapper
 from ecmean.libs.masks import mask_field, select_region
 from ecmean.libs.areas import guess_bounds
-from ecmean.libs.support import Supporter
-from ecmean.libs.units import units_extra_definition, UnitsHandler
+from ecmean.libs.units import units_extra_definition
 from ecmean.libs.ncfixers import xr_preproc, adjust_clim_file
 from ecmean.libs.plotting import heatmap_comparison_pi
 from ecmean.libs.parser import parse_arguments
@@ -234,7 +233,7 @@ def performance_indices(exp, year1, year2,
     :param climatology: climatology to be compared. default: EC23. Options: [RK08, EC22, EC23]
     :param xdataset: xarray dataset - already open - to be used without looking for files
 
-    :return the performance indices yaml file and heatmap
+    :returns: the performance indices yaml file and heatmap
 
     """
 
