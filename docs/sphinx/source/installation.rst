@@ -9,22 +9,28 @@ Using PyPi
 ----------
 
 .. warning::
-	Please note that although ECmean4 is distributed via PyPi, it depends on packages that currently are available only on conda-forge. Therefore, the installation via pip requires the creation of a conda environment.
+
+	Please note that although ECmean4 is distributed via PyPi, it depends on packages that currently are available only on conda-forge and 
+    on configuration files available from the GitHub repository. Therefore, the installation via pip requires the creation of a conda environment as well as the clone from the repository.
 
 
 It will bring you the last version available on PyPi.
-You can create a conda/mamba environment which incudes the python, `eccodes <https://github.com/ecmwf/eccodes-python>`_ and `xESMF <https://xesmf.readthedocs.io/en/latest/>`_ dependencies, and then install ECmean4 ::
+You can create a conda/mamba environment which incudes the python, `eccodes <https://github.com/ecmwf/eccodes-python>`_ and `xESMF <https://xesmf.readthedocs.io/en/latest/>`_ dependencies, and then install ECmean4.
+However, you should start by cloning the repository from GitHub ::
 
+    > git clone https://github.com/oloapinivad/ECmean4.git
     > mamba create -n ecmean "python>=3.8" xesmf eccodes
     > mamba activate ecmean
     > pip install ECmean4
 
+
+
 Using GitHub
 ------------
 
-This method will allow you to have access at the most updated ECmean4 version but it requires a bit more of effort.
+This method will allow you to have access at the most recent ECmean4 version but it requires a bit more of effort.
 
-You should freely clone from the Github Repository ::
+As before, should clone from the Github Repository ::
 
     > git clone https://github.com/oloapinivad/ECmean4.git
     
