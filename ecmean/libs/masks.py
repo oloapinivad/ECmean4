@@ -67,7 +67,6 @@ def mask_field(xfield, mask_type, dom, mask):
             if isinstance(mask, xr.DataArray):
                 out = xfield.where(mask.data < 0.5)
             else:
-                loggy.warning('No oceanic mask available for oceanic vars, this might lead to inconsistent results...')
                 out = xfield
         elif dom == 'atm':
 
