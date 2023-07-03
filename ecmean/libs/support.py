@@ -7,6 +7,7 @@ import logging
 import xarray as xr
 import xesmf as xe
 import numpy as np
+from smmregrid import cdo_generate_weights, Regridder
 from ecmean.libs.ncfixers import xr_preproc
 from ecmean.libs.files import inifiles_priority
 from ecmean.libs.areas import area_cell
@@ -21,7 +22,7 @@ class Supporter():
     in global mean and performance indices
     """
 
-    def __init__(self, component, atmdict, ocedict, areas=True, remap=False, targetgrid=None):
+    def __init__(self, component, atmdict, ocedict, tool='ESMF', areas=True, remap=False, targetgrid=None):
         """Class for masks, areas and interpolation (xESMF-based)
         for both atmospheric and oceanic component"""
 
@@ -33,6 +34,7 @@ class Supporter():
         self.atmcomponent = component['atm']
         self.ocecomponent = component['oce']
         self.targetgrid = targetgrid
+        self.tool = tool.upper()
 
         # remapping default
         self.ocefix, self.oceremap = None, None
@@ -128,7 +130,10 @@ class Supporter():
         if self.atmremap is not None:
             if self.atmfix:
                 mask = self.atmfix(mask, keep_attrs=True)
-            mask = self.atmremap(mask, keep_attrs=True)
+            if self.tool == 'CDO':
+                mask = self.atmremap(mask)
+            elif self.tool == 'ESMF': 
+                mask = self.atmremap(mask, keep_attrs=True)
 
         return mask
 
@@ -200,8 +205,20 @@ class Supporter():
             area = area_cell(xfield, gridtype)
 
         return area
-
+    
     def make_atm_interp_weights(self, xfield):
+        """Switch between interpolation method"""
+
+        if self.tool == 'ESMF':
+            return self._make_atm_interp_weights_esmf(xfield)
+        elif self.tool == 'CDO':
+            return self._make_atm_interp_weights_cdo(xfield)
+        else:
+            raise KeyError(f'Cannot initialize {self.tool} interpolator')
+        
+    
+
+    def _make_atm_interp_weights_esmf(self, xfield):
         """Create atmospheric interpolator weights"""
 
         if self.atmcomponent == 'oifs':
@@ -233,6 +250,44 @@ class Supporter():
             remap = xe.Regridder(
                 xfield, self.targetgrid, periodic=True,
                 method="bilinear")
+
+        else:
+            raise KeyError(
+                "ERROR: Atm weights not defined for this component, this cannot be handled!")
+
+        return fix, remap
+    
+    def _make_atm_interp_weights_cdo(self, xfield):
+        """Create atmospheric interpolator weights"""
+
+        if self.atmcomponent == 'oifs':
+
+            # this is to get lon and lat from the Equator
+            xname = list(xfield.data_vars)[-1]
+            m = xfield[xname].isel(time=0).load()
+            # use numpy since it is faster
+            g = np.unique(m.lat.data)
+            f = np.unique(m.sel(cell=m.lat == g[int(len(g) / 2)]).lon.data)
+
+            # this creates a a gaussian non reduced grid
+            gaussian_regular = xr.Dataset({"lon": (["lon"], f), "lat": (["lat"], g)})
+
+            # use nearest neighbour to remap to gaussian regular
+            fix = xe.Regridder(
+                xfield[xname], gaussian_regular,
+                method="nearest_s2d", locstream_in=True,
+                periodic=True)
+
+            # create bilinear interpolator
+            remap = xe.Regridder(
+                fix(xfield[xname]), self.targetgrid,
+                periodic=True, method="bilinear")
+
+        elif self.atmcomponent in ['cmoratm', 'globo']:
+
+            fix = None
+            weights = cdo_generate_weights(xfield, self.targetgrid, method = 'con')
+            remap = Regridder(weights=weights).regrid
 
         else:
             raise KeyError(

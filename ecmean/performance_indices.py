@@ -35,6 +35,7 @@ from ecmean.libs.loggy import setup_logger
 
 # temporary disabling the scheduler
 dask.config.set(scheduler="synchronous")
+tool = 'ESMF'
 
 
 def pi_worker(util, piclim, face, diag, field_3d, varstat, varlist):
@@ -146,10 +147,19 @@ def pi_worker(util, piclim, face, diag, field_3d, varstat, varlist):
                     if fix:
                         tmean = fix(tmean, keep_attrs=True)
                     try:
-                        final = remap(tmean, keep_attrs=True)
+                        if tool == 'ESMF':
+                            final = remap(tmean, keep_attrs=True)
+                        elif tool == 'CDO':
+                            if tmean.name is None:
+                                tmean = tmean.to_dataset(name='pippo')['pippo']
+                            #print(tmean)
+                            final = remap(tmean)
+                            if 'plev' in final.coords:
+                                final.coords["plev"].attrs["units"] = "Pa"
                     except ValueError:
                         loggy.error('Cannot interpolate %s with the current weights...', var)
                         continue
+
 
                     # vertical interpolation
                     if var in field_3d:
@@ -277,7 +287,7 @@ def performance_indices(exp, year1, year2,
 
     # create remap dictionary with atm and oce interpolators
     util_dictionary = Supporter(comp, inifiles['atm'], inifiles['oce'],
-                                areas=False, remap=True,
+                                areas=False, remap=True, tool=tool,
                                 targetgrid=target_remap_grid)
 
     # main loop: manager is required for shared variables
