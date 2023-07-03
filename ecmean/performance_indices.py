@@ -35,7 +35,7 @@ from ecmean.libs.loggy import setup_logger
 
 # temporary disabling the scheduler
 dask.config.set(scheduler="synchronous")
-tool = 'ESMF'
+tool = 'CDO'
 
 
 def pi_worker(util, piclim, face, diag, field_3d, varstat, varlist):
@@ -148,12 +148,19 @@ def pi_worker(util, piclim, face, diag, field_3d, varstat, varlist):
                         tmean = fix(tmean, keep_attrs=True)
                     try:
                         if tool == 'ESMF':
+                             #print(tmean)
+                            tic = time()
                             final = remap(tmean, keep_attrs=True)
+                            loggy.warning('Interp done in {:.4f} s'.format(time() - tic))
+                            final = remap(tmean, keep_attrs=True).compute()
                         elif tool == 'CDO':
                             if tmean.name is None:
                                 tmean = tmean.to_dataset(name='pippo')['pippo']
                             #print(tmean)
-                            final = remap(tmean)
+                            tic = time()
+                            final = remap(tmean).compute()
+                            loggy.warning('Interp done in {:.4f} s'.format(time() - tic))
+
                             if 'plev' in final.coords:
                                 final.coords["plev"].attrs["units"] = "Pa"
                     except ValueError:

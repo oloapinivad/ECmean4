@@ -7,6 +7,7 @@ import logging
 import xarray as xr
 import xesmf as xe
 import numpy as np
+from glob import glob
 from smmregrid import cdo_generate_weights, Regridder
 from ecmean.libs.ncfixers import xr_preproc
 from ecmean.libs.files import inifiles_priority
@@ -174,7 +175,10 @@ class Supporter():
         if self.oceremap is not None:
             if self.ocefix:
                 mask = self.ocefix(mask, keep_attrs=True)
-            mask = self.oceremap(mask, keep_attrs=True)
+            if self.tool == 'CDO':
+                mask = self.oceremap(mask)
+            elif self.tool == 'ESMF':
+                mask = self.oceremap(mask, keep_attrs=True)
 
         return mask
 
@@ -215,8 +219,6 @@ class Supporter():
             return self._make_atm_interp_weights_cdo(xfield)
         else:
             raise KeyError(f'Cannot initialize {self.tool} interpolator')
-        
-    
 
     def _make_atm_interp_weights_esmf(self, xfield):
         """Create atmospheric interpolator weights"""
@@ -257,45 +259,29 @@ class Supporter():
 
         return fix, remap
     
+    
     def _make_atm_interp_weights_cdo(self, xfield):
         """Create atmospheric interpolator weights"""
 
-        if self.atmcomponent == 'oifs':
+        fix = None
+        weights = cdo_generate_weights(glob(self.atmareafile)[0], 
+                                        self.targetgrid, method = 'con')
+        remap = Regridder(weights=weights).regrid
 
-            # this is to get lon and lat from the Equator
-            xname = list(xfield.data_vars)[-1]
-            m = xfield[xname].isel(time=0).load()
-            # use numpy since it is faster
-            g = np.unique(m.lat.data)
-            f = np.unique(m.sel(cell=m.lat == g[int(len(g) / 2)]).lon.data)
-
-            # this creates a a gaussian non reduced grid
-            gaussian_regular = xr.Dataset({"lon": (["lon"], f), "lat": (["lat"], g)})
-
-            # use nearest neighbour to remap to gaussian regular
-            fix = xe.Regridder(
-                xfield[xname], gaussian_regular,
-                method="nearest_s2d", locstream_in=True,
-                periodic=True)
-
-            # create bilinear interpolator
-            remap = xe.Regridder(
-                fix(xfield[xname]), self.targetgrid,
-                periodic=True, method="bilinear")
-
-        elif self.atmcomponent in ['cmoratm', 'globo']:
-
-            fix = None
-            weights = cdo_generate_weights(xfield, self.targetgrid, method = 'con')
-            remap = Regridder(weights=weights).regrid
-
-        else:
-            raise KeyError(
-                "ERROR: Atm weights not defined for this component, this cannot be handled!")
 
         return fix, remap
-
+    
     def make_oce_interp_weights(self, xfield):
+        """Switch between interpolation method"""
+
+        if self.tool == 'ESMF':
+            return self._make_oce_interp_weights_esmf(xfield)
+        elif self.tool == 'CDO':
+            return self._make_oce_interp_weights_cdo()
+        else:
+            raise KeyError(f'Cannot initialize {self.tool} interpolator')
+
+    def _make_oce_interp_weights_esmf(self, xfield):
         """Create oceanic interpolator weights"""
 
         if self.ocecomponent in ['nemo', 'cmoroce']:
@@ -329,6 +315,33 @@ class Supporter():
                 method="bilinear",
                 periodic=True,
                 ignore_degenerate=True)
+
+        return fix, remap
+    
+    def _make_oce_interp_weights_cdo(self):
+        """Create oceanic interpolator weights"""
+
+    
+        #if self.ocecomponent in ['nemo', 'cmoroce']:
+        #    if 'areacello' in xfield.data_vars:  # CMOR case
+        #        xname = 'areacello'
+        #    elif 'cell_area' in xfield.data_vars:  # ECE4 NEMO case for nemo-initial-state.nc
+        #        xname = 'cell_area'
+        #    else:
+        #        # tentative extraction
+        #        xname = list(xfield.data_vars)[-1]
+        #else:
+        #    raise KeyError(
+        #        "ERROR: Oce weightsl not defined for this component, this cannot be handled!")
+        if self.ocegridtype == 'bilinear':
+            cdomethod='bil'
+        else:
+            cdomethod='nn'
+
+        fix = None
+        weights = cdo_generate_weights(glob(self.oceareafile)[0],
+                                        self.targetgrid, method = cdomethod)
+        remap = Regridder(weights=weights).regrid
 
         return fix, remap
 
