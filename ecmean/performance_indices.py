@@ -151,7 +151,7 @@ def pi_worker(util, piclim, face, diag, field_3d, varstat, varlist):
                              #print(tmean)
                             tic = time()
                             final = remap(tmean, keep_attrs=True)
-                            loggy.warning('Interp done in {:.4f} s'.format(time() - tic))
+                            loggy.info('Interp done in {:.4f} s'.format(time() - tic))
                             final = remap(tmean, keep_attrs=True).compute()
                         elif tool == 'CDO':
                             if tmean.name is None:
@@ -159,10 +159,9 @@ def pi_worker(util, piclim, face, diag, field_3d, varstat, varlist):
                             #print(tmean)
                             tic = time()
                             final = remap(tmean).compute()
-                            loggy.warning('Interp done in {:.4f} s'.format(time() - tic))
-
-                            if 'plev' in final.coords:
-                                final.coords["plev"].attrs["units"] = "Pa"
+                            loggy.info('Interp done in {:.4f} s'.format(time() - tic))
+                            #if 'plev' in final.coords:
+                            #    final.coords["plev"].attrs["units"] = "Pa"
                     except ValueError:
                         loggy.error('Cannot interpolate %s with the current weights...', var)
                         continue
