@@ -98,6 +98,7 @@ variables:
   evspsbl:
     varname: Evaporation
     filetype: atm2d
+    direction: up
   tauu: 
     varname: 'Zonal Wind Stress'
     filetype: atm2d
