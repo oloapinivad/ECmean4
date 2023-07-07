@@ -149,8 +149,13 @@ class Supporter():
         if self.ocecomponent in ['cmoroce', 'nemo']:
             dmask = xr.open_mfdataset(self.ocemaskfile, preprocess=xr_preproc)
 
-            mvar = [var for var in dmask.data_vars if var in oce_mask_names][0]
-            mask = fix_mask_values(dmask[mvar])
+            mvar = [var for var in dmask.data_vars if var in oce_mask_names]
+            # the case we cannot find the variable we are looking for in the required file
+            if len(mvar)>0:
+                mask = fix_mask_values(dmask[mvar[0]])
+            else:
+                loggy.warning('No mask array found in %s for oceanic vars, this might lead to inconsistent results...', self.ocemaskfile)
+                return None
 
             # if 'sftof' in dmask.data_vars:
             #     # use fillna to have a binary max (0 land, 1 sea)
