@@ -3,6 +3,8 @@
 Shared functions for Support class for ECmean4
 '''
 
+import os
+from glob import glob
 import logging
 import xarray as xr
 import xesmf as xe
@@ -10,12 +12,15 @@ import numpy as np
 from ecmean.libs.ncfixers import xr_preproc
 from ecmean.libs.files import inifiles_priority
 from ecmean.libs.areas import area_cell
-from ecmean.libs.units import UnitsHandler
+#from ecmean.libs.units import UnitsHandler
 
 loggy = logging.getLogger(__name__)
 
-class Supporter():
+# mask to be searched
+atm_mask_names = ['lsm', 'sftlf']
+oce_mask_names = ['lsm', 'sftof']
 
+class Supporter():
     """
     Support class for ECmean4, including areas and masks to be used
     in global mean and performance indices
@@ -43,7 +48,7 @@ class Supporter():
         self.ocearea = None
 
         # loading and examining atmospheric file
-        self.atmfield = self.load_field(self.atmareafile, comp='atm')
+        self.atmfield = self.load_area_field(self.atmareafile, comp='atm')
         self.atmgridtype = identify_grid(self.atmfield)
         loggy.warning('Atmosphere grid is is a %s grid!', self.atmgridtype)
 
@@ -60,7 +65,7 @@ class Supporter():
 
         # do the same if oceanic file is found
         if self.oceareafile:
-            self.ocefield = self.load_field(self.oceareafile, comp='oce')
+            self.ocefield = self.load_area_field(self.oceareafile, comp='oce')
             self.ocegridtype = identify_grid(self.ocefield)
             loggy.warning('Oceanic grid is is a %s grid!', self.ocegridtype)
 
@@ -81,7 +86,7 @@ class Supporter():
                     self.ocemask = self.atmmask
                 # otherwise, no solution!
                 else:
-                    loggy.warning('Oceanic mask not found!')
+                    loggy.warning('No mask available for oceanic vars, this might lead to inconsistent results...')
 
         else:
             loggy.warning("Ocereafile cannot be found, assuming this is an AMIP run")
@@ -91,8 +96,7 @@ class Supporter():
 
         # prepare ATM LSM
         loggy.info('maskatmfile is %s', self.atmmaskfile)
-        if not self.atmmaskfile:
-            raise KeyError("ERROR: maskatmfile cannot be found")
+        self.atmmaskfile = check_file_exist(self.atmmaskfile)
 
         if self.atmcomponent == 'oifs':
             # create mask: opening a grib and loading only lsm to avoid
@@ -107,22 +111,25 @@ class Supporter():
                 preprocess=xr_preproc)['lsm']
 
         elif self.atmcomponent in ['cmoratm', 'globo']:
-            dmask = xr.open_mfdataset(self.atmmaskfile, preprocess=xr_preproc)
-            if 'sftlf' in dmask.data_vars:
-                mask = dmask['sftlf']
-                mask = mask / 100  # cmor mask are %
-            elif 'lsm' in dmask.data_vars:
-                mask = dmask['lsm']
 
-            # globo has a reversed mask
-            if self.atmcomponent == 'globo':
-                mask = abs(1 - mask)
+            dmask = xr.open_mfdataset(self.atmmaskfile, preprocess=xr_preproc)
+            mvar = [var for var in dmask.data_vars if var in atm_mask_names][0]
+            mask = fix_mask_values(dmask[mvar])
+            # if 'sftlf' in dmask.data_vars:
+            #     mask = dmask['sftlf']
+            #     mask = mask / 100  # cmor mask are %
+            # elif 'lsm' in dmask.data_vars:
+            #     mask = dmask['lsm']
+
+            # # globo has a reversed mask
+            # if self.atmcomponent == 'globo':
+            #     mask = abs(1 - mask)
         else:
             raise KeyError("ERROR: _make_atm_masks -> Mask undefined yet mismatch, this cannot be handled!")
 
         # safe check to operate only on single timeframe
-        if 'time' in mask.dims:
-            mask = mask.isel(time=0)
+        # if 'time' in mask.dims:
+        #     mask = mask.isel(time=0)
 
         # interp the mask if required
         if self.atmremap is not None:
@@ -137,53 +144,60 @@ class Supporter():
 
         # prepare ocean LSM:
         loggy.info('maskocefile is %s', self.ocemaskfile)
-        if not self.ocemaskfile:
-            raise KeyError("ERROR: maskocefile cannot be found")
+        self.ocemaskfile = check_file_exist(self.ocemaskfile)
 
         if self.ocecomponent == 'cmoroce':
             dmask = xr.open_mfdataset(self.ocemaskfile, preprocess=xr_preproc)
-            if 'sftof' in dmask.data_vars:
-                # use fillna to have a binary max (0 land, 1 sea)
-                mask = dmask['sftof'].fillna(0)
 
-            # check if we need to convert from % to fraction
-            # offset should not count!
-            if mask.units:
-                units_handler = UnitsHandler(org_units=mask.units, tgt_units='frac')
-                offset, factor = units_handler.offset, units_handler.factor
-                # offset, factor = units_converter(mask.units, 'frac')
-                mask = (mask * factor) + offset
+            mvar = [var for var in dmask.data_vars if var in ['lsm', 'sftof']][0]
+            mask = fix_mask_values(dmask[mvar])
 
-            # to keep coehrence in other operations, oceanic mask is set to be
-            # identical to atmospheric mask, i.e. 1 over land and 0 over ocean
-            mask = abs(1 - mask)
+            # if 'sftof' in dmask.data_vars:
+            #     # use fillna to have a binary max (0 land, 1 sea)
+            #     mask = dmask['sftof'].fillna(0)
+
+            # # check if we need to convert from % to fraction
+            # # offset should not count!
+            # if mask.units:
+            #     units_handler = UnitsHandler(org_units=mask.units, tgt_units='frac')
+            #     offset, factor = units_handler.offset, units_handler.factor
+            #     # offset, factor = units_converter(mask.units, 'frac')
+            #     mask = (mask * factor) + offset
+
+            # # to keep coehrence in other operations, oceanic mask is set to be
+            # # identical to atmospheric mask, i.e. 1 over land and 0 over ocean
+            # mask = abs(1 - mask)
 
         else:
             raise KeyError("ERROR: _make_oce_masks -> Mask undefined yet mismatch, this cannot be handled!")
 
         # safe check to operate only on single timeframe
-        if 'time' in mask.dims:
-            mask = mask.isel(time=0)
+        #if 'time' in mask.dims:
+        #    mask = mask.isel(time=0)
 
         # interp the mask if required
         if self.oceremap is not None:
-            if self.ocefix:
-                mask = self.ocefix(mask, keep_attrs=True)
+            #if self.ocefix is not None:
+            #    mask = self.ocefix(mask, keep_attrs=True)
             mask = self.oceremap(mask, keep_attrs=True)
 
         return mask
 
-    def load_field(self, areafile, comp):
+    def load_area_field(self, areafile, comp):
         """Loading files for area and interpolation"""
 
+        loggy.info(f'{comp}mareafile is ' + areafile)
+        areafile = check_file_exist(areafile)
+        return xr.open_mfdataset(areafile, preprocess=xr_preproc).load()
+
         # loading and examining atmospheric file
-        if areafile:
-            loggy.info(f'{comp}mareafile is ' + areafile)
-            if not areafile:
-                raise FileExistsError(f'ERROR: {comp}reafile cannot be found')
-            return xr.open_mfdataset(areafile, preprocess=xr_preproc).load()
-        else:
-            raise FileExistsError('ERROR: Cannot find any file to load! Does your experiment exit?')
+        #if areafile:
+        #    loggy.info(f'{comp}mareafile is ' + areafile)
+        #    if os.path.isfile(areafile):
+        #        raise FileExistsError(f'ERROR: {comp}reafile {areafile} cannot be found')
+        #    return xr.open_mfdataset(areafile, preprocess=xr_preproc).load()
+        #
+        #raise FileExistsError('ERROR: Cannot find any file to load! Does your experiment exit?')
 
     def make_areas(self, gridtype, xfield):
         """Create weights for area operations.
@@ -276,6 +290,41 @@ class Supporter():
                 ignore_degenerate=True)
 
         return fix, remap
+
+def check_file_exist(file):
+    """Simple check to verify that a file to be loaded is defined and found on disk"""
+
+    if file is None:
+        raise KeyError("ERROR: file not defined!")
+    file = glob(file)[0]
+    if not os.path.isfile(file):
+        raise KeyError(f"ERROR: {file} cannot be found")
+    return file
+
+def fix_mask_values(mask):
+    """
+    Function to normalie the mask whatever format. By convention in ECmean
+    masks are 1 over land and 0 over the ocean. It might cause a bit of slowdown since we 
+    need to load the data
+    """
+
+    if 'time' in mask.dims:
+        mask = mask.isel(time=0).squeeze()
+
+    # safety filler
+    mask = mask.fillna(0)
+
+    # if it is a percentage
+    if mask.max() > 99:
+        loggy.info('%s is being normalized', mask.name)
+        mask = mask/100
+
+    # if it is an ocean mask
+    if mask.mean() > 0.5:
+        loggy.info('%s is being flipped', mask.name)
+        mask = abs(1 - mask)
+
+    return mask
 
 
 def identify_grid(xfield):
