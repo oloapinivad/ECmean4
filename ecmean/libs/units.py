@@ -66,7 +66,7 @@ class UnitsHandler():
         """Specific initialization used within ECmean"""
 
         if not self.org_units:
-            loggy.warning('Source unit undefined, assuming fraction')
+            loggy.warning('Source unit for %s undefined, assuming fraction', self.var)
             self.org_units = 'frac'
 
         if clim[self.var]['units']:

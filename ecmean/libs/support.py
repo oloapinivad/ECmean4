@@ -18,7 +18,7 @@ loggy = logging.getLogger(__name__)
 
 # mask to be searched
 atm_mask_names = ['lsm', 'sftlf']
-oce_mask_names = ['lsm', 'sftof']
+oce_mask_names = ['lsm', 'sftof', 'mask_opensea']
 
 class Supporter():
     """
@@ -146,10 +146,10 @@ class Supporter():
         loggy.info('maskocefile is %s', self.ocemaskfile)
         self.ocemaskfile = check_file_exist(self.ocemaskfile)
 
-        if self.ocecomponent == 'cmoroce':
+        if self.ocecomponent in ['cmoroce', 'nemo']:
             dmask = xr.open_mfdataset(self.ocemaskfile, preprocess=xr_preproc)
 
-            mvar = [var for var in dmask.data_vars if var in ['lsm', 'sftof']][0]
+            mvar = [var for var in dmask.data_vars if var in oce_mask_names][0]
             mask = fix_mask_values(dmask[mvar])
 
             # if 'sftof' in dmask.data_vars:
