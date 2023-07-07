@@ -1,7 +1,7 @@
 tas:
   longname: 2m Temperature (land-only)
   dataset: CRU
-  mask: land
+  mask: land-no-antarctica
   domain: atm
   units: celsius
   year1: 1991
