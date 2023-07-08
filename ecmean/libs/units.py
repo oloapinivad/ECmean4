@@ -101,7 +101,7 @@ class UnitsHandler():
         It will not work if BOTH factor and offset are required"""
 
         units_relation = (self.org_units / self.tgt_units).to_base_units()
-        loggy.info(units_relation)
+        loggy.info('Original vs Target units relation is %s', units_relation)
 
         if units_relation.units == units('dimensionless'):
 
