@@ -12,7 +12,6 @@ import numpy as np
 from ecmean.libs.ncfixers import xr_preproc
 from ecmean.libs.files import inifiles_priority
 from ecmean.libs.areas import area_cell
-#from ecmean.libs.units import UnitsHandler
 
 loggy = logging.getLogger(__name__)
 
@@ -100,7 +99,7 @@ class Supporter():
 
         if self.atmcomponent == 'oifs':
             # create mask: opening a grib and loading only lsm to avoid
-            # inconsistencies # in the grib structure ->
+            # inconsistencies in the grib structure ->
             # see here https://github.com/ecmwf/cfgrib/issues/13
             mask = xr.open_mfdataset(
                 self.atmmaskfile,
@@ -113,23 +112,15 @@ class Supporter():
         elif self.atmcomponent in ['cmoratm', 'globo']:
 
             dmask = xr.open_mfdataset(self.atmmaskfile, preprocess=xr_preproc)
-            mvar = [var for var in dmask.data_vars if var in atm_mask_names][0]
-            mask = fix_mask_values(dmask[mvar])
-            # if 'sftlf' in dmask.data_vars:
-            #     mask = dmask['sftlf']
-            #     mask = mask / 100  # cmor mask are %
-            # elif 'lsm' in dmask.data_vars:
-            #     mask = dmask['lsm']
+            mvar = [var for var in dmask.data_vars if var in atm_mask_names]
+            # the case we cannot find the variable we are looking for in the required file
+            if len(mvar)>0:
+                mask = fix_mask_values(dmask[mvar[0]])
+            else:
+                raise KeyError(f"ERROR: make_atm_masks -> Cannot find mask variable in {self.atmmaskfile}")
 
-            # # globo has a reversed mask
-            # if self.atmcomponent == 'globo':
-            #     mask = abs(1 - mask)
         else:
-            raise KeyError("ERROR: _make_atm_masks -> Mask undefined yet mismatch, this cannot be handled!")
-
-        # safe check to operate only on single timeframe
-        # if 'time' in mask.dims:
-        #     mask = mask.isel(time=0)
+            raise KeyError("ERROR: make_atm_masks -> Atmospheric component not supported!")
 
         # interp the mask if required
         if self.atmremap is not None:
@@ -157,28 +148,8 @@ class Supporter():
                 loggy.warning('No mask array found in %s for oceanic vars, this might lead to inconsistent results...', self.ocemaskfile)
                 return None
 
-            # if 'sftof' in dmask.data_vars:
-            #     # use fillna to have a binary max (0 land, 1 sea)
-            #     mask = dmask['sftof'].fillna(0)
-
-            # # check if we need to convert from % to fraction
-            # # offset should not count!
-            # if mask.units:
-            #     units_handler = UnitsHandler(org_units=mask.units, tgt_units='frac')
-            #     offset, factor = units_handler.offset, units_handler.factor
-            #     # offset, factor = units_converter(mask.units, 'frac')
-            #     mask = (mask * factor) + offset
-
-            # # to keep coehrence in other operations, oceanic mask is set to be
-            # # identical to atmospheric mask, i.e. 1 over land and 0 over ocean
-            # mask = abs(1 - mask)
-
         else:
-            raise KeyError("ERROR: _make_oce_masks -> Mask undefined yet mismatch, this cannot be handled!")
-
-        # safe check to operate only on single timeframe
-        #if 'time' in mask.dims:
-        #    mask = mask.isel(time=0)
+            raise KeyError("ERROR: make_oce_masks -> Oceanic component not supported!")
 
         # interp the mask if required
         if self.oceremap is not None:
@@ -195,14 +166,6 @@ class Supporter():
         areafile = check_file_exist(areafile)
         return xr.open_mfdataset(areafile, preprocess=xr_preproc).load()
 
-        # loading and examining atmospheric file
-        #if areafile:
-        #    loggy.info(f'{comp}mareafile is ' + areafile)
-        #    if os.path.isfile(areafile):
-        #        raise FileExistsError(f'ERROR: {comp}reafile {areafile} cannot be found')
-        #    return xr.open_mfdataset(areafile, preprocess=xr_preproc).load()
-        #
-        #raise FileExistsError('ERROR: Cannot find any file to load! Does your experiment exit?')
 
     def make_areas(self, gridtype, xfield):
         """Create weights for area operations.
@@ -308,7 +271,7 @@ def check_file_exist(file):
 
 def fix_mask_values(mask):
     """
-    Function to normalie the mask whatever format. By convention in ECmean
+    Function to normalize the mask whatever format. By convention in ECmean
     masks are 1 over land and 0 over the ocean. It might cause a bit of slowdown since we 
     need to load the data
     """
@@ -330,7 +293,6 @@ def fix_mask_values(mask):
         mask = abs(1 - mask)
 
     return mask
-
 
 def identify_grid(xfield):
     """Receiveng an xarray object (DataArray or Dataset) investigates its coordinates
