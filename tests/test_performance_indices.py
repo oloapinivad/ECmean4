@@ -9,6 +9,7 @@ import pytest
 import xarray as xr
 from ecmean.performance_indices import performance_indices
 from ecmean.libs.ncfixers import xr_preproc
+#from ecmean.libs.general import set_multiprocessing_start_method
 
 # set up coverage env var
 env = {**os.environ, "COVERAGE_PROCESS_START": ".coveragerc"}

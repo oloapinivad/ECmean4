@@ -20,7 +20,8 @@ import yaml
 import dask
 from ecmean import Diagnostic, Supporter, UnitsHandler
 from ecmean.libs.general import weight_split, get_domain, dict_to_dataframe, \
-   check_time_axis, init_mydict, check_var_interface, check_var_climatology
+   check_time_axis, init_mydict, check_var_interface, check_var_climatology, \
+   set_multiprocessing_start_method
 from ecmean.libs.files import var_is_there, get_inifiles, load_yaml, \
     make_input_filename, get_clim_files
 from ecmean.libs.formula import formula_wrapper
@@ -31,11 +32,6 @@ from ecmean.libs.ncfixers import xr_preproc, adjust_clim_file
 from ecmean.libs.plotting import heatmap_comparison_pi
 from ecmean.libs.parser import parse_arguments
 from ecmean.libs.loggy import setup_logger
-
-
-# temporary disabling the scheduler
-dask.config.set(scheduler="synchronous")
-
 
 def pi_worker(util, piclim, face, diag, field_3d, varstat, varlist):
     """Main parallel diagnostic worker for performance indices
@@ -381,6 +377,10 @@ def pi_entry_point():
     # read arguments from command line
     args = parse_arguments(sys.argv[1:], script='pi')
 
+    # set dask and  multiprocessing fork
+    set_multiprocessing_start_method()
+    dask.config.set(scheduler="synchronous")
+
     performance_indices(exp=args.exp, year1=args.year1, year2=args.year2,
                         numproc=args.numproc,
                         loglevel=args.loglevel,
@@ -389,6 +389,6 @@ def pi_entry_point():
                         model=args.model, ensemble=args.ensemble)
 
 
-if __name__ == '__main__':
-
-    sys.exit(pi_entry_point())
+#if __name__ == '__main__':
+#
+#    sys.exit(pi_entry_point())

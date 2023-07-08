@@ -40,7 +40,7 @@ loggy = logging.getLogger(__name__)
 def set_multiprocessing_start_method():
     """Function to set the multiprocessing spawn method to fork"""
     plat = platform.system()
-    loggy.info('Running on %s', plat)
+    #print('Running on %s', plat)
     if plat == 'Windows':
         raise OSError("Windows does not support 'fork' start method.")
     elif plat == 'Darwin':
@@ -49,7 +49,7 @@ def set_multiprocessing_start_method():
         pass
     else:
         raise OSError(f"Unsupported operative system {plat}")
-    loggy.info('Multiprocessing start method is %s', multiprocessing.get_start_method())
+    #print('Multiprocessing start method is %s', multiprocessing.get_start_method())
 
 
 def check_time_axis(xtime, years):

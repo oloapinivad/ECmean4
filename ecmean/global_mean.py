@@ -25,7 +25,7 @@ import dask
 from ecmean import Diagnostic, Supporter, UnitsHandler
 from ecmean.libs.general import weight_split, write_tuning_table, get_domain, \
     check_time_axis, dict_to_dataframe, init_mydict, \
-        check_var_interface, check_var_climatology
+        check_var_interface, check_var_climatology, set_multiprocessing_start_method
 from ecmean.libs.files import var_is_there, get_inifiles, load_yaml, make_input_filename
 from ecmean.libs.formula import formula_wrapper
 from ecmean.libs.masks import masked_meansum, select_region
@@ -34,8 +34,6 @@ from ecmean.libs.ncfixers import xr_preproc
 from ecmean.libs.parser import parse_arguments
 from ecmean.libs.plotting import heatmap_comparison_gm
 from ecmean.libs.loggy import setup_logger
-
-dask.config.set(scheduler="synchronous")
 
 
 def gm_worker(util, ref, face, diag, varmean, vartrend, varlist):
@@ -338,6 +336,10 @@ def gm_entry_point():
     # read arguments from command line
     args = parse_arguments(sys.argv[1:], script='gm')
 
+    # set dask and  multiprocessing fork
+    set_multiprocessing_start_method()
+    dask.config.set(scheduler="synchronous")
+
     global_mean(exp=args.exp, year1=args.year1, year2=args.year2,
                 numproc=args.numproc,
                 trend=args.trend, line=args.line,
@@ -345,7 +347,6 @@ def gm_entry_point():
                 interface=args.interface, config=args.config,
                 model=args.model, ensemble=args.ensemble)
 
-
-if __name__ == "__main__":
-
-    sys.exit(gm_entry_point())
+#if __name__ == "__main__":
+#
+#    gm_entry_point()
