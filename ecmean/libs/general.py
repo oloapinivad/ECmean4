@@ -5,6 +5,8 @@ Shared functions for XArray ECmean4
 
 import os
 import logging
+import platform
+import multiprocessing
 import pandas as pd
 import numpy as np
 
@@ -34,6 +36,20 @@ loggy = logging.getLogger(__name__)
 #         raise ValueError(f'Invalid log level: {loglevel}')
 
 #     return numeric_level
+
+def set_multiprocessing_start_method():
+    """Function to set the multiprocessing spawn method to fork"""
+    plat = platform.system()
+    loggy.info('Running on %s', plat)
+    if plat == 'Windows':
+        raise OSError("Windows does not support 'fork' start method.")
+    elif plat == 'Darwin':
+        multiprocessing.set_start_method('fork')
+    elif plat == 'Linux':
+        pass
+    else:
+        raise OSError(f"Unsupported operative system {plat}")
+    loggy.info('Multiprocessing start method is %s', multiprocessing.get_start_method())
 
 
 def check_time_axis(xtime, years):

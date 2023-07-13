@@ -73,6 +73,8 @@ def mask_field(xfield, mask_type, dom, mask):
             # conditions
             if mask_type == 'land':
                 out = xfield.where(mask.data >= 0.5)
+            elif mask_type == 'land-no-antarctica':
+                out = xfield.where(mask.lat>(-60)).where(mask.data >= 0.5)
             elif mask_type in ['sea', 'ocean']:
                 out = xfield.where(mask.data < 0.5)
             else:

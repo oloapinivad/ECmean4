@@ -56,7 +56,7 @@ component:
     gridfile: 'output/oifs/{expname}_atm_cmip6_1m_{year1}-{year2}.nc'
     areafile: ''
   nemo:
-    maskfile: ''
+    maskfile: 'domain_cfg.nc'
     gridfile: ''
     areafile: 'domain_cfg.nc'
 
@@ -98,6 +98,7 @@ variables:
   evspsbl:
     varname: Evaporation
     filetype: atm2d
+    direction: up
   tauu: 
     varname: 'Zonal Wind Stress'
     filetype: atm2d

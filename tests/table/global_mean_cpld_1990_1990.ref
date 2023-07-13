@@ -1,9 +1,9 @@
 |   Variable   |              Longname              |   Units   |     EC-Earth4 |      Obs.      |  Dataset   |   Years   |
 |--------------+------------------------------------+-----------+---------------+----------------+------------+-----------|
-|     tas      |     2m Temperature (land-only)     |  celsius  |    8.64361    |  13.697±0.301  |    CRU     | 1991-2020 |
+|     tas      |     2m Temperature (land-only)     |  celsius  |   12.6847     |  13.697±0.301  |    CRU     | 1991-2020 |
 |     psl      |      Mean Sea Level Pressure       |    hPa    | 1011.15       | 1011.43±0.052  |    ERA5    | 1991-2020 |
 |      pr      |           Precipitation            |  mm/day   |    2.86608    |   2.85±0.039   |   MSWEP    | 1991-2020 |
-|   evspsbl    |            Evaporation             |  mm/day   |    2.88457    |  -2.906±0.056  |    ERA5    | 1991-2020 |
+|   evspsbl    |            Evaporation             |  mm/day   |   -2.88457    |  -2.906±0.056  |    ERA5    | 1991-2020 |
 |     pme      |        Precip. minus Evap.         |  mm/day   |   -0.0184938  |  0.023±0.021   |    ERA5    | 1991-2020 |
 |     clt      |         Total Cloud Cover          |   frac    |    0.658197   |  0.675±0.002   | CERES-EBAF | 2000-2020 |
 |     cll      |          Low Cloud Cover           |   frac    |    0.378427   |  0.382±0.003   |    ERA5    | 1991-2020 |

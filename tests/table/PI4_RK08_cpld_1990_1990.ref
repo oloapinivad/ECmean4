@@ -60,19 +60,19 @@ hus:
     South Midlat: 31.283
 tos:
   ALL:
-    Global: 27.906
-    North Midlat: 20.532
+    Global: 27.899
+    North Midlat: 20.517
     Tropical: 14.31
-    South Midlat: 59.439
+    South Midlat: 59.412
 sos:
   ALL:
-    Global: 24304.557
-    North Midlat: 62409.964
+    Global: 24192.324
+    North Midlat: 61647.584
     Tropical: .nan
     South Midlat: 51.411
 siconc:
   ALL:
-    Global: 100.372
-    North Midlat: 170.86
+    Global: 99.825
+    North Midlat: 168.421
     Tropical: .nan
-    South Midlat: 55.61
+    South Midlat: 55.623
