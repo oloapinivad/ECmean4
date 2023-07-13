@@ -7,18 +7,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 Unreleased is the current development version, which is currently lying in `main` branch.
 
-### Added
+## [v0.1.4]
 
 - Added the `changelog` file
-
-### Fixed
-- Better representation of mask file search and loading
+- Better representation of mask file search and loading (#80)
+- Fix of global mean temperature computaton (#84)
+- Minor EC-Earth4 related fixes
 
 ## [v0.1.3]
-
-Minor improvemenets on different levels
-
-### Added
 
 - New logging facility
 - Support for python 3.11
