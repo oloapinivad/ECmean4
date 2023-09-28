@@ -34,7 +34,6 @@ class Diagnostic():
         self.years_joined = list(range(self.year1, self.year2 + 1))
         self.ftable = getattr(args, 'line', False)
         self.ftrend = getattr(args, 'trend', False)
-        self.linefile = getattr(args, 'output', None)
         self.debug = getattr(args, 'debug', False)
         self.numproc = args.numproc
         self.modelname = getattr(args, 'model', '')
@@ -129,9 +128,7 @@ class Diagnostic():
 
         self.reffile = self.indir / '../reference/gm_reference_EC23.yml'
 
-        if self.linefile:
-            self.ftable = True
-        else:
+        if self.ftable:
             self.linefile = self.tabdir / 'global_means.txt'
 
     def cfg_performance_indices(self, cfg):

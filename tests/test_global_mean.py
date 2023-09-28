@@ -26,7 +26,7 @@ def test_global_mean_amip():
     if os.path.isfile(thefile):
         os.remove(thefile)
     global_mean(exp='amip', year1=1990, year2=1990, numproc=1, config='tests/config.yml',
-                line=True, output='tests/table/listed_global_means.txt')
+                line=True)
     assert cmp(thefile, 'tests/table/global_mean_amip_1990_1990.ref')
 
 # call on amip ECE using the xdataset option
