@@ -24,9 +24,9 @@ def test_performance_indices_cpld(clim):
 # test on amip
 @pytest.mark.parametrize("clim", ['RK08', 'EC23'])
 def test_performance_indices_amip(clim):
-    performance_indices('amip', 1990, 1990, numproc=1, climatology=clim, config='tests/config.yml')
+    performance_indices('amip', 1990, 1990, numproc=1, climatology=clim, config='tests/config.yml', outputdir='pluto')
 
-    assert cmp('tests/table/PI4_' + clim + '_amip_EC-Earth4_r1i1p1f1_1990_1990.yml',
+    assert cmp('pluto/YAML/PI4_' + clim + '_amip_EC-Earth4_r1i1p1f1_1990_1990.yml',
                'tests/table/PI4_' + clim + '_amip_1990_1990.ref')
 
 # test performance_indices from commnand line + debug

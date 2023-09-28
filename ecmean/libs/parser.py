@@ -36,6 +36,8 @@ def parse_arguments(args, script):
                         help='do not print anything to std output')
     parser.add_argument('-v', '--loglevel', type=str, default='WARNING',
                         help='define the level of logging.')
+    parser.add_argument('-o', '--outputdir', type=str,
+                        help='force the output directory')
     parser.add_argument('--version', action='version',
                         version='%(prog)s ' + __version__)
 
@@ -45,13 +47,12 @@ def parse_arguments(args, script):
                             help='compute trends')
         parser.add_argument('-l', '--line', action='store_true',
                             help='appends also single line to a table')
-        parser.add_argument('-o', '--output', metavar='FILE', type=str, default='',
-                            help='path of output one-line table')
 
     # specific to performance indices
     if script == 'pi':
         parser.add_argument('-k', '--climatology', type=str, default='EC23',
-                            help='climatology to be compared. default: EC23. Options: [RK08, EC22, EC23]')
+                            help='climatology to be compared. default: EC23. Options: [RK08, EC22, EC23]', 
+                            choices=['RK08', 'EC22', 'EC23'])
         parser.add_argument('-r', '--resolution', type=str, default='',
                             help='climatology resolution')
 
