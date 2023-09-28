@@ -64,8 +64,13 @@ class Diagnostic():
 
         # Various input and output directories
         self.ecedir = Path(os.path.expandvars(cfg['dirs']['exp']))
-        self.tabdir = Path(os.path.expandvars(cfg['dirs']['tab']))
-        self.figdir = Path(os.path.expandvars(cfg['dirs']['fig']))
+        outputdir = getattr(args, 'outputdir', None)
+        if outputdir is None:
+            self.tabdir = Path(os.path.expandvars(cfg['dirs']['tab']))
+            self.figdir = Path(os.path.expandvars(cfg['dirs']['fig']))
+        else:
+            self.tabdir = Path(os.path.join(outputdir, 'YAML'))
+            self.figdir = Path(os.path.join(outputdir, 'PDF'))
 
         # init for global mean
         if self.funcname == 'global_mean':

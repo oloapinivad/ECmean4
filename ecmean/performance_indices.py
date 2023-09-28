@@ -217,7 +217,8 @@ def performance_indices(exp, year1, year2,
                         numproc=1,
                         climatology='EC23',
                         interface=None, model=None, ensemble='r1i1p1f1',
-                        silent=None, xdataset=None):
+                        silent=None, xdataset=None,
+                        outputdir=None):
     """Main performance indices calculation
 
     :param exp: Experiment name or ID
@@ -232,6 +233,7 @@ def performance_indices(exp, year1, year2,
     :param silent: do not print anything to std output, optional
     :param climatology: climatology to be compared. default: EC23. Options: [RK08, EC22, EC23]
     :param xdataset: xarray dataset - already open - to be used without looking for files
+    :param outputdir: if specified, override the target destination in the configuration files for both tables and figures
 
     :returns: the performance indices yaml file and heatmap
 
@@ -386,7 +388,8 @@ def pi_entry_point():
                         loglevel=args.loglevel,
                         climatology=args.climatology,
                         interface=args.interface, config=args.config,
-                        model=args.model, ensemble=args.ensemble)
+                        model=args.model, ensemble=args.ensemble,
+                        outputdir=args.outputdir)
 
 
 if __name__ == '__main__':
