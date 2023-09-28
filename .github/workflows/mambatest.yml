@@ -80,7 +80,7 @@ jobs:
             - conda-forge
     - name: Install Coverage
       run: |
-        python -m pip install coverage coveralls
+        python -m pip install pytest coverage coveralls
     - name: Run coverage
       run: |
         coverage run -m pytest
