@@ -153,7 +153,7 @@ def global_mean(exp, year1, year2,
                 numproc=1,
                 interface=None, model=None, ensemble='r1i1p1f1',
                 silent=None, trend=None, line=None,
-                output=None, xdataset=None):
+                outputdir=None, xdataset=None):
     """The main ECmean4 global mean function
 
     :param exp: Experiment name or ID
@@ -168,7 +168,7 @@ def global_mean(exp, year1, year2,
     :param silent: do not print anything to std output, optional
     :param trend: compute yearly trends, optional
     :param line: appends also single line to a table, optional
-    :param output: output directory for the single line output, optional
+    :param outputdir: output directory for the single line output, optional
     :param xdataset: xarray dataset - already open - to be used without looking for files
 
     :returns: the global mean txt table as defined in the output
@@ -341,9 +341,10 @@ def gm_entry_point():
     global_mean(exp=args.exp, year1=args.year1, year2=args.year2,
                 numproc=args.numproc,
                 trend=args.trend, line=args.line,
-                output=args.output, loglevel=args.loglevel,
+                loglevel=args.loglevel,
                 interface=args.interface, config=args.config,
-                model=args.model, ensemble=args.ensemble)
+                model=args.model, ensemble=args.ensemble,
+                outputdir=args.outputdir)
 
 
 if __name__ == "__main__":

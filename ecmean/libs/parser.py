@@ -47,8 +47,6 @@ def parse_arguments(args, script):
                             help='compute trends')
         parser.add_argument('-l', '--line', action='store_true',
                             help='appends also single line to a table')
-        parser.add_argument('-o', '--output', metavar='FILE', type=str, default='',
-                            help='path of output one-line table')
 
     # specific to performance indices
     if script == 'pi':
