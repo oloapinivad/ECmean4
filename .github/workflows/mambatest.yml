@@ -63,7 +63,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python-version: ["3.11"]
+        python-version: ["3.11.4"]
     defaults:
       run:
         shell: bash -el {0}
@@ -83,7 +83,7 @@ jobs:
         python -m pip install pytest coverage coveralls
     - name: Run coverage
       run: |
-        coverage run -m pytest
+        coverage run -m pytest -s
         coverage combine
         coverage lcov
     - name: Run coveralls
