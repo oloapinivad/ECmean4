@@ -7,6 +7,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 Unreleased is the current development version, which is currently lying in `main` branch.
 
+## [v0.1.5]
+
 - Specifying output directory as an argument (Support more general output directory #87)
 
 ## [v0.1.4]
