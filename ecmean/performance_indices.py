@@ -33,6 +33,8 @@ from ecmean.libs.plotting import heatmap_comparison_pi
 from ecmean.libs.parser import parse_arguments
 from ecmean.libs.loggy import setup_logger
 
+dask.config.set(scheduler="synchronous")
+
 def pi_worker(util, piclim, face, diag, field_3d, varstat, varlist):
     """Main parallel diagnostic worker for performance indices
 
@@ -241,9 +243,13 @@ def performance_indices(exp, year1, year2,
     argv = argparse.Namespace(**locals())
 
     # set loglevel
-    #logging.basicConfig(level=numeric_loglevel(argv.loglevel))
     loggy = setup_logger(level=argv.loglevel)
 
+    # set dask and multiprocessing fork
+    plat, mprocmethod = set_multiprocessing_start_method()
+    loggy.info('Running on %s and multiprocessing method set as "%s"', plat, mprocmethod)
+
+    # start time
     tic = time()
 
     # initialize the diag class, load the inteface and the reference file
@@ -289,25 +295,33 @@ def performance_indices(exp, year1, year2,
     loggy.warning('Preproc in {:.4f} seconds'.format(toc - tic))
     tic = time()
 
-    # loop on the variables, create the parallel process
-    for varlist in weight_split(diag.field_all, diag.numproc):
+    multiprocessing=True
+    if multiprocessing: 
+        # loop on the variables, create the parallel process
+        for varlist in weight_split(diag.field_all, diag.numproc):
+            print(varlist)
 
-        core = Process(
-            target=pi_worker,
-            args=(
-                util_dictionary,
-                piclim,
-                face,
-                diag,
-                diag.field_3d,
-                varstat,
-                varlist))
-        core.start()
-        processes.append(core)
 
-    # wait for the processes to finish
-    for proc in processes:
-        proc.join()
+            core = Process(
+                target=pi_worker,
+                args=(
+                    util_dictionary,
+                    piclim,
+                    face,
+                    diag,
+                    diag.field_3d,
+                    varstat,
+                    varlist))
+            core.start()
+            processes.append(core)
+
+        # wait for the processes to finish
+        for proc in processes:
+            proc.join()
+    else:
+        for varlist in [diag.field_all]:
+            pi_worker(util_dictionary, piclim, face,
+                    diag, diag.field_3d, varstat, varlist)
 
     toc = time()
     # evaluate tic-toc time  of execution
@@ -380,10 +394,6 @@ def pi_entry_point():
 
     # read arguments from command line
     args = parse_arguments(sys.argv[1:], script='pi')
-
-    # set dask and  multiprocessing fork
-    set_multiprocessing_start_method()
-    dask.config.set(scheduler="synchronous")
 
     performance_indices(exp=args.exp, year1=args.year1, year2=args.year2,
                         numproc=args.numproc,

@@ -35,6 +35,7 @@ from ecmean.libs.parser import parse_arguments
 from ecmean.libs.plotting import heatmap_comparison_gm
 from ecmean.libs.loggy import setup_logger
 
+dask.config.set(scheduler="synchronous")
 
 def gm_worker(util, ref, face, diag, varmean, vartrend, varlist):
     """Main parallel diagnostic worker for global mean
@@ -179,8 +180,14 @@ def global_mean(exp, year1, year2,
     argv = argparse.Namespace(**locals())
 
     # set loglevel
-    #logging.basicConfig(level=numeric_loglevel(argv.loglevel))
     loggy = setup_logger(level=argv.loglevel)
+
+    # set dask and multiprocessing fork
+    plat, mprocmethod = set_multiprocessing_start_method()
+    loggy.info('Running on %s and multiprocessing method set as "%s"', plat, mprocmethod)
+
+    # start time
+    tic = time()
 
     # initialize the diag class, load the inteface and the reference file
     diag = Diagnostic(argv)
@@ -214,7 +221,7 @@ def global_mean(exp, year1, year2,
     varmean = mgr.dict()
     vartrend = mgr.dict()
     processes = []
-    tic = time()
+    
 
 
     # loop on the variables, create the parallel process
@@ -335,10 +342,6 @@ def gm_entry_point():
 
     # read arguments from command line
     args = parse_arguments(sys.argv[1:], script='gm')
-
-    # set dask and  multiprocessing fork
-    set_multiprocessing_start_method()
-    dask.config.set(scheduler="synchronous")
 
     global_mean(exp=args.exp, year1=args.year1, year2=args.year2,
                 numproc=args.numproc,

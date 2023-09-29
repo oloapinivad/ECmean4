@@ -50,6 +50,7 @@ def set_multiprocessing_start_method():
     else:
         raise OSError(f"Unsupported operative system {plat}")
     #print('Multiprocessing start method is %s', multiprocessing.get_start_method())
+    return plat, multiprocessing.get_start_method()
 
 
 def check_time_axis(xtime, years):
