@@ -37,49 +37,53 @@ Positional Arguments
 Optional Arguments
 ------------------
 
-- .. option:: -h, --help
+.. option:: -h, --help
 
     Show this help message and exit.
 
-- .. option:: -s, --silent
+.. option:: -s, --silent
 
     Do not print anything to std output.
 
-- .. option:: -v LOGLEVEL, --loglevel LOGLEVEL
+.. option:: -v LOGLEVEL, --loglevel LOGLEVEL
 
     Define the level of logging. Default: error.
 
-- .. option:: -j NUMPROC
+.. option:: -j NUMPROC
 
     Specify the number of processors to use.
 
-- .. option:: -c CONFIG, --config CONFIG
+.. option:: -c CONFIG, --config CONFIG
 
     Set up a specific configuration file (config.yml is default).
 
-- .. option:: -i INTERFACE, --interface INTERFACE
+.. option:: -i INTERFACE, --interface INTERFACE
 
     Set up a specific interface file (override config.yml).
 
-- .. option:: -m MODEL, --model MODEL
+.. option:: -m MODEL, --model MODEL
 
     Specify the model name.
 
-- .. option:: -e ENSEMBLE, --ensemble ENSEMBLE
+.. option:: -e ENSEMBLE, --ensemble ENSEMBLE
 
     Specify the variant label (i.e., ripf number for cmor).
 
-- .. option:: -d, --debug
+.. option:: -d, --debug
 
     Activate CDO debugging.
 
-- .. option:: -k CLIMATOLOGY
+.. option:: -k CLIMATOLOGY
 
     Specify the climatology you want to use (EC23: default).
 
-- .. option:: -r RESOLUTION
+.. option:: -r RESOLUTION
 
     Only EC22: Specify the resolution of the climatology (r180x90 or r360x180).
+
+.. option:: -o DIR, --outputdir DIR
+
+   Specify the path of the output directory. This will create a `YAML` and `PDF` folders for table and figures.
 
 
 Example 

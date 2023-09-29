@@ -363,6 +363,8 @@ def performance_indices(exp, year1, year2,
         # reordering columns
         lll = [(x, y) for x in diag.seasons for y in diag.regions]
         cmip6_table = cmip6_table[lll]
+        loggy.info(cmip6_table)
+
 
         # call the heatmap routine for a plot
         mapfile = diag.figdir / \
