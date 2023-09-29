@@ -295,33 +295,29 @@ def performance_indices(exp, year1, year2,
     loggy.warning('Preproc in {:.4f} seconds'.format(toc - tic))
     tic = time()
 
-    multiprocessing=True
-    if multiprocessing: 
-        # loop on the variables, create the parallel process
-        for varlist in weight_split(diag.field_all, diag.numproc):
-            print(varlist)
+  
+    # loop on the variables, create the parallel process
+    for varlist in weight_split(diag.field_all, diag.numproc):
+        print(varlist)
 
 
-            core = Process(
-                target=pi_worker,
-                args=(
-                    util_dictionary,
-                    piclim,
-                    face,
-                    diag,
-                    diag.field_3d,
-                    varstat,
-                    varlist))
-            core.start()
-            processes.append(core)
+        core = Process(
+            target=pi_worker,
+            args=(
+                util_dictionary,
+                piclim,
+                face,
+                diag,
+                diag.field_3d,
+                varstat,
+                varlist))
+        core.start()
+        processes.append(core)
 
-        # wait for the processes to finish
-        for proc in processes:
-            proc.join()
-    else:
-        for varlist in [diag.field_all]:
-            pi_worker(util_dictionary, piclim, face,
-                    diag, diag.field_3d, varstat, varlist)
+    # wait for the processes to finish
+    for proc in processes:
+        proc.join()
+
 
     toc = time()
     # evaluate tic-toc time  of execution
