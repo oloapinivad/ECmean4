@@ -44,7 +44,7 @@ def set_multiprocessing_start_method():
     if plat == 'Windows':
         raise OSError("Windows does not support 'fork' start method.")
     elif plat == 'Darwin':
-        multiprocessing.set_start_method('fork')
+        multiprocessing.set_start_method('fork', force=True)
     elif plat == 'Linux':
         pass
     else:
