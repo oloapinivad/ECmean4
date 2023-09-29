@@ -100,16 +100,28 @@ if do_create_clim:
         update_pifile = os.path.join(climdir, refclim, 'pi_climatology_' + refclim + '.yml')
     piclim = load_yaml(pifile)
 
-    # update the climatology
+    # Update the climatology
     for var in out.keys():
         piclim[var]['cmip6'] = {}
-        for season in out[var].keys():
+        for season, region_data in out[var].items():
             piclim[var]['cmip6'][season] = {}
-            for region in out[var][season].keys():
-                piclim[var]['cmip6'][season][region] = float(out[var][season][region])
+            for region, value in region_data.items():
+                piclim[var]['cmip6'][season][region] = float(value)
         piclim[var]['cmip6']['models'] = mout[var]
         piclim[var]['cmip6']['year1'] = year1
         piclim[var]['cmip6']['year2'] = year2
+
+
+    # # update the climatology
+    # for var in out.keys():
+    #     piclim[var]['cmip6'] = {}
+    #     for season in out[var].keys():
+    #         piclim[var]['cmip6'][season] = {}
+    #         for region in out[var][season].keys():
+    #             piclim[var]['cmip6'][season][region] = float(out[var][season][region])
+    #     piclim[var]['cmip6']['models'] = mout[var]
+    #     piclim[var]['cmip6']['year1'] = year1
+    #     piclim[var]['cmip6']['year2'] = year2
 
     # dump the new file
     with open(update_pifile, 'w', encoding='utf8') as file:
