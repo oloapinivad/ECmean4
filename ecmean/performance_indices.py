@@ -297,7 +297,7 @@ def performance_indices(exp, year1, year2,
   
     # loop on the variables, create the parallel process
     for varlist in weight_split(diag.field_all, diag.numproc):
-        print(varlist)
+        #print(varlist)
 
 
         core = Process(

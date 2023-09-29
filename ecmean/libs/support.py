@@ -31,6 +31,8 @@ class Supporter():
         """Class for masks, areas and interpolation (xESMF-based)
         for both atmospheric and oceanic component"""
 
+        loggy.info('Running with xesmf version %s', xe.__version__)
+
         # define the basics
         self.atmareafile = inifiles_priority(atmdict)
         self.oceareafile = inifiles_priority(ocedict)
@@ -51,7 +53,7 @@ class Supporter():
         # loading and examining atmospheric file
         self.atmfield = self.load_area_field(self.atmareafile, comp='atm')
         self.atmgridtype = identify_grid(self.atmfield)
-        loggy.warning('Atmosphere grid is is a %s grid!', self.atmgridtype)
+        loggy.info('Atmosphere grid is is a %s grid!', self.atmgridtype)
 
         # compute atmopheric area
         if areas:
@@ -68,7 +70,7 @@ class Supporter():
         if self.oceareafile:
             self.ocefield = self.load_area_field(self.oceareafile, comp='oce')
             self.ocegridtype = identify_grid(self.ocefield)
-            loggy.warning('Oceanic grid is is a %s grid!', self.ocegridtype)
+            loggy.info('Oceanic grid is is a %s grid!', self.ocegridtype)
 
             # compute oceanic area
             if areas:
@@ -123,21 +125,15 @@ class Supporter():
 
         else:
             raise KeyError("ERROR: make_atm_masks -> Atmospheric component not supported!")
-
+        
+        # loading the mask to avoid issues with xesmf
+        mask = mask.load()
+    
         # interp the mask if required
         if self.atmremap is not None:
             if self.atmfix:
                 mask = self.atmfix(mask, keep_attrs=True)
             mask = self.atmremap(mask, keep_attrs=True)
-
-        tic = time()
-        mask = mask.load()
-        print(mask.mean().values)
-        toc = time()
-        loggy.warning('Running with xesmf version %s', xe.__version__)
-        loggy.warning('Mask computation in {:.4f} seconds'.format(toc - tic))
-        
-        sys.exit()
 
         return mask
 
@@ -161,6 +157,9 @@ class Supporter():
 
         else:
             raise KeyError("ERROR: make_oce_masks -> Oceanic component not supported!")
+        
+        # load mask to avoid issue with xesmf
+        mask = mask.load()
 
         # interp the mask if required
         if self.oceremap is not None:
