@@ -20,7 +20,8 @@ import yaml
 import dask
 from ecmean import Diagnostic, Supporter, UnitsHandler
 from ecmean.libs.general import weight_split, get_domain, dict_to_dataframe, \
-   check_time_axis, init_mydict, check_var_interface, check_var_climatology
+   check_time_axis, init_mydict, check_var_interface, check_var_climatology, \
+   set_multiprocessing_start_method
 from ecmean.libs.files import var_is_there, get_inifiles, load_yaml, \
     make_input_filename, get_clim_files
 from ecmean.libs.formula import formula_wrapper
@@ -32,10 +33,7 @@ from ecmean.libs.plotting import heatmap_comparison_pi
 from ecmean.libs.parser import parse_arguments
 from ecmean.libs.loggy import setup_logger
 
-
-# temporary disabling the scheduler
 dask.config.set(scheduler="synchronous")
-
 
 def pi_worker(util, piclim, face, diag, field_3d, varstat, varlist):
     """Main parallel diagnostic worker for performance indices
@@ -245,9 +243,13 @@ def performance_indices(exp, year1, year2,
     argv = argparse.Namespace(**locals())
 
     # set loglevel
-    #logging.basicConfig(level=numeric_loglevel(argv.loglevel))
     loggy = setup_logger(level=argv.loglevel)
 
+    # set dask and multiprocessing fork
+    plat, mprocmethod = set_multiprocessing_start_method()
+    loggy.info('Running on %s and multiprocessing method set as "%s"', plat, mprocmethod)
+
+    # start time
     tic = time()
 
     # initialize the diag class, load the inteface and the reference file
@@ -293,25 +295,22 @@ def performance_indices(exp, year1, year2,
     loggy.warning('Preproc in {:.4f} seconds'.format(toc - tic))
     tic = time()
 
+  
     # loop on the variables, create the parallel process
     for varlist in weight_split(diag.field_all, diag.numproc):
+        print(varlist)
+
 
         core = Process(
-            target=pi_worker,
-            args=(
-                util_dictionary,
-                piclim,
-                face,
-                diag,
-                diag.field_3d,
-                varstat,
-                varlist))
+            target=pi_worker, args=(util_dictionary, piclim,
+                face, diag, diag.field_3d, varstat, varlist))
         core.start()
         processes.append(core)
 
     # wait for the processes to finish
     for proc in processes:
         proc.join()
+
 
     toc = time()
     # evaluate tic-toc time  of execution
@@ -394,6 +393,6 @@ def pi_entry_point():
                         outputdir=args.outputdir)
 
 
-if __name__ == '__main__':
-
-    sys.exit(pi_entry_point())
+#if __name__ == '__main__':
+#
+#    sys.exit(pi_entry_point())

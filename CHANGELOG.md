@@ -7,6 +7,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 Unreleased is the current development version, which is currently lying in `main` branch.
 
+- Simple support for allow running the code on MacOS and pinning of xesmf<0.8 to avoid code slowdown (support for macos #86)
+- Matplotlib pinning for solve temporary seaborn bug (Various updates and fixing the issue of matplotlib #89)
+
 ## [v0.1.5]
 
 - Specifying output directory as an argument (Support more general output directory #87)

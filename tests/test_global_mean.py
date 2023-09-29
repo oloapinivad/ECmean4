@@ -2,13 +2,19 @@
 
 import os
 import subprocess
+#import pytest
 from filecmp import cmp
 import xarray as xr
 from ecmean.global_mean import global_mean
 from ecmean.libs.ncfixers import xr_preproc
+#from ecmean.libs.general import set_multiprocessing_start_method
 
 # set up coverage env var
 env = {**os.environ, "COVERAGE_PROCESS_START": ".coveragerc"}
+
+#@pytest.fixture(scope="session", autouse=True)
+#def always_spawn():
+#    set_multiprocessing_start_method()
 
 # call on coupled ECE using parser and debug mode
 def test_cmd_global_mean_coupled():

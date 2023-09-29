@@ -7,9 +7,9 @@ name : ecmean
 channels:
   - conda-forge
 dependencies:
-  - python=>3.8
+  - python>=3.8
   - libnetcdf
-  - xesmf
+  - xesmf<0.8
   - eccodes
   - esmpy
   - pip

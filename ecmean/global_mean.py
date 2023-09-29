@@ -25,7 +25,7 @@ import dask
 from ecmean import Diagnostic, Supporter, UnitsHandler
 from ecmean.libs.general import weight_split, write_tuning_table, get_domain, \
     check_time_axis, dict_to_dataframe, init_mydict, \
-        check_var_interface, check_var_climatology
+        check_var_interface, check_var_climatology, set_multiprocessing_start_method
 from ecmean.libs.files import var_is_there, get_inifiles, load_yaml, make_input_filename
 from ecmean.libs.formula import formula_wrapper
 from ecmean.libs.masks import masked_meansum, select_region
@@ -36,7 +36,6 @@ from ecmean.libs.plotting import heatmap_comparison_gm
 from ecmean.libs.loggy import setup_logger
 
 dask.config.set(scheduler="synchronous")
-
 
 def gm_worker(util, ref, face, diag, varmean, vartrend, varlist):
     """Main parallel diagnostic worker for global mean
@@ -181,8 +180,14 @@ def global_mean(exp, year1, year2,
     argv = argparse.Namespace(**locals())
 
     # set loglevel
-    #logging.basicConfig(level=numeric_loglevel(argv.loglevel))
     loggy = setup_logger(level=argv.loglevel)
+
+    # set dask and multiprocessing fork
+    plat, mprocmethod = set_multiprocessing_start_method()
+    loggy.info('Running on %s and multiprocessing method set as "%s"', plat, mprocmethod)
+
+    # start time
+    tic = time()
 
     # initialize the diag class, load the inteface and the reference file
     diag = Diagnostic(argv)
@@ -207,7 +212,8 @@ def global_mean(exp, year1, year2,
 
     # create util dictionary including mask and weights for both atmosphere
     # and ocean grids
-    util_dictionary = Supporter(comp, inifiles['atm'], inifiles['oce'], areas=True, remap=False)
+    util_dictionary = Supporter(comp, inifiles['atm'], inifiles['oce'], 
+                                areas=True, remap=False)
 
     # main loop: manager is required for shared variables
     mgr = Manager()
@@ -216,12 +222,13 @@ def global_mean(exp, year1, year2,
     varmean = mgr.dict()
     vartrend = mgr.dict()
     processes = []
-    tic = time()
+    
 
 
     # loop on the variables, create the parallel process
     for varlist in weight_split(diag.var_all, diag.numproc):
-        core = Process(target=gm_worker, args=(util_dictionary, ref, face, diag,
+        core = Process(
+            target=gm_worker, args=(util_dictionary, ref, face, diag,
                                             varmean, vartrend, varlist))
         core.start()
         processes.append(core)
@@ -346,7 +353,6 @@ def gm_entry_point():
                 model=args.model, ensemble=args.ensemble,
                 outputdir=args.outputdir)
 
-
-if __name__ == "__main__":
-
-    sys.exit(gm_entry_point())
+#if __name__ == "__main__":
+#
+#    gm_entry_point()
