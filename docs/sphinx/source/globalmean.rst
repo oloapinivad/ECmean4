@@ -62,9 +62,9 @@ Optional Arguments
 
    Set up a specific interface file, overriding the configuration specified in ``config.yml``.
 
-.. option:: -o FILE, --output FILE
+.. option:: -o DIR, --outputdir DIR
 
-   Specify the path of the output one-line table.
+   Specify the path of the output directory. This will create a `YAML` and `PDF` folders for table and figures.
 
 .. option:: -m MODEL, --model MODEL
 

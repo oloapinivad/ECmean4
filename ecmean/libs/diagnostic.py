@@ -34,7 +34,6 @@ class Diagnostic():
         self.years_joined = list(range(self.year1, self.year2 + 1))
         self.ftable = getattr(args, 'line', False)
         self.ftrend = getattr(args, 'trend', False)
-        self.linefile = getattr(args, 'output', None)
         self.debug = getattr(args, 'debug', False)
         self.numproc = args.numproc
         self.modelname = getattr(args, 'model', '')
@@ -64,8 +63,13 @@ class Diagnostic():
 
         # Various input and output directories
         self.ecedir = Path(os.path.expandvars(cfg['dirs']['exp']))
-        self.tabdir = Path(os.path.expandvars(cfg['dirs']['tab']))
-        self.figdir = Path(os.path.expandvars(cfg['dirs']['fig']))
+        outputdir = getattr(args, 'outputdir', None)
+        if outputdir is None:
+            self.tabdir = Path(os.path.expandvars(cfg['dirs']['tab']))
+            self.figdir = Path(os.path.expandvars(cfg['dirs']['fig']))
+        else:
+            self.tabdir = Path(os.path.join(outputdir, 'YAML'))
+            self.figdir = Path(os.path.join(outputdir, 'PDF'))
 
         # init for global mean
         if self.funcname == 'global_mean':
@@ -124,9 +128,7 @@ class Diagnostic():
 
         self.reffile = self.indir / '../reference/gm_reference_EC23.yml'
 
-        if self.linefile:
-            self.ftable = True
-        else:
+        if self.ftable:
             self.linefile = self.tabdir / 'global_means.txt'
 
     def cfg_performance_indices(self, cfg):
