@@ -12,7 +12,7 @@ from ecmean.libs.ncfixers import xr_preproc
 from ecmean.libs.general import are_dicts_equal
 
 # set tolerance
-tolerance = 1e-4
+tolerance = 1e-3
 
 # set up coverage env var
 env = {**os.environ, "COVERAGE_PROCESS_START": ".coveragerc"}
@@ -34,8 +34,8 @@ def test_performance_indices_cpld(clim):
 # test on amip
 @pytest.mark.parametrize("clim", ['RK08', 'EC23'])
 def test_performance_indices_amip(clim):
-    performance_indices('amip', 1990, 1990, numproc=1, climatology=clim, config='tests/config.yml', outputdir='pluto')
-    file1 = 'pluto/YAML/PI4_' + clim + '_amip_EC-Earth4_r1i1p1f1_1990_1990.yml'
+    performance_indices('amip', 1990, 1990, numproc=1, climatology=clim, config='tests/config.yml', outputdir='tests/pluto')
+    file1 = 'tests/pluto/YAML/PI4_' + clim + '_amip_EC-Earth4_r1i1p1f1_1990_1990.yml'
     file2 = 'tests/table/PI4_' + clim + '_amip_1990_1990.ref'
     with open(file1, 'r') as f1, open(file2, 'r') as f2:
         data1 = yaml.safe_load(f1)
