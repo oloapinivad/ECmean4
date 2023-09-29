@@ -222,50 +222,50 @@ class Supporter():
 
         return fix, remap
 
-def make_oce_interp_weights(self, xfield):
-    """Create oceanic interpolator weights.
+    def make_oce_interp_weights(self, xfield):
+        """Create oceanic interpolator weights.
 
-    Args:
-        xfield (xarray.DataArray): The field to interpolate.
+        Args:
+            xfield (xarray.DataArray): The field to interpolate.
 
-    Returns:
-        tuple: The fix and remap objects.
+        Returns:
+            tuple: The fix and remap objects.
 
-    """
+        """
 
-    if self.ocecomponent in ["nemo", "cmoroce"]:
-        if "areacello" in xfield.data_vars:  # CMOR case
-            xname = "areacello"
-        elif "cell_area" in xfield.data_vars:  # ECE4 NEMO case for nemo-initial-state.nc
-            xname = "cell_area"
+        if self.ocecomponent in ["nemo", "cmoroce"]:
+            if "areacello" in xfield.data_vars:  # CMOR case
+                xname = "areacello"
+            elif "cell_area" in xfield.data_vars:  # ECE4 NEMO case for nemo-initial-state.nc
+                xname = "cell_area"
+            else:
+                # tentative extraction
+                xname = list(xfield.data_vars)[-1]
         else:
-            # tentative extraction
-            xname = list(xfield.data_vars)[-1]
-    else:
-        raise KeyError(
-            "ERROR: Oce weights not defined for this component, this cannot be handled!")
+            raise KeyError(
+                "ERROR: Oce weights not defined for this component, this cannot be handled!")
 
-    # Use the nearest neighbor method for unstructured grids
+        # Use the nearest neighbor method for unstructured grids
 
-    if self.ocegridtype in ["unstructured"]:
-        remap = xe.Regridder(
-            xfield[xname],
-            self.targetgrid,
-            method="nearest_s2d",
-            locstream_in=True,
-            periodic=True,
-        )
-    else:
-        # Use the bilinear method for regular or curvilinear grids
-        remap = xe.Regridder(
-            xfield[xname],
-            self.targetgrid,
-            method="bilinear",
-            periodic=True,
-            ignore_degenerate=True,
-        )
+        if self.ocegridtype in ["unstructured"]:
+            remap = xe.Regridder(
+                xfield[xname],
+                self.targetgrid,
+                method="nearest_s2d",
+                locstream_in=True,
+                periodic=True,
+            )
+        else:
+            # Use the bilinear method for regular or curvilinear grids
+            remap = xe.Regridder(
+                xfield[xname],
+                self.targetgrid,
+                method="bilinear",
+                periodic=True,
+                ignore_degenerate=True,
+            )
 
-    return None, remap
+        return None, remap
 
 
 
