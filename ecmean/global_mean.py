@@ -212,7 +212,8 @@ def global_mean(exp, year1, year2,
 
     # create util dictionary including mask and weights for both atmosphere
     # and ocean grids
-    util_dictionary = Supporter(comp, inifiles['atm'], inifiles['oce'], areas=True, remap=False)
+    util_dictionary = Supporter(comp, inifiles['atm'], inifiles['oce'], 
+                                areas=True, remap=False)
 
     # main loop: manager is required for shared variables
     mgr = Manager()
@@ -226,7 +227,8 @@ def global_mean(exp, year1, year2,
 
     # loop on the variables, create the parallel process
     for varlist in weight_split(diag.var_all, diag.numproc):
-        core = Process(target=gm_worker, args=(util_dictionary, ref, face, diag,
+        core = Process(
+            target=gm_worker, args=(util_dictionary, ref, face, diag,
                                             varmean, vartrend, varlist))
         core.start()
         processes.append(core)

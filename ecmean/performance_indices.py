@@ -302,15 +302,8 @@ def performance_indices(exp, year1, year2,
 
 
         core = Process(
-            target=pi_worker,
-            args=(
-                util_dictionary,
-                piclim,
-                face,
-                diag,
-                diag.field_3d,
-                varstat,
-                varlist))
+            target=pi_worker, args=(util_dictionary, piclim,
+                face, diag, diag.field_3d, varstat, varlist))
         core.start()
         processes.append(core)
 
