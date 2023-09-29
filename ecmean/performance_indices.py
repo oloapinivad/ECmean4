@@ -183,7 +183,7 @@ def pi_worker(util, piclim, face, diag, field_3d, varstat, varlist):
 
                     # horizontal averaging with land-sea mask
                     else:
-
+                        
                         complete = (final - cfield)**2 / vfield
                         outarray = mask_field(xfield=complete,
                                             mask_type=piclim[var]['mask'],
@@ -193,12 +193,11 @@ def pi_worker(util, piclim, face, diag, field_3d, varstat, varlist):
                     for region in diag.regions:
 
                         slicearray = select_region(outarray, region)
-
+ 
                         # latitude-based averaging
                         weights = np.cos(np.deg2rad(slicearray.lat))
                         out = slicearray.weighted(weights).mean().data
-
-                        # store the PI
+                         # store the PI
                         result[season][region] = round(float(out), 3)
 
                         # diagnostic

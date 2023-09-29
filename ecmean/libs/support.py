@@ -8,6 +8,8 @@ from glob import glob
 import logging
 import xarray as xr
 import xesmf as xe
+import sys
+from time import time
 import numpy as np
 from ecmean.libs.ncfixers import xr_preproc
 from ecmean.libs.files import inifiles_priority
@@ -127,6 +129,15 @@ class Supporter():
             if self.atmfix:
                 mask = self.atmfix(mask, keep_attrs=True)
             mask = self.atmremap(mask, keep_attrs=True)
+
+        tic = time()
+        mask = mask.load()
+        print(mask.mean().values)
+        toc = time()
+        loggy.warning('Running with xesmf version %s', xe.__version__)
+        loggy.warning('Mask computation in {:.4f} seconds'.format(toc - tic))
+        
+        sys.exit()
 
         return mask
 
