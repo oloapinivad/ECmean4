@@ -21,7 +21,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python-version: ["3.8", "3.9", "3.10", "3.11", "3.11.4", "3.11.5"]
+        python-version: ["3.8", "3.9", "3.10", "3.11"]
         #python-version: ["3.11"]
     defaults:
       run:
@@ -60,10 +60,6 @@ jobs:
   coverage:
     needs: mamba-test
     runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        python-version: ["3.11.4"]
     defaults:
       run:
         shell: bash -el {0}
@@ -79,7 +75,7 @@ jobs:
         python -m pip install pytest coverage coveralls
     - name: Run coverage
       run: |
-        coverage run -m pytest -s
+        coverage run -m pytest
         coverage combine
         coverage lcov
     - name: Run coveralls
