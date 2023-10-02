@@ -247,9 +247,12 @@ def are_dicts_equal(dict1, dict2, tolerance=1e-6):
             if not are_dicts_equal(dict1[key], dict2[key], tolerance):
                 return False
         return True
-    elif isinstance(dict1, (int, float)) and isinstance(dict2, (int, float)):
-        if math.isnan(dict1) and math.isnan(dict2):
-            return True
-        return math.isclose(dict1, dict2, rel_tol=tolerance)
     else:
-        return dict1 == dict2
+        try:
+            dict1 = float(dict1)
+            dict2 = float(dict2)
+            if math.isnan(dict1) and math.isnan(dict2):
+                return True
+            return math.isclose(dict1, dict2, rel_tol=tolerance)
+        except ValueError:
+            return dict1 == dict2

@@ -2,7 +2,6 @@
 
 import os
 import subprocess
-import yaml
 import xarray as xr
 from ecmean.global_mean import global_mean
 from ecmean.libs.ncfixers import xr_preproc
