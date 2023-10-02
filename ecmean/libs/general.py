@@ -6,6 +6,7 @@ Shared functions for XArray ECmean4
 import os
 import logging
 import platform
+import math
 import multiprocessing
 import pandas as pd
 import numpy as np
@@ -228,3 +229,30 @@ def init_mydict(one, two):
             dd[o][t] = float('NaN')
 
     return dd
+
+
+def are_dicts_equal(dict1, dict2, tolerance=1e-6):
+    """
+    Recursively compare two dictionaries with a given tolerance for float comparisons.
+    To be used for testing purposes
+    """
+    if isinstance(dict1, dict) and isinstance(dict2, dict):
+        keys1 = set(dict1.keys())
+        keys2 = set(dict2.keys())
+
+        if keys1 != keys2:
+            return False
+
+        for key in keys1:
+            if not are_dicts_equal(dict1[key], dict2[key], tolerance):
+                return False
+        return True
+    else:
+        try:
+            dict1 = float(dict1)
+            dict2 = float(dict2)
+            if math.isnan(dict1) and math.isnan(dict2):
+                return True
+            return math.isclose(dict1, dict2, rel_tol=tolerance)
+        except ValueError:
+            return dict1 == dict2
