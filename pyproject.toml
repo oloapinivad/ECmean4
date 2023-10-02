@@ -60,3 +60,7 @@ performance_indices = "ecmean.performance_indices:pi_entry_point"
 
 [tool.setuptools.dynamic]
 version = {attr = "ecmean.__version__"}
+
+[tool.coverage.run]
+concurrency = ["multiprocessing"]
+
