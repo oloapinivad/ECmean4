@@ -10,19 +10,17 @@ Using PyPi
 
 .. warning::
 
-	Please note that although ECmean4 is distributed via PyPi, it depends on packages that currently are available only on conda-forge and 
-    on configuration files available from the GitHub repository. Therefore, the installation via pip requires the creation of a conda environment as well as the clone from the repository.
+	Please note that although ECmean4 is distributed via PyPi, it depends on packages that currently are available only on conda-forge and on configuration files available from the GitHub repository. Therefore, the installation via pip requires the creation of a conda environment as well as the clone from the repository.
 
 
 It will bring you the last version available on PyPi.
 You can create a conda/mamba environment which incudes the python, `eccodes <https://github.com/ecmwf/eccodes-python>`_ and `xESMF <https://xesmf.readthedocs.io/en/latest/>`_ dependencies, and then install ECmean4.
-However, you should start by cloning the repository from GitHub ::
+However, you should start by cloning the repository from GitHub, since the configuration files used for running ECmean4 are placed there ::
 
     > git clone https://github.com/oloapinivad/ECmean4.git
     > mamba create -n ecmean "python>=3.9" xesmf eccodes
     > mamba activate ecmean
     > pip install ECmean4
-
 
 
 Using GitHub
@@ -65,7 +63,7 @@ You can test by running in shell command line and you should and output as::
 
 You can also run tests by simply calling ``pytest`` - as long as you have the corresponding Python package installed - from the ECmean4 folder ::
 
-    > pytest
+    > python -m pytest
 
 Requirements
 ------------
@@ -73,8 +71,8 @@ Requirements
 The required packages are listed in ``environment.yml`` and in ``pyproject.toml``.
 A secondary environment available in  ``dev-environment.yml`` can be used for development, including testing capabilities and jupyter notebooks. 
 
-.. warning::
-	Python >=3.9 is requested
+.. note::
+	Both Unix and MacOS are supported. Python >=3.9 is requested.
 
 
 
