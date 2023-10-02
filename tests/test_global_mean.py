@@ -8,8 +8,8 @@ from ecmean.global_mean import global_mean
 from ecmean.libs.ncfixers import xr_preproc
 from ecmean.libs.general import are_dicts_equal
 
-# set tolerance
-tolerance = 1e-3
+# set TOLERANCE
+TOLERANCE = 1e-3
 
 # set up coverage env var
 env = {**os.environ, "COVERAGE_PROCESS_START": ".coveragerc"}
@@ -22,7 +22,7 @@ def load_gm_txt_files(textfile):
     """
 
     data_dict = {}
-    with open(textfile, 'r') as file:
+    with open(textfile, 'r', encoding='utf8') as file:
         # Read the file line by line
         for line in file:
             # Remove leading and trailing whitespace and split the line by '|'
@@ -52,7 +52,7 @@ def test_cmd_global_mean_coupled():
     data1 = load_gm_txt_files(file1)
     data2 = load_gm_txt_files(file2)
 
-    assert are_dicts_equal(data1, data2, tolerance), "TXT files are not identical."
+    assert are_dicts_equal(data1, data2, TOLERANCE), "TXT files are not identical."
 
 
 # call on amip ECE
@@ -67,7 +67,7 @@ def test_global_mean_amip():
     data1 = load_gm_txt_files(file1)
     data2 = load_gm_txt_files(file2)
 
-    assert are_dicts_equal(data1, data2, tolerance), "TXT files are not identical."
+    assert are_dicts_equal(data1, data2, TOLERANCE), "TXT files are not identical."
 
 # call on amip ECE using the xdataset option
 def test_global_mean_amip_xdataset():
@@ -77,12 +77,11 @@ def test_global_mean_amip_xdataset():
         os.remove(file1)
     xfield = xr.open_mfdataset('tests/data/amip/output/oifs/*.nc', preprocess=xr_preproc)
     global_mean(exp='amip', year1=1990, year2=1990, numproc=4, config='tests/config.yml',
-                xdataset=xfield)
-    
+                xdataset=xfield)   
     data1 = load_gm_txt_files(file1)
     data2 = load_gm_txt_files(file2)
 
-    assert are_dicts_equal(data1, data2, tolerance), "TXT files are not identical."
+    assert are_dicts_equal(data1, data2, TOLERANCE), "TXT files are not identical."
 
 
 # call on historical CMIP6
@@ -96,5 +95,5 @@ def test_global_mean_CMIP6():
     data1 = load_gm_txt_files(file1)
     data2 = load_gm_txt_files(file2)
 
-    assert are_dicts_equal(data1, data2, tolerance), "TXT files are not identical."
+    assert are_dicts_equal(data1, data2, TOLERANCE), "TXT files are not identical."
 
