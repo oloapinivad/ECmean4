@@ -91,11 +91,13 @@ def heatmap_comparison_gm(data_table, mean_table, std_table, diag, filemap, add_
 
     chart = sns.heatmap(clean, annot=data_table[mask], vmin=-thr - 0.5, vmax=thr + 0.5, center=0,
                         annot_kws={'va': 'bottom', 'fontsize': size_model},
-                        cbar_kws={'ticks': tictoc,
+                        cbar_kws={'ticks': tictoc, "shrink": .5,
                                   'label': 'Model Bias \n (standard deviation of interannual variability from observations)'},
                         fmt='.2f', cmap=pal)
     if add_nan:
-        chart = sns.heatmap(np.where(clean.isna(), 0, np.nan), annot=data_table[mask], fmt='.2f',
+        empty = np.where(clean.isna(), 0, np.nan)
+        empty = np.where(data_table[mask]==0, np.nan, empty)
+        chart = sns.heatmap(empty, annot=data_table[mask], fmt='.2f',
                             vmin=-thr - 0.5, vmax=thr + 0.5, center=0,
                             annot_kws={'va': 'bottom', 'fontsize': size_model, 'color':'dimgrey'}, cbar=False,
                             cmap=ListedColormap(['none']))

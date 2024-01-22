@@ -99,7 +99,7 @@ def pi_worker(util, piclim, face, diag, field_3d, varstat, varlist):
                 # mean over time and fixing of the units
                 for season in diag.seasons:
 
-                    loggy.info(season)
+                    loggy.debug(season)
 
                     # copy of the full field
                     tmean = outfield.copy(deep=True)
@@ -202,7 +202,7 @@ def pi_worker(util, piclim, face, diag, field_3d, varstat, varlist):
 
                         # diagnostic
                         if region == 'Global':
-                            print('PI for', region, season, var, result[season][region])
+                            logging.info('PI for', region, season, var, result[season][region])
 
         # nested dictionary, to be redifend as a dict to remove lambdas
         varstat[var] = result
@@ -291,7 +291,7 @@ def performance_indices(exp, year1, year2,
     processes = []
 
     toc = time()
-    loggy.warning('Preproc in {:.4f} seconds'.format(toc - tic))
+    loggy.info('Preproc in {:.4f} seconds'.format(toc - tic))
     tic = time()
 
   
@@ -313,7 +313,7 @@ def performance_indices(exp, year1, year2,
 
     toc = time()
     # evaluate tic-toc time  of execution
-    loggy.warning('Done in {:.4f} seconds'.format(toc - tic) + ' with ' + str(diag.numproc) + ' processors')
+    loggy.info('Done in {:.4f} seconds'.format(toc - tic) + ' with ' + str(diag.numproc) + ' processors')
 
     tic = time()
 
@@ -349,7 +349,7 @@ def performance_indices(exp, year1, year2,
 
         # convert output dictionary to pandas dataframe
         data_table = dict_to_dataframe(plotted)
-        loggy.info(data_table)
+        loggy.debug(data_table)
 
 
         # relative pi with re-ordering of rows
@@ -361,7 +361,7 @@ def performance_indices(exp, year1, year2,
         # reordering columns
         lll = [(x, y) for x in diag.seasons for y in diag.regions]
         cmip6_table = cmip6_table[lll]
-        loggy.info(cmip6_table)
+        loggy.debug(cmip6_table)
 
 
         # call the heatmap routine for a plot
@@ -372,7 +372,8 @@ def performance_indices(exp, year1, year2,
 
     toc = time()
     # evaluate tic-toc time of postprocessing
-    loggy.warning('Postproc done in {:.4f} seconds'.format(toc - tic))
+    loggy.info('Postproc done in {:.4f} seconds'.format(toc - tic))
+    print('ECmean4 Performance Indices succesfully computed!')
 
 
 def pi_entry_point():
@@ -391,7 +392,3 @@ def pi_entry_point():
                         model=args.model, ensemble=args.ensemble,
                         outputdir=args.outputdir)
 
-
-#if __name__ == '__main__':
-#
-#    sys.exit(pi_entry_point())
