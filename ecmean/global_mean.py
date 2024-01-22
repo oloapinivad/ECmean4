@@ -264,11 +264,15 @@ def global_mean(exp, year1, year2,
         # extract from yaml table for obs mean and standard deviation
         mmm = init_mydict(diag.seasons, diag.regions)
         sss = init_mydict(diag.seasons, diag.regions)
+        # if we have all the obs/std available
         if isinstance(gamma['obs'], dict):
             for season in diag.seasons:
                 for region in diag.regions:
                     mmm[season][region] = gamma['obs'][season][region]['mean']
                     sss[season][region] = gamma['obs'][season][region]['std']
+        # if only global observation is available
+        else:
+            mmm['ALL']['Global'] = gamma['obs']
         obsmean[gamma['longname']] = mmm
         obsstd[gamma['longname']] = sss
 

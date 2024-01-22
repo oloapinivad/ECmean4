@@ -104,6 +104,12 @@ def heatmap_comparison_gm(data_table, mean_table, std_table, diag, filemap, addn
     chart = sns.heatmap(clean, annot=mean_table[mask], vmin=-thr - 0.5, vmax=thr + 0.5, center=0,
                         annot_kws={'va': 'top', 'fontsize': size_obs, 'fontstyle': 'italic'},
                         fmt='.2f', cmap=pal, cbar=False)
+    if addnan:
+        empty = np.where(clean.isna(), 0, np.nan)
+        empty = np.where(mean_table[mask].isna(), np.nan, empty)
+        chart = sns.heatmap(empty, annot=mean_table[mask], vmin=-thr - 0.5, vmax=thr + 0.5, center=0,
+                        annot_kws={'va': 'top', 'fontsize': size_obs, 'fontstyle': 'italic', 'color':'dimgrey'},
+                        fmt='.2f', cmap=ListedColormap(['none']), cbar=False)
 
     chart = chart.set_facecolor('whitesmoke')
     axs.set_title(f'{title} {diag.modelname} {diag.expname} {diag.year1} {diag.year2}', fontsize=25)
