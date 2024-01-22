@@ -158,7 +158,8 @@ def units_extra_definition():
     # needed to work with metpy 1.4.0 see
     # https://github.com/Unidata/MetPy/issues/2884
     units._on_redefinition = 'ignore'
-    units.define('Fraction = fraction = [] = frac')
+    units.define('fraction = [] = frac')
+    units.define('Fraction = [] = frac')
     units.define('psu = 1e-3 frac')
     units.define('PSU = 1e-3 frac')
     units.define('million = 1e6 = M')
