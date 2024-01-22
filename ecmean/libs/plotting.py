@@ -62,14 +62,14 @@ def heatmap_comparison_pi(relative_table, diag, filemap, size_model = 14):
     plt.close()
 
 
-def heatmap_comparison_gm(data_table, mean_table, std_table, diag, filemap, add_nan = True,
+def heatmap_comparison_gm(data_table, mean_table, std_table, diag, filemap, addnan = True,
                           size_model = 14, size_obs = 8):
     """Function to produce a heatmap - seaborn based - for Global Mean
     based on season-averaged standard deviation ratio"""
 
     # define array
     ratio = (data_table - mean_table) / std_table
-    if add_nan:
+    if addnan:
         mask = data_table[('ALL', 'Global')].notna()
     else:
         mask = ratio[('ALL', 'Global')].notna()
@@ -94,7 +94,7 @@ def heatmap_comparison_gm(data_table, mean_table, std_table, diag, filemap, add_
                         cbar_kws={'ticks': tictoc, "shrink": .5,
                                   'label': 'Model Bias \n (standard deviation of interannual variability from observations)'},
                         fmt='.2f', cmap=pal)
-    if add_nan:
+    if addnan:
         empty = np.where(clean.isna(), 0, np.nan)
         empty = np.where(data_table[mask]==0, np.nan, empty)
         chart = sns.heatmap(empty, annot=data_table[mask], fmt='.2f',

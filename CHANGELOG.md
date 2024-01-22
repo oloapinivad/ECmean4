@@ -7,6 +7,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 Unreleased is the current development version, which is currently lying in `main` branch.
 
+## [v0.1.7]
+
+- global_mean can plot also values where observation are missing through the `--addnan` option (#95)
+- Verbosity level reduced in both global mean and performance indices (#95)
+- New colorscale `vlag` for global_mean (#95)
+
 ## [v0.1.6]
 
 - Remove support for python 3.8

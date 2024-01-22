@@ -54,7 +54,7 @@ class UnitsHandler():
         if face and clim:
             self.init_ecmean(clim, face)
 
-        loggy.info(vars(self))
+        loggy.debug(vars(self))
         # if units are defined and convert called
         if convert and self.org_units and self.tgt_units:
 
@@ -101,12 +101,12 @@ class UnitsHandler():
         It will not work if BOTH factor and offset are required"""
 
         units_relation = (self.org_units / self.tgt_units).to_base_units()
-        loggy.info('Original vs Target units relation is %s', units_relation)
+        loggy.debug('Original vs Target units relation is %s', units_relation)
 
         if units_relation.units == units('dimensionless'):
 
             if units_relation.magnitude != 1:
-                loggy.info('Unit conversion required...')
+                loggy.debug('Unit conversion required...')
                 offset_standard = 0 * self.org_units
                 offset = offset_standard.to(self.tgt_units).magnitude
                 if offset == 0:
@@ -119,16 +119,16 @@ class UnitsHandler():
                 factor = 1.
 
         elif units_relation.units == units('kg / m^3'):
-            loggy.info("Assuming this as a water flux! Am I correct?")
-            loggy.info("Dividing by water density...")
+            loggy.debug("Assuming this as a water flux! Am I correct?")
+            loggy.debug("Dividing by water density...")
             density_water = units('kg / m^3') * 1000
             offset = 0.
             factor_standard = 1 * self.org_units
             factor = (factor_standard / density_water).to(self.tgt_units).magnitude
 
         elif units_relation.units == units('s'):
-            loggy.info("Assuming this is a cumulated flux...")
-            loggy.info("Dividing by cumulation time (expressed in seconds)...")
+            loggy.debug("Assuming this is a cumulated flux...")
+            loggy.debug("Dividing by cumulation time (expressed in seconds)...")
             if self.cumulation_time:
                 cumtime = units('s') * self.cumulation_time
                 offset = 0.
@@ -145,8 +145,8 @@ class UnitsHandler():
         if self.org_direction != self.tgt_direction:
             factor = -1. * factor
 
-        loggy.info('Offset is %s', str(offset))
-        loggy.info('Factor is %s', str(factor))
+        loggy.debug('Offset is %s', str(offset))
+        loggy.debug('Factor is %s', str(factor))
         return offset, factor
 
 

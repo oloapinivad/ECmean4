@@ -139,7 +139,7 @@ def gm_worker(util, ref, face, diag, varmean, vartrend, varlist):
                             if len(avg) == len(diag.years_joined):
                                 trend[season][region] = np.polyfit(diag.years_joined, avg, 1)[0]
                         if season == 'ALL' and region == 'Global':
-                            logging.info('Average:', var, season, region, result[season][region])
+                            loggy.info('Average: %s %s %s %s', var, season, region, result[season][region])
 
         # nested dictionary, to be redifend as a dict to remove lambdas
         varmean[var] = result
@@ -151,7 +151,7 @@ def global_mean(exp, year1, year2,
                 loglevel='WARNING',
                 numproc=1,
                 interface=None, model=None, ensemble='r1i1p1f1',
-                add_nan=True,
+                addnan=False,
                 silent=None, trend=None, line=None,
                 outputdir=None, xdataset=None):
     """The main ECmean4 global mean function
@@ -328,7 +328,7 @@ def global_mean(exp, year1, year2,
     loggy.info('Figure file is: %s', mapfile)
 
     heatmap_comparison_gm(data_table, mean_table, std_table,
-                          diag, mapfile, add_nan=add_nan)
+                          diag, mapfile, addnan=diag.addnan)
 
     # Print appending one line to table (for tuning)
     if diag.ftable:
@@ -356,8 +356,6 @@ def gm_entry_point():
                 loglevel=args.loglevel,
                 interface=args.interface, config=args.config,
                 model=args.model, ensemble=args.ensemble,
+                addnan=args.addnan,
                 outputdir=args.outputdir)
 
-#if __name__ == "__main__":
-#
-#    gm_entry_point()
