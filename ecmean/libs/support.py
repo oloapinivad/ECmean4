@@ -31,7 +31,7 @@ class Supporter():
         """Class for masks, areas and interpolation (xESMF-based)
         for both atmospheric and oceanic component"""
 
-        loggy.info('Running with xesmf version %s', xe.__version__)
+        loggy.debug('Running with xesmf version %s', xe.__version__)
 
         # define the basics
         self.atmareafile = inifiles_priority(atmdict)

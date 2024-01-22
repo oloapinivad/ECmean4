@@ -85,7 +85,7 @@ def var_is_there(flist, var, face):
         if not varunit:
             varunit = units_avail.get(var_req[0])
             if len(var_req) > 1:
-                loggy.info('%s is a derived var, assuming unit '
+                loggy.debug('%s is a derived var, assuming unit '
                              'as the first of its term', var)
 
     else:
@@ -207,7 +207,7 @@ def _filter_filename_by_year(template, filenames, year):
     if not filternames and len(filenames) > 0:
         loggy.warning('Data for year %s has not been found!', str(year))
 
-    loggy.info('Filtered filenames: %s', filternames)
+    loggy.debug('Filtered filenames: %s', filternames)
     return filternames
 
 
@@ -230,7 +230,7 @@ def _create_filepath(cmorname, face, diag):
         Path(face['model']['basedir']) / \
         Path(face['filetype'][filetype]['dir']) / \
         Path(face['filetype'][filetype]['filename'])
-    loggy.info('Filepath: %s', filepath)
+    loggy.debug('Filepath: %s', filepath)
 
     return filepath
 
@@ -265,7 +265,7 @@ def make_input_filename(cmorname, face, diag):
                 filename1 = filename1 + fname
             filename = filename + filename1
         filename = list(dict.fromkeys(filename))  # Filter unique ones
-        loggy.info("Filenames: %s", filename)
+        loggy.debug("Filenames: %s", filename)
         return filename
 
 

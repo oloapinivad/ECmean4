@@ -41,6 +41,7 @@ class Diagnostic():
         self.interface = getattr(args, 'interface', '')
         self.resolution = getattr(args, 'resolution', '')
         self.ensemble = getattr(args, 'ensemble', 'r1i1p1f1')
+        self.addnan = getattr(args, 'addnan', False)
         self.funcname = args.funcname.split(".")[1]
         self.version = __version__
         if self.year1 == self.year2:

@@ -34,6 +34,8 @@ def parse_arguments(args, script):
                         help='variant label (ripf number for cmor)')
     parser.add_argument('-s', '--silent', action='store_true',
                         help='do not print anything to std output')
+    parser.add_argument('--addnan', action='store_true',
+                        help='provide figures also where observations are missing')
     parser.add_argument('-v', '--loglevel', type=str, default='WARNING',
                         help='define the level of logging.')
     parser.add_argument('-o', '--outputdir', type=str,

@@ -195,7 +195,7 @@ def area_cell(xfield, gridtype=None, formula='triangles'):
     outfield = xr.DataArray(area, dims=area_dims, coords=xfield.coords, name='area')
 
     # check the total area
-    loggy.info('Total Earth Surface: %s Km2',
+    loggy.debug('Total Earth Surface: %s Km2',
                  str(outfield.sum().values / 10**6))
 
     return outfield

@@ -139,7 +139,7 @@ def gm_worker(util, ref, face, diag, varmean, vartrend, varlist):
                             if len(avg) == len(diag.years_joined):
                                 trend[season][region] = np.polyfit(diag.years_joined, avg, 1)[0]
                         if season == 'ALL' and region == 'Global':
-                            print('Average:', var, season, region, result[season][region])
+                            loggy.info('Average: %s %s %s %s', var, season, region, result[season][region])
 
         # nested dictionary, to be redifend as a dict to remove lambdas
         varmean[var] = result
@@ -151,6 +151,7 @@ def global_mean(exp, year1, year2,
                 loglevel='WARNING',
                 numproc=1,
                 interface=None, model=None, ensemble='r1i1p1f1',
+                addnan=False,
                 silent=None, trend=None, line=None,
                 outputdir=None, xdataset=None):
     """The main ECmean4 global mean function
@@ -164,6 +165,7 @@ def global_mean(exp, year1, year2,
     :param interface: interface file to be used, optional (default as specifified in config file)
     :param model: model to be analyzed, optional (default as specifified in config file)
     :param ensemble: ensemble member to be analyzed, optional (default as 'r1i1p1f1')
+    :param add_nan: add to the final plots also fields which cannot be compared against observations
     :param silent: do not print anything to std output, optional
     :param trend: compute yearly trends, optional
     :param line: appends also single line to a table, optional
@@ -207,6 +209,7 @@ def global_mean(exp, year1, year2,
     # get file info
     inifiles = get_inifiles(face, diag)
 
+
     # add missing unit definition
     units_extra_definition()
 
@@ -240,7 +243,7 @@ def global_mean(exp, year1, year2,
     toc = time()
 
     # evaluate tic-toc time  of execution
-    loggy.warning('Analysis done in {:.4f} seconds'.format(toc - tic))
+    loggy.info('Analysis done in {:.4f} seconds'.format(toc - tic))
 
     tic = time()
 
@@ -261,11 +264,15 @@ def global_mean(exp, year1, year2,
         # extract from yaml table for obs mean and standard deviation
         mmm = init_mydict(diag.seasons, diag.regions)
         sss = init_mydict(diag.seasons, diag.regions)
+        # if we have all the obs/std available
         if isinstance(gamma['obs'], dict):
             for season in diag.seasons:
                 for region in diag.regions:
                     mmm[season][region] = gamma['obs'][season][region]['mean']
                     sss[season][region] = gamma['obs'][season][region]['std']
+        # if only global observation is available
+        else:
+            mmm['ALL']['Global'] = gamma['obs']
         obsmean[gamma['longname']] = mmm
         obsstd[gamma['longname']] = sss
 
@@ -324,7 +331,8 @@ def global_mean(exp, year1, year2,
         f'global_mean_{diag.expname}_{diag.modelname}_r1i1p1f1_{diag.year1}_{diag.year2}.pdf'
     loggy.info('Figure file is: %s', mapfile)
 
-    heatmap_comparison_gm(data_table, mean_table, std_table, diag, mapfile)
+    heatmap_comparison_gm(data_table, mean_table, std_table,
+                          diag, mapfile, addnan=diag.addnan)
 
     # Print appending one line to table (for tuning)
     if diag.ftable:
@@ -333,7 +341,8 @@ def global_mean(exp, year1, year2,
 
     toc = time()
     # evaluate tic-toc time of postprocessing
-    loggy.warning(f"Postproc done in {toc - tic:.4f} seconds")
+    loggy.info(f"Postproc done in {toc - tic:.4f} seconds")
+    print('ECmean4 Global Mean succesfully computed!')
 
 
 
@@ -351,8 +360,6 @@ def gm_entry_point():
                 loglevel=args.loglevel,
                 interface=args.interface, config=args.config,
                 model=args.model, ensemble=args.ensemble,
+                addnan=args.addnan,
                 outputdir=args.outputdir)
 
-#if __name__ == "__main__":
-#
-#    gm_entry_point()
