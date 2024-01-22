@@ -61,7 +61,7 @@ def test_global_mean_amip():
     if os.path.isfile(file1):
         os.remove(file1)
     global_mean(exp='amip', year1=1990, year2=1990, numproc=1, config='tests/config.yml',
-                line=True)
+                line=True, addnan=True)
     
     data1 = load_gm_txt_files(file1)
     data2 = load_gm_txt_files(file2)
