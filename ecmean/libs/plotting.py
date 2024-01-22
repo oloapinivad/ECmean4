@@ -12,10 +12,11 @@ from matplotlib.colors import TwoSlopeNorm
 import matplotlib.pyplot as plt
 from matplotlib.colors import ListedColormap
 import seaborn as sns
+import numpy as np
 
 
 
-def heatmap_comparison_pi(relative_table, diag, filemap):
+def heatmap_comparison_pi(relative_table, diag, filemap, size_model = 14):
     """Function to produce a heatmap - seaborn based - for Performance Indices
     based on CMIP6 ratio"""
 
@@ -42,7 +43,8 @@ def heatmap_comparison_pi(relative_table, diag, filemap):
     chart = sns.heatmap(myfield, norm=divnorm, cmap=pal,
                         cbar_kws={"ticks": tictoc, 'label': title},
                         ax=axs, annot=True, linewidth=0.5, fmt='.2f',
-                        annot_kws={'fontsize': 14, 'fontweight': 'bold'})
+                        annot_kws={'fontsize': size_model, 'fontweight': 'bold'})
+    
     chart = chart.set_facecolor('whitesmoke')
     axs.set_title(f'{title} {diag.modelname} {diag.expname} {diag.year1} {diag.year2}', fontsize=25)
     axs.vlines(list(range(sss, tot + sss, sss)), ymin=-1, ymax=len(myfield.index), colors='k')
@@ -60,36 +62,45 @@ def heatmap_comparison_pi(relative_table, diag, filemap):
     plt.close()
 
 
-def heatmap_comparison_gm(data_table, mean_table, std_table, diag, filemap):
+def heatmap_comparison_gm(data_table, mean_table, std_table, diag, filemap, add_nan = True,
+                          size_model = 14, size_obs = 8):
     """Function to produce a heatmap - seaborn based - for Global Mean
     based on season-averaged standard deviation ratio"""
 
     # define array
     ratio = (data_table - mean_table) / std_table
-    mask = ratio[('ALL', 'Global')].notna()
+    if add_nan:
+        mask = data_table[('ALL', 'Global')].notna()
+    else:
+        mask = ratio[('ALL', 'Global')].notna()
     clean = ratio[mask]
 
     # for dimension of plots
     xfig = len(clean.columns)
     yfig = len(clean.index)
-    _, axs = plt.subplots(1, 1, sharey=True, tight_layout=True, figsize=(xfig+5, yfig+2))
+    fig, axs = plt.subplots(1, 1, sharey=True, tight_layout=True, figsize=(xfig+5, yfig+2))
 
     title = 'GLOBAL MEAN'
 
     # set color range and palette
     thr = 10
     tictoc = range(-thr, thr + 1)
-    pal = ListedColormap(sns.color_palette("seismic", n_colors=21))
+    pal = ListedColormap(sns.color_palette("vlag", n_colors=21))
     tot = len(clean.columns)
     sss = len(set([tup[1] for tup in clean.columns]))
 
     chart = sns.heatmap(clean, annot=data_table[mask], vmin=-thr - 0.5, vmax=thr + 0.5, center=0,
-                        annot_kws={'va': 'bottom', 'fontsize': 14},
+                        annot_kws={'va': 'bottom', 'fontsize': size_model},
                         cbar_kws={'ticks': tictoc,
                                   'label': 'Model Bias \n (standard deviation of interannual variability from observations)'},
                         fmt='.2f', cmap=pal)
+    if add_nan:
+        chart = sns.heatmap(np.where(clean.isna(), 0, np.nan), annot=data_table[mask], fmt='.2f',
+                            vmin=-thr - 0.5, vmax=thr + 0.5, center=0,
+                            annot_kws={'va': 'bottom', 'fontsize': size_model, 'color':'dimgrey'}, cbar=False,
+                            cmap=ListedColormap(['none']))
     chart = sns.heatmap(clean, annot=mean_table[mask], vmin=-thr - 0.5, vmax=thr + 0.5, center=0,
-                        annot_kws={'va': 'top', 'fontsize': 8, 'fontstyle': 'italic'},
+                        annot_kws={'va': 'top', 'fontsize': size_obs, 'fontstyle': 'italic'},
                         fmt='.2f', cmap=pal, cbar=False)
 
     chart = chart.set_facecolor('whitesmoke')

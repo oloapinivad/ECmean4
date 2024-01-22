@@ -324,7 +324,8 @@ def global_mean(exp, year1, year2,
         f'global_mean_{diag.expname}_{diag.modelname}_r1i1p1f1_{diag.year1}_{diag.year2}.pdf'
     loggy.info('Figure file is: %s', mapfile)
 
-    heatmap_comparison_gm(data_table, mean_table, std_table, diag, mapfile)
+    heatmap_comparison_gm(data_table, mean_table, std_table, 
+                          diag, mapfile, add_nan=False)
 
     # Print appending one line to table (for tuning)
     if diag.ftable:
