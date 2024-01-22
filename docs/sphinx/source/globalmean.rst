@@ -70,6 +70,10 @@ Optional Arguments
 
    Specify the model name, overriding the configuration specified in ``config.yml``.
 
+.. option:: --addnan
+
+   Activate to plot also in the heatmap also fields which does not have a comparison against observations. Default is False.
+
 .. option:: -v LOGLEVEL, --loglevel LOGLEVEL
 
    Define the level of logging. The default is 'warning'.
