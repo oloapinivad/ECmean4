@@ -1,0 +1,78 @@
+net_sfc:
+  ALL:
+    Global: 20.409
+    North Midlat: 15.043
+    Tropical: 22.871
+    South Midlat: 17.739
+tas:
+  ALL:
+    Global: 16.196
+    North Midlat: 16.188
+    Tropical: 17.131
+    South Midlat: 20.778
+psl:
+  ALL:
+    Global: 2.831
+    North Midlat: 1.556
+    Tropical: 3.931
+    South Midlat: 1.148
+pr:
+  ALL:
+    Global: 30.322
+    North Midlat: 27.619
+    Tropical: 13.611
+    South Midlat: 66.547
+tauu:
+  ALL:
+    Global: 10.857
+    North Midlat: 4.14
+    Tropical: 9.302
+    South Midlat: 16.651
+tauv:
+  ALL:
+    Global: 6.582
+    North Midlat: 5.558
+    Tropical: 6.621
+    South Midlat: 6.847
+ta:
+  ALL:
+    Global: 15.561
+    North Midlat: 16.965
+    Tropical: 6.318
+    South Midlat: 31.658
+ua:
+  ALL:
+    Global: 4.099
+    North Midlat: 4.613
+    Tropical: 4.251
+    South Midlat: 3.553
+va:
+  ALL:
+    Global: 2.718
+    North Midlat: 2.236
+    Tropical: 2.986
+    South Midlat: 2.788
+hus:
+  ALL:
+    Global: 14.392
+    North Midlat: 11.762
+    Tropical: 7.33
+    South Midlat: 31.283
+tos:
+  ALL:
+    Global: .nan
+    North Midlat: .nan
+    Tropical: .nan
+    South Midlat: .nan
+sos:
+  ALL:
+    Global: .nan
+    North Midlat: .nan
+    Tropical: .nan
+    South Midlat: .nan
+siconc:
+  ALL:
+    Global: .nan
+    North Midlat: .nan
+    Tropical: .nan
+    South Midlat: .nan

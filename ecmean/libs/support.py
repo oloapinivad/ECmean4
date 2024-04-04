@@ -8,8 +8,6 @@ from glob import glob
 import logging
 import xarray as xr
 import xesmf as xe
-import sys
-from time import time
 import numpy as np
 from ecmean.libs.ncfixers import xr_preproc
 from ecmean.libs.files import inifiles_priority
