@@ -25,18 +25,12 @@ def inifiles_priority(inidict):
     Areas files comes first, then gridfile and finally land-sea mask.
     Provides flexibility for multiple models with different data access
     """
-
-    if inidict['areafile']:
-        file = inidict['areafile']
-    elif inidict['gridfile']:
-        file = inidict['gridfile']
-    elif inidict['maskfile']:
-        file = inidict['maskfile']
-    else:
-        file = None
-
+    file = None
+    for key in ['areafile', 'gridfile', 'maskfile']:
+        if inidict.get(key):
+            file = inidict[key]
+            break
     return file
-
 
 def var_is_there(flist, var, face):
     """
@@ -214,11 +208,15 @@ def _filter_filename_by_year(template, filenames, year):
 def load_yaml(infile):
     """Load generic yaml file"""
 
-    try:
-        with open(infile, 'r', encoding='utf-8') as file:
-            cfg = yaml.load(file, Loader=yaml.FullLoader)
-    except IOError:
-        raise IOError(f'ERROR: {infile} not found: you need to have this configuration file!')
+    if not os.path.isfile(infile):
+        raise FileNotFoundError(f'ERROR: {infile} not found: you need to have this configuration file!')
+
+    with open(infile, 'r', encoding='utf-8') as file:
+        cfg = yaml.safe_load(file)
+
+    if cfg is None:
+        raise yaml.YAMLError(f'ERROR: An error occurred while parsing the file {infile}')
+
     return cfg
 
 
@@ -246,27 +244,25 @@ def make_input_filename(cmorname, face, diag):
     if diag.xdataset is not None:
         return diag.xdataset
 
-    else:
+    # detect if it is a derived vars and get the list of var to be loaded
+    varname = _get_variables_to_load(cmorname, face)
 
-        # detect if it is a derived vars and get the list of var to be loaded
-        varname = _get_variables_to_load(cmorname, face)
+    # create filepath
+    filepath = _create_filepath(cmorname, face, diag)
 
-        # create filepath
-        filepath = _create_filepath(cmorname, face, diag)
-
-        # create the file structure according to the interface file
-        filename = []
-        for year in diag.years_joined:
-            filename1 = []
-            for var in varname:
-                expandfile = _expand_filename(filepath, var, diag)
-                filenames = glob(str(expandfile))
-                fname = _filter_filename_by_year(str(filepath), filenames, year)
-                filename1 = filename1 + fname
-            filename = filename + filename1
-        filename = list(dict.fromkeys(filename))  # Filter unique ones
-        loggy.debug("Filenames: %s", filename)
-        return filename
+    # create the file structure according to the interface file
+    filename = []
+    for year in diag.years_joined:
+        filename1 = []
+        for var in varname:
+            expandfile = _expand_filename(filepath, var, diag)
+            filenames = glob(str(expandfile))
+            fname = _filter_filename_by_year(str(filepath), filenames, year)
+            filename1 = filename1 + fname
+        filename = filename + filename1
+    filename = list(dict.fromkeys(filename))  # Filter unique ones
+    loggy.debug("Filenames: %s", filename)
+    return filename
 
 
 def _get_variables_to_load(var, face):

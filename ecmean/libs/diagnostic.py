@@ -46,7 +46,7 @@ class Diagnostic():
         self.version = __version__
         if self.year1 == self.year2:
             self.ftrend = False
-        print(f'Welcome to ECmean4 v{self.version}: Running {self.funcname}!')
+        print(f'Welcome to ECmean4 v{self.version}: Running {self.funcname} with {self.numproc} cores!')
 
         #  These are here in prevision of future expansion to CMOR
         self.grid = '*'
