@@ -7,7 +7,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 Unreleased is the current development version, which is currently lying in `main` branch.
 
+## [v0.1.9]
+
+- Specify numpy<2.0 to ensure all funcionalities
+
 ## [v0.1.8]
+
 - Support for python 3.12 (#97)
 - Minor code improvements, plus update docs and benchmarking  (#98)
 
