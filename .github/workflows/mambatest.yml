@@ -34,7 +34,7 @@ jobs:
         environment-file: environment.yml
         environment-name: ecmean
         cache-downloads: true
-        cache-environment: true
+        cache-environment: false
         post-cleanup: environment
         condarc: |
           channels:
