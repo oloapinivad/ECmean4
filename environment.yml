@@ -9,8 +9,9 @@ channels:
 dependencies:
   - python>=3.9
   - libnetcdf
-  - xesmf<=0.8.5
+  - xesmf
   - eccodes
+  - numpy<2.0
   - esmpy
   - pip
   - pip:
