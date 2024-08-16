@@ -147,13 +147,15 @@ def get_inifiles(face, diag):
                         Path(face['model']['basedir']) / \
                         Path(inifile)
 
-                ifiles[comp][name] = str(_expand_filename(inifile, '', diag))
-                loggy.info('%s for component %s is: %s', name, comp, ifiles[comp][name])
-
-                # safe check if inifile exist
-                if not glob(ifiles[comp][name]):
-                    loggy.warning('Inifile %s cannot be found!', ifiles[comp][name])
+                expandfile = _expand_filename(inifile, '', diag)
+                filenames = glob(str(expandfile))
+                if not filenames:
+                    loggy.warning('Inifile %s cannot be found!', str(expandfile))
                     ifiles[comp][name] = ''
+                else:
+                    ifiles[comp][name] = str(_filter_filename_by_year(str(inifile), filenames, diag.year1)[0])
+
+                loggy.info('%s for component %s is: %s', name, comp, ifiles[comp][name])
 
             else:
                 ifiles[comp][name] = ''
