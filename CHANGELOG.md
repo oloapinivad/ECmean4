@@ -10,6 +10,7 @@ Unreleased is the current development version, which is currently lying in `main
 ## [v0.1.10]
 
 - Expand using first year for grdfile and areafile (#100)
+- Remove pin on numpy and extend documentation on EC23 climatology (#101)
 
 ## [v0.1.9]
 
