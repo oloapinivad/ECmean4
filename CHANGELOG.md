@@ -7,6 +7,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 Unreleased is the current development version, which is currently lying in `main` branch.
 
+## [v0.1.10]
+
+- Expand using first year for grdfile and areafile (#100)
+
 ## [v0.1.9]
 
 - Specify numpy<2.0 to ensure all funcionalities

@@ -9,7 +9,6 @@ channels:
 dependencies:
   - python>=3.9
   - xesmf
-  - numpy<2.0
   - eccodes
   - pip
   - pip:

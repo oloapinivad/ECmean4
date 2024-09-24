@@ -20,7 +20,7 @@ classifiers = [
 ]
 dependencies = [
     "xarray",
-    "numpy<2.0",
+    "numpy",
     "netcdf4",
     "numba",
     "dask",
