@@ -3,6 +3,7 @@
 [![PyTest](https://github.com/oloapinivad/ECmean4/actions/workflows/mambatest.yml/badge.svg)](https://github.com/oloapinivad/ECmean4/actions/workflows/mambatest.yml)
 [![Coverage Status](https://coveralls.io/repos/github/oloapinivad/ECmean4/badge.svg)](https://coveralls.io/github/oloapinivad/ECmean4)
 [![PyPI version](https://badge.fury.io/py/ecmean4.svg)](https://badge.fury.io/py/ecmean4)
+[![DOI](https://zenodo.org/badge/460093944.svg)](https://zenodo.org/doi/10.5281/zenodo.13834627)
 
 ![ECmean4](docs/ecmean4_smallest.png)
 
