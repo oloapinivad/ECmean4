@@ -131,19 +131,36 @@ Details are provided here below
 EC23 climatology
 ----------------
 
-* 2m temperature (land-only): CRU TS 4.05, 1990-2019, 11 CMIP6 models over 1981-2010
-* Precipitation: MSWEP, 1990-2019, 12 CMIP6 models over 1981-2010
-* Net surface radiation: NOCS, 1990-2014, 8 CMIP6 models over 1981-2010
-* Eastward wind stress: ORAS5, 1990-2019, 10 CMIP6 models over 1981-2010
-* Meridional wind stress: ORAS5, 1990-2019, 10 CMIP6 models over 1981-2010
-* Mean sea level pressure: ERA5, 1990-2019, 11 CMIP6 models over 1981-2010
-* Zonal wind: ERA5, 1990-2019, 11 CMIP6 models over 1981-2010
-* Meridional wind: ERA5, 1990-2019, 11 CMIP6 models over 1981-2010
-* Air temperature: ERA5, 1990-2019, 11 CMIP6 models over 1981-2010
-* Specific humidity: ERA5, 1990-2019, 10 CMIP6 models over 1981-2010
-* Sea surface temperature: ESA-CCI-L4, 12 CMIP6 models over 1981-2010
-* Sea surface salinity: ORAS5, 1990-2019, 8 CMIP6 models over 1981-2010
-* Sea ice concentration: ESA-CCI-L4, 6 CMIP6 models over 1981-2010
++----------------------------+------------------------+-----------------------------+
+| **Variable**                | **Dataset**       | **Models**                  |
++============================+========================+=============================+
+| 2m temperature (land-only)  | CRU TS 4.05, 1990-2019 | 11 CMIP6 models over 1981-2010 |
++----------------------------+------------------------+-----------------------------+
+| Precipitation               | MSWEP, 1990-2019       | 12 CMIP6 models over 1981-2010 |
++----------------------------+------------------------+-----------------------------+
+| Net surface radiation       | NOCS, 1990-2014        | 8 CMIP6 models over 1981-2010  |
++----------------------------+------------------------+-----------------------------+
+| Eastward wind stress        | ORAS5, 1990-2019       | 10 CMIP6 models over 1981-2010 |
++----------------------------+------------------------+-----------------------------+
+| Meridional wind stress      | ORAS5, 1990-2019       | 10 CMIP6 models over 1981-2010 |
++----------------------------+------------------------+-----------------------------+
+| Mean sea level pressure     | ERA5, 1990-2019        | 11 CMIP6 models over 1981-2010 |
++----------------------------+------------------------+-----------------------------+
+| Zonal wind                  | ERA5, 1990-2019        | 11 CMIP6 models over 1981-2010 |
++----------------------------+------------------------+-----------------------------+
+| Meridional wind             | ERA5, 1990-2019        | 11 CMIP6 models over 1981-2010 |
++----------------------------+------------------------+-----------------------------+
+| Air temperature             | ERA5, 1990-2019        | 11 CMIP6 models over 1981-2010 |
++----------------------------+------------------------+-----------------------------+
+| Specific humidity           | ERA5, 1990-2019        | 10 CMIP6 models over 1981-2010 |
++----------------------------+------------------------+-----------------------------+
+| Sea surface temperature     | ESA-CCI-L4             | 12 CMIP6 models over 1981-2010 |
++----------------------------+------------------------+-----------------------------+
+| Sea surface salinity        | ORAS5, 1990-2019       | 8 CMIP6 models over 1981-2010  |
++----------------------------+------------------------+-----------------------------+
+| Sea ice concentration       | ESA-CCI-L4             | 6 CMIP6 models over 1981-2010  |
++----------------------------+------------------------+-----------------------------+
+
 
 Properties of each climatology - as which interpolation method and which CMIP6 models has been used - can be inspected looking at ``ecmean/climatology/{clim}/pi_climatology_{clim}.yml`` files.
 
