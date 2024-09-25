@@ -126,43 +126,55 @@ The performance indices built on the comparison between model data and a pre-com
 The ECmean climatology - from the previous CDO-based code - is currently defined as ``RK08``, and although still available, is not recommended for use since it is based on old datasets (e.g. ERA40). 
 
 A new climatology has been developed making use of high-resolution data (e.g. CRU, ERA5, MSWEP, etc.) and is now defined as ``EC23``, using a 1x1 deg resolution and being the new default. 
-Details are provided here below
-
-EC23 climatology
-----------------
-
-+----------------------------+------------------------+-----------------------------+
-| **Variable**                | **Dataset**       | **Models**                  |
-+============================+========================+=============================+
-| 2m temperature (land-only)  | CRU TS 4.05, 1990-2019 | 11 CMIP6 models over 1981-2010 |
-+----------------------------+------------------------+-----------------------------+
-| Precipitation               | MSWEP, 1990-2019       | 12 CMIP6 models over 1981-2010 |
-+----------------------------+------------------------+-----------------------------+
-| Net surface radiation       | NOCS, 1990-2014        | 8 CMIP6 models over 1981-2010  |
-+----------------------------+------------------------+-----------------------------+
-| Eastward wind stress        | ORAS5, 1990-2019       | 10 CMIP6 models over 1981-2010 |
-+----------------------------+------------------------+-----------------------------+
-| Meridional wind stress      | ORAS5, 1990-2019       | 10 CMIP6 models over 1981-2010 |
-+----------------------------+------------------------+-----------------------------+
-| Mean sea level pressure     | ERA5, 1990-2019        | 11 CMIP6 models over 1981-2010 |
-+----------------------------+------------------------+-----------------------------+
-| Zonal wind                  | ERA5, 1990-2019        | 11 CMIP6 models over 1981-2010 |
-+----------------------------+------------------------+-----------------------------+
-| Meridional wind             | ERA5, 1990-2019        | 11 CMIP6 models over 1981-2010 |
-+----------------------------+------------------------+-----------------------------+
-| Air temperature             | ERA5, 1990-2019        | 11 CMIP6 models over 1981-2010 |
-+----------------------------+------------------------+-----------------------------+
-| Specific humidity           | ERA5, 1990-2019        | 10 CMIP6 models over 1981-2010 |
-+----------------------------+------------------------+-----------------------------+
-| Sea surface temperature     | ESA-CCI-L4             | 12 CMIP6 models over 1981-2010 |
-+----------------------------+------------------------+-----------------------------+
-| Sea surface salinity        | ORAS5, 1990-2019       | 8 CMIP6 models over 1981-2010  |
-+----------------------------+------------------------+-----------------------------+
-| Sea ice concentration       | ESA-CCI-L4             | 6 CMIP6 models over 1981-2010  |
-+----------------------------+------------------------+-----------------------------+
-
-
 Properties of each climatology - as which interpolation method and which CMIP6 models has been used - can be inspected looking at ``ecmean/climatology/{clim}/pi_climatology_{clim}.yml`` files.
+
+.. list-table:: Data used in EC23 climatology
+   :header-rows: 1
+   :widths: 30 30 30
+
+   * - **Variable**
+     - **Observations**
+     - **Models**
+   * - 2m temperature (land-only)
+     - CRU TS 4.05, 1990-2019
+     - 11 CMIP6 models over 1981-2010
+   * - Precipitation
+     - MSWEP, 1990-2019
+     - 12 CMIP6 models over 1981-2010
+   * - Net surface radiation
+     - NOCS, 1990-2014
+     - 8 CMIP6 models over 1981-2010
+   * - Eastward wind stress
+     - ORAS5, 1990-2019
+     - 10 CMIP6 models over 1981-2010
+   * - Meridional wind stress
+     - ORAS5, 1990-2019
+     - 10 CMIP6 models over 1981-2010
+   * - Mean sea level pressure
+     - ERA5, 1990-2019
+     - 11 CMIP6 models over 1981-2010
+   * - Zonal wind
+     - ERA5, 1990-2019
+     - 11 CMIP6 models over 1981-2010
+   * - Meridional wind
+     - ERA5, 1990-2019
+     - 11 CMIP6 models over 1981-2010
+   * - Air temperature
+     - ERA5, 1990-2019
+     - 11 CMIP6 models over 1981-2010
+   * - Specific humidity
+     - ERA5, 1990-2019
+     - 10 CMIP6 models over 1981-2010
+   * - Sea surface temperature
+     - ESA-CCI-L4
+     - 12 CMIP6 models over 1981-2010
+   * - Sea surface salinity
+     - ORAS5, 1990-2019
+     - 8 CMIP6 models over 1981-2010
+   * - Sea ice concentration
+     - ESA-CCI-L4
+     - 6 CMIP6 models over 1981-2010
+
 
 Climatology computation
 ^^^^^^^^^^^^^^^^^^^^^^^
