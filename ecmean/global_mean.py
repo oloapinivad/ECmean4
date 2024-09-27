@@ -290,8 +290,8 @@ def global_mean(exp, year1, year2,
     head = head + ['Obs.', 'Dataset', 'Years']
 
     # write the file with tabulate
-    tablefile = diag.tabdir / \
-        f'global_mean_{diag.expname}_{diag.modelname}_{diag.ensemble}_{diag.year1}_{diag.year2}.txt'
+    tablefile = os.path.join(diag.tabdir,
+                             f'global_mean_{diag.expname}_{diag.modelname}_{diag.ensemble}_{diag.year1}_{diag.year2}.txt')
     loggy.info('Table file is: %s', tablefile)
     with open(tablefile, 'w', encoding='utf-8') as out:
         out.write(tabulate(global_table, headers=head, stralign='center', tablefmt='orgtbl'))
@@ -302,8 +302,8 @@ def global_mean(exp, year1, year2,
         ordered[var] = varmean[var]
 
     # dump the yaml file for global_mean, including all the seasons
-    yamlfile = diag.tabdir / \
-        f'global_mean_{diag.expname}_{diag.modelname}_{diag.ensemble}_{diag.year1}_{diag.year2}.yml'
+    yamlfile = os.path.join(diag.tabdir,
+                            f'global_mean_{diag.expname}_{diag.modelname}_{diag.ensemble}_{diag.year1}_{diag.year2}.yml')
     loggy.info('YAML file is: %s', tablefile)
     with open(yamlfile, 'w', encoding='utf-8') as file:
         yaml.safe_dump(ordered, file, default_flow_style=False, sort_keys=False)
@@ -325,8 +325,8 @@ def global_mean(exp, year1, year2,
     loggy.debug(data_table)
 
     # call the heatmap routine for a plot
-    mapfile = os.join(diag.figdir,
-                      f'global_mean_{diag.expname}_{diag.modelname}_r1i1p1f1_{diag.year1}_{diag.year2}.pdf')
+    mapfile = os.path.join(diag.figdir,
+                           f'global_mean_{diag.expname}_{diag.modelname}_r1i1p1f1_{diag.year1}_{diag.year2}.pdf')
     loggy.info('Figure file is: %s', mapfile)
 
     diag_dict = {'modelname': diag.modelname, 'expname': diag.expname,
