@@ -10,6 +10,7 @@ import yaml
 from ecmean.performance_indices import performance_indices
 from ecmean.libs.ncfixers import xr_preproc
 from ecmean.libs.general import are_dicts_equal
+from ecmean.libs.plotting import heatmap_comparison_pi
 
 # set TOLERANCE
 TOLERANCE = 1e-3
@@ -71,3 +72,12 @@ def test_performance_indices_amip_xdataset(clim):
         data2 = yaml.safe_load(f2)
 
     assert are_dicts_equal(data1, data2, TOLERANCE), "YAML files are not identical."
+
+
+def test_pi_plot():
+    file1 = 'tests/table/PI4_EC23_amip_EC-Earth4_r1i1p1f1_1990_1990.yml'
+    with open(file1, 'r', encoding='utf8') as f1:
+        data1 = yaml.safe_load(f1)
+    heatmap_comparison_pi(data1, {'modelname': 'EC-Earth4', 'expname': 'amip', 'year1': '1990', 'year2': '1990'}, 'tests/pluto/PI4_EC23_amip_EC-Earth4_r1i1p1f1_1990_1990.png')
+    assert os.path.isfile('tests/pluto/PI4_EC23_amip_EC-Earth4_r1i1p1f1_1990_1990.png'), "Plot not created."
+    os.remove('tests/pluto/PI4_EC23_amip_EC-Earth4_r1i1p1f1_1990_1990.png')
