@@ -15,7 +15,7 @@ import seaborn as sns
 import numpy as np
 
 
-def heatmap_comparison_pi(relative_table, diag: dict, filemap: str, size_model=14):
+def heatmap_comparison_pi(relative_table, diag: dict, filemap: str, size_model=14, **kwargs):
     """
     Function to produce a heatmap - seaborn based - for Performance Indices
     based on CMIP6 ratio
@@ -25,6 +25,9 @@ def heatmap_comparison_pi(relative_table, diag: dict, filemap: str, size_model=1
         diag (dict): dictionary containing diagnostic information
         filemap (str): path to save the plot
         size_model (int): size of the PIs in the plot
+
+    Keyword Args:
+        title (str): title of the plot, overrides default title
     """
 
     # defining plot size
@@ -37,7 +40,12 @@ def heatmap_comparison_pi(relative_table, diag: dict, filemap: str, size_model=1
 
     thr = [0, 1, 5]
     tictoc = [0, 0.25, 0.5, 0.75, 1, 2, 3, 4, 5]
-    title = 'CMIP6 RELATIVE PI'
+
+    if 'title' in kwargs:
+        title = kwargs['title']
+    else:
+        title = 'CMIP6 RELATIVE PI'
+        title += ' ' + diag['modelname'] + ' ' + diag['expname'] + ' ' + diag['year1'] + ' ' + diag['year2']
 
     tot = len(myfield.columns)
     sss = len(set([tup[1] for tup in myfield.columns]))
@@ -49,7 +57,7 @@ def heatmap_comparison_pi(relative_table, diag: dict, filemap: str, size_model=1
                         annot_kws={'fontsize': size_model, 'fontweight': 'bold'})
 
     chart = chart.set_facecolor('whitesmoke')
-    axs.set_title(f'{title} {diag["modelname"]} {diag["expname"]} {diag["year1"]} {diag["year2"]}', fontsize=25)
+    axs.set_title(title, fontsize=25)
     axs.vlines(list(range(sss, tot + sss, sss)), ymin=-1, ymax=len(myfield.index), colors='k')
     axs.hlines(len(myfield.index) - 1, xmin=-1, xmax=len(myfield.columns), colors='purple', lw=2)
     names = [' '.join(x) for x in myfield.columns]
@@ -66,7 +74,7 @@ def heatmap_comparison_pi(relative_table, diag: dict, filemap: str, size_model=1
 
 
 def heatmap_comparison_gm(data_table, mean_table, std_table, diag: dict, filemap: str,
-                          addnan=True, size_model=14, size_obs=8):
+                          addnan=True, size_model=14, size_obs=8, **kwargs):
     """
     Function to produce a heatmap - seaborn based - for Global Mean
     based on season-averaged standard deviation ratio
@@ -80,6 +88,9 @@ def heatmap_comparison_gm(data_table, mean_table, std_table, diag: dict, filemap
         addnan (bool): add to the final plots also fields which cannot be compared against observations
         size_model (int): size of the model values in the plot
         size_obs (int): size of the observation values in the plot
+
+    Keyword Args:
+        title (str): title of the plot, overrides default title
     """
 
     # define array
@@ -95,7 +106,11 @@ def heatmap_comparison_gm(data_table, mean_table, std_table, diag: dict, filemap
     yfig = len(clean.index)
     _, axs = plt.subplots(1, 1, sharey=True, tight_layout=True, figsize=(xfig+5, yfig+2))
 
-    title = 'GLOBAL MEAN'
+    if 'title' in kwargs:
+        title = kwargs['title']
+    else:
+        title = 'GLOBAL MEAN'
+        title += ' ' + diag['modelname'] + ' ' + diag['expname'] + ' ' + diag['year1'] + ' ' + diag['year2']
 
     # set color range and palette
     thr = 10
@@ -127,7 +142,7 @@ def heatmap_comparison_gm(data_table, mean_table, std_table, diag: dict, filemap
                             fmt='.2f', cmap=ListedColormap(['none']), cbar=False)
 
     chart = chart.set_facecolor('whitesmoke')
-    axs.set_title(f'{title} {diag["modelname"]} {diag["expname"]} {diag["year1"]} {diag["year2"]}', fontsize=25)
+    axs.set_title(title, fontsize=25)
     axs.vlines(list(range(sss, tot + sss, sss)), ymin=-1, ymax=len(clean.index), colors='k')
     names = [' '.join(x) for x in clean.columns]
     axs.set_xticks([x + .5 for x in range(len(names))], names, rotation=45, ha='right', fontsize=16)
