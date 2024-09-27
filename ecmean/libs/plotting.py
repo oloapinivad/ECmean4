@@ -13,6 +13,7 @@ import matplotlib.pyplot as plt
 from matplotlib.colors import ListedColormap
 import seaborn as sns
 import numpy as np
+from .general import dict_to_dataframe
 
 
 def heatmap_comparison_pi(relative_table, diag: dict, filemap: str, size_model=14, **kwargs):
@@ -21,7 +22,7 @@ def heatmap_comparison_pi(relative_table, diag: dict, filemap: str, size_model=1
     based on CMIP6 ratio
 
     Args:
-        relative_table (pandas.DataFrame): table of relative performance indices
+        relative_table (pandas.DataFrame or dict): table of relative performance indices
         diag (dict): dictionary containing diagnostic information
         filemap (str): path to save the plot
         size_model (int): size of the PIs in the plot
@@ -29,6 +30,8 @@ def heatmap_comparison_pi(relative_table, diag: dict, filemap: str, size_model=1
     Keyword Args:
         title (str): title of the plot, overrides default title
     """
+    if isinstance(relative_table, dict):
+        relative_table = dict_to_dataframe(relative_table)
 
     # defining plot size
     myfield = relative_table
@@ -45,7 +48,7 @@ def heatmap_comparison_pi(relative_table, diag: dict, filemap: str, size_model=1
         title = kwargs['title']
     else:
         title = 'CMIP6 RELATIVE PI'
-        title += ' ' + diag['modelname'] + ' ' + diag['expname'] + ' ' + diag['year1'] + ' ' + diag['year2']
+        title += ' ' + diag['modelname'] + ' ' + diag['expname'] + ' ' + str(diag['year1']) + ' ' + str(diag['year2'])
 
     tot = len(myfield.columns)
     sss = len(set([tup[1] for tup in myfield.columns]))
@@ -80,9 +83,9 @@ def heatmap_comparison_gm(data_table, mean_table, std_table, diag: dict, filemap
     based on season-averaged standard deviation ratio
 
     Args:
-        data_table (pandas.DataFrame): table of model data
-        mean_table (pandas.DataFrame): table of observations
-        std_table (pandas.DataFrame): table of standard deviation
+        data_table (pandas.DataFrame or dict): table of model data
+        mean_table (pandas.DataFrame or dict): table of observations
+        std_table (pandas.DataFrame or dict): table of standard deviation
         diag (dict): dictionary containing diagnostic information
         filemap (str): path to save the plot
         addnan (bool): add to the final plots also fields which cannot be compared against observations
@@ -92,6 +95,9 @@ def heatmap_comparison_gm(data_table, mean_table, std_table, diag: dict, filemap
     Keyword Args:
         title (str): title of the plot, overrides default title
     """
+    for tab in [data_table, mean_table, std_table]:
+        if isinstance(tab, dict):
+            tab = dict_to_dataframe(tab)
 
     # define array
     ratio = (data_table - mean_table) / std_table
@@ -110,7 +116,7 @@ def heatmap_comparison_gm(data_table, mean_table, std_table, diag: dict, filemap
         title = kwargs['title']
     else:
         title = 'GLOBAL MEAN'
-        title += ' ' + diag['modelname'] + ' ' + diag['expname'] + ' ' + diag['year1'] + ' ' + diag['year2']
+        title += ' ' + diag['modelname'] + ' ' + diag['expname'] + ' ' + str(diag['year1']) + ' ' + str(diag['year2'])
 
     # set color range and palette
     thr = 10
