@@ -15,9 +15,17 @@ import seaborn as sns
 import numpy as np
 
 
-def heatmap_comparison_pi(relative_table, diag, filemap, size_model=14):
-    """Function to produce a heatmap - seaborn based - for Performance Indices
-    based on CMIP6 ratio"""
+def heatmap_comparison_pi(relative_table, diag: dict, filemap: str, size_model=14):
+    """
+    Function to produce a heatmap - seaborn based - for Performance Indices
+    based on CMIP6 ratio
+
+    Args:
+        relative_table (pandas.DataFrame): table of relative performance indices
+        diag (dict): dictionary containing diagnostic information
+        filemap (str): path to save the plot
+        size_model (int): size of the PIs in the plot
+    """
 
     # defining plot size
     myfield = relative_table
@@ -31,20 +39,17 @@ def heatmap_comparison_pi(relative_table, diag, filemap, size_model=14):
     tictoc = [0, 0.25, 0.5, 0.75, 1, 2, 3, 4, 5]
     title = 'CMIP6 RELATIVE PI'
 
-    # axs.subplots_adjust(bottom=0.2)
-    # pal = sns.diverging_palette(h_neg=130, h_pos=10, s=99, l=55, sep=3, as_cmap=True)
     tot = len(myfield.columns)
     sss = len(set([tup[1] for tup in myfield.columns]))
     divnorm = TwoSlopeNorm(vmin=thr[0], vcenter=thr[1], vmax=thr[2])
     pal = sns.color_palette("Spectral_r", as_cmap=True)
-    # pal = sns.diverging_palette(220, 20, as_cmap=True)
     chart = sns.heatmap(myfield, norm=divnorm, cmap=pal,
                         cbar_kws={"ticks": tictoc, 'label': title},
                         ax=axs, annot=True, linewidth=0.5, fmt='.2f',
                         annot_kws={'fontsize': size_model, 'fontweight': 'bold'})
 
     chart = chart.set_facecolor('whitesmoke')
-    axs.set_title(f'{title} {diag.modelname} {diag.expname} {diag.year1} {diag.year2}', fontsize=25)
+    axs.set_title(f'{title} {diag["modelname"]} {diag["expname"]} {diag["year1"]} {diag["year2"]}', fontsize=25)
     axs.vlines(list(range(sss, tot + sss, sss)), ymin=-1, ymax=len(myfield.index), colors='k')
     axs.hlines(len(myfield.index) - 1, xmin=-1, xmax=len(myfield.columns), colors='purple', lw=2)
     names = [' '.join(x) for x in myfield.columns]
@@ -60,10 +65,22 @@ def heatmap_comparison_pi(relative_table, diag, filemap, size_model=14):
     plt.close()
 
 
-def heatmap_comparison_gm(data_table, mean_table, std_table, diag, filemap, addnan=True,
-                          size_model=14, size_obs=8):
-    """Function to produce a heatmap - seaborn based - for Global Mean
-    based on season-averaged standard deviation ratio"""
+def heatmap_comparison_gm(data_table, mean_table, std_table, diag: dict, filemap: str,
+                          addnan=True, size_model=14, size_obs=8):
+    """
+    Function to produce a heatmap - seaborn based - for Global Mean
+    based on season-averaged standard deviation ratio
+
+    Args:
+        data_table (pandas.DataFrame): table of model data
+        mean_table (pandas.DataFrame): table of observations
+        std_table (pandas.DataFrame): table of standard deviation
+        diag (dict): dictionary containing diagnostic information
+        filemap (str): path to save the plot
+        addnan (bool): add to the final plots also fields which cannot be compared against observations
+        size_model (int): size of the model values in the plot
+        size_obs (int): size of the observation values in the plot
+    """
 
     # define array
     ratio = (data_table - mean_table) / std_table
@@ -76,7 +93,7 @@ def heatmap_comparison_gm(data_table, mean_table, std_table, diag, filemap, addn
     # for dimension of plots
     xfig = len(clean.columns)
     yfig = len(clean.index)
-    fig, axs = plt.subplots(1, 1, sharey=True, tight_layout=True, figsize=(xfig+5, yfig+2))
+    _, axs = plt.subplots(1, 1, sharey=True, tight_layout=True, figsize=(xfig+5, yfig+2))
 
     title = 'GLOBAL MEAN'
 
@@ -110,7 +127,7 @@ def heatmap_comparison_gm(data_table, mean_table, std_table, diag, filemap, addn
                             fmt='.2f', cmap=ListedColormap(['none']), cbar=False)
 
     chart = chart.set_facecolor('whitesmoke')
-    axs.set_title(f'{title} {diag.modelname} {diag.expname} {diag.year1} {diag.year2}', fontsize=25)
+    axs.set_title(f'{title} {diag["modelname"]} {diag["expname"]} {diag["year1"]} {diag["year2"]}', fontsize=25)
     axs.vlines(list(range(sss, tot + sss, sss)), ymin=-1, ymax=len(clean.index), colors='k')
     names = [' '.join(x) for x in clean.columns]
     axs.set_xticks([x + .5 for x in range(len(names))], names, rotation=45, ha='right', fontsize=16)

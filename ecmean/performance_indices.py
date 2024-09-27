@@ -35,6 +35,7 @@ from ecmean.libs.loggy import setup_logger
 
 dask.config.set(scheduler="synchronous")
 
+
 def pi_worker(util, piclim, face, diag, field_3d, varstat, varlist):
     """Main parallel diagnostic worker for performance indices
 
@@ -183,21 +184,21 @@ def pi_worker(util, piclim, face, diag, field_3d, varstat, varlist):
 
                     # horizontal averaging with land-sea mask
                     else:
-                        
+
                         complete = (final - cfield)**2 / vfield
                         outarray = mask_field(xfield=complete,
-                                            mask_type=piclim[var]['mask'],
-                                            dom=domain, mask=domain_mask)
+                                              mask_type=piclim[var]['mask'],
+                                              dom=domain, mask=domain_mask)
 
                     # loop on different regions
                     for region in diag.regions:
 
                         slicearray = select_region(outarray, region)
- 
+
                         # latitude-based averaging
                         weights = np.cos(np.deg2rad(slicearray.lat))
                         out = slicearray.weighted(weights).mean().data
-                         # store the PI
+                        # store the PI
                         result[season][region] = round(float(out), 3)
 
                         # diagnostic
@@ -294,22 +295,18 @@ def performance_indices(exp, year1, year2,
     loggy.info('Preproc in {:.4f} seconds'.format(toc - tic))
     tic = time()
 
-  
     # loop on the variables, create the parallel process
     for varlist in weight_split(diag.field_all, diag.numproc):
-        #print(varlist)
+        # print(varlist)
 
-
-        core = Process(
-            target=pi_worker, args=(util_dictionary, piclim,
-                face, diag, diag.field_3d, varstat, varlist))
+        core = Process(target=pi_worker, args=(util_dictionary, piclim,
+                       face, diag, diag.field_3d, varstat, varlist))
         core.start()
         processes.append(core)
 
     # wait for the processes to finish
     for proc in processes:
         proc.join()
-
 
     toc = time()
     # evaluate tic-toc time  of execution
@@ -341,7 +338,7 @@ def performance_indices(exp, year1, year2,
         # set longname, reorganize the dictionaries
         plotted = {}
         cmip6 = {}
-        longnames =[]
+        longnames = []
         for var in diag.field_all:
             plotted[piclim[var]['longname']] = ordered[var]
             cmip6[piclim[var]['longname']] = filt_piclim[var]
@@ -350,7 +347,6 @@ def performance_indices(exp, year1, year2,
         # convert output dictionary to pandas dataframe
         data_table = dict_to_dataframe(plotted)
         loggy.debug(data_table)
-
 
         # relative pi with re-ordering of rows
         cmip6_table = data_table.div(dict_to_dataframe(cmip6).reindex(longnames))
@@ -363,12 +359,13 @@ def performance_indices(exp, year1, year2,
         cmip6_table = cmip6_table[lll]
         loggy.debug(cmip6_table)
 
-
         # call the heatmap routine for a plot
         mapfile = diag.figdir / \
             f'PI4_{diag.climatology}_{diag.expname}_{diag.modelname}_r1i1p1f1_{diag.year1}_{diag.year2}.pdf'
         # heatmap_comparison_old(data_table, diag, mapfile)
-        heatmap_comparison_pi(cmip6_table, diag, mapfile)
+        diag_dict = {'modelname': diag.modelname, 'expname': diag.expname,
+                     'year1': diag.year1, 'year2': diag.year2}
+        heatmap_comparison_pi(cmip6_table, diag_dict, mapfile)
 
     toc = time()
     # evaluate tic-toc time of postprocessing
@@ -391,4 +388,3 @@ def pi_entry_point():
                         interface=args.interface, config=args.config,
                         model=args.model, ensemble=args.ensemble,
                         outputdir=args.outputdir)
-

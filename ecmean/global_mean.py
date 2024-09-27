@@ -331,8 +331,11 @@ def global_mean(exp, year1, year2,
         f'global_mean_{diag.expname}_{diag.modelname}_r1i1p1f1_{diag.year1}_{diag.year2}.pdf'
     loggy.info('Figure file is: %s', mapfile)
 
+    diag_dict = {'modelname': diag.modelname, 'expname': diag.expname,
+                 'year1': diag.year1, 'year2': diag.year2}
+
     heatmap_comparison_gm(data_table, mean_table, std_table,
-                          diag, mapfile, addnan=diag.addnan)
+                          diag_dict, mapfile, addnan=diag.addnan)
 
     # Print appending one line to table (for tuning)
     if diag.ftable:
@@ -343,7 +346,6 @@ def global_mean(exp, year1, year2,
     # evaluate tic-toc time of postprocessing
     loggy.info(f"Postproc done in {toc - tic:.4f} seconds")
     print('ECmean4 Global Mean succesfully computed!')
-
 
 
 def gm_entry_point():
@@ -362,4 +364,3 @@ def gm_entry_point():
                 model=args.model, ensemble=args.ensemble,
                 addnan=args.addnan,
                 outputdir=args.outputdir)
-
