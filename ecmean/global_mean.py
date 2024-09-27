@@ -37,6 +37,7 @@ from ecmean.libs.loggy import setup_logger
 
 dask.config.set(scheduler="synchronous")
 
+
 def gm_worker(util, ref, face, diag, varmean, vartrend, varlist):
     """Main parallel diagnostic worker for global mean
 
@@ -60,7 +61,6 @@ def gm_worker(util, ref, face, diag, varmean, vartrend, varlist):
         # create empty nested dictionaries
         result = init_mydict(diag.seasons, diag.regions)
         trend = init_mydict(diag.seasons, diag.regions)
-
 
         # check if the variable is in the interface file
         if check_var_interface(var, face):
@@ -215,7 +215,7 @@ def global_mean(exp, year1, year2,
 
     # create util dictionary including mask and weights for both atmosphere
     # and ocean grids
-    util_dictionary = Supporter(comp, inifiles['atm'], inifiles['oce'], 
+    util_dictionary = Supporter(comp, inifiles['atm'], inifiles['oce'],
                                 areas=True, remap=False)
 
     # main loop: manager is required for shared variables
@@ -225,14 +225,12 @@ def global_mean(exp, year1, year2,
     varmean = mgr.dict()
     vartrend = mgr.dict()
     processes = []
-    
-
 
     # loop on the variables, create the parallel process
     for varlist in weight_split(diag.var_all, diag.numproc):
         core = Process(
             target=gm_worker, args=(util_dictionary, ref, face, diag,
-                                            varmean, vartrend, varlist))
+                                    varmean, vartrend, varlist))
         core.start()
         processes.append(core)
 
@@ -327,8 +325,8 @@ def global_mean(exp, year1, year2,
     loggy.debug(data_table)
 
     # call the heatmap routine for a plot
-    mapfile = diag.figdir / \
-        f'global_mean_{diag.expname}_{diag.modelname}_r1i1p1f1_{diag.year1}_{diag.year2}.pdf'
+    mapfile = os.join(diag.figdir,
+                      f'global_mean_{diag.expname}_{diag.modelname}_r1i1p1f1_{diag.year1}_{diag.year2}.pdf')
     loggy.info('Figure file is: %s', mapfile)
 
     diag_dict = {'modelname': diag.modelname, 'expname': diag.expname,
