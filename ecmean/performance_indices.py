@@ -360,12 +360,12 @@ def performance_indices(exp, year1, year2,
         loggy.debug(cmip6_table)
 
         # call the heatmap routine for a plot
-        mapfile = diag.figdir / \
-            f'PI4_{diag.climatology}_{diag.expname}_{diag.modelname}_r1i1p1f1_{diag.year1}_{diag.year2}.pdf'
+        mapfile = os.join(diag.figdir,
+                          f'PI4_{diag.climatology}_{diag.expname}_{diag.modelname}_r1i1p1f1_{diag.year1}_{diag.year2}.pdf')
         # heatmap_comparison_old(data_table, diag, mapfile)
         diag_dict = {'modelname': diag.modelname, 'expname': diag.expname,
                      'year1': diag.year1, 'year2': diag.year2}
-        heatmap_comparison_pi(cmip6_table, diag_dict, mapfile)
+        heatmap_comparison_pi(cmip6_table, diag=diag_dict, filemap=mapfile)
 
     toc = time()
     # evaluate tic-toc time of postprocessing
