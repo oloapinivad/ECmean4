@@ -71,6 +71,3 @@ def test_performance_indices_amip_xdataset(clim):
         data2 = yaml.safe_load(f2)
 
     assert are_dicts_equal(data1, data2, TOLERANCE), "YAML files are not identical."
-
-
-
