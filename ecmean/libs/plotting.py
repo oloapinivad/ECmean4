@@ -16,7 +16,7 @@ import numpy as np
 from .general import dict_to_dataframe
 
 
-def heatmap_comparison_pi(relative_table, diag: dict, filemap: str, size_model=14, **kwargs):
+def heatmap_comparison_pi(relative_table, diag: dict = None, filemap: str = None, size_model=14, **kwargs):
     """
     Function to produce a heatmap - seaborn based - for Performance Indices
     based on CMIP6 ratio
@@ -69,6 +69,12 @@ def heatmap_comparison_pi(relative_table, diag: dict, filemap: str, size_model=1
     axs.figure.axes[-1].tick_params(labelsize=15)
     axs.figure.axes[-1].yaxis.label.set_size(15)
     axs.set(xlabel=None)
+
+    if filemap is None:
+        if diag is not None:
+            filemap = f'PI4_{diag["expname"]}_{diag["modelname"]}_{diag["year1"]}_{diag["year2"]}.pdf'
+        else:
+            filemap = 'PI4_heatmap.pdf'
 
     # save and close
     plt.savefig(filemap)
