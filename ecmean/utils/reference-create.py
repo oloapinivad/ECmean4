@@ -117,9 +117,9 @@ for var in variables:
 
         # tell us that we do not have the full data window
         if (real_year1 != year1):
-            logging.warning("Initial year different from what expected: " + str(real_year1))
+            logging.warning("Initial year different from what expected: %s", real_year1)
         if (real_year2 != year2):
-            logging.warning("Final year different from what expected: " + str(real_year2))
+            logging.warning("Final year different from what expected: %s", real_year2)
 
         # get a single record and exploit of ecmean function to estimate areas
         print("Compute cell area for weights...")
@@ -137,8 +137,8 @@ for var in variables:
 
         # yearly and season averages
         print("Time averages...")
-        gfield1 = cfield.resample(time='AS', skipna=nanskipper).mean('time', skipna=nanskipper).load()
-        gfield2 = cfield.resample(time='Q-NOV', skipna=nanskipper).mean('time', skipna=nanskipper).load()
+        gfield1 = cfield.resample(time='YS', skipna=nanskipper).mean('time', skipna=nanskipper).load()
+        gfield2 = cfield.resample(time='QE-NOV', skipna=nanskipper).mean('time', skipna=nanskipper).load()
 
         print("Season loop...")
         mf = {}
@@ -156,7 +156,8 @@ for var in variables:
 
             mf[season] = {}
             # print("Region loop...")
-            for region in ['Global', 'North Midlat', 'Tropical', 'South Midlat']:
+            for region in ['Global', 'NH', 'SH', 'Tropical',
+                           'North Midlat', 'Tropical-old', 'South Midlat']:
 
                 # slice everything
                 slicefield = select_region(gfield, region)
@@ -225,5 +226,5 @@ for var in variables:
     dclim[var]['obs'] = mf
 
     # dump the yaml file
-    with open(clim_file, 'w') as file:
+    with open(clim_file, 'w', encoding='utf8') as file:
         yaml.safe_dump(dclim, file, sort_keys=False)

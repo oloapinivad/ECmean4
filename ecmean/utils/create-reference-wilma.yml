@@ -28,7 +28,7 @@ tas:
   org_units: celsius
   tgt_units: celsius
   dir: "{datadir}/{dataset}/data/*.nc"
-  notes: 'CRU TS4.05'
+  notes: CRU TS4.05
 psl: 
   dataset: ERA5
   longname: 'Mean Sea Level Pressure'

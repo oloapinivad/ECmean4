@@ -26,7 +26,7 @@ refclim = 'EC23'
 nprocs = 2
 do_compute = True
 do_create_clim = True
-do_definitive = False
+do_definitive = True
 config_file = '../config_CMIP6_PD.yml'
 climdir = '../climatology/'
 
@@ -108,6 +108,7 @@ if do_create_clim:
             for region, value in region_data.items():
                 piclim[var]['cmip6'][season][region] = float(value)
         piclim[var]['cmip6']['models'] = mout[var]
+        piclim[var]['cmip6']['nmodels'] = len(mout[var])
         piclim[var]['cmip6']['year1'] = year1
         piclim[var]['cmip6']['year2'] = year2
 
