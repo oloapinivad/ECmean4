@@ -13,63 +13,74 @@ dirs:
 # climatological dataset, remapping method and other features
 tas: 
   dataset: CRU
+  description: CRU TS4.04 Mean Temperature
   varname: tmp
   units: degC
   remap: remapbil
   dir: "{datadir}/{dataset}/data/*.nc" 
 pr:
   dataset: MSWEP
+  description: Multi-Source Weighted-Ensemble Precipitation v2.1
   varname: precipitation
   units: mm/month
   remap: remapcon
   dir: "{datadir}/{dataset}/data/*.nc"
 ua: 
   dataset: ERA5
+  description: ECMWF ERA5 reanalysis
   varname: var131
   remap: remapbil
   units: m s-1
   dir: "/work/datasets/obs/{dataset}/u_component_of_wind/mon/{dataset}_*.nc"
 va: 
   dataset: ERA5
+  description: ECMWF ERA5 reanalysis
   varname: v
   units: m s-1  
   remap: remapbil
   dir: "/work/datasets/obs/{dataset}/v_component_of_wind/mon/{dataset}_*.nc"
 ta: 
   dataset: ERA5
+  description: ECMWF ERA5 reanalysis
   varname: t
   remap: remapbil
   units: K
   dir: "/work/datasets/obs/{dataset}/temperature/mon/{dataset}_*.nc"
 psl: 
   dataset: ERA5
+  description: ECMWF ERA5 reanalysis
   varname: msl
   remap: remapbil
   units: Pa
   dir: "/work/datasets/obs/{dataset}/mean_sea_level_pressure/mon/{dataset}_*.nc"
 hus: 
   dataset: ERA5
+  description: ECMWF ERA5 reanalysis
   varname: q
   remap: remapbil
   units: 'kg kg-1' 
   dir: "/work/datasets/obs/{dataset}/specific_humidity/mon/{dataset}_*.nc"
 sos: 
   dataset: ORAS5
+  description: ECMWF Ocean Reanalysis System 5
   varname: sosaline
   remap: remapbil
   dir: "{datadir}/{dataset}/data/{varname}*.nc"
 tauu: 
   dataset: ORAS5
   varname: sozotaux
+  description: ECMWF Ocean Reanalysis System 5
   remap: remapbil
   dir: "{datadir}/{dataset}/data/{varname}*.nc"
 tauv: 
   dataset: ORAS5
   varname: sometauy
+  description: ECMWF Ocean Reanalysis System 5
   remap: remapbil
   dir: "{datadir}/{dataset}/data/{varname}*.nc"
 tos: 
   dataset: ESA-CCI-L4
+  description: ESA SST CCI OSTIA L4 product
   varname: analysed_sst
   remap: remapbil
   units: K
@@ -77,11 +88,13 @@ tos:
 siconc: 
   dataset: ESA-CCI-L4
   varname: sea_ice_fraction
+  description: ESA SST CCI OSTIA L4 product
   remap: remapbil
   units: fraction
   dir: "/work/datasets/obs/{dataset}/mon/{varname}/*{varname}*.nc"
 net_sfc:
   dataset: NOCS
+  description: NOCS Surface Flux Dataset v2.0
   varname: net_sfc
   remap: remapcon
   units: W m-2

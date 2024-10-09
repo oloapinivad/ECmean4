@@ -87,8 +87,8 @@ def main():
     tmpdir = info['dirs']['tmpdir']
     tgtdir = info['dirs']['tgtdir'].format(clim=clim_name)
     datadir = info['dirs']['datadir']
-    for dir in [tmpdir, tgtdir, datadir]:
-        os.makedirs(dir, exist_ok=True)
+    for directory in [tmpdir, tgtdir, datadir]:
+        os.makedirs(directory, exist_ok=True)
 
     # climatology yaml output
     clim_file = os.path.join(tgtdir, 'pi_climatology_' + clim_name + '.yml')
@@ -119,9 +119,9 @@ def main():
         real_year1 = np.min(cfield.time.dt.year.values)
         real_year2 = np.max(cfield.time.dt.year.values)
         if (real_year1 != year1):
-            logging.warning("Initial year different from what expected: " + str(real_year1))
+            logging.warning("Initial year different from what expected: %s", real_year1)
         if (real_year2 != year2):
-            logging.warning("Final year different from what expected: " + str(real_year2))
+            logging.warning("Final year different from what expected: %s", real_year2)
 
         # check existence of unit, then apply from file
         if 'units' in info[var]:
@@ -277,6 +277,7 @@ def main():
 
             # assign to the dictionary the required info
             dclim[var]['dataset'] = info[var]['dataset']
+            dclim[var]['description'] = info[var]['description']
             # dclim[var]['dataname'] = info[var]['varname']
             dclim[var]['remap'] = info[var]['remap']
             dclim[var]['mask'] = mask_from_field(full_mean)
@@ -285,7 +286,7 @@ def main():
             dclim[var]['year2'] = int(real_year2)
 
             # dump the yaml file
-            with open(clim_file, 'w') as file:
+            with open(clim_file, 'w', encoding='utf8') as file:
                 yaml.safe_dump(dclim, file, sort_keys=False)
 
             logging.debug(dclim)

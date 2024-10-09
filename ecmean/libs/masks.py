@@ -121,12 +121,19 @@ def select_region(xfield, region):
     if region == 'Global':
         return xfield
     else:
-        if region == 'North Midlat':
+        if region == 'NH':
+            lat_min, lat_max = 20.0, 90.0
+        elif region == 'SH':
+            lat_min, lat_max = -90.0, -20.0
+        elif region == 'Tropical':
+            loggy.warning('Since version xx Tropical region is restricted to -20/20. Use "Tropical-old" if you want old boundaries')
+            lat_min, lat_max = -20.0, 20.0
+        elif region == 'Tropical-old':
+            lat_min, lat_max = -30.0, 30.0
+        elif region == 'North Midlat':
             lat_min, lat_max = 30.0, 90.0
         elif region == 'South Midlat':
             lat_min, lat_max = -90.0, -30.0
-        elif region == 'Tropical':
-            lat_min, lat_max = -30.0, 30.0
         else:
             raise KeyError(region + "region not supported!!!")
 
