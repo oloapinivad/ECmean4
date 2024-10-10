@@ -215,7 +215,8 @@ def performance_indices(exp, year1, year2,
                         climatology='EC23',
                         interface=None, model=None, ensemble='r1i1p1f1',
                         silent=None, xdataset=None,
-                        outputdir=None):
+                        outputdir=None,
+                        plot=True):
     """Main performance indices calculation
 
     :param exp: Experiment name or ID
@@ -231,7 +232,8 @@ def performance_indices(exp, year1, year2,
     :param climatology: climatology to be compared. default: EC23. Options: [RK08, EC22, EC23]
     :param xdataset: xarray dataset - already open - to be used without looking for files
     :param outputdir: if specified, override the target destination in the configuration files for both tables and figures
-
+    :param plot: boolean to run the comparison against cmip6 and produce the heatmap. Default is true
+    
     :returns: the performance indices yaml file and heatmap
 
     """
@@ -329,7 +331,7 @@ def performance_indices(exp, year1, year2,
         yaml.safe_dump(ordered, file, default_flow_style=False, sort_keys=False)
 
     # to this date, only EC23 support comparison with CMIP6 data
-    if diag.climatology == 'EC23':
+    if diag.climatology == 'EC23' and plot is True:
 
         # uniform dictionaries
         filt_piclim = {}
@@ -350,7 +352,6 @@ def performance_indices(exp, year1, year2,
         # convert output dictionary to pandas dataframe
         data_table = dict_to_dataframe(plotted)
         loggy.debug(data_table)
-
 
         # relative pi with re-ordering of rows
         cmip6_table = data_table.div(dict_to_dataframe(cmip6).reindex(longnames))

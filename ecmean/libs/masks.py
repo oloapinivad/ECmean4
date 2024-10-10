@@ -126,7 +126,7 @@ def select_region(xfield, region):
         elif region == 'SH':
             lat_min, lat_max = -90.0, -20.0
         elif region == 'Tropical':
-            loggy.warning('Since version xx Tropical region is restricted to -20/20. Use "Tropical-old" if you want old boundaries')
+            #loggy.warning('Since version xx Tropical region is restricted to -20/20. Use "Tropical-old" if you want old boundaries')
             lat_min, lat_max = -20.0, 20.0
         elif region == 'Tropical-old':
             lat_min, lat_max = -30.0, 30.0

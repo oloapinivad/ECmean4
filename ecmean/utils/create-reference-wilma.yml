@@ -56,7 +56,7 @@ pme:
   derived: TP+e
   org_units: m/day
   tgt_units: mm/day
-  dir: ['{eradir}/total_precipitation/mon/ERA5_total_precipitation_mon_0.25x0.25_sfc_1950-2021.nc', '{eradir}/evaporation/mon/*.nc']
+  dir: ['{eradir}/total_precipitation/mon/ERA5_total_precipitation_mon_0.25x0.25_*.nc', '{eradir}/evaporation/mon/*.nc']
 clt: 
   dataset: CERES-EBAF
   longname: 'Total Cloud Cover'
@@ -103,7 +103,7 @@ pme_oce:
   derived: TP+e
   org_units: m/day
   tgt_units: Sv
-  dir: ['{eradir}/total_precipitation/mon/ERA5_total_precipitation_mon_0.25x0.25_sfc_1950-2021.nc', '{eradir}/evaporation/mon/*.nc']  
+  dir: ['{eradir}/total_precipitation/mon/ERA5_total_precipitation_mon_0.25x0.25_*.nc', '{eradir}/evaporation/mon/*.nc']  
 pr_land:
   dataset: MSWEP
   longname: 'Precipitation (land)'
@@ -122,7 +122,7 @@ pme_land:
   derived: TP+e
   org_units: m/day
   tgt_units: Sv
-  dir: ['{eradir}/total_precipitation/mon/ERA5_total_precipitation_mon_0.25x0.25_sfc_1950-2021.nc', '{eradir}/evaporation/mon/*.nc']  
+  dir: ['{eradir}/total_precipitation/mon/ERA5_total_precipitation_mon_0.25x0.25_*.nc', '{eradir}/evaporation/mon/*.nc']  
 tos: 
   dataset: ESA-CCI-L4
   longname: 'Sea Surface Temperature'

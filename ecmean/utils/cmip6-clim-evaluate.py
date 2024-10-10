@@ -27,7 +27,7 @@ nprocs = 2
 do_compute = True
 do_create_clim = True
 do_definitive = True
-config_file = '../config_CMIP6_PD.yml'
+config_file = 'config-CMIP6-wilma.yml'
 climdir = '../climatology/'
 
 models = ['EC-Earth3', 'IPSL-CM6A-LR', 'FGOALS-g3', 'TaiESM1', 'CanESM5', 'CESM2',
@@ -52,7 +52,7 @@ if do_compute:
 
         performance_indices(expname, year1, year2, config=config_file, model=model,
                             ensemble=ensemble, numproc=nprocs, climatology=refclim, 
-                            loglevel='WARNING')
+                            loglevel='WARNING', plot=False)
 
 if do_create_clim:
 
