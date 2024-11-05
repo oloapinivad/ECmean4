@@ -24,10 +24,10 @@ year2 = 2010
 expname = 'historical'
 refclim = 'EC23'
 nprocs = 2
-do_compute = True
+do_compute = False
 do_create_clim = True
-do_definitive = False
-config_file = '../config_CMIP6_PD.yml'
+do_definitive = True
+config_file = 'config-CMIP6-wilma.yml'
 climdir = '../climatology/'
 
 models = ['EC-Earth3', 'IPSL-CM6A-LR', 'FGOALS-g3', 'TaiESM1', 'CanESM5', 'CESM2',
@@ -52,7 +52,7 @@ if do_compute:
 
         performance_indices(expname, year1, year2, config=config_file, model=model,
                             ensemble=ensemble, numproc=nprocs, climatology=refclim, 
-                            loglevel='WARNING')
+                            loglevel='WARNING', plot=False)
 
 if do_create_clim:
 
@@ -99,18 +99,20 @@ if do_create_clim:
     else:
         update_pifile = os.path.join(climdir, refclim, 'pi_climatology_' + refclim + '.yml')
     piclim = load_yaml(pifile)
-
+        
     # Update the climatology
-    for var in out.keys():
+    for var, var_data in out.items():  # Using items() to access variable data directly
         piclim[var]['cmip6'] = {}
-        for season, region_data in out[var].items():
+        for season, region_data in var_data.items():  # Using items() to access season and region data directly
             piclim[var]['cmip6'][season] = {}
             for region, value in region_data.items():
                 piclim[var]['cmip6'][season][region] = float(value)
+
+        # Add the models and metadata for the current variable
         piclim[var]['cmip6']['models'] = mout[var]
+        piclim[var]['cmip6']['nmodels'] = len(mout[var])
         piclim[var]['cmip6']['year1'] = year1
         piclim[var]['cmip6']['year2'] = year2
-
 
     # # update the climatology
     # for var in out.keys():
