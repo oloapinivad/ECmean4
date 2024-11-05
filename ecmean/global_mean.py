@@ -37,6 +37,7 @@ from ecmean.libs.loggy import setup_logger
 
 dask.config.set(scheduler="synchronous")
 
+
 def gm_worker(util, ref, face, diag, varmean, vartrend, varlist):
     """Main parallel diagnostic worker for global mean
 
@@ -60,7 +61,6 @@ def gm_worker(util, ref, face, diag, varmean, vartrend, varlist):
         # create empty nested dictionaries
         result = init_mydict(diag.seasons, diag.regions)
         trend = init_mydict(diag.seasons, diag.regions)
-
 
         # check if the variable is in the interface file
         if check_var_interface(var, face):
@@ -215,7 +215,7 @@ def global_mean(exp, year1, year2,
 
     # create util dictionary including mask and weights for both atmosphere
     # and ocean grids
-    util_dictionary = Supporter(comp, inifiles['atm'], inifiles['oce'], 
+    util_dictionary = Supporter(comp, inifiles['atm'], inifiles['oce'],
                                 areas=True, remap=False)
 
     # main loop: manager is required for shared variables
@@ -225,14 +225,12 @@ def global_mean(exp, year1, year2,
     varmean = mgr.dict()
     vartrend = mgr.dict()
     processes = []
-    
-
 
     # loop on the variables, create the parallel process
     for varlist in weight_split(diag.var_all, diag.numproc):
         core = Process(
             target=gm_worker, args=(util_dictionary, ref, face, diag,
-                                            varmean, vartrend, varlist))
+                                    varmean, vartrend, varlist))
         core.start()
         processes.append(core)
 
@@ -292,8 +290,8 @@ def global_mean(exp, year1, year2,
     head = head + ['Obs.', 'Dataset', 'Years']
 
     # write the file with tabulate
-    tablefile = diag.tabdir / \
-        f'global_mean_{diag.expname}_{diag.modelname}_{diag.ensemble}_{diag.year1}_{diag.year2}.txt'
+    tablefile = os.path.join(diag.tabdir,
+                             f'global_mean_{diag.expname}_{diag.modelname}_{diag.ensemble}_{diag.year1}_{diag.year2}.txt')
     loggy.info('Table file is: %s', tablefile)
     with open(tablefile, 'w', encoding='utf-8') as out:
         out.write(tabulate(global_table, headers=head, stralign='center', tablefmt='orgtbl'))
@@ -304,8 +302,8 @@ def global_mean(exp, year1, year2,
         ordered[var] = varmean[var]
 
     # dump the yaml file for global_mean, including all the seasons
-    yamlfile = diag.tabdir / \
-        f'global_mean_{diag.expname}_{diag.modelname}_{diag.ensemble}_{diag.year1}_{diag.year2}.yml'
+    yamlfile = os.path.join(diag.tabdir,
+                            f'global_mean_{diag.expname}_{diag.modelname}_{diag.ensemble}_{diag.year1}_{diag.year2}.yml')
     loggy.info('YAML file is: %s', tablefile)
     with open(yamlfile, 'w', encoding='utf-8') as file:
         yaml.safe_dump(ordered, file, default_flow_style=False, sort_keys=False)
@@ -327,12 +325,15 @@ def global_mean(exp, year1, year2,
     loggy.debug(data_table)
 
     # call the heatmap routine for a plot
-    mapfile = diag.figdir / \
-        f'global_mean_{diag.expname}_{diag.modelname}_r1i1p1f1_{diag.year1}_{diag.year2}.pdf'
+    mapfile = os.path.join(diag.figdir,
+                           f'global_mean_{diag.expname}_{diag.modelname}_r1i1p1f1_{diag.year1}_{diag.year2}.pdf')
     loggy.info('Figure file is: %s', mapfile)
 
+    diag_dict = {'modelname': diag.modelname, 'expname': diag.expname,
+                 'year1': diag.year1, 'year2': diag.year2}
+
     heatmap_comparison_gm(data_table, mean_table, std_table,
-                          diag, mapfile, addnan=diag.addnan)
+                          diag_dict, mapfile, addnan=diag.addnan)
 
     # Print appending one line to table (for tuning)
     if diag.ftable:
@@ -343,7 +344,6 @@ def global_mean(exp, year1, year2,
     # evaluate tic-toc time of postprocessing
     loggy.info(f"Postproc done in {toc - tic:.4f} seconds")
     print('ECmean4 Global Mean succesfully computed!')
-
 
 
 def gm_entry_point():
@@ -362,4 +362,3 @@ def gm_entry_point():
                 model=args.model, ensemble=args.ensemble,
                 addnan=args.addnan,
                 outputdir=args.outputdir)
-
