@@ -25,6 +25,7 @@ dependencies = [
     "numba",
     "dask",
     "esmpy",
+    "xesmf",
     "metpy",
     "matplotlib",
     "tabulate",
