@@ -68,15 +68,14 @@ class Diagnostic():
         # Various raise and input and output directories
         if not cfg['dirs']['exp']:
             raise ValueError('No experiment directory defined in config file')
-        if not cfg['dirs']['tab']:
-            raise ValueError('No table directory defined in config file')
-        if not cfg['dirs']['fig']:
-            raise ValueError('No figure directory defined in config file')
-        
         self.ecedir = Path(os.path.expandvars(cfg['dirs']['exp']))
         outputdir = getattr(args, 'outputdir', None)
         if outputdir is None:
+            if not cfg['dirs']['tab']:
+                raise ValueError('No table directory defined in config file')
             self.tabdir = Path(os.path.expandvars(cfg['dirs']['tab']))
+            if not cfg['dirs']['fig']:
+                raise ValueError('No figure directory defined in config file')
             self.figdir = Path(os.path.expandvars(cfg['dirs']['fig']))
         else:
             self.tabdir = Path(os.path.join(outputdir, 'YAML'))
@@ -91,10 +90,10 @@ class Diagnostic():
             self.cfg_performance_indices(cfg)
 
         # setting up interface file
-        self.interface = getattr(args, 'interface', cfg['interface'])
+        self.interface = getattr(args, 'interface', None) or cfg['interface']
 
         # setting up model name
-        self.modelname = getattr(args, 'modelname', cfg['model']['name'])
+        self.modelname = getattr(args, 'modelname', None) or cfg['model']['name']
 
         # allow for both interface name or interface file
         if not os.path.exists(self.interface):
