@@ -29,7 +29,7 @@ from ecmean.libs.masks import mask_field, select_region
 from ecmean.libs.areas import guess_bounds
 from ecmean.libs.units import units_extra_definition
 from ecmean.libs.ncfixers import xr_preproc, adjust_clim_file
-from ecmean.libs.plotting import heatmap_comparison_pi
+from ecmean.libs.plotting import heatmap_comparison_pi, prepare_clim_dictionaries_pi
 from ecmean.libs.parser import parse_arguments
 from ecmean.libs.loggy import setup_logger
 
@@ -328,26 +328,15 @@ def performance_indices(exp, year1, year2,
     # to this date, only EC23 support comparison with CMIP6 data
     if diag.climatology == 'EC23':
 
-        # uniform dictionaries
-        filt_piclim = {}
-        for k in piclim.keys():
-            filt_piclim[k] = piclim[k]['cmip6']
-            for f in ['models', 'year1', 'year2']:
-                del filt_piclim[k][f]
-
-        # set longname, reorganize the dictionaries
-        data2plot = {}
-        cmip6 = {}
-        longnames = [piclim[var]['longname'] for var in diag.field_all]
-        for var in diag.field_all:
-            longname = piclim[var]['longname']
-            data2plot[longname] = ordered[var]
-            cmip6[longname] = filt_piclim[var]
+        # prepare the data for the heatmap from the original yaml dictionaries
+        data2plot, cmip6, longnames = prepare_clim_dictionaries_pi(data=varstat, clim=piclim,
+                                                                   shortnames=diag.field_all)
 
         # call the heatmap routine for a plot
         mapfile = os.path.join(diag.figdir,
                                f'PI4_{diag.climatology}_{diag.expname}_{diag.modelname}_r1i1p1f1_{diag.year1}_{diag.year2}.pdf')
         diag_dict = {'modelname': diag.modelname, 'expname': diag.expname,
+                     'climatology': diag.climatology,
                      'year1': diag.year1, 'year2': diag.year2,
                      'seasons': diag.seasons, 'regions': diag.regions,
                      'longnames': longnames}
@@ -358,6 +347,7 @@ def performance_indices(exp, year1, year2,
     # evaluate tic-toc time of postprocessing
     loggy.info("Postproc done in %.4f seconds", toc - tic)
     print('ECmean4 Performance Indices succesfully computed!')
+
 
 
 def pi_entry_point():

@@ -14,7 +14,7 @@ import matplotlib.pyplot as plt
 from matplotlib.colors import ListedColormap
 import seaborn as sns
 import numpy as np
-from ecmean.libs.general import dict_to_dataframe
+from ecmean.libs.general import dict_to_dataframe, init_mydict
 
 loggy = logging.getLogger(__name__)
 
@@ -94,7 +94,7 @@ def heatmap_comparison_pi(data_dict, cmip6_dict, diag: dict = None, filemap: str
 
     if filemap is None:
         if diag is not None:
-            filemap = f'PI4_{diag["expname"]}_{diag["modelname"]}_{diag["year1"]}_{diag["year2"]}.pdf'
+            filemap = f'PI4_{diag["climatology"]}_{diag["expname"]}_{diag["modelname"]}_{diag["year1"]}_{diag["year2"]}.pdf'
         else:
             filemap = 'PI4_heatmap.pdf'
 
@@ -133,7 +133,6 @@ def heatmap_comparison_gm(data_dict, mean_dict, std_dict, diag: dict, filemap: s
 
     loggy.debug("Data table")
     loggy.debug(data_table)
-
 
     # define array
     ratio = (data_table - mean_table) / std_table
@@ -194,7 +193,92 @@ def heatmap_comparison_gm(data_dict, mean_dict, std_dict, diag: dict, filemap: s
     axs.figure.axes[-1].yaxis.label.set_size(15)
     axs.set(xlabel=None)
 
+    if filemap is None:
+        if diag is not None:
+            filemap = f'Global_Mean_{diag["expname"]}_{diag["modelname"]}_{diag["year1"]}_{diag["year2"]}.pdf'
+        else:
+            filemap = 'Global_Mean_Heatmap.pdf'
+
     # save and close
     plt.savefig(filemap)
     plt.cla()
     plt.close()
+
+def prepare_clim_dictionaries_pi(data, clim, shortnames):
+    """
+    Prepare dictionaries for plotting
+    Args:
+        data: dictionary with data
+        clim: dictionary with climatology
+        shortnames: list of shortnames
+    Returns:    
+        data2plot: dictionary with data for plotting
+        cmip6: dictionary with CMIP6 data
+        longnames: list of longnames
+    """
+
+    # uniform dictionaries
+    filt_piclim = {}
+    for k in clim.keys():
+        filt_piclim[k] = clim[k]['cmip6']
+        for f in ['models', 'year1', 'year2']:
+            del filt_piclim[k][f]
+
+    # set longname, reorganize the dictionaries
+    data2plot = {}
+    cmip6 = {}
+    longnames = [clim[var]['longname'] for var in shortnames]
+    for var in shortnames:
+        longname = clim[var]['longname']
+        data2plot[longname] = data[var]
+        cmip6[longname] = filt_piclim[var]
+        
+    return data2plot, cmip6, longnames
+
+def prepare_clim_dictionaries_gm(data, clim, shortnames, seasons, regions):
+    """
+    Prepare dictionaries for global mean plotting
+
+    Args:
+        data: dictionary with the data
+        clim: dictionary with the climatology
+        shortnames: list of shortnames
+        seasons: list of seasons
+        regions: list of regions
+
+    Returns:
+        obsmean: dictionary with the mean
+        obsstd: dictionary with the standard deviation
+        data2plot: dictionary with the data to plot
+        units_list: list of units
+    """
+
+    # loop on the variables to create obsmean and obsstd
+    obsmean = {}
+    obsstd = {}
+    for var in shortnames:
+        gamma = clim[var]
+
+        # extract from yaml table for obs mean and standard deviation
+        mmm = init_mydict(seasons, regions)
+        sss = init_mydict(seasons, regions)
+        # if we have all the obs/std available
+        if isinstance(gamma['obs'], dict):
+            for season in seasons:
+                for region in regions:
+                    mmm[season][region] = gamma['obs'][season][region]['mean']
+                    sss[season][region] = gamma['obs'][season][region]['std']
+        # if only global observation is available
+        else:
+            mmm['ALL']['Global'] = gamma['obs']
+        obsmean[gamma['longname']] = mmm
+        obsstd[gamma['longname']] = sss
+
+    # set longname, get units
+    data2plot = {}
+    units_list = []
+    for var in shortnames:
+        data2plot[clim[var]['longname']] = data[var]
+        units_list.append(clim[var]['units'])
+
+    return obsmean, obsstd, data2plot, units_list

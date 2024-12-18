@@ -32,7 +32,7 @@ from ecmean.libs.masks import masked_meansum, select_region
 from ecmean.libs.units import units_extra_definition
 from ecmean.libs.ncfixers import xr_preproc
 from ecmean.libs.parser import parse_arguments
-from ecmean.libs.plotting import heatmap_comparison_gm
+from ecmean.libs.plotting import heatmap_comparison_gm, prepare_clim_dictionaries_gm
 from ecmean.libs.loggy import setup_logger
 
 dask.config.set(scheduler="synchronous")
@@ -245,37 +245,22 @@ def global_mean(exp, year1, year2,
 
     tic = time()
 
+
     # loop on the variables to create the output table
     global_table = []
-    obsmean = {}
-    obsstd = {}
-    for var in diag.var_atm + diag.var_oce + diag.var_ice:
-
+    for var in diag.var_all:
         gamma = ref[var]
-        # get the predifined value or the ALL GLobal one
+        # get the predefined value or the ALL Global one
         if isinstance(gamma['obs'], dict):
             tabval = gamma['obs']['ALL']['Global']
             outval = str(tabval['mean']) + '\u00B1' + str(tabval['std'])
         else:
             outval = gamma['obs']
 
-        # extract from yaml table for obs mean and standard deviation
-        mmm = init_mydict(diag.seasons, diag.regions)
-        sss = init_mydict(diag.seasons, diag.regions)
-        # if we have all the obs/std available
-        if isinstance(gamma['obs'], dict):
-            for season in diag.seasons:
-                for region in diag.regions:
-                    mmm[season][region] = gamma['obs'][season][region]['mean']
-                    sss[season][region] = gamma['obs'][season][region]['std']
-        # if only global observation is available
-        else:
-            mmm['ALL']['Global'] = gamma['obs']
-        obsmean[gamma['longname']] = mmm
-        obsstd[gamma['longname']] = sss
-
         if 'year1' in gamma.keys():
             years = str(gamma['year1']) + '-' + str(gamma['year2'])
+        else:
+            raise ValueError('Year1 and Year2 are not defined in the reference file')
 
         out_sequence = [var, gamma['longname'], gamma['units'], varmean[var]['ALL']['Global']]
         if diag.ftrend:
@@ -308,12 +293,8 @@ def global_mean(exp, year1, year2,
     with open(yamlfile, 'w', encoding='utf-8') as file:
         yaml.safe_dump(ordered, file, default_flow_style=False, sort_keys=False)
 
-    # set longname, get units
-    data2plot = {}
-    units_list = []
-    for var in diag.var_all:
-        data2plot[ref[var]['longname']] = ordered[var]
-        units_list.append(ref[var]['units'])
+    # prepare dictionaries for global mean
+    obsmean, obsstd, data2plot, units_list = prepare_clim_dictionaries_gm(ordered, ref, diag.var_all, diag.seasons, diag.regions)
 
     # call the heatmap routine for a plot
     mapfile = os.path.join(diag.figdir,
