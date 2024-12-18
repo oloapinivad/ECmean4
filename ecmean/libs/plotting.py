@@ -40,14 +40,18 @@ def heatmap_comparison_pi(data_dict, cmip6_dict, diag: dict = None, filemap: str
     loggy.debug(data_table)
 
     # relative pi with re-ordering of rows
-    relative_table = data_table.div(dict_to_dataframe(cmip6_dict).reindex(diag['longnames']))
+    cmip6_table = dict_to_dataframe(cmip6_dict)
+    if diag is not None and 'longnames' in diag:
+        cmip6_table = cmip6_table.reindex(diag['longnames'])
+    relative_table = data_table.div(cmip6_table)
 
     # compute the total PI mean
     relative_table.loc['Total PI'] = relative_table.mean()
 
-    # reordering columns
-    lll = [(x, y) for x in diag['seasons'] for y in diag['regions']]
-    relative_table = relative_table[lll]
+    # reordering columns if info is available
+    if diag is not None and 'regions' in diag and 'seasons' in diag:
+        lll = [(x, y) for x in diag['seasons'] for y in diag['regions']]
+        relative_table = relative_table[lll]
     loggy.debug("Relative table")
     loggy.debug(relative_table)
 
@@ -110,7 +114,6 @@ def heatmap_comparison_gm(data_dict, mean_dict, std_dict, diag: dict, filemap: s
         data_dict (dict): table of model data
         mean_dict (dict): table of observations
         std_dict (dict): table of standard deviation
-        units_list (str): list of units
         diag (dict): dictionary containing diagnostic information
         filemap (str): path to save the plot
         addnan (bool): add to the final plots also fields which cannot be compared against observations

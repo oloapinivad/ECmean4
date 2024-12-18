@@ -77,10 +77,12 @@ def test_performance_indices_amip_xdataset(clim):
     assert are_dicts_equal(data1, data2, TOLERANCE),f"YAML files are not identical.\nData1: {data1}\nData2: {data2}"
 
 
-def test_pi_plot():
+def test_pi_plot(tmp_path):
     file1 = 'tests/table/PI4_EC23_amip_EC-Earth4_r1i1p1f1_1990_1990.yml'
     with open(file1, 'r', encoding='utf8') as f1:
         data1 = yaml.safe_load(f1)
-    heatmap_comparison_pi(data_dict=data1, cmip6_dict=file1, title='CMIP6 RELATIVE PI test')
+    heatmap_comparison_pi(data_dict=data1, cmip6_dict=data1, 
+                          title='CMIP6 RELATIVE PI test', 
+                          mapfile=os.path.join(tmp_path, 'PI4_heatmap.pdf'))
     assert os.path.isfile('PI4_heatmap.pdf'), "Plot not created."
     os.remove('PI4_heatmap.pdf')

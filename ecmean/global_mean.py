@@ -24,7 +24,7 @@ import dask
 
 from ecmean import Diagnostic, Supporter, UnitsHandler
 from ecmean.libs.general import weight_split, write_tuning_table, get_domain, \
-    check_time_axis, dict_to_dataframe, init_mydict, \
+    check_time_axis, init_mydict, \
         check_var_interface, check_var_climatology, set_multiprocessing_start_method
 from ecmean.libs.files import var_is_there, get_inifiles, load_yaml, make_input_filename
 from ecmean.libs.formula import formula_wrapper
@@ -241,7 +241,7 @@ def global_mean(exp, year1, year2,
     toc = time()
 
     # evaluate tic-toc time  of execution
-    loggy.info('Analysis done in {:.4f} seconds'.format(toc - tic))
+    loggy.info('Analysis done in %.4f seconds', toc - tic)
 
     tic = time()
 

@@ -203,7 +203,7 @@ def pi_worker(util, piclim, face, diag, field_3d, varstat, varlist):
 
                         # diagnostic
                         if region == 'Global':
-                            logging.info('PI for', region, season, var, result[season][region])
+                            logging.info('PI for %s %s %s %s', region, season, var, result[season][region])
 
         # nested dictionary, to be redifend as a dict to remove lambdas
         varstat[var] = result
