@@ -17,26 +17,7 @@ import numpy as np
 ##################
 
 
-# def is_number(s):
-#     """Check if input is a float type"""
-
-#     try:
-#         float(s)
-#         return True
-#     except ValueError:
-#         return False
-
 loggy = logging.getLogger(__name__)
-
-# def numeric_loglevel(loglevel):
-#     """Define the logging level """
-#     # log level with logging
-#     # currently basic definition trought the text
-#     numeric_level = getattr(logging, loglevel.upper(), None)
-#     if not isinstance(numeric_level, int):
-#         raise ValueError(f'Invalid log level: {loglevel}')
-
-#     return numeric_level
 
 def set_multiprocessing_start_method():
     """Function to set the multiprocessing spawn method to fork"""
@@ -163,23 +144,20 @@ def get_domain(var, face):
     return domain[comp]
 
 
-# def get_component(face):  # unused function
-#     """Return a dictionary providing the domain associated with a variable
-#     (the interface file specifies the domain for each component instead)"""
-
-#     d = face['component']
-#     p = dict(zip([list(d.values())[x]['domain']
-#              for x in range(len(d.values()))], d.keys()))
-#     return p
-
-
 ####################
 # OUTPUT FUNCTIONS #
 ####################
 
 def dict_to_dataframe(varstat):
-    """very clumsy conversion of the nested 3-level dictionary
-    to a pd.dataframe: NEED TO BE IMPROVED"""
+    """
+    Converts a nested 3-level dictionary to a pandas DataFrame.
+    
+    Parameters:
+    varstat (dict): Nested dictionary with 3 levels.
+
+    Returns:
+    pd.DataFrame: Transformed DataFrame with hierarchical keys.
+    """
     data_table = {}
     for i in varstat.keys():
         pippo = {}

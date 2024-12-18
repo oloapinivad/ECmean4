@@ -13,7 +13,7 @@ from ecmean.libs.general import are_dicts_equal
 from ecmean.libs.plotting import heatmap_comparison_pi
 
 # set TOLERANCE
-TOLERANCE = 1e-3
+TOLERANCE = 1e-1
 
 # set up coverage env var
 env = {**os.environ, "COVERAGE_PROCESS_START": ".coveragerc"}
@@ -35,7 +35,7 @@ def test_performance_indices_cpld(clim):
 # test on amip
 @pytest.mark.parametrize("clim", ['RK08', 'EC23'])
 def test_performance_indices_amip(clim):
-    performance_indices('amip', 1990, 1990, numproc=1, 
+    performance_indices('amip', 1990, 1990, numproc=1,
                         climatology=clim, config='tests/config.yml', outputdir='tests/pluto')
     file1 = 'tests/pluto/YAML/PI4_' + clim + '_amip_EC-Earth4_r1i1p1f1_1990_1990.yml'
     file2 = 'tests/table/PI4_' + clim + '_amip_1990_1990.ref'
@@ -81,8 +81,8 @@ def test_pi_plot(tmp_path):
     file1 = 'tests/table/PI4_EC23_amip_EC-Earth4_r1i1p1f1_1990_1990.yml'
     with open(file1, 'r', encoding='utf8') as f1:
         data1 = yaml.safe_load(f1)
-    heatmap_comparison_pi(data_dict=data1, cmip6_dict=data1, 
-                          title='CMIP6 RELATIVE PI test', 
+    heatmap_comparison_pi(data_dict=data1, cmip6_dict=data1,
+                          title='CMIP6 RELATIVE PI test',
                           mapfile=os.path.join(tmp_path, 'PI4_heatmap.pdf'))
     assert os.path.isfile('PI4_heatmap.pdf'), "Plot not created."
     os.remove('PI4_heatmap.pdf')

@@ -313,7 +313,7 @@ def global_mean(exp, year1, year2,
     units_list = []
     for var in diag.var_all:
         data2plot[ref[var]['longname']] = ordered[var]
-        units_list = units_list + [ref[var]['units']]
+        units_list.append(ref[var]['units'])
 
     # call the heatmap routine for a plot
     mapfile = os.path.join(diag.figdir,

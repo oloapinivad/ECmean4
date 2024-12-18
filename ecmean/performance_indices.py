@@ -19,7 +19,7 @@ import xarray as xr
 import yaml
 import dask
 from ecmean import Diagnostic, Supporter, UnitsHandler
-from ecmean.libs.general import weight_split, get_domain, dict_to_dataframe, \
+from ecmean.libs.general import weight_split, get_domain, \
    check_time_axis, init_mydict, check_var_interface, check_var_climatology, \
    set_multiprocessing_start_method
 from ecmean.libs.files import var_is_there, get_inifiles, load_yaml, \
@@ -338,11 +338,11 @@ def performance_indices(exp, year1, year2,
         # set longname, reorganize the dictionaries
         data2plot = {}
         cmip6 = {}
-        longnames = []
+        longnames = [piclim[var]['longname'] for var in diag.field_all]
         for var in diag.field_all:
-            data2plot[piclim[var]['longname']] = ordered[var]
-            cmip6[piclim[var]['longname']] = filt_piclim[var]
-            longnames = longnames + [piclim[var]['longname']]
+            longname = piclim[var]['longname']
+            data2plot[longname] = ordered[var]
+            cmip6[longname] = filt_piclim[var]
 
         # call the heatmap routine for a plot
         mapfile = os.path.join(diag.figdir,
