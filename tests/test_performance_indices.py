@@ -21,7 +21,8 @@ env = {**os.environ, "COVERAGE_PROCESS_START": ".coveragerc"}
 # test on coupled
 @pytest.mark.parametrize("clim", ['RK08', 'EC23'])
 def test_performance_indices_cpld(clim):
-    performance_indices('cpld', 1990, 1990, numproc=4, climatology=clim, config='tests/config.yml')
+    performance_indices('cpld', 1990, 1990, numproc=4, 
+                        climatology=clim, config='tests/config.yml')
     file1 = 'tests/table/PI4_' + clim + '_cpld_EC-Earth4_r1i1p1f1_1990_1990.yml'
     file2 = 'tests/table/PI4_' + clim + '_cpld_1990_1990.ref'
     with open(file1, 'r', encoding='utf8') as f1, open(file2, 'r', encoding='utf8') as f2:
@@ -34,7 +35,8 @@ def test_performance_indices_cpld(clim):
 # test on amip
 @pytest.mark.parametrize("clim", ['RK08', 'EC23'])
 def test_performance_indices_amip(clim):
-    performance_indices('amip', 1990, 1990, numproc=1, climatology=clim, config='tests/config.yml', outputdir='tests/pluto')
+    performance_indices('amip', 1990, 1990, numproc=1, 
+                        climatology=clim, config='tests/config.yml', outputdir='tests/pluto')
     file1 = 'tests/pluto/YAML/PI4_' + clim + '_amip_EC-Earth4_r1i1p1f1_1990_1990.yml'
     file2 = 'tests/table/PI4_' + clim + '_amip_1990_1990.ref'
     with open(file1, 'r', encoding='utf8') as f1, open(file2, 'r', encoding='utf8') as f2:
@@ -57,6 +59,7 @@ def test_cmd_performance_indices_CMIP6(clim):
         data2 = yaml.safe_load(f2)
 
     assert are_dicts_equal(data1, data2, TOLERANCE), f"YAML files are not identical.\nData1: {data1}\nData2: {data2}"
+
 # test on amip but with access from xarray dataset
 @pytest.mark.parametrize("clim", ['RK08', 'EC23'])
 def test_performance_indices_amip_xdataset(clim):
@@ -78,6 +81,6 @@ def test_pi_plot():
     file1 = 'tests/table/PI4_EC23_amip_EC-Earth4_r1i1p1f1_1990_1990.yml'
     with open(file1, 'r', encoding='utf8') as f1:
         data1 = yaml.safe_load(f1)
-    heatmap_comparison_pi(data1, title='CMIP6 RELATIVE PI test')
+    heatmap_comparison_pi(data_dict=data1, cmip6_dict=file1, title='CMIP6 RELATIVE PI test')
     assert os.path.isfile('PI4_heatmap.pdf'), "Plot not created."
     os.remove('PI4_heatmap.pdf')

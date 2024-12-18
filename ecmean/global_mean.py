@@ -309,20 +309,11 @@ def global_mean(exp, year1, year2,
         yaml.safe_dump(ordered, file, default_flow_style=False, sort_keys=False)
 
     # set longname, get units
-    plotted = {}
+    data2plot = {}
     units_list = []
     for var in diag.var_all:
-        plotted[ref[var]['longname']] = ordered[var]
+        data2plot[ref[var]['longname']] = ordered[var]
         units_list = units_list + [ref[var]['units']]
-
-    # convert the three dictionary to pandas and then add units
-    data_table = dict_to_dataframe(plotted)
-    mean_table = dict_to_dataframe(obsmean)
-    std_table = dict_to_dataframe(obsstd)
-    for table in [data_table, mean_table, std_table]:
-        table.index = table.index + ' [' + units_list + ']'
-
-    loggy.debug(data_table)
 
     # call the heatmap routine for a plot
     mapfile = os.path.join(diag.figdir,
@@ -330,10 +321,11 @@ def global_mean(exp, year1, year2,
     loggy.info('Figure file is: %s', mapfile)
 
     diag_dict = {'modelname': diag.modelname, 'expname': diag.expname,
-                 'year1': diag.year1, 'year2': diag.year2}
+                 'year1': diag.year1, 'year2': diag.year2,
+                 'units_list': units_list}
 
-    heatmap_comparison_gm(data_table, mean_table, std_table,
-                          diag_dict, mapfile, addnan=diag.addnan)
+    heatmap_comparison_gm(data_dict=data2plot, mean_dict=obsmean, std_dict=obsstd,
+                          diag=diag_dict, filemap=mapfile, addnan=diag.addnan)
 
     # Print appending one line to table (for tuning)
     if diag.ftable:
@@ -342,7 +334,7 @@ def global_mean(exp, year1, year2,
 
     toc = time()
     # evaluate tic-toc time of postprocessing
-    loggy.info(f"Postproc done in {toc - tic:.4f} seconds")
+    loggy.info("Postproc done in %.4f seconds", toc - tic)
     print('ECmean4 Global Mean succesfully computed!')
 
 

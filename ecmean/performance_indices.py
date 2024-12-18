@@ -310,7 +310,7 @@ def performance_indices(exp, year1, year2,
 
     toc = time()
     # evaluate tic-toc time  of execution
-    loggy.info('Done in {:.4f} seconds'.format(toc - tic) + ' with ' + str(diag.numproc) + ' processors')
+    loggy.info('Done in %.4f seconds with %d processors', toc - tic, diag.numproc)
 
     tic = time()
 
@@ -336,40 +336,27 @@ def performance_indices(exp, year1, year2,
                 del filt_piclim[k][f]
 
         # set longname, reorganize the dictionaries
-        plotted = {}
+        data2plot = {}
         cmip6 = {}
         longnames = []
         for var in diag.field_all:
-            plotted[piclim[var]['longname']] = ordered[var]
+            data2plot[piclim[var]['longname']] = ordered[var]
             cmip6[piclim[var]['longname']] = filt_piclim[var]
             longnames = longnames + [piclim[var]['longname']]
-
-        # convert output dictionary to pandas dataframe
-        data_table = dict_to_dataframe(plotted)
-        loggy.debug(data_table)
-
-        # relative pi with re-ordering of rows
-        cmip6_table = data_table.div(dict_to_dataframe(cmip6).reindex(longnames))
-
-        # compute the total PI mean
-        cmip6_table.loc['Total PI'] = cmip6_table.mean()
-
-        # reordering columns
-        lll = [(x, y) for x in diag.seasons for y in diag.regions]
-        cmip6_table = cmip6_table[lll]
-        loggy.debug(cmip6_table)
 
         # call the heatmap routine for a plot
         mapfile = os.path.join(diag.figdir,
                                f'PI4_{diag.climatology}_{diag.expname}_{diag.modelname}_r1i1p1f1_{diag.year1}_{diag.year2}.pdf')
-        # heatmap_comparison_old(data_table, diag, mapfile)
         diag_dict = {'modelname': diag.modelname, 'expname': diag.expname,
-                     'year1': diag.year1, 'year2': diag.year2}
-        heatmap_comparison_pi(cmip6_table, diag=diag_dict, filemap=mapfile)
+                     'year1': diag.year1, 'year2': diag.year2,
+                     'seasons': diag.seasons, 'regions': diag.regions,
+                     'longnames': longnames}
+        heatmap_comparison_pi(data_dict=data2plot, cmip6_dict=cmip6,
+                              diag=diag_dict, filemap=mapfile)
 
     toc = time()
     # evaluate tic-toc time of postprocessing
-    loggy.info('Postproc done in {:.4f} seconds'.format(toc - tic))
+    loggy.info("Postproc done in %.4f seconds", toc - tic)
     print('ECmean4 Performance Indices succesfully computed!')
 
 

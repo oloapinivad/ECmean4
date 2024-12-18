@@ -8,21 +8,24 @@ Shared functions for XArray ECmean4
 ##################
 
 import textwrap
+import logging
 from matplotlib.colors import TwoSlopeNorm
 import matplotlib.pyplot as plt
 from matplotlib.colors import ListedColormap
 import seaborn as sns
 import numpy as np
-from .general import dict_to_dataframe
+from ecmean.libs.general import dict_to_dataframe
 
+loggy = logging.getLogger(__name__)
 
-def heatmap_comparison_pi(relative_table, diag: dict = None, filemap: str = None, size_model=14, **kwargs):
+def heatmap_comparison_pi(data_dict, cmip6_dict, diag: dict = None, filemap: str = None, size_model=14, **kwargs):
     """
     Function to produce a heatmap - seaborn based - for Performance Indices
     based on CMIP6 ratio
 
     Args:
-        relative_table (pandas.DataFrame or dict): table of relative performance indices
+        data_dict (dict): dictionary of absolute performance indices
+        cmip6_dict (dict): dictionary of CMIP6 performance indices
         diag (dict): dictionary containing diagnostic information
         filemap (str): path to save the plot
         size_model (int): size of the PIs in the plot
@@ -30,8 +33,23 @@ def heatmap_comparison_pi(relative_table, diag: dict = None, filemap: str = None
     Keyword Args:
         title (str): title of the plot, overrides default title
     """
-    if isinstance(relative_table, dict):
-        relative_table = dict_to_dataframe(relative_table)
+
+    # convert output dictionary to pandas dataframe
+    data_table = dict_to_dataframe(data_dict)
+    loggy.debug("Data table")
+    loggy.debug(data_table)
+
+    # relative pi with re-ordering of rows
+    relative_table = data_table.div(dict_to_dataframe(cmip6_dict).reindex(diag['longnames']))
+
+    # compute the total PI mean
+    relative_table.loc['Total PI'] = relative_table.mean()
+
+    # reordering columns
+    lll = [(x, y) for x in diag['seasons'] for y in diag['regions']]
+    relative_table = relative_table[lll]
+    loggy.debug("Relative table")
+    loggy.debug(relative_table)
 
     # defining plot size
     myfield = relative_table
@@ -82,16 +100,17 @@ def heatmap_comparison_pi(relative_table, diag: dict = None, filemap: str = None
     plt.close()
 
 
-def heatmap_comparison_gm(data_table, mean_table, std_table, diag: dict, filemap: str,
+def heatmap_comparison_gm(data_dict, mean_dict, std_dict, diag: dict, filemap: str,
                           addnan=True, size_model=14, size_obs=8, **kwargs):
     """
     Function to produce a heatmap - seaborn based - for Global Mean
     based on season-averaged standard deviation ratio
 
     Args:
-        data_table (pandas.DataFrame or dict): table of model data
-        mean_table (pandas.DataFrame or dict): table of observations
-        std_table (pandas.DataFrame or dict): table of standard deviation
+        data_dict (dict): table of model data
+        mean_dict (dict): table of observations
+        std_dict (dict): table of standard deviation
+        units_list (str): list of units
         diag (dict): dictionary containing diagnostic information
         filemap (str): path to save the plot
         addnan (bool): add to the final plots also fields which cannot be compared against observations
@@ -101,9 +120,17 @@ def heatmap_comparison_gm(data_table, mean_table, std_table, diag: dict, filemap
     Keyword Args:
         title (str): title of the plot, overrides default title
     """
-    for tab in [data_table, mean_table, std_table]:
-        if isinstance(tab, dict):
-            tab = dict_to_dataframe(tab)
+
+    # convert the three dictionary to pandas and then add units
+    data_table = dict_to_dataframe(data_dict)
+    mean_table = dict_to_dataframe(mean_dict)
+    std_table = dict_to_dataframe(std_dict)
+    for table in [data_table, mean_table, std_table]:
+        table.index = table.index + ' [' + diag['units_list'] + ']'
+
+    loggy.debug("Data table")
+    loggy.debug(data_table)
+
 
     # define array
     ratio = (data_table - mean_table) / std_table
