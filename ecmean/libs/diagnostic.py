@@ -89,6 +89,11 @@ class Diagnostic():
         if self.funcname in 'performance_indices':
             self.cfg_performance_indices(cfg)
 
+        # warning for tropical region change
+        if 'Tropical' in self.regions:
+            loggy.warning("""Since v0.2, Tropical region is 20S-20N.
+                          Please use "Tropical-old" if you want to use the previous region""")
+
         # setting up interface file
         self.interface = getattr(args, 'interface', None) or cfg['interface']
 
