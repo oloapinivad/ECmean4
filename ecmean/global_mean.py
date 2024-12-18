@@ -298,7 +298,7 @@ def global_mean(exp, year1, year2,
 
     # call the heatmap routine for a plot
     mapfile = os.path.join(diag.figdir,
-                           f'global_mean_{diag.expname}_{diag.modelname}_r1i1p1f1_{diag.year1}_{diag.year2}.pdf')
+                           f'global_mean_{diag.expname}_{diag.modelname}_r1i1p1f1_{diag.year1}_{diag.year2}.png')
     loggy.info('Figure file is: %s', mapfile)
 
     diag_dict = {'modelname': diag.modelname, 'expname': diag.expname,

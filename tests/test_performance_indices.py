@@ -10,7 +10,7 @@ import yaml
 from ecmean.performance_indices import performance_indices
 from ecmean.libs.ncfixers import xr_preproc
 from ecmean.libs.general import are_dicts_equal
-from ecmean.libs.plotting import heatmap_comparison_pi
+from ecmean.libs.plotting import heatmap_comparison_pi, prepare_clim_dictionaries_pi
 
 # set TOLERANCE
 TOLERANCE = 1e-1
@@ -80,8 +80,12 @@ def test_performance_indices_amip_xdataset(clim):
 def test_pi_plot(tmp_path):
     file1 = 'tests/table/PI4_EC23_amip_EC-Earth4_r1i1p1f1_1990_1990.yml'
     with open(file1, 'r', encoding='utf8') as f1:
-        data1 = yaml.safe_load(f1)
-    heatmap_comparison_pi(data_dict=data1, cmip6_dict=data1,
+        data = yaml.safe_load(f1)
+    file2 = 'ecmean/climatology/EC23/pi_climatology_EC23.yml'
+    with open(file2, 'r', encoding='utf8') as f1:
+        clim = yaml.safe_load(f1)
+    data_dict, clim_dict, _ = prepare_clim_dictionaries_pi(data=data, clim=clim, shortnames=data.keys())
+    heatmap_comparison_pi(data_dict=data_dict, cmip6_dict=clim_dict,
                           title='CMIP6 RELATIVE PI test',
                           mapfile=os.path.join(tmp_path, 'PI4_heatmap.pdf'))
     assert os.path.isfile('PI4_heatmap.pdf'), "Plot not created."
