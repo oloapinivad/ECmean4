@@ -8,7 +8,7 @@ import logging
 from pathlib import Path
 import xarray as xr
 from ecmean.libs.files import load_yaml
-from ecmean import __version__
+from ecmean import __version__ as version
 
 ####################
 # DIAGNOSTIC CLASS #
@@ -36,14 +36,12 @@ class Diagnostic():
         self.ftrend = getattr(args, 'trend', False)
         self.debug = getattr(args, 'debug', False)
         self.numproc = args.numproc
-        self.modelname = getattr(args, 'model', '')
         self.climatology = getattr(args, 'climatology', 'EC23')
-        self.interface = getattr(args, 'interface', '')
         self.resolution = getattr(args, 'resolution', '')
         self.ensemble = getattr(args, 'ensemble', 'r1i1p1f1')
         self.addnan = getattr(args, 'addnan', False)
         self.funcname = args.funcname.split(".")[1]
-        self.version = __version__
+        self.version = version
         if self.year1 == self.year2:
             self.ftrend = False
         print(f'Welcome to ECmean4 v{self.version}: Running {self.funcname} with {self.numproc} cores!')
@@ -56,13 +54,25 @@ class Diagnostic():
         # current path
         self.indir = Path(os.path.dirname(os.path.abspath(__file__)))
 
-        # get the config file
+        # get the config file, can be a string or a dictionary
         if args.config:
-            cfg = load_yaml(args.config)
+            if isinstance(args.config, dict):
+                cfg = args.config
+            elif isinstance(args.config, str):
+                cfg = load_yaml(args.config)
+            else:
+                raise ValueError('Cannot load the config file')
         else:
             cfg = load_yaml(self.indir / '../../config.yml')
 
-        # Various input and output directories
+        # Various raise and input and output directories
+        if not cfg['dirs']['exp']:
+            raise ValueError('No experiment directory defined in config file')
+        if not cfg['dirs']['tab']:
+            raise ValueError('No table directory defined in config file')
+        if not cfg['dirs']['fig']:
+            raise ValueError('No figure directory defined in config file')
+        
         self.ecedir = Path(os.path.expandvars(cfg['dirs']['exp']))
         outputdir = getattr(args, 'outputdir', None)
         if outputdir is None:
@@ -81,10 +91,10 @@ class Diagnostic():
             self.cfg_performance_indices(cfg)
 
         # setting up interface file
-        if not self.interface:
-            self.interface = cfg['interface']
-        if not self.modelname:
-            self.modelname = cfg['model']['name']
+        self.interface = getattr(args, 'interface', cfg['interface'])
+
+        # setting up model name
+        self.modelname = getattr(args, 'modelname', cfg['model']['name'])
 
         # allow for both interface name or interface file
         if not os.path.exists(self.interface):
