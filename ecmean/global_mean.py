@@ -292,6 +292,9 @@ class GlobalMean:
 
 
 def gm_entry_point():
+    """"
+    Entry point for the global mean computation.
+    """
     args = parse_arguments(sys.argv[1:], script='gm')
     global_mean(exp=args.exp, year1=args.year1, year2=args.year2, numproc=args.numproc,
                           trend=args.trend, line=args.line, loglevel=args.loglevel,
@@ -302,7 +305,11 @@ def gm_entry_point():
 def global_mean(exp, year1, year2, config='config.yml', loglevel='WARNING', numproc=1,
                 interface=None, model=None, ensemble='r1i1p1f1', addnan=False, silent=None,
                 trend=None, line=None, outputdir=None, xdataset=None):
-    gm = GlobalMean(exp, year1, year2, config, loglevel, numproc, interface, model, ensemble, addnan, silent, trend, line, outputdir, xdataset)
+    """Wrapper function to compute the global mean."""
+    gm = GlobalMean(exp, year1, year2, config, 
+                    loglevel=loglevel, numproc=numproc, interface=interface, model=model, 
+                    ensemble=ensemble, addnan=addnan, silent=silent, trend=trend, 
+                    line=line, outputdir=outputdir, xdataset=xdataset)
     gm.prepare()
     gm.run()
     gm.store()

@@ -355,7 +355,7 @@ class PerformanceIndices:
 
                             # diagnostic
                             if region == 'Global':
-                                logging.info('PI for %s %s %s %s', region, season, var, result[season][region])
+                                loggy.info('PI for %s %s %s %s', region, season, var, result[season][region])
 
             # nested dictionary, to be redefined as a dict to remove lambdas
             varstat[var] = result
