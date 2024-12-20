@@ -62,6 +62,11 @@ class UnitsHandler():
             self.units_are_integrals()
             self.offset, self.factor = self.units_converter()
 
+    def offset_factor(self):
+        """Return offset and factor for conversion"""
+
+        return self.offset, self.factor
+
     def init_ecmean(self, clim, face):
         """Specific initialization used within ECmean"""
 

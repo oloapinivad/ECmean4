@@ -83,7 +83,7 @@ class GlobalMean:
         self.loglevel = loglevel
         self.loggy = setup_logger(level=self.loglevel)
         self.diag = Diagnostic(exp, year1, year2, config, funcname=self.__class__.__name__,
-                        numproc=numproc, ensemble=ensemble, interface=interface, model=model,
+                        numproc=numproc, ensemble=ensemble, interface=interface, modelname=model,
                         addnan=addnan, silent=silent, trend=trend, line=line, outputdir=outputdir,
                         xdataset=xdataset)
         self.face = None
@@ -135,6 +135,7 @@ class GlobalMean:
 
         for proc in processes:
             proc.join()
+        self.toc('Computation')
 
     def store(self, yamlfile=None):
         """Rearrange the data and save the yaml file and the table."""
@@ -181,6 +182,7 @@ class GlobalMean:
         self.loggy.info('YAML file is: %s', yamlfile)
         with open(yamlfile, 'w', encoding='utf-8') as file:
             yaml.safe_dump(self.varmean, file, default_flow_style=False, sort_keys=False)
+        self.toc('Storing')
 
     def plot(self, mapfile=None, figformat='pdf'):
         """"
@@ -238,9 +240,9 @@ class GlobalMean:
                 isavail, varunit = var_is_there(infile, var, face)
 
                 if isavail:
-                    units_handler = UnitsHandler(var, org_units=varunit, clim=ref, face=face)
-                    offset, factor = units_handler.offset, units_handler.factor
-
+                    offset, factor = UnitsHandler(var, org_units=varunit,
+                                                  clim=ref, face=face).offset_factor()
+                 
                     if not isinstance(infile, (xr.DataArray, xr.Dataset)):
                         xfield = xr.open_mfdataset(infile, preprocess=xr_preproc, chunks={'time': 12})
                     else:

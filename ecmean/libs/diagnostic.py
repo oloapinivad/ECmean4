@@ -19,12 +19,12 @@ loggy = logging.getLogger(__name__)
 class Diagnostic():
     """General container class for common variables"""
 
-    def __init__(self, exp, year1, year2, config, funcname, 
-                 line=False, trend=False, 
+    def __init__(self, exp, year1, year2, config, funcname,
+                 line=False, trend=False,
                  resolution=None, ensemble='r1i1p1', addnan=False,
                  interface=None, modelname=None, outputdir=None,
-                 xdataset=None,
-                 numproc=1, climatology='EC23', **kwargs):
+                 xdataset=None, silent=None,
+                 numproc=1, climatology='EC23'):
         """
         Initialize the Diagnostic instance.
 
@@ -41,6 +41,7 @@ class Diagnostic():
         self.ftrend = trend
         self.numproc = numproc
         self.climatology = climatology
+        self.silent = silent
         self.resolution = resolution
         self.ensemble = ensemble
         self.interface = interface
@@ -94,9 +95,7 @@ class Diagnostic():
             self.cfg_performance_indices(cfg)
 
         # setting up interface file
-        print(cfg['interface'])
         self.interface = interface or cfg['interface']
-        print(self.interface)
 
         # setting up model name
         self.modelname = modelname or cfg['model']['name']
@@ -136,7 +135,7 @@ class Diagnostic():
         if kind in ['pdf', 'png']:
             return self.figdir / figurename
         raise ValueError('Unknown file type')
-      
+
     def cfg_global_mean(self, cfg):
         """
         Set up configuration details for global mean.

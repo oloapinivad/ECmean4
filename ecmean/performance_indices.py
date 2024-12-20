@@ -169,6 +169,7 @@ class PerformanceIndices:
             yamlfile = self.diag.filenames('yml')
         with open(yamlfile, 'w', encoding='utf-8') as file:
             yaml.safe_dump(self.varstat, file, default_flow_style=False, sort_keys=False)
+        self.toc('Storing')
 
     def plot(self, mapfile=None, figformat='pdf'):
         """
@@ -243,8 +244,8 @@ class PerformanceIndices:
                 # if the variable is available
                 if isavail:
                     # perform the unit conversion extracting offset and factor
-                    units_handler = UnitsHandler(var, org_units=varunit, clim=piclim, face=face)
-                    offset, factor = units_handler.offset, units_handler.factor
+                    offset, factor = UnitsHandler(var, org_units=varunit, 
+                                                 clim=piclim, face=face).offset_factor()
 
                     # open file: chunking on time only, might be improved
                     if not isinstance(infile, (xr.DataArray, xr.Dataset)):
