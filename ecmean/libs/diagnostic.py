@@ -16,6 +16,7 @@ from ecmean import __version__ as version
 
 loggy = logging.getLogger(__name__)
 
+
 class Diagnostic():
     """General container class for common variables"""
 
@@ -127,7 +128,7 @@ class Diagnostic():
             head = f'PI4_{self.climatology}'
         else:
             raise ValueError('Unknown function name')
-        
+
         figurename = f'{head}_{self.expname}_{self.modelname}_{self.ensemble}_{self.year1}_{self.year2}.{kind}'
 
         if kind in ['yml', 'txt']:

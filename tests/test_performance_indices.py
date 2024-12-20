@@ -10,7 +10,7 @@ import yaml
 from ecmean import performance_indices, PerformanceIndices
 from ecmean.libs.ncfixers import xr_preproc
 from ecmean.libs.general import are_dicts_equal
-#from ecmean.libs.plotting import heatmap_comparison_pi, prepare_clim_dictionaries_pi
+# from ecmean.libs.plotting import heatmap_comparison_pi, prepare_clim_dictionaries_pi
 
 # set TOLERANCE
 TOLERANCE = 1e-1
@@ -19,9 +19,11 @@ TOLERANCE = 1e-1
 env = {**os.environ, "COVERAGE_PROCESS_START": ".coveragerc"}
 
 # test on coupled
+
+
 @pytest.mark.parametrize("clim", ['RK08', 'EC23'])
 def test_performance_indices_cpld(clim):
-    performance_indices('cpld', 1990, 1990, numproc=4, 
+    performance_indices('cpld', 1990, 1990, numproc=4,
                         climatology=clim, config='tests/config.yml')
     file1 = 'tests/table/PI4_' + clim + '_cpld_EC-Earth4_r1i1p1f1_1990_1990.yml'
     file2 = 'tests/table/PI4_' + clim + '_cpld_1990_1990.ref'
@@ -61,6 +63,8 @@ def test_cmd_performance_indices_CMIP6(clim):
     assert are_dicts_equal(data1, data2, TOLERANCE), f"YAML files are not identical.\nData1: {data1}\nData2: {data2}"
 
 # test on amip but with access from xarray dataset
+
+
 @pytest.mark.parametrize("clim", ['RK08', 'EC23'])
 def test_performance_indices_amip_xdataset(clim):
     file1 = 'tests/table/PI4_' + clim + '_amip_EC-Earth4_r1i1p1f1_1990_1990.yml'
@@ -74,7 +78,7 @@ def test_performance_indices_amip_xdataset(clim):
         data1 = yaml.safe_load(f1)
         data2 = yaml.safe_load(f2)
 
-    assert are_dicts_equal(data1, data2, TOLERANCE),f"YAML files are not identical.\nData1: {data1}\nData2: {data2}"
+    assert are_dicts_equal(data1, data2, TOLERANCE), f"YAML files are not identical.\nData1: {data1}\nData2: {data2}"
 
 
 def test_pi_plot(tmp_path):

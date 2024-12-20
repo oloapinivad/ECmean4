@@ -21,6 +21,7 @@ import xarray as xr
 
 loggy = logging.getLogger(__name__)
 
+
 def guess_bounds(axis, name='lon'):
     """Basic function that estimates the boundaries for lon and lat if they are not
     available. Works only with regular grids.
@@ -196,7 +197,7 @@ def area_cell(xfield, gridtype=None, formula='triangles'):
 
     # check the total area
     loggy.debug('Total Earth Surface: %s Km2',
-                 str(outfield.sum().values / 10**6))
+                str(outfield.sum().values / 10**6))
 
     return outfield
 

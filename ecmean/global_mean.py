@@ -23,8 +23,8 @@ import dask
 
 from ecmean import Diagnostic, Supporter, UnitsHandler
 from ecmean.libs.general import weight_split, write_tuning_table, get_domain, \
-     check_time_axis, init_mydict, \
-          check_var_interface, check_var_climatology, set_multiprocessing_start_method
+    check_time_axis, init_mydict, \
+    check_var_interface, check_var_climatology, set_multiprocessing_start_method
 from ecmean.libs.files import var_is_there, get_inifiles, load_yaml, make_input_filename
 from ecmean.libs.formula import formula_wrapper
 from ecmean.libs.masks import masked_meansum, select_region
@@ -76,23 +76,24 @@ class GlobalMean:
         plot(mapfile=None, figformat='pdf'):
         gm_worker(util, ref, face, diag, varmean, vartrend, varlist):
     """
+
     def __init__(self, exp, year1, year2, config='config.yml', loglevel='WARNING', numproc=1,
-                      interface=None, model=None, ensemble='r1i1p1f1', addnan=False, silent=None,
-                      trend=None, line=None, outputdir=None, xdataset=None):
-    
+                 interface=None, model=None, ensemble='r1i1p1f1', addnan=False, silent=None,
+                 trend=None, line=None, outputdir=None, xdataset=None):
+
         self.loglevel = loglevel
         self.loggy = setup_logger(level=self.loglevel)
         self.diag = Diagnostic(exp, year1, year2, config, funcname=self.__class__.__name__,
-                        numproc=numproc, ensemble=ensemble, interface=interface, modelname=model,
-                        addnan=addnan, silent=silent, trend=trend, line=line, outputdir=outputdir,
-                        xdataset=xdataset)
+                               numproc=numproc, ensemble=ensemble, interface=interface, modelname=model,
+                               addnan=addnan, silent=silent, trend=trend, line=line, outputdir=outputdir,
+                               xdataset=xdataset)
         self.face = None
         self.ref = None
         self.util_dictionary = None
         self.varmean = None
         self.vartrend = None
         self.start_time = time()
-    
+
     def toc(self, message):
         """Update the timer and log the elapsed time."""
         elapsed_time = time() - self.start_time
@@ -129,7 +130,7 @@ class GlobalMean:
 
         for varlist in weight_split(self.diag.var_all, self.diag.numproc):
             core = Process(target=self.gm_worker, args=(self.util_dictionary, self.ref, self.face, self.diag,
-                                                                        self.varmean, self.vartrend, varlist))
+                                                        self.varmean, self.vartrend, varlist))
             core.start()
             processes.append(core)
 
@@ -178,7 +179,7 @@ class GlobalMean:
         # save yaml fil
         if yamlfile is None:
             yamlfile = self.diag.filenames('yml')
-        
+
         self.loggy.info('YAML file is: %s', yamlfile)
         with open(yamlfile, 'w', encoding='utf-8') as file:
             yaml.safe_dump(self.varmean, file, default_flow_style=False, sort_keys=False)
@@ -212,8 +213,8 @@ class GlobalMean:
 
         # call the heatmap for plottinh
         heatmap_comparison_gm(data_dict=data2plot, mean_dict=obsmean, std_dict=obsstd,
-                                    diag=self.diag, units_list=units_list,
-                                    filemap=mapfile, addnan=self.diag.addnan)
+                              diag=self.diag, units_list=units_list,
+                              filemap=mapfile, addnan=self.diag.addnan)
 
         if self.diag.ftable:
             self.loggy.info('Line file is: %s', self.diag.linefile)
@@ -242,7 +243,7 @@ class GlobalMean:
                 if isavail:
                     offset, factor = UnitsHandler(var, org_units=varunit,
                                                   clim=ref, face=face).offset_factor()
-                 
+
                     if not isinstance(infile, (xr.DataArray, xr.Dataset)):
                         xfield = xr.open_mfdataset(infile, preprocess=xr_preproc, chunks={'time': 12})
                     else:
@@ -297,22 +298,21 @@ def gm_entry_point():
     """
     args = parse_arguments(sys.argv[1:], script='gm')
     global_mean(exp=args.exp, year1=args.year1, year2=args.year2, numproc=args.numproc,
-                          trend=args.trend, line=args.line, loglevel=args.loglevel,
-                          interface=args.interface, config=args.config, model=args.model,
-                          ensemble=args.ensemble, addnan=args.addnan, outputdir=args.outputdir)
+                trend=args.trend, line=args.line, loglevel=args.loglevel,
+                interface=args.interface, config=args.config, model=args.model,
+                ensemble=args.ensemble, addnan=args.addnan, outputdir=args.outputdir)
     print('ECmean4 Global Mean successfully computed!')
+
 
 def global_mean(exp, year1, year2, config='config.yml', loglevel='WARNING', numproc=1,
                 interface=None, model=None, ensemble='r1i1p1f1', addnan=False, silent=None,
                 trend=None, line=None, outputdir=None, xdataset=None):
     """Wrapper function to compute the global mean."""
-    gm = GlobalMean(exp, year1, year2, config, 
-                    loglevel=loglevel, numproc=numproc, interface=interface, model=model, 
-                    ensemble=ensemble, addnan=addnan, silent=silent, trend=trend, 
+    gm = GlobalMean(exp, year1, year2, config,
+                    loglevel=loglevel, numproc=numproc, interface=interface, model=model,
+                    ensemble=ensemble, addnan=addnan, silent=silent, trend=trend,
                     line=line, outputdir=outputdir, xdataset=xdataset)
     gm.prepare()
     gm.run()
     gm.store()
     gm.plot()
-    
-

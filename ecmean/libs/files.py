@@ -32,6 +32,7 @@ def inifiles_priority(inidict):
             break
     return file
 
+
 def var_is_there(flist, var, face):
     """
     Check if a variable is available in the input file and provide its units.
@@ -71,7 +72,7 @@ def var_is_there(flist, var, face):
             varunit = None
             x = [e for e in var_req if e not in xfield.data_vars]
             loggy.warning("Variable %s requires %s which is not "
-                            "available in the model output. Ignoring it.", var, ' '.join(x))
+                          "available in the model output. Ignoring it.", var, ' '.join(x))
             return isavail, varunit
 
         # get units
@@ -80,7 +81,7 @@ def var_is_there(flist, var, face):
             varunit = units_avail.get(var_req[0])
             if len(var_req) > 1:
                 loggy.debug('%s is a derived var, assuming unit '
-                             'as the first of its term', var)
+                            'as the first of its term', var)
 
     else:
         varunit = None

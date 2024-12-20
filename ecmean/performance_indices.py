@@ -19,8 +19,8 @@ import yaml
 import dask
 from ecmean import Diagnostic, Supporter, UnitsHandler
 from ecmean.libs.general import weight_split, get_domain, \
-   check_time_axis, init_mydict, check_var_interface, check_var_climatology, \
-   set_multiprocessing_start_method
+    check_time_axis, init_mydict, check_var_interface, check_var_climatology, \
+    set_multiprocessing_start_method
 from ecmean.libs.files import var_is_there, get_inifiles, load_yaml, \
     make_input_filename, get_clim_files
 from ecmean.libs.formula import formula_wrapper
@@ -33,6 +33,7 @@ from ecmean.libs.parser import parse_arguments
 from ecmean.libs.loggy import setup_logger
 
 dask.config.set(scheduler="synchronous")
+
 
 class PerformanceIndices:
     """
@@ -83,11 +84,11 @@ class PerformanceIndices:
 
         self.loglevel = loglevel
         self.loggy = setup_logger(level=self.loglevel)
-        self.diag = Diagnostic(exp=exp, year1=year1, year2=year2, config=config, 
+        self.diag = Diagnostic(exp=exp, year1=year1, year2=year2, config=config,
                                funcname=self.__class__.__name__,
-                               numproc=numproc, climatology=climatology, 
-                               interface=interface, 
-                               modelname=model, ensemble=ensemble, 
+                               numproc=numproc, climatology=climatology,
+                               interface=interface,
+                               modelname=model, ensemble=ensemble,
                                outputdir=outputdir, xdataset=xdataset)
         self.silent = silent
         self.face = None
@@ -133,7 +134,8 @@ class PerformanceIndices:
         units_extra_definition()
 
         # create remap dictionary with atm and oce interpolators
-        self.util_dictionary = Supporter(comp, inifiles['atm'], inifiles['oce'], areas=False, remap=True, targetgrid=target_remap_grid)
+        self.util_dictionary = Supporter(comp, inifiles['atm'], inifiles['oce'],
+                                         areas=False, remap=True, targetgrid=target_remap_grid)
         self.toc('Preparation')
 
     def run(self):
@@ -157,7 +159,7 @@ class PerformanceIndices:
         for proc in processes:
             proc.join()
         self.toc('Computation')
-    
+
     def store(self, yamlfile=None):
         """Store the performance indices in a yaml file."""
 
@@ -174,7 +176,7 @@ class PerformanceIndices:
     def plot(self, mapfile=None, figformat='pdf'):
         """
         Generate the heatmap for performance indices.
-        
+
         Args:
             mapfile (str): Path to the output file. If None, it will be defined automatically following ECmean syntax.
             figformat (str): Format of the output file. Default is 'pdf'.
@@ -200,11 +202,11 @@ class PerformanceIndices:
             # call the heatmap routine for a plot
             if mapfile is None:
                 mapfile = self.diag.filenames(figformat)
-        
+
             heatmap_comparison_pi(data_dict=data2plot, cmip6_dict=cmip6, diag=self.diag, longnames=longnames, filemap=mapfile)
         else:
             self.loggy.warning('Only EC23 climatology is supported for comparison with CMIP6 data.')
-        
+
         self.toc('Plotting')
 
     @staticmethod
@@ -244,8 +246,8 @@ class PerformanceIndices:
                 # if the variable is available
                 if isavail:
                     # perform the unit conversion extracting offset and factor
-                    offset, factor = UnitsHandler(var, org_units=varunit, 
-                                                 clim=piclim, face=face).offset_factor()
+                    offset, factor = UnitsHandler(var, org_units=varunit,
+                                                  clim=piclim, face=face).offset_factor()
 
                     # open file: chunking on time only, might be improved
                     if not isinstance(infile, (xr.DataArray, xr.Dataset)):
@@ -294,7 +296,9 @@ class PerformanceIndices:
 
                         tmean = tmean * factor + offset
 
-                        # this computation is required to ensure that file access is done in a correct way. resource errors found if disabled in some specific configuration
+                        # this computation is required to ensure that file access is done in a
+                        # correct way. resource errors found if disabled in some specific
+                        # configuration
                         tmean = tmean.compute()
 
                         # apply interpolation, if fixer is available and with different grids
@@ -320,7 +324,8 @@ class PerformanceIndices:
                                 # safety check for missing values
                                 sample = final.isel(lon=0, lat=0)
                                 if np.sum(np.isnan(sample)) != 0:
-                                    loggy.warning('%s: You have NaN after the interpolation, this will affect your PIs...', var)
+                                    loggy.warning(
+                                        '%s: You have NaN after the interpolation, this will affect your PIs...', var)
                                     levnan = cfield['plev'].where(np.isnan(sample))
                                     loggy.warning(levnan[~np.isnan(levnan)].data)
 
@@ -369,10 +374,11 @@ def pi_entry_point():
     args = parse_arguments(sys.argv[1:], script='pi')
 
     performance_indices(exp=args.exp, year1=args.year1, year2=args.year2,
-                            numproc=args.numproc, loglevel=args.loglevel, 
-                            climatology=args.climatology,
-                            interface=args.interface, config=args.config,
-                            model=args.model, ensemble=args.ensemble, outputdir=args.outputdir)
+                        numproc=args.numproc, loglevel=args.loglevel,
+                        climatology=args.climatology,
+                        interface=args.interface, config=args.config,
+                        model=args.model, ensemble=args.ensemble, outputdir=args.outputdir)
+
 
 def performance_indices(exp, year1, year2, config='config.yml', loglevel='WARNING',
                         numproc=1, climatology='EC23', interface=None, model=None,

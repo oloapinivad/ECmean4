@@ -12,6 +12,7 @@ import xarray as xr
 
 loggy = logging.getLogger(__name__)
 
+
 def masked_meansum(xfield, weights, mask, operation, domain, mask_type):
     """For global variables evaluate the weighted averaged
     or weighted integral when required by the variable properties"""
@@ -74,7 +75,7 @@ def mask_field(xfield, mask_type, dom, mask):
             if mask_type == 'land':
                 out = xfield.where(mask.data >= 0.5)
             elif mask_type == 'land-no-antarctica':
-                out = xfield.where(mask.lat>(-60)).where(mask.data >= 0.5)
+                out = xfield.where(mask.lat > (-60)).where(mask.data >= 0.5)
             elif mask_type in ['sea', 'ocean']:
                 out = xfield.where(mask.data < 0.5)
             else:
