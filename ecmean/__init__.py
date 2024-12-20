@@ -6,7 +6,8 @@ __version__ = '0.1.11'
 from ecmean.libs.diagnostic import Diagnostic
 from ecmean.libs.support import Supporter
 from ecmean.libs.units import UnitsHandler
-from ecmean.global_mean import global_mean
+from ecmean.global_mean import GlobalMean, global_mean
 from ecmean.performance_indices import PerformanceIndices, performance_indices
 
-__all__ = ["global_mean", "PerformanceIndices", "performance_indices", "Diagnostic", "Supporter", "UnitsHandler"]
+__all__ = ["GlobalMean", "global_mean", "PerformanceIndices",
+           "performance_indices", "Diagnostic", "Supporter", "UnitsHandler"]

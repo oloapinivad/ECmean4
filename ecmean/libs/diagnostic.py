@@ -82,7 +82,7 @@ class Diagnostic():
             self.figdir = Path(os.path.join(outputdir, 'PDF'))
 
         # init for global mean
-        if self.funcname == 'global_mean':
+        if self.funcname == 'GlobalMean':
             self.cfg_global_mean(cfg)
 
         # init for performance indices
