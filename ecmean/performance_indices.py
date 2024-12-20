@@ -199,8 +199,11 @@ class PerformanceIndices:
             if not self.varstat:
                 yamlfile = self.yamlfile()
                 self.loggy.info('Loading the stored data from the yaml file %s', yamlfile)
-                with open(yamlfile, 'r', encoding='utf-8') as file:
-                    self.varstat = yaml.safe_load(file)
+                if os.path.isfile(yamlfile):
+                    with open(yamlfile, 'r', encoding='utf-8') as file:
+                        self.varstat = yaml.safe_load(file)
+                else:
+                    raise FileNotFoundError(f'File {yamlfile} not found.')
 
             # prepare the data for the heatmap from the original yaml dictionaries
             data2plot, cmip6, longnames = prepare_clim_dictionaries_pi(data=self.varstat,

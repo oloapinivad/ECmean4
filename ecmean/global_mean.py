@@ -215,8 +215,11 @@ class GlobalMean:
         if not self.varmean:
             yamlfile = self.yamlfile()
             self.loggy.info('Loading the stored data from the yaml file %s', yamlfile)
-            with open(yamlfile, 'r', encoding='utf-8') as file:
-                self.varmean = yaml.safe_load(file)
+            if os.path.isfile(yamlfile):
+                with open(yamlfile, 'r', encoding='utf-8') as file:
+                    self.varmean = yaml.safe_load(file)
+            else:
+                raise FileNotFoundError(f'YAML file {yamlfile} not found')
 
         # prepare the dictionaries for the plotting
         obsmean, obsstd, data2plot, units_list = prepare_clim_dictionaries_gm(self.varmean, self.ref,
