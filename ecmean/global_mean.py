@@ -112,6 +112,7 @@ class GlobalMean:
         self.loggy.info('%s time: %.2f seconds', message, elapsed_time)
 
     def prepare(self):
+        """Prepare the necessary components for the global mean computation."""
         plat, mprocmethod = set_multiprocessing_start_method()
         self.loggy.info('Running on %s and multiprocessing method set as "%s"', plat, mprocmethod)
 
@@ -130,9 +131,10 @@ class GlobalMean:
         units_extra_definition()
 
         self.util_dictionary = Supporter(comp, inifiles['atm'], inifiles['oce'], areas=True, remap=False)
-        self.toc('Computation')
+        self.toc('Preparation')
 
     def run(self):
+        """Run the global mean computaacross all variables on using multiprocessing."""
         mgr = Manager()
         self.varmean = mgr.dict()
         self.vartrend = mgr.dict()
@@ -149,6 +151,7 @@ class GlobalMean:
         self.toc('Computation')
 
     def store(self):
+        """Rearrange the data and save the yaml file and the table."""
         global_table = []
         for var in self.diag.var_all:
             gamma = self.ref[var]
@@ -197,20 +200,17 @@ class GlobalMean:
             mapfile: Path to the output file. If None, it will be defined automatically following ECmean syntax
             figformat: Format of the output file.
         """
-        obsmean, obsstd, data2plot, units_list = prepare_clim_dictionaries_gm(self.varmean, self.ref, 
-                                                                              self.diag.var_all, self.diag.seasons, 
+        obsmean, obsstd, data2plot, units_list = prepare_clim_dictionaries_gm(self.varmean, self.ref,
+                                                                              self.diag.var_all, self.diag.seasons,
                                                                               self.diag.regions)
         if mapfile is None:
             mapfile = os.path.join(self.diag.figdir,
-                                        f'global_mean_{self.diag.expname}_{self.diag.modelname}_r1i1p1f1_{self.diag.year1}_{self.diag.year2}.{figformat}')
+                                    f'global_mean_{self.diag.expname}_{self.diag.modelname}_r1i1p1f1_{self.diag.year1}_{self.diag.year2}.{figformat}')
         self.loggy.info('Figure file is: %s', mapfile)
 
-        diag_dict = {'modelname': self.diag.modelname, 'expname': self.diag.expname,
-                        'year1': self.diag.year1, 'year2': self.diag.year2,
-                        'units_list': units_list}
-
         heatmap_comparison_gm(data_dict=data2plot, mean_dict=obsmean, std_dict=obsstd,
-                                    diag=diag_dict, filemap=mapfile, addnan=self.diag.addnan)
+                                    diag=self.diag, units_list=units_list,
+                                    filemap=mapfile, addnan=self.diag.addnan)
 
         if self.diag.ftable:
             self.loggy.info('Line file is: %s', self.diag.linefile)
@@ -301,8 +301,8 @@ def global_mean(exp, year1, year2, config='config.yml', loglevel='WARNING', nump
                 trend=None, line=None, outputdir=None, xdataset=None):
     gm = GlobalMean(exp, year1, year2, config, loglevel, numproc, interface, model, ensemble, addnan, silent, trend, line, outputdir, xdataset)
     gm.prepare()
-   
     gm.run()
     gm.store()
     gm.plot()
+    
 

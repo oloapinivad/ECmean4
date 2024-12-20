@@ -143,7 +143,7 @@ class PerformanceIndices:
 
         # create remap dictionary with atm and oce interpolators
         self.util_dictionary = Supporter(comp, inifiles['atm'], inifiles['oce'], areas=False, remap=True, targetgrid=target_remap_grid)
-        self.toc('Calculation')
+        self.toc('Preparation')
 
     def run(self):
         """Run the performance indices calculation."""
@@ -156,7 +156,9 @@ class PerformanceIndices:
 
         # loop on the variables, create the parallel process
         for varlist in weight_split(self.diag.field_all, self.diag.numproc):
-            core = Process(target=self.pi_worker, args=(self.util_dictionary, self.piclim, self.face, self.diag, self.diag.field_3d, self.varstat, varlist))
+            core = Process(target=self.pi_worker, args=(self.util_dictionary, self.piclim, 
+                                                        self.face, self.diag, self.diag.field_3d, 
+                                                        self.varstat, varlist))
             core.start()
             processes.append(core)
 
@@ -194,9 +196,9 @@ class PerformanceIndices:
 
             # call the heatmap routine for a plot
             if mapfile is None:
-                mapfile = os.path.join(self.diag.figdir, f'PI4_{self.diag.climatology}_{self.diag.expname}_{self.diag.modelname}_r1i1p1f1_{self.diag.year1}_{self.diag.year2}.{figformat}')
-            diag_dict = {'modelname': self.diag.modelname, 'expname': self.diag.expname, 'climatology': self.diag.climatology, 'year1': self.diag.year1, 'year2': self.diag.year2, 'seasons': self.diag.seasons, 'regions': self.diag.regions, 'longnames': longnames}
-            heatmap_comparison_pi(data_dict=data2plot, cmip6_dict=cmip6, diag=diag_dict, filemap=mapfile)
+                mapfile = os.path.join(self.diag.figdir,
+                                    f'PI4_{self.diag.climatology}_{self.diag.expname}_{self.diag.modelname}_r1i1p1f1_{self.diag.year1}_{self.diag.year2}.{figformat}')
+            heatmap_comparison_pi(data_dict=data2plot, cmip6_dict=cmip6, diag=self.diag, longnames=longnames, filemap=mapfile)
         self.toc('Plotting')
 
     @staticmethod

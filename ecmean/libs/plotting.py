@@ -18,7 +18,7 @@ from ecmean.libs.general import dict_to_dataframe, init_mydict
 
 loggy = logging.getLogger(__name__)
 
-def heatmap_comparison_pi(data_dict, cmip6_dict, diag: dict = None, filemap: str = None, size_model=14, **kwargs):
+def heatmap_comparison_pi(data_dict, cmip6_dict, diag, longnames, filemap: str = None, size_model=14, **kwargs):
     """
     Function to produce a heatmap - seaborn based - for Performance Indices
     based on CMIP6 ratio
@@ -26,7 +26,8 @@ def heatmap_comparison_pi(data_dict, cmip6_dict, diag: dict = None, filemap: str
     Args:
         data_dict (dict): dictionary of absolute performance indices
         cmip6_dict (dict): dictionary of CMIP6 performance indices
-        diag (dict): dictionary containing diagnostic information
+        diag (object): Diagnostic object
+        units_list (list): list of units
         filemap (str): path to save the plot
         size_model (int): size of the PIs in the plot
 
@@ -40,18 +41,15 @@ def heatmap_comparison_pi(data_dict, cmip6_dict, diag: dict = None, filemap: str
     loggy.debug(data_table)
 
     # relative pi with re-ordering of rows
-    cmip6_table = dict_to_dataframe(cmip6_dict)
-    if diag is not None and 'longnames' in diag:
-        cmip6_table = cmip6_table.reindex(diag['longnames'])
+    cmip6_table = dict_to_dataframe(cmip6_dict).reindex(longnames)
     relative_table = data_table.div(cmip6_table)
 
     # compute the total PI mean
     relative_table.loc['Total PI'] = relative_table.mean()
 
     # reordering columns if info is available
-    if diag is not None and 'regions' in diag and 'seasons' in diag:
-        lll = [(x, y) for x in diag['seasons'] for y in diag['regions']]
-        relative_table = relative_table[lll]
+    lll = [(x, y) for x in diag.seasons for y in diag.regions]
+    relative_table = relative_table[lll]
     loggy.debug("Relative table")
     loggy.debug(relative_table)
 
@@ -70,7 +68,7 @@ def heatmap_comparison_pi(data_dict, cmip6_dict, diag: dict = None, filemap: str
         title = kwargs['title']
     else:
         title = 'CMIP6 RELATIVE PI'
-        title += ' ' + diag['modelname'] + ' ' + diag['expname'] + ' ' + str(diag['year1']) + ' ' + str(diag['year2'])
+        title += f" {diag.modelname} {diag.expname} {diag.year1} {diag.year2}"
 
     tot = len(myfield.columns)
     sss = len(set([tup[1] for tup in myfield.columns]))
@@ -93,10 +91,7 @@ def heatmap_comparison_pi(data_dict, cmip6_dict, diag: dict = None, filemap: str
     axs.set(xlabel=None)
 
     if filemap is None:
-        if diag is not None:
-            filemap = f'PI4_{diag["climatology"]}_{diag["expname"]}_{diag["modelname"]}_{diag["year1"]}_{diag["year2"]}.pdf'
-        else:
-            filemap = 'PI4_heatmap.pdf'
+        filemap = 'PI4_heatmap.pdf'
 
     # save and close
     plt.savefig(filemap)
@@ -104,7 +99,7 @@ def heatmap_comparison_pi(data_dict, cmip6_dict, diag: dict = None, filemap: str
     plt.close()
 
 
-def heatmap_comparison_gm(data_dict, mean_dict, std_dict, diag: dict, filemap: str,
+def heatmap_comparison_gm(data_dict, mean_dict, std_dict, diag, units_list, filemap=None,
                           addnan=True, size_model=14, size_obs=8, **kwargs):
     """
     Function to produce a heatmap - seaborn based - for Global Mean
@@ -114,7 +109,8 @@ def heatmap_comparison_gm(data_dict, mean_dict, std_dict, diag: dict, filemap: s
         data_dict (dict): table of model data
         mean_dict (dict): table of observations
         std_dict (dict): table of standard deviation
-        diag (dict): dictionary containing diagnostic information
+        diag (dict): diagnostic object
+        units_list (list): list of units
         filemap (str): path to save the plot
         addnan (bool): add to the final plots also fields which cannot be compared against observations
         size_model (int): size of the model values in the plot
@@ -129,7 +125,7 @@ def heatmap_comparison_gm(data_dict, mean_dict, std_dict, diag: dict, filemap: s
     mean_table = dict_to_dataframe(mean_dict)
     std_table = dict_to_dataframe(std_dict)
     for table in [data_table, mean_table, std_table]:
-        table.index = table.index + ' [' + diag['units_list'] + ']'
+        table.index = table.index + ' [' + units_list + ']'
 
     loggy.debug("Data table")
     loggy.debug(data_table)
@@ -151,7 +147,7 @@ def heatmap_comparison_gm(data_dict, mean_dict, std_dict, diag: dict, filemap: s
         title = kwargs['title']
     else:
         title = 'GLOBAL MEAN'
-        title += ' ' + diag['modelname'] + ' ' + diag['expname'] + ' ' + str(diag['year1']) + ' ' + str(diag['year2'])
+        title += f" {diag.modelname} {diag.expname} {diag.year1} {diag.year2}"
 
     # set color range and palette
     thr = 10
@@ -194,10 +190,7 @@ def heatmap_comparison_gm(data_dict, mean_dict, std_dict, diag: dict, filemap: s
     axs.set(xlabel=None)
 
     if filemap is None:
-        if diag is not None:
-            filemap = f'Global_Mean_{diag["expname"]}_{diag["modelname"]}_{diag["year1"]}_{diag["year2"]}.pdf'
-        else:
-            filemap = 'Global_Mean_Heatmap.pdf'
+        filemap = 'Global_Mean_Heatmap.pdf'
 
     # save and close
     plt.savefig(filemap)
