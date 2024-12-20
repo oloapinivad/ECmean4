@@ -40,7 +40,7 @@ class Diagnostic():
         self.resolution = getattr(args, 'resolution', '')
         self.ensemble = getattr(args, 'ensemble', 'r1i1p1f1')
         self.addnan = getattr(args, 'addnan', False)
-        self.funcname = args.funcname.split(".")[1]
+        self.funcname = args.funcname
         self.version = version
         if self.year1 == self.year2:
             self.ftrend = False
@@ -82,11 +82,11 @@ class Diagnostic():
             self.figdir = Path(os.path.join(outputdir, 'PDF'))
 
         # init for global mean
-        if self.funcname == 'global_mean':
+        if self.funcname == 'GlobalMean':
             self.cfg_global_mean(cfg)
 
         # init for performance indices
-        if self.funcname in 'performance_indices':
+        if self.funcname in 'PerformanceIndices':
             self.cfg_performance_indices(cfg)
 
         # setting up interface file

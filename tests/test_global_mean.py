@@ -3,7 +3,7 @@
 import os
 import subprocess
 import xarray as xr
-from ecmean.global_mean import global_mean
+from ecmean.global_mean import global_mean, GlobalMean
 from ecmean.libs.ncfixers import xr_preproc
 from ecmean.libs.general import are_dicts_equal
 from ecmean.libs.files import load_yaml
@@ -13,6 +13,7 @@ TOLERANCE = 1e-3
 
 # set up coverage env var
 env = {**os.environ, "COVERAGE_PROCESS_START": ".coveragerc"}
+
 
 # Open the text file for reading
 def load_gm_txt_files(textfile):
@@ -37,6 +38,7 @@ def load_gm_txt_files(textfile):
                     data_dict[variable] = value
     return data_dict
 
+
 # call on coupled ECE using parser and debug mode
 def test_cmd_global_mean_coupled():
     file1 = 'tests/table/global_mean_cpld_EC-Earth4_r1i1p1f1_1990_1990.txt'
@@ -46,7 +48,7 @@ def test_cmd_global_mean_coupled():
     subprocess.run(['global_mean', 'cpld', '1990', '1990', '-j', '2',
                     '-c', 'tests/config.yml', '-t', '-v', 'debug'],
                     env=env, check=True)
-    
+
     data1 = load_gm_txt_files(file1)
     data2 = load_gm_txt_files(file2)
 
@@ -61,11 +63,12 @@ def test_global_mean_amip():
         os.remove(file1)
     global_mean(exp='amip', year1=1990, year2=1990, numproc=1, config='tests/config.yml',
                 line=True, addnan=True)
-    
+
     data1 = load_gm_txt_files(file1)
     data2 = load_gm_txt_files(file2)
 
     assert are_dicts_equal(data1, data2, TOLERANCE), "TXT files are not identical."
+
 
 # call on amip ECE using the xdataset option
 def test_global_mean_amip_xdataset_config_dict():
@@ -95,3 +98,9 @@ def test_global_mean_CMIP6():
 
     assert are_dicts_equal(data1, data2, TOLERANCE), "TXT files are not identical."
 
+def test_gm_plot(tmp_path):
+    outputfile = tmp_path / 'Global_Mean_Heatmap.pdf'
+    gm = GlobalMean('amip', 1990, 1990, config='tests/config.yml', loglevel='info')
+    gm.prepare()
+    gm.plot(mapfile=outputfile)
+    assert os.path.isfile(outputfile), "Plot not created."
