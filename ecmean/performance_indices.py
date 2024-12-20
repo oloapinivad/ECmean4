@@ -36,9 +36,44 @@ from ecmean.libs.loggy import setup_logger
 dask.config.set(scheduler="synchronous")
 
 class PerformanceIndices:
-
     """
-    Class to compute the performance indices for a given experiment and years.
+    Class to compute the performance indices for a given experiment and years
+
+    Attributes:
+        exp (str): Experiment name.
+        year1 (int): Start year of the experiment.
+        year2 (int): End year of the experiment.
+        config (str): Path to the configuration file. Default is 'config.yml'.
+        loglevel (str): Logging level. Default is 'WARNING'.
+        numproc (int): Number of processes to use. Default is 1.
+        climatology (str): Climatology to use. Default is 'EC23'.
+        interface (str): Path to the interface file.
+        model (str): Model name.
+        ensemble (str): Ensemble identifier. Default is 'r1i1p1f1'.
+        silent (bool): If True, suppress output. Default is None.
+        xdataset (xarray.Dataset): Dataset to use.
+        outputdir (str): Directory to store output files.
+        loggy (logging.Logger): Logger instance.
+        diag (Diagnostic): Diagnostic instance.
+        face (dict): Interface dictionary.
+        piclim (dict): Climatology dictionary.
+        util_dictionary (Supporter): Utility dictionary for remapping and masks.
+        varstat (dict): Dictionary to store variable statistics.
+        funcname (str): Name of the class.
+        start_time (float): Start time for performance measurement.
+    Methods:
+        toc(message):
+            Update the timer and log the elapsed time.
+        prepare():
+            Prepare the necessary components for performance indices calculation.
+        run():
+            Run the performance indices calculation.
+        store(yamlfile=None):
+            Store the performance indices in a yaml file.
+        plot(mapfile=None, figformat='pdf'):
+            Generate the heatmap for performance indices.
+        pi_worker(util, piclim, face, diag, field_3d, varstat, varlist):
+            Main parallel diagnostic worker for performance indices.
     """
 
     def __init__(self, exp, year1, year2, config='config.yml',
@@ -108,6 +143,7 @@ class PerformanceIndices:
 
         # create remap dictionary with atm and oce interpolators
         self.util_dictionary = Supporter(comp, inifiles['atm'], inifiles['oce'], areas=False, remap=True, targetgrid=target_remap_grid)
+        self.toc('Calculation')
 
     def run(self):
         """Run the performance indices calculation."""
@@ -127,6 +163,7 @@ class PerformanceIndices:
         # wait for the processes to finish
         for proc in processes:
             proc.join()
+        self.toc('Computation')
 
     def store(self, yamlfile=None):
         """Store the performance indices in a yaml file."""
@@ -160,6 +197,7 @@ class PerformanceIndices:
                 mapfile = os.path.join(self.diag.figdir, f'PI4_{self.diag.climatology}_{self.diag.expname}_{self.diag.modelname}_r1i1p1f1_{self.diag.year1}_{self.diag.year2}.{figformat}')
             diag_dict = {'modelname': self.diag.modelname, 'expname': self.diag.expname, 'climatology': self.diag.climatology, 'year1': self.diag.year1, 'year2': self.diag.year2, 'seasons': self.diag.seasons, 'regions': self.diag.regions, 'longnames': longnames}
             heatmap_comparison_pi(data_dict=data2plot, cmip6_dict=cmip6, diag=diag_dict, filemap=mapfile)
+        self.toc('Plotting')
 
     @staticmethod
     def pi_worker(util, piclim, face, diag, field_3d, varstat, varlist):
@@ -328,9 +366,6 @@ def performance_indices(exp, year1, year2, config='config.yml', loglevel='WARNIN
                             interface=interface, model=model, ensemble=ensemble, silent=silent,
                             xdataset=xdataset, outputdir=outputdir)
     pi.prepare()
-    pi.toc('Preparation')
     pi.run()
-    pi.toc('Calculation')
     pi.store()
     pi.plot()
-    pi.toc('Plotting')

@@ -40,7 +40,42 @@ dask.config.set(scheduler="synchronous")
 
 class GlobalMean:
     """
-    Class to compute the global mean of an experiment.
+    Attributes:
+        exp (str): Experiment name.
+        year1 (int): Start year of the experiment.
+        year2 (int): End year of the experiment.
+        config (str): Path to the configuration file. Default is 'config.yml'.
+        loglevel (str): Logging level. Default is 'WARNING'.
+        numproc (int): Number of processes to use. Default is 1.
+        interface (str): Path to the interface file. Default is None.
+        model (str): Model name. Default is None.
+        ensemble (str): Ensemble identifier. Default is 'r1i1p1f1'.
+        addnan (bool): Whether to add NaNs. Default is False.
+        silent (bool): Whether to suppress output. Default is None.
+        trend (bool): Whether to compute trends. Default is None.
+        line (str): Line identifier. Default is None.
+        outputdir (str): Output directory. Default is None.
+        xdataset (str): Path to the xdataset. Default is None.
+        loggy (logging.Logger): Logger instance.
+        diag (Diagnostic): Diagnostic instance.
+        face (dict): Interface dictionary.
+        ref (dict): Reference dictionary.
+        util_dictionary (Supporter): Supporter instance.
+        varmean (dict): Dictionary to store variable means.
+        vartrend (dict): Dictionary to store variable trends.
+        funcname (str): Name of the class.
+        start_time (float): Start time for the timer.
+    Methods:
+        toc(message):
+            Update the timer and log the elapsed time.
+        prepare():
+            Prepare the necessary components for the global mean computation.
+        run():
+            Run the global mean computation using multiprocessing.
+        store():
+            Store the computed global mean values in a table and YAML file.
+        plot(mapfile=None, figformat='pdf'):
+        gm_worker(util, ref, face, diag, varmean, vartrend, varlist):
     """
     def __init__(self, exp, year1, year2, config='config.yml', loglevel='WARNING', numproc=1,
                       interface=None, model=None, ensemble='r1i1p1f1', addnan=False, silent=None,
@@ -95,6 +130,7 @@ class GlobalMean:
         units_extra_definition()
 
         self.util_dictionary = Supporter(comp, inifiles['atm'], inifiles['oce'], areas=True, remap=False)
+        self.toc('Computation')
 
     def run(self):
         mgr = Manager()
@@ -110,25 +146,26 @@ class GlobalMean:
 
         for proc in processes:
             proc.join()
+        self.toc('Computation')
 
     def store(self):
         global_table = []
         for var in self.diag.var_all:
             gamma = self.ref[var]
             if isinstance(gamma['obs'], dict):
-                    tabval = gamma['obs']['ALL']['Global']
-                    outval = str(tabval['mean']) + '\u00B1' + str(tabval['std'])
+                tabval = gamma['obs']['ALL']['Global']
+                outval = str(tabval['mean']) + '\u00B1' + str(tabval['std'])
             else:
-                    outval = gamma['obs']
+                outval = gamma['obs']
 
             if 'year1' in gamma.keys():
-                    years = str(gamma['year1']) + '-' + str(gamma['year2'])
+                years = str(gamma['year1']) + '-' + str(gamma['year2'])
             else:
-                    raise ValueError('Year1 and Year2 are not defined in the reference file')
+                raise ValueError('Year1 and Year2 are not defined in the reference file')
 
             out_sequence = [var, gamma['longname'], gamma['units'], self.varmean[var]['ALL']['Global']]
             if self.diag.ftrend:
-                    out_sequence = out_sequence + [self.vartrend[var]['ALL']['Global']]
+                out_sequence = out_sequence + [self.vartrend[var]['ALL']['Global']]
             out_sequence = out_sequence + [outval, gamma.get('dataset', ''), years]
             global_table.append(out_sequence)
 
@@ -178,6 +215,7 @@ class GlobalMean:
         if self.diag.ftable:
             self.loggy.info('Line file is: %s', self.diag.linefile)
             write_tuning_table(self.diag.linefile, self.varmean, self.diag.var_table, self.diag, self.ref)
+        self.toc('Plotting')
 
     @staticmethod
     def gm_worker(util, ref, face, diag, varmean, vartrend, varlist):
@@ -214,37 +252,37 @@ class GlobalMean:
                     for season in diag.seasons:
                         tfield = cfield.copy(deep=True)
                         if season != 'ALL':
-                                tfield = tfield.sel(time=cfield.time.dt.season.isin(season))
+                            tfield = tfield.sel(time=cfield.time.dt.season.isin(season))
 
                         if diag.ftrend:
-                                tfield = tfield.groupby('time.year').mean('time')
+                            tfield = tfield.groupby('time.year').mean('time')
                         else:
-                                tfield = tfield.mean(dim='time')
+                            tfield = tfield.mean(dim='time')
 
                         for region in diag.regions:
-                                slicefield = select_region(tfield, region)
-                                sliceweights = select_region(weights, region)
-                                if isinstance(domain_mask, xr.DataArray):
-                                    slicemask = select_region(domain_mask, region)
-                                else:
-                                    slicemask = 0.
+                            slicefield = select_region(tfield, region)
+                            sliceweights = select_region(weights, region)
+                            if isinstance(domain_mask, xr.DataArray):
+                                slicemask = select_region(domain_mask, region)
+                            else:
+                                slicemask = 0.
 
-                                avg = masked_meansum(
-                                    xfield=slicefield, weights=sliceweights, mask=slicemask,
-                                    operation=ref[var].get('operation', 'mean'),
-                                    mask_type=ref[var].get('mask', 'global'),
-                                    domain=domain)
+                            avg = masked_meansum(
+                                xfield=slicefield, weights=sliceweights, mask=slicemask,
+                                operation=ref[var].get('operation', 'mean'),
+                                mask_type=ref[var].get('mask', 'global'),
+                                domain=domain)
 
-                                if isinstance(avg, dask.array.core.Array):
-                                    avg = avg.compute()
+                            if isinstance(avg, dask.array.core.Array):
+                                avg = avg.compute()
 
-                                result[season][region] = float((np.nanmean(avg) + offset) * factor)
+                            result[season][region] = float((np.nanmean(avg) + offset) * factor)
 
-                                if diag.ftrend:
-                                    if len(avg) == len(diag.years_joined):
-                                        trend[season][region] = np.polyfit(diag.years_joined, avg, 1)[0]
-                                if season == 'ALL' and region == 'Global':
-                                    loggy.info('Average: %s %s %s %s', var, season, region, result[season][region])
+                            if diag.ftrend:
+                                if len(avg) == len(diag.years_joined):
+                                    trend[season][region] = np.polyfit(diag.years_joined, avg, 1)[0]
+                            if season == 'ALL' and region == 'Global':
+                                loggy.info('Average: %s %s %s %s', var, season, region, result[season][region])
 
             varmean[var] = result
             vartrend[var] = trend
@@ -263,9 +301,8 @@ def global_mean(exp, year1, year2, config='config.yml', loglevel='WARNING', nump
                 trend=None, line=None, outputdir=None, xdataset=None):
     gm = GlobalMean(exp, year1, year2, config, loglevel, numproc, interface, model, ensemble, addnan, silent, trend, line, outputdir, xdataset)
     gm.prepare()
-    gm.toc('Preparation')
+   
     gm.run()
-    gm.toc('Computation')
     gm.store()
     gm.plot()
-    gm.toc('Plotting')
+
