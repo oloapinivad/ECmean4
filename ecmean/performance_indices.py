@@ -141,8 +141,13 @@ class PerformanceIndices:
         with open(yamlfile, 'w', encoding='utf-8') as file:
             yaml.safe_dump(ordered, file, default_flow_style=False, sort_keys=False)
 
-    def plot(self, mapfile=None):
-        """Generate the heatmap for performance indices."""
+    def plot(self, mapfile=None, figformat='pdf'):
+        """Generate the heatmap for performance indices.
+        
+        Args:
+            mapfile: Path to the output file. If None, it will be defined automatically following ECmean syntax
+            figformat: Format of the output file.
+        """
         # to this date, only EC23 support comparison with CMIP6 data
         if self.diag.climatology == 'EC23':
             # prepare the data for the heatmap from the original yaml dictionaries
@@ -152,7 +157,7 @@ class PerformanceIndices:
 
             # call the heatmap routine for a plot
             if mapfile is None:
-                mapfile = os.path.join(self.diag.figdir, f'PI4_{self.diag.climatology}_{self.diag.expname}_{self.diag.modelname}_r1i1p1f1_{self.diag.year1}_{self.diag.year2}.pdf')
+                mapfile = os.path.join(self.diag.figdir, f'PI4_{self.diag.climatology}_{self.diag.expname}_{self.diag.modelname}_r1i1p1f1_{self.diag.year1}_{self.diag.year2}.{figformat}')
             diag_dict = {'modelname': self.diag.modelname, 'expname': self.diag.expname, 'climatology': self.diag.climatology, 'year1': self.diag.year1, 'year2': self.diag.year2, 'seasons': self.diag.seasons, 'regions': self.diag.regions, 'longnames': longnames}
             heatmap_comparison_pi(data_dict=data2plot, cmip6_dict=cmip6, diag=diag_dict, filemap=mapfile)
 

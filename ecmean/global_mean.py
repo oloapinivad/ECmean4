@@ -153,14 +153,19 @@ class GlobalMean:
         with open(yamlfile, 'w', encoding='utf-8') as file:
             yaml.safe_dump(ordered, file, default_flow_style=False, sort_keys=False)
 
-    def plot(self, mapfile=None):
-
+    def plot(self, mapfile=None, figformat='pdf'):
+        """"
+        Plot the global mean values.
+        Args:
+            mapfile: Path to the output file. If None, it will be defined automatically following ECmean syntax
+            figformat: Format of the output file.
+        """
         obsmean, obsstd, data2plot, units_list = prepare_clim_dictionaries_gm(self.varmean, self.ref, 
                                                                               self.diag.var_all, self.diag.seasons, 
                                                                               self.diag.regions)
         if mapfile is None:
             mapfile = os.path.join(self.diag.figdir,
-                                        f'global_mean_{self.diag.expname}_{self.diag.modelname}_r1i1p1f1_{self.diag.year1}_{self.diag.year2}.pdf')
+                                        f'global_mean_{self.diag.expname}_{self.diag.modelname}_r1i1p1f1_{self.diag.year1}_{self.diag.year2}.{figformat}')
         self.loggy.info('Figure file is: %s', mapfile)
 
         diag_dict = {'modelname': self.diag.modelname, 'expname': self.diag.expname,
@@ -264,4 +269,3 @@ def global_mean(exp, year1, year2, config='config.yml', loglevel='WARNING', nump
     gm.store()
     gm.plot()
     gm.toc('Plotting')
-    print('ECmean4 Global Mean successfully computed!')
