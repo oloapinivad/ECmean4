@@ -3,7 +3,7 @@
 import os
 import subprocess
 import xarray as xr
-from ecmean.global_mean import global_mean
+from ecmean.global_mean import global_mean, GlobalMean
 from ecmean.libs.ncfixers import xr_preproc
 from ecmean.libs.general import are_dicts_equal
 from ecmean.libs.files import load_yaml
@@ -97,3 +97,10 @@ def test_global_mean_CMIP6():
     data2 = load_gm_txt_files(file2)
 
     assert are_dicts_equal(data1, data2, TOLERANCE), "TXT files are not identical."
+
+def test_gm_plot(tmp_path):
+    outputfile = tmp_path / 'Global_Mean_Heatmap.pdf'
+    gm = GlobalMean('amip', 1990, 1990, config='tests/config.yml', loglevel='info')
+    gm.prepare()
+    gm.plot(mapfile=outputfile)
+    assert os.path.isfile(outputfile), "Plot not created."

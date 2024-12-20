@@ -156,8 +156,8 @@ class PerformanceIndices:
 
         # loop on the variables, create the parallel process
         for varlist in weight_split(self.diag.field_all, self.diag.numproc):
-            core = Process(target=self.pi_worker, args=(self.util_dictionary, self.piclim, 
-                                                        self.face, self.diag, self.diag.field_3d, 
+            core = Process(target=self.pi_worker, args=(self.util_dictionary, self.piclim,
+                                                        self.face, self.diag, self.diag.field_3d,
                                                         self.varstat, varlist))
             core.start()
             processes.append(core)
@@ -167,18 +167,23 @@ class PerformanceIndices:
             proc.join()
         self.toc('Computation')
 
+    def yamlfile(self):
+        """Define the output YAML filename"""
+
+        yamlfile= self.diag.tabdir / f'PI4_{self.diag.climatology}_{self.diag.expname}_{self.diag.modelname}_r1i1p1f1_{self.diag.year1}_{self.diag.year2}.yml'
+        return yamlfile
+    
     def store(self, yamlfile=None):
         """Store the performance indices in a yaml file."""
+
         # order according to the original request the fields in the yaml file
-        ordered = {}
-        for item in self.diag.field_all:
-            ordered[item] = self.varstat[item]
+        self.varstat = {var: self.varstat[var] for var in self.diag.field_all}
 
         # dump the yaml file for PI, including all the seasons (need to copy to avoid mess)
         if yamlfile is None:
-            yamlfile = self.diag.tabdir / f'PI4_{self.diag.climatology}_{self.diag.expname}_{self.diag.modelname}_r1i1p1f1_{self.diag.year1}_{self.diag.year2}.yml'
+            yamlfile = self.yamlfile()
         with open(yamlfile, 'w', encoding='utf-8') as file:
-            yaml.safe_dump(ordered, file, default_flow_style=False, sort_keys=False)
+            yaml.safe_dump(self.varstat, file, default_flow_style=False, sort_keys=False)
 
     def plot(self, mapfile=None, figformat='pdf'):
         """Generate the heatmap for performance indices.
@@ -189,6 +194,14 @@ class PerformanceIndices:
         """
         # to this date, only EC23 support comparison with CMIP6 data
         if self.diag.climatology == 'EC23':
+
+            # load yaml file if is missing
+            if not self.varstat:
+                yamlfile = self.yamlfile()
+                self.loggy.info('Loading the stored data from the yaml file %s', yamlfile)
+                with open(yamlfile, 'r', encoding='utf-8') as file:
+                    self.varstat = yaml.safe_load(file)
+
             # prepare the data for the heatmap from the original yaml dictionaries
             data2plot, cmip6, longnames = prepare_clim_dictionaries_pi(data=self.varstat,
                                                                        clim=self.piclim,
@@ -199,6 +212,9 @@ class PerformanceIndices:
                 mapfile = os.path.join(self.diag.figdir,
                                     f'PI4_{self.diag.climatology}_{self.diag.expname}_{self.diag.modelname}_r1i1p1f1_{self.diag.year1}_{self.diag.year2}.{figformat}')
             heatmap_comparison_pi(data_dict=data2plot, cmip6_dict=cmip6, diag=self.diag, longnames=longnames, filemap=mapfile)
+        else:
+            self.loggy.warning('Only EC23 climatology is supported for comparison with CMIP6 data.')
+        
         self.toc('Plotting')
 
     @staticmethod

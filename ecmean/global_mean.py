@@ -150,9 +150,17 @@ class GlobalMean:
             proc.join()
         self.toc('Computation')
 
-    def store(self):
+    def yamlfile(self):
+        """Define the output YAML filename"""
+
+        yamlfile= self.diag.tabdir / f'global_mean_{self.diag.expname}_{self.diag.modelname}_{self.diag.ensemble}_{self.diag.year1}_{self.diag.year2}.yml'
+        return yamlfile
+
+    def store(self, yamlfile=None):
         """Rearrange the data and save the yaml file and the table."""
         global_table = []
+
+        # reorder the data to be stored
         for var in self.diag.var_all:
             gamma = self.ref[var]
             if isinstance(gamma['obs'], dict):
@@ -177,21 +185,23 @@ class GlobalMean:
             head = head + ['Trend']
         head = head + ['Obs.', 'Dataset', 'Years']
 
+        # save table
         tablefile = os.path.join(self.diag.tabdir,
                                         f'global_mean_{self.diag.expname}_{self.diag.modelname}_{self.diag.ensemble}_{self.diag.year1}_{self.diag.year2}.txt')
         self.loggy.info('Table file is: %s', tablefile)
         with open(tablefile, 'w', encoding='utf-8') as out:
             out.write(tabulate(global_table, headers=head, stralign='center', tablefmt='orgtbl'))
 
-        ordered = {}
-        for var in self.diag.var_all:
-            ordered[var] = self.varmean[var]
+        # reaorder
+        self.varmean = {var: self.varmean[var] for var in self.diag.var_all}
 
-        yamlfile = os.path.join(self.diag.tabdir,
-                                        f'global_mean_{self.diag.expname}_{self.diag.modelname}_{self.diag.ensemble}_{self.diag.year1}_{self.diag.year2}.yml')
+        # save yaml fil
+        if yamlfile is None:
+            yamlfile = self.yamlfile()
+        
         self.loggy.info('YAML file is: %s', tablefile)
         with open(yamlfile, 'w', encoding='utf-8') as file:
-            yaml.safe_dump(ordered, file, default_flow_style=False, sort_keys=False)
+            yaml.safe_dump(self.varmean, file, default_flow_style=False, sort_keys=False)
 
     def plot(self, mapfile=None, figformat='pdf'):
         """"
@@ -200,6 +210,15 @@ class GlobalMean:
             mapfile: Path to the output file. If None, it will be defined automatically following ECmean syntax
             figformat: Format of the output file.
         """
+
+        # load yaml file if is missing
+        if not self.varmean:
+            yamlfile = self.yamlfile()
+            self.loggy.info('Loading the stored data from the yaml file %s', yamlfile)
+            with open(yamlfile, 'r', encoding='utf-8') as file:
+                self.varmean = yaml.safe_load(file)
+
+        # prepare the dictionaries for the plotting
         obsmean, obsstd, data2plot, units_list = prepare_clim_dictionaries_gm(self.varmean, self.ref,
                                                                               self.diag.var_all, self.diag.seasons,
                                                                               self.diag.regions)
@@ -208,6 +227,7 @@ class GlobalMean:
                                     f'global_mean_{self.diag.expname}_{self.diag.modelname}_r1i1p1f1_{self.diag.year1}_{self.diag.year2}.{figformat}')
         self.loggy.info('Figure file is: %s', mapfile)
 
+        # call the heatmap for plottinh
         heatmap_comparison_gm(data_dict=data2plot, mean_dict=obsmean, std_dict=obsstd,
                                     diag=self.diag, units_list=units_list,
                                     filemap=mapfile, addnan=self.diag.addnan)
