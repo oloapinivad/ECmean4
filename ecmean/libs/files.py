@@ -116,6 +116,8 @@ def get_clim_files(piclim, var, diag, season):
         vvvv = str(
             diag.resclmdir /
             f'{stringname}_variance_{var}_{dataref}_{diag.resolution}_{datayear1}-{datayear2}.nc')
+    else:
+        raise ValueError('Climatology not supported/existing!')
 
     return clim, vvvv
 
