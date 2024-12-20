@@ -13,7 +13,6 @@ __author__ = "Paolo Davini (p.davini@isac.cnr.it), Sep 2022."
 import os
 import sys
 import logging
-import argparse
 from multiprocessing import Process, Manager
 from time import time
 from tabulate import tabulate
@@ -80,29 +79,18 @@ class GlobalMean:
     def __init__(self, exp, year1, year2, config='config.yml', loglevel='WARNING', numproc=1,
                       interface=None, model=None, ensemble='r1i1p1f1', addnan=False, silent=None,
                       trend=None, line=None, outputdir=None, xdataset=None):
-        self.exp = exp
-        self.year1 = year1
-        self.year2 = year2
-        self.config = config
+    
         self.loglevel = loglevel
-        self.numproc = numproc
-        self.interface = interface
-        self.model = model
-        self.ensemble = ensemble
-        self.addnan = addnan
-        self.silent = silent
-        self.trend = trend
-        self.line = line
-        self.outputdir = outputdir
-        self.xdataset = xdataset
         self.loggy = setup_logger(level=self.loglevel)
-        self.diag = None
+        self.diag = Diagnostic(exp, year1, year2, config, funcname=self.__class__.__name__,
+                        numproc=numproc, ensemble=ensemble, interface=interface, model=model,
+                        addnan=addnan, silent=silent, trend=trend, line=line, outputdir=outputdir,
+                        xdataset=xdataset)
         self.face = None
         self.ref = None
         self.util_dictionary = None
         self.varmean = None
         self.vartrend = None
-        self.funcname = self.__class__.__name__
         self.start_time = time()
     
     def toc(self, message):
@@ -116,7 +104,6 @@ class GlobalMean:
         plat, mprocmethod = set_multiprocessing_start_method()
         self.loggy.info('Running on %s and multiprocessing method set as "%s"', plat, mprocmethod)
 
-        self.diag = Diagnostic(argparse.Namespace(**self.__dict__))
         self.face = load_yaml(self.diag.interface)
         self.ref = load_yaml(self.diag.reffile)
 
@@ -148,13 +135,6 @@ class GlobalMean:
 
         for proc in processes:
             proc.join()
-        self.toc('Computation')
-
-    def yamlfile(self):
-        """Define the output YAML filename"""
-
-        yamlfile= self.diag.tabdir / f'global_mean_{self.diag.expname}_{self.diag.modelname}_{self.diag.ensemble}_{self.diag.year1}_{self.diag.year2}.yml'
-        return yamlfile
 
     def store(self, yamlfile=None):
         """Rearrange the data and save the yaml file and the table."""
@@ -186,9 +166,8 @@ class GlobalMean:
         head = head + ['Obs.', 'Dataset', 'Years']
 
         # save table
-        tablefile = os.path.join(self.diag.tabdir,
-                                        f'global_mean_{self.diag.expname}_{self.diag.modelname}_{self.diag.ensemble}_{self.diag.year1}_{self.diag.year2}.txt')
-        self.loggy.info('Table file is: %s', tablefile)
+        tablefile = self.diag.filenames('txt')
+        self.loggy.info('TXT file is: %s', tablefile)
         with open(tablefile, 'w', encoding='utf-8') as out:
             out.write(tabulate(global_table, headers=head, stralign='center', tablefmt='orgtbl'))
 
@@ -197,9 +176,9 @@ class GlobalMean:
 
         # save yaml fil
         if yamlfile is None:
-            yamlfile = self.yamlfile()
+            yamlfile = self.diag.filenames('yml')
         
-        self.loggy.info('YAML file is: %s', tablefile)
+        self.loggy.info('YAML file is: %s', yamlfile)
         with open(yamlfile, 'w', encoding='utf-8') as file:
             yaml.safe_dump(self.varmean, file, default_flow_style=False, sort_keys=False)
 
@@ -213,7 +192,7 @@ class GlobalMean:
 
         # load yaml file if is missing
         if not self.varmean:
-            yamlfile = self.yamlfile()
+            yamlfile = self.diag.filenames('yml')
             self.loggy.info('Loading the stored data from the yaml file %s', yamlfile)
             if os.path.isfile(yamlfile):
                 with open(yamlfile, 'r', encoding='utf-8') as file:
@@ -226,8 +205,7 @@ class GlobalMean:
                                                                               self.diag.var_all, self.diag.seasons,
                                                                               self.diag.regions)
         if mapfile is None:
-            mapfile = os.path.join(self.diag.figdir,
-                                    f'global_mean_{self.diag.expname}_{self.diag.modelname}_r1i1p1f1_{self.diag.year1}_{self.diag.year2}.{figformat}')
+            mapfile = self.diag.filenames(figformat)
         self.loggy.info('Figure file is: %s', mapfile)
 
         # call the heatmap for plottinh
