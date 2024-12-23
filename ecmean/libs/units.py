@@ -12,6 +12,7 @@ from metpy.units import units
 
 loggy = logging.getLogger(__name__)
 
+
 class UnitsHandler():
     """
     Class for dealing with units format and conversion within ECmean4
@@ -62,6 +63,11 @@ class UnitsHandler():
             self.units_are_integrals()
             self.offset, self.factor = self.units_converter()
 
+    def offset_factor(self):
+        """Return offset and factor for conversion"""
+
+        return self.offset, self.factor
+
     def init_ecmean(self, clim, face):
         """Specific initialization used within ECmean"""
 
@@ -81,12 +87,10 @@ class UnitsHandler():
         self.cumulation_time = face['variables'][self.var].get('cumulation_time', None)
 
     def parse_units(self):
-
         """Parse units once defined with metpy.units (i.e. pint)"""
 
         self.org_units = units(self.org_units)
         self.tgt_units = units(self.tgt_units)
-
 
     def units_are_integrals(self):
         """Check functions for spatially integrated variables"""
@@ -148,7 +152,6 @@ class UnitsHandler():
         loggy.debug('Offset is %s', str(offset))
         loggy.debug('Factor is %s', str(factor))
         return offset, factor
-
 
 
 def units_extra_definition():

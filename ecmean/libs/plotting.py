@@ -18,6 +18,7 @@ from ecmean.libs.general import dict_to_dataframe, init_mydict
 
 loggy = logging.getLogger(__name__)
 
+
 def heatmap_comparison_pi(data_dict, cmip6_dict, diag, longnames, filemap: str = None, size_model=14, **kwargs):
     """
     Function to produce a heatmap - seaborn based - for Performance Indices
@@ -59,7 +60,7 @@ def heatmap_comparison_pi(data_dict, cmip6_dict, diag, longnames, filemap: str =
     yfig = len(myfield.index)
 
     # real plot
-    _, axs = plt.subplots(1, 1, sharey=True, tight_layout=True, figsize=(xfig+5, yfig+2))
+    _, axs = plt.subplots(1, 1, sharey=True, tight_layout=True, figsize=(xfig + 5, yfig + 2))
 
     thr = [0, 1, 5]
     tictoc = [0, 0.25, 0.5, 0.75, 1, 2, 3, 4, 5]
@@ -141,7 +142,7 @@ def heatmap_comparison_gm(data_dict, mean_dict, std_dict, diag, units_list, file
     # for dimension of plots
     xfig = len(clean.columns)
     yfig = len(clean.index)
-    _, axs = plt.subplots(1, 1, sharey=True, tight_layout=True, figsize=(xfig+5, yfig+2))
+    _, axs = plt.subplots(1, 1, sharey=True, tight_layout=True, figsize=(xfig + 5, yfig + 2))
 
     if 'title' in kwargs:
         title = kwargs['title']
@@ -197,6 +198,7 @@ def heatmap_comparison_gm(data_dict, mean_dict, std_dict, diag, units_list, file
     plt.cla()
     plt.close()
 
+
 def prepare_clim_dictionaries_pi(data, clim, shortnames):
     """
     Prepare dictionaries for plotting
@@ -204,7 +206,7 @@ def prepare_clim_dictionaries_pi(data, clim, shortnames):
         data: dictionary with data
         clim: dictionary with climatology
         shortnames: list of shortnames
-    Returns:    
+    Returns:
         data2plot: dictionary with data for plotting
         cmip6: dictionary with CMIP6 data
         longnames: list of longnames
@@ -218,15 +220,12 @@ def prepare_clim_dictionaries_pi(data, clim, shortnames):
             del filt_piclim[k][f]
 
     # set longname, reorganize the dictionaries
-    data2plot = {}
-    cmip6 = {}
+    data2plot = {clim[var]['longname']: data[var] for var in shortnames}
+    cmip6 = {clim[var]['longname']: filt_piclim[var] for var in shortnames}
     longnames = [clim[var]['longname'] for var in shortnames]
-    for var in shortnames:
-        longname = clim[var]['longname']
-        data2plot[longname] = data[var]
-        cmip6[longname] = filt_piclim[var]
-        
+
     return data2plot, cmip6, longnames
+
 
 def prepare_clim_dictionaries_gm(data, clim, shortnames, seasons, regions):
     """
@@ -251,6 +250,7 @@ def prepare_clim_dictionaries_gm(data, clim, shortnames, seasons, regions):
     obsstd = {}
     for var in shortnames:
         gamma = clim[var]
+        obs = gamma['obs']
 
         # extract from yaml table for obs mean and standard deviation
         mmm = init_mydict(seasons, regions)
@@ -259,19 +259,18 @@ def prepare_clim_dictionaries_gm(data, clim, shortnames, seasons, regions):
         if isinstance(gamma['obs'], dict):
             for season in seasons:
                 for region in regions:
-                    mmm[season][region] = gamma['obs'][season][region]['mean']
-                    sss[season][region] = gamma['obs'][season][region]['std']
+                    mmm[season][region] = obs[season][region]['mean']
+                    sss[season][region] = obs[season][region]['std']
         # if only global observation is available
         else:
             mmm['ALL']['Global'] = gamma['obs']
+
+        # Assign to obsmean and obsstd using longname as the key
         obsmean[gamma['longname']] = mmm
         obsstd[gamma['longname']] = sss
 
     # set longname, get units
-    data2plot = {}
-    units_list = []
-    for var in shortnames:
-        data2plot[clim[var]['longname']] = data[var]
-        units_list.append(clim[var]['units'])
+    data2plot = {clim[var]['longname']: data[var] for var in shortnames}
+    units_list = [clim[var]['units'] for var in shortnames]
 
     return obsmean, obsstd, data2plot, units_list

@@ -11,7 +11,6 @@
 import sys
 import os
 import logging
-import argparse
 from time import time
 from multiprocessing import Process, Manager
 import numpy as np
@@ -20,8 +19,8 @@ import yaml
 import dask
 from ecmean import Diagnostic, Supporter, UnitsHandler
 from ecmean.libs.general import weight_split, get_domain, \
-   check_time_axis, init_mydict, check_var_interface, check_var_climatology, \
-   set_multiprocessing_start_method
+    check_time_axis, init_mydict, check_var_interface, check_var_climatology, \
+    set_multiprocessing_start_method
 from ecmean.libs.files import var_is_there, get_inifiles, load_yaml, \
     make_input_filename, get_clim_files
 from ecmean.libs.formula import formula_wrapper
@@ -35,9 +34,10 @@ from ecmean.libs.loggy import setup_logger
 
 dask.config.set(scheduler="synchronous")
 
+
 class PerformanceIndices:
     """
-    Class to compute the performance indices for a given experiment and years
+    Class to compute the performance indices for a given experiment and years.
 
     Attributes:
         exp (str): Experiment name.
@@ -82,26 +82,19 @@ class PerformanceIndices:
                  silent=None, xdataset=None, outputdir=None):
         """Initialize the PerformanceIndices class with the given parameters."""
 
-        self.exp = exp
-        self.year1 = year1
-        self.year2 = year2
-        self.config = config
         self.loglevel = loglevel
-        self.numproc = numproc
-        self.climatology = climatology
-        self.interface = interface
-        self.model = model
-        self.ensemble = ensemble
-        self.silent = silent
-        self.xdataset = xdataset
-        self.outputdir = outputdir
         self.loggy = setup_logger(level=self.loglevel)
-        self.diag = None
+        self.diag = Diagnostic(exp=exp, year1=year1, year2=year2, config=config,
+                               funcname=self.__class__.__name__,
+                               numproc=numproc, climatology=climatology,
+                               interface=interface,
+                               modelname=model, ensemble=ensemble,
+                               outputdir=outputdir, xdataset=xdataset)
+        self.silent = silent
         self.face = None
         self.piclim = None
         self.util_dictionary = None
         self.varstat = None
-        self.funcname = self.__class__.__name__
         self.start_time = time()
 
     def toc(self, message):
@@ -117,7 +110,6 @@ class PerformanceIndices:
         self.loggy.info('Running on %s and multiprocessing method set as "%s"', plat, mprocmethod)
 
         # initialize the diag class, load the interface and the reference file
-        self.diag = Diagnostic(argparse.Namespace(**self.__dict__))
         self.face = load_yaml(self.diag.interface)
         self.piclim = load_yaml(self.diag.climfile)
 
@@ -142,7 +134,8 @@ class PerformanceIndices:
         units_extra_definition()
 
         # create remap dictionary with atm and oce interpolators
-        self.util_dictionary = Supporter(comp, inifiles['atm'], inifiles['oce'], areas=False, remap=True, targetgrid=target_remap_grid)
+        self.util_dictionary = Supporter(comp, inifiles['atm'], inifiles['oce'],
+                                         areas=False, remap=True, targetgrid=target_remap_grid)
         self.toc('Preparation')
 
     def run(self):
@@ -167,12 +160,6 @@ class PerformanceIndices:
             proc.join()
         self.toc('Computation')
 
-    def yamlfile(self):
-        """Define the output YAML filename"""
-
-        yamlfile= self.diag.tabdir / f'PI4_{self.diag.climatology}_{self.diag.expname}_{self.diag.modelname}_r1i1p1f1_{self.diag.year1}_{self.diag.year2}.yml'
-        return yamlfile
-    
     def store(self, yamlfile=None):
         """Store the performance indices in a yaml file."""
 
@@ -181,23 +168,25 @@ class PerformanceIndices:
 
         # dump the yaml file for PI, including all the seasons (need to copy to avoid mess)
         if yamlfile is None:
-            yamlfile = self.yamlfile()
+            yamlfile = self.diag.filenames('yml')
         with open(yamlfile, 'w', encoding='utf-8') as file:
             yaml.safe_dump(self.varstat, file, default_flow_style=False, sort_keys=False)
+        self.toc('Storing')
 
     def plot(self, mapfile=None, figformat='pdf'):
-        """Generate the heatmap for performance indices.
-        
+        """
+        Generate the heatmap for performance indices.
+
         Args:
-            mapfile: Path to the output file. If None, it will be defined automatically following ECmean syntax
-            figformat: Format of the output file.
+            mapfile (str): Path to the output file. If None, it will be defined automatically following ECmean syntax.
+            figformat (str): Format of the output file. Default is 'pdf'.
         """
         # to this date, only EC23 support comparison with CMIP6 data
         if self.diag.climatology == 'EC23':
 
             # load yaml file if is missing
             if not self.varstat:
-                yamlfile = self.yamlfile()
+                yamlfile = self.diag.filenames('yml')
                 self.loggy.info('Loading the stored data from the yaml file %s', yamlfile)
                 if os.path.isfile(yamlfile):
                     with open(yamlfile, 'r', encoding='utf-8') as file:
@@ -212,17 +201,28 @@ class PerformanceIndices:
 
             # call the heatmap routine for a plot
             if mapfile is None:
-                mapfile = os.path.join(self.diag.figdir,
-                                    f'PI4_{self.diag.climatology}_{self.diag.expname}_{self.diag.modelname}_r1i1p1f1_{self.diag.year1}_{self.diag.year2}.{figformat}')
+                mapfile = self.diag.filenames(figformat)
+
             heatmap_comparison_pi(data_dict=data2plot, cmip6_dict=cmip6, diag=self.diag, longnames=longnames, filemap=mapfile)
         else:
             self.loggy.warning('Only EC23 climatology is supported for comparison with CMIP6 data.')
-        
+
         self.toc('Plotting')
 
     @staticmethod
     def pi_worker(util, piclim, face, diag, field_3d, varstat, varlist):
-        """Main parallel diagnostic worker for performance indices."""
+        """
+        Main parallel diagnostic worker for performance indices.
+
+        Args:
+            util (Supporter): Utility dictionary for remapping and masks.
+            piclim (dict): Climatology dictionary.
+            face (dict): Interface dictionary.
+            diag (Diagnostic): Diagnostic instance.
+            field_3d (list): List of 3D fields.
+            varstat (dict): Dictionary to store variable statistics.
+            varlist (list): List of variables to process.
+        """
         loggy = logging.getLogger(__name__)
 
         for var in varlist:
@@ -246,8 +246,8 @@ class PerformanceIndices:
                 # if the variable is available
                 if isavail:
                     # perform the unit conversion extracting offset and factor
-                    units_handler = UnitsHandler(var, org_units=varunit, clim=piclim, face=face)
-                    offset, factor = units_handler.offset, units_handler.factor
+                    offset, factor = UnitsHandler(var, org_units=varunit,
+                                                  clim=piclim, face=face).offset_factor()
 
                     # open file: chunking on time only, might be improved
                     if not isinstance(infile, (xr.DataArray, xr.Dataset)):
@@ -296,7 +296,9 @@ class PerformanceIndices:
 
                         tmean = tmean * factor + offset
 
-                        # this computation is required to ensure that file access is done in a correct way. resource errors found if disabled in some specific configuration
+                        # this computation is required to ensure that file access is done in a
+                        # correct way. resource errors found if disabled in some specific
+                        # configuration
                         tmean = tmean.compute()
 
                         # apply interpolation, if fixer is available and with different grids
@@ -322,7 +324,8 @@ class PerformanceIndices:
                                 # safety check for missing values
                                 sample = final.isel(lon=0, lat=0)
                                 if np.sum(np.isnan(sample)) != 0:
-                                    loggy.warning('%s: You have NaN after the interpolation, this will affect your PIs...', var)
+                                    loggy.warning(
+                                        '%s: You have NaN after the interpolation, this will affect your PIs...', var)
                                     levnan = cfield['plev'].where(np.isnan(sample))
                                     loggy.warning(levnan[~np.isnan(levnan)].data)
 
@@ -357,7 +360,7 @@ class PerformanceIndices:
 
                             # diagnostic
                             if region == 'Global':
-                                logging.info('PI for %s %s %s %s', region, season, var, result[season][region])
+                                loggy.info('PI for %s %s %s %s', region, season, var, result[season][region])
 
             # nested dictionary, to be redefined as a dict to remove lambdas
             varstat[var] = result
@@ -371,10 +374,11 @@ def pi_entry_point():
     args = parse_arguments(sys.argv[1:], script='pi')
 
     performance_indices(exp=args.exp, year1=args.year1, year2=args.year2,
-                            numproc=args.numproc, loglevel=args.loglevel, 
-                            climatology=args.climatology,
-                            interface=args.interface, config=args.config,
-                            model=args.model, ensemble=args.ensemble, outputdir=args.outputdir)
+                        numproc=args.numproc, loglevel=args.loglevel,
+                        climatology=args.climatology,
+                        interface=args.interface, config=args.config,
+                        model=args.model, ensemble=args.ensemble, outputdir=args.outputdir)
+
 
 def performance_indices(exp, year1, year2, config='config.yml', loglevel='WARNING',
                         numproc=1, climatology='EC23', interface=None, model=None,

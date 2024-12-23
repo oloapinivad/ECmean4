@@ -16,10 +16,16 @@ from ecmean import __version__ as version
 
 loggy = logging.getLogger(__name__)
 
+
 class Diagnostic():
     """General container class for common variables"""
 
-    def __init__(self, args):
+    def __init__(self, exp, year1, year2, config, funcname,
+                 line=False, trend=False,
+                 resolution=None, ensemble='r1i1p1', addnan=False,
+                 interface=None, modelname=None, outputdir=None,
+                 xdataset=None, silent=None,
+                 numproc=1, climatology='EC23'):
         """
         Initialize the Diagnostic instance.
 
@@ -28,20 +34,21 @@ class Diagnostic():
         """
 
         # arguments from command line/function
-        self.expname = args.exp
-        self.year1 = args.year1
-        self.year2 = args.year2
+        self.expname = exp
+        self.year1 = year1
+        self.year2 = year2
         self.years_joined = list(range(self.year1, self.year2 + 1))
-        self.ftable = getattr(args, 'line', False)
-        self.ftrend = getattr(args, 'trend', False)
-        self.debug = getattr(args, 'debug', False)
-        self.numproc = args.numproc
-        self.climatology = getattr(args, 'climatology', 'EC23')
-        self.resolution = getattr(args, 'resolution', '')
-        self.ensemble = getattr(args, 'ensemble', 'r1i1p1f1')
-        self.addnan = getattr(args, 'addnan', False)
-        self.funcname = args.funcname
+        self.ftable = line
+        self.ftrend = trend
+        self.numproc = numproc
+        self.climatology = climatology
+        self.silent = silent
+        self.resolution = resolution
+        self.ensemble = ensemble
+        self.interface = interface
+        self.funcname = funcname
         self.version = version
+        self.addnan = addnan
         if self.year1 == self.year2:
             self.ftrend = False
         print(f'Welcome to ECmean4 v{self.version}: Running {self.funcname} with {self.numproc} cores!')
@@ -55,11 +62,11 @@ class Diagnostic():
         self.indir = Path(os.path.dirname(os.path.abspath(__file__)))
 
         # get the config file, can be a string or a dictionary
-        if args.config:
-            if isinstance(args.config, dict):
-                cfg = args.config
-            elif isinstance(args.config, str):
-                cfg = load_yaml(args.config)
+        if config:
+            if isinstance(config, dict):
+                cfg = config
+            elif isinstance(config, str):
+                cfg = load_yaml(config)
             else:
                 raise ValueError('Cannot load the config file')
         else:
@@ -69,7 +76,6 @@ class Diagnostic():
         if not cfg['dirs']['exp']:
             raise ValueError('No experiment directory defined in config file')
         self.ecedir = Path(os.path.expandvars(cfg['dirs']['exp']))
-        outputdir = getattr(args, 'outputdir', None)
         if outputdir is None:
             if not cfg['dirs']['tab']:
                 raise ValueError('No table directory defined in config file')
@@ -90,10 +96,10 @@ class Diagnostic():
             self.cfg_performance_indices(cfg)
 
         # setting up interface file
-        self.interface = getattr(args, 'interface', None) or cfg['interface']
+        self.interface = interface or cfg['interface']
 
         # setting up model name
-        self.modelname = getattr(args, 'modelname', None) or cfg['model']['name']
+        self.modelname = modelname or cfg['model']['name']
 
         # allow for both interface name or interface file
         if not os.path.exists(self.interface):
@@ -102,14 +108,34 @@ class Diagnostic():
                 f'interface_{self.interface}.yml')
 
         # load the possible xarray dataset
-        if args.xdataset is not None:
-            if isinstance(args.xdataset, (xr.DataArray, xr.Dataset)):
+        if xdataset is not None:
+            if isinstance(xdataset, (xr.DataArray, xr.Dataset)):
                 loggy.warning('You asked to use your own xarray dataset/datarray...')
-                self.xdataset = args.xdataset
+                self.xdataset = xdataset
             else:
                 raise ValueError('Cannot used the xdataset, is not Xarray object')
         else:
             self.xdataset = None
+
+    def filenames(self, kind):
+        """
+        Return the filename for the output.
+        """
+
+        if self.funcname == 'GlobalMean':
+            head = 'global_mean'
+        elif self.funcname == 'PerformanceIndices':
+            head = f'PI4_{self.climatology}'
+        else:
+            raise ValueError('Unknown function name')
+
+        figurename = f'{head}_{self.expname}_{self.modelname}_{self.ensemble}_{self.year1}_{self.year2}.{kind}'
+
+        if kind in ['yml', 'txt']:
+            return self.tabdir / figurename
+        if kind in ['pdf', 'png']:
+            return self.figdir / figurename
+        raise ValueError('Unknown file type')
 
     def cfg_global_mean(self, cfg):
         """
@@ -173,10 +199,6 @@ class Diagnostic():
             loggy.error('Only EC23 climatology supports multiple seasons! Keeping only yearly seasons!')
             self.seasons = ['ALL']
 
-        #self.clmdir = Path(
-        #    os.path.expandvars(
-        #        cfg['dirs']['clm']),
-        #    self.climatology)
         self.clmdir = Path(self.indir, '../climatology', self.climatology)
         self.resclmdir = Path(self.clmdir, self.resolution)
         self.climfile = self.clmdir / f'pi_climatology_{self.climatology}.yml'

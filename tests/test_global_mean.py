@@ -18,7 +18,7 @@ env = {**os.environ, "COVERAGE_PROCESS_START": ".coveragerc"}
 # Open the text file for reading
 def load_gm_txt_files(textfile):
     """
-    Function to the read the global mean text files and extract the model values 
+    Function to the read the global mean text files and extract the model values
     in order to create a dictionary that can be used for comparison
     """
 
@@ -47,7 +47,7 @@ def test_cmd_global_mean_coupled():
         os.remove(file1)
     subprocess.run(['global_mean', 'cpld', '1990', '1990', '-j', '2',
                     '-c', 'tests/config.yml', '-t', '-v', 'debug'],
-                    env=env, check=True)
+                   env=env, check=True)
 
     data1 = load_gm_txt_files(file1)
     data2 = load_gm_txt_files(file2)
@@ -86,6 +86,8 @@ def test_global_mean_amip_xdataset_config_dict():
     assert are_dicts_equal(data1, data2, TOLERANCE), "TXT files are not identical."
 
 # call on historical CMIP6
+
+
 def test_global_mean_CMIP6():
     file1 = 'tests/table/global_mean_historical_EC-Earth3_r1i1p1f1_1990_1991.txt'
     file2 = 'tests/table/global_mean_CMIP6_1990_1991.ref'
@@ -97,6 +99,7 @@ def test_global_mean_CMIP6():
     data2 = load_gm_txt_files(file2)
 
     assert are_dicts_equal(data1, data2, TOLERANCE), "TXT files are not identical."
+
 
 def test_gm_plot(tmp_path):
     outputfile = tmp_path / 'Global_Mean_Heatmap.pdf'
