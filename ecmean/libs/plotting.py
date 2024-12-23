@@ -220,13 +220,9 @@ def prepare_clim_dictionaries_pi(data, clim, shortnames):
             del filt_piclim[k][f]
 
     # set longname, reorganize the dictionaries
-    data2plot = {}
-    cmip6 = {}
+    data2plot = {clim[var]['longname']: data[var] for var in shortnames}
+    cmip6 = {clim[var]['longname']: filt_piclim[var] for var in shortnames}
     longnames = [clim[var]['longname'] for var in shortnames]
-    for var in shortnames:
-        longname = clim[var]['longname']
-        data2plot[longname] = data[var]
-        cmip6[longname] = filt_piclim[var]
 
     return data2plot, cmip6, longnames
 
@@ -254,6 +250,7 @@ def prepare_clim_dictionaries_gm(data, clim, shortnames, seasons, regions):
     obsstd = {}
     for var in shortnames:
         gamma = clim[var]
+        obs = gamma['obs']
 
         # extract from yaml table for obs mean and standard deviation
         mmm = init_mydict(seasons, regions)
@@ -262,19 +259,18 @@ def prepare_clim_dictionaries_gm(data, clim, shortnames, seasons, regions):
         if isinstance(gamma['obs'], dict):
             for season in seasons:
                 for region in regions:
-                    mmm[season][region] = gamma['obs'][season][region]['mean']
-                    sss[season][region] = gamma['obs'][season][region]['std']
+                    mmm[season][region] = obs[season][region]['mean']
+                    sss[season][region] = obs[season][region]['std']
         # if only global observation is available
         else:
             mmm['ALL']['Global'] = gamma['obs']
+
+        # Assign to obsmean and obsstd using longname as the key
         obsmean[gamma['longname']] = mmm
         obsstd[gamma['longname']] = sss
 
     # set longname, get units
-    data2plot = {}
-    units_list = []
-    for var in shortnames:
-        data2plot[clim[var]['longname']] = data[var]
-        units_list.append(clim[var]['units'])
+    data2plot = {clim[var]['longname']: data[var] for var in shortnames}
+    units_list = [clim[var]['units'] for var in shortnames]
 
     return obsmean, obsstd, data2plot, units_list

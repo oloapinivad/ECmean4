@@ -83,9 +83,11 @@ class GlobalMean:
 
         self.loglevel = loglevel
         self.loggy = setup_logger(level=self.loglevel)
-        self.diag = Diagnostic(exp, year1, year2, config, funcname=self.__class__.__name__,
-                               numproc=numproc, ensemble=ensemble, interface=interface, modelname=model,
-                               addnan=addnan, silent=silent, trend=trend, line=line, outputdir=outputdir,
+        self.diag = Diagnostic(exp, year1, year2, config,
+                               funcname=self.__class__.__name__,
+                               numproc=numproc, ensemble=ensemble, interface=interface,
+                               modelname=model, addnan=addnan, silent=silent,
+                               trend=trend, line=line, outputdir=outputdir,
                                xdataset=xdataset)
         self.face = None
         self.ref = None
@@ -129,8 +131,13 @@ class GlobalMean:
         processes = []
 
         for varlist in weight_split(self.diag.var_all, self.diag.numproc):
-            core = Process(target=self.gm_worker, args=(self.util_dictionary, self.ref, self.face, self.diag,
-                                                        self.varmean, self.vartrend, varlist))
+            core = Process(target=self.gm_worker, args=(self.util_dictionary,
+                                                        self.ref,
+                                                        self.face,
+                                                        self.diag,
+                                                        self.varmean,
+                                                        self.vartrend,
+                                                        varlist))
             core.start()
             processes.append(core)
 
@@ -145,27 +152,41 @@ class GlobalMean:
         # reorder the data to be stored
         for var in self.diag.var_all:
             gamma = self.ref[var]
+
+            # if dictionary we have more info season, mean and standard deviation
             if isinstance(gamma['obs'], dict):
                 tabval = gamma['obs']['ALL']['Global']
                 outval = str(tabval['mean']) + '\u00B1' + str(tabval['std'])
             else:
                 outval = gamma['obs']
 
-            if 'year1' in gamma.keys():
-                years = str(gamma['year1']) + '-' + str(gamma['year2'])
-            else:
-                raise ValueError('Year1 and Year2 are not defined in the reference file')
+            years = f"{gamma['year1']}-{gamma['year2']}"
 
-            out_sequence = [var, gamma['longname'], gamma['units'], self.varmean[var]['ALL']['Global']]
-            if self.diag.ftrend:
-                out_sequence = out_sequence + [self.vartrend[var]['ALL']['Global']]
-            out_sequence = out_sequence + [outval, gamma.get('dataset', ''), years]
+            # prepare output sequence using list expansion if trend is requested
+            out_sequence = [
+                var,
+                gamma['longname'],
+                gamma['units'],
+                self.varmean[var]['ALL']['Global'],
+                *([self.vartrend[var]['ALL']['Global']] if self.diag.ftrend else []),
+                outval,
+                gamma.get('dataset', ''),
+                years
+            ]
+
             global_table.append(out_sequence)
 
-        head = ['Variable', 'Longname', 'Units', self.diag.modelname]
-        if self.diag.ftrend:
-            head = head + ['Trend']
-        head = head + ['Obs.', 'Dataset', 'Years']
+        # create header using list expansion if trend is requested
+        head = [
+            'Variable', 
+            'Longname', 
+            'Units', 
+            self.diag.modelname,
+            *(['Trend'] if self.diag.ftrend else []),
+            'Obs.', 
+            'Dataset', 
+            'Years'
+        ]
 
         # save table
         tablefile = self.diag.filenames('txt')
@@ -173,10 +194,10 @@ class GlobalMean:
         with open(tablefile, 'w', encoding='utf-8') as out:
             out.write(tabulate(global_table, headers=head, stralign='center', tablefmt='orgtbl'))
 
-        # reaorder
+        # reorder
         self.varmean = {var: self.varmean[var] for var in self.diag.var_all}
 
-        # save yaml fil
+        # save yaml file
         if yamlfile is None:
             yamlfile = self.diag.filenames('yml')
 
@@ -251,6 +272,8 @@ class GlobalMean:
 
                     xfield = xfield.sel(time=xfield.time.dt.year.isin(diag.years_joined))
                     check_time_axis(xfield.time, diag.years_joined)
+
+                    # compute here since the operation are built on this
                     cfield = formula_wrapper(var, face, xfield).compute()
 
                     for season in diag.seasons:

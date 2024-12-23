@@ -80,6 +80,8 @@ def mask_field(xfield, mask_type, dom, mask):
                 out = xfield.where(mask.data < 0.5)
             else:
                 raise ValueError("ERROR: mask_field -> Mask undefined, this cannot be handled!")
+        else:
+            raise ValueError("ERROR: mask_field -> Domain undefined, this cannot be handled!")
 
     return out
 
@@ -121,37 +123,16 @@ def select_region(xfield, region):
 
     if region == 'Global':
         return xfield
+    
+    if region == 'North Midlat':
+        lat_min, lat_max = 30.0, 90.0
+    elif region == 'South Midlat':
+        lat_min, lat_max = -90.0, -30.0
+    elif region == 'Tropical':
+        lat_min, lat_max = -30.0, 30.0
     else:
-        if region == 'North Midlat':
-            lat_min, lat_max = 30.0, 90.0
-        elif region == 'South Midlat':
-            lat_min, lat_max = -90.0, -30.0
-        elif region == 'Tropical':
-            lat_min, lat_max = -30.0, 30.0
-        else:
-            raise KeyError(region + "region not supported!!!")
+        raise KeyError(region + "region not supported!!!")
 
-        # new version more flexible than the slice one
-        return xfield.where((xfield.lat >= lat_min) & (xfield.lat <= lat_max))
+    # new version more flexible than the slice one
+    return xfield.where((xfield.lat >= lat_min) & (xfield.lat <= lat_max))
 
-
-# def select_region_old(xfield, region):
-#     """Trivial function to convert region definition to xarray
-#     sliced array to compute the PIs or global means on selected regions"""
-
-#     # fixed for the order of latitudes
-#     #xfield = xfield.sortby('lat')
-
-
-#     if region == 'Global':
-#         slicearray = xfield
-#     elif region == 'North Midlat':
-#         slicearray = xfield.sel(lat=slice(30, 90))
-#     elif region == 'South Midlat':
-#         slicearray = xfield.sel(lat=slice(-90, -30))
-#     elif region == 'Tropical':
-#         slicearray = xfield.sel(lat=slice(-30, 30))
-#     else:
-#         sys.exit(region + "region not supported!!!")
-
-#     return slicearray
