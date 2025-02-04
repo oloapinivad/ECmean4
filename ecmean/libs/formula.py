@@ -13,6 +13,7 @@ import logging
 
 loggy = logging.getLogger(__name__)
 
+
 def formula_wrapper(var, face, xfield):
     """
     Wrapper function to extract data-array from a dataset (xfield)

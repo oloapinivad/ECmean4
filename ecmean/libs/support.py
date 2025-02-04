@@ -19,6 +19,7 @@ loggy = logging.getLogger(__name__)
 atm_mask_names = ['lsm', 'sftlf']
 oce_mask_names = ['lsm', 'sftof', 'mask_opensea']
 
+
 class Supporter():
     """
     Support class for ECmean4, including areas and masks to be used
@@ -116,17 +117,17 @@ class Supporter():
             dmask = xr.open_mfdataset(self.atmmaskfile, preprocess=xr_preproc)
             mvar = [var for var in dmask.data_vars if var in atm_mask_names]
             # the case we cannot find the variable we are looking for in the required file
-            if len(mvar)>0:
+            if len(mvar) > 0:
                 mask = fix_mask_values(dmask[mvar[0]])
             else:
                 raise KeyError(f"ERROR: make_atm_masks -> Cannot find mask variable in {self.atmmaskfile}")
 
         else:
             raise KeyError("ERROR: make_atm_masks -> Atmospheric component not supported!")
-        
+
         # loading the mask to avoid issues with xesmf
         mask = mask.load()
-    
+
         # interp the mask if required
         if self.atmremap is not None:
             if self.atmfix:
@@ -147,21 +148,23 @@ class Supporter():
 
             mvar = [var for var in dmask.data_vars if var in oce_mask_names]
             # the case we cannot find the variable we are looking for in the required file
-            if len(mvar)>0:
+            if len(mvar) > 0:
                 mask = fix_mask_values(dmask[mvar[0]])
             else:
-                loggy.warning('No mask array found in %s for oceanic vars, this might lead to inconsistent results...', self.ocemaskfile)
+                loggy.warning(
+                    'No mask array found in %s for oceanic vars, this might lead to inconsistent results...',
+                    self.ocemaskfile)
                 return None
 
         else:
             raise KeyError("ERROR: make_oce_masks -> Oceanic component not supported!")
-        
+
         # load mask to avoid issue with xesmf
         mask = mask.load()
 
         # interp the mask if required
         if self.oceremap is not None:
-            #if self.ocefix is not None:
+            # if self.ocefix is not None:
             #    mask = self.ocefix(mask, keep_attrs=True)
             mask = self.oceremap(mask, keep_attrs=True)
 
@@ -173,7 +176,6 @@ class Supporter():
         loggy.info(f'{comp}mareafile is ' + areafile)
         areafile = check_file_exist(areafile)
         return xr.open_mfdataset(areafile, preprocess=xr_preproc).load()
-
 
     def make_areas(self, gridtype, xfield):
         """Create weights for area operations.
@@ -276,7 +278,6 @@ class Supporter():
         return None, remap
 
 
-
 def check_file_exist(file):
     """Simple check to verify that a file to be loaded is defined and found on disk"""
 
@@ -287,10 +288,11 @@ def check_file_exist(file):
         raise KeyError(f"ERROR: {file} cannot be found")
     return file
 
+
 def fix_mask_values(mask):
     """
     Function to normalize the mask whatever format. By convention in ECmean
-    masks are 1 over land and 0 over the ocean. It might cause a bit of slowdown since we 
+    masks are 1 over land and 0 over the ocean. It might cause a bit of slowdown since we
     need to load the data
     """
 
@@ -303,7 +305,7 @@ def fix_mask_values(mask):
     # if it is a percentage
     if mask.max() > 99:
         loggy.info('%s is being normalized', mask.name)
-        mask = mask/100
+        mask = mask / 100
 
     # if it is an ocean mask
     if mask.mean() > 0.5:
@@ -311,6 +313,7 @@ def fix_mask_values(mask):
         mask = abs(1 - mask)
 
     return mask
+
 
 def identify_grid(xfield):
     """Receiveng an xarray object (DataArray or Dataset) investigates its coordinates

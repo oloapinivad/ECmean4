@@ -17,31 +17,13 @@ import numpy as np
 ##################
 
 
-# def is_number(s):
-#     """Check if input is a float type"""
-
-#     try:
-#         float(s)
-#         return True
-#     except ValueError:
-#         return False
-
 loggy = logging.getLogger(__name__)
 
-# def numeric_loglevel(loglevel):
-#     """Define the logging level """
-#     # log level with logging
-#     # currently basic definition trought the text
-#     numeric_level = getattr(logging, loglevel.upper(), None)
-#     if not isinstance(numeric_level, int):
-#         raise ValueError(f'Invalid log level: {loglevel}')
-
-#     return numeric_level
 
 def set_multiprocessing_start_method():
     """Function to set the multiprocessing spawn method to fork"""
     plat = platform.system()
-    #print('Running on %s', plat)
+    # print('Running on %s', plat)
     if plat == 'Windows':
         raise OSError("Windows does not support 'fork' start method.")
     elif plat == 'Darwin':
@@ -50,7 +32,7 @@ def set_multiprocessing_start_method():
         pass
     else:
         raise OSError(f"Unsupported operative system {plat}")
-    #print('Multiprocessing start method is %s', multiprocessing.get_start_method())
+    # print('Multiprocessing start method is %s', multiprocessing.get_start_method())
     return plat, multiprocessing.get_start_method()
 
 
@@ -58,16 +40,16 @@ def check_time_axis(xtime, years):
     """Check if we have 12 months per year and if the required years
     have been found in the NetCDF files. """
 
-    #unique, counts = np.unique(xtime.dt.month, return_counts=True)
-    #unique, counts = np.unique(xtime.time.resample(time='1M').mean(), return_counts=True)
+    # unique, counts = np.unique(xtime.dt.month, return_counts=True)
+    # unique, counts = np.unique(xtime.time.resample(time='1M').mean(), return_counts=True)
     unique, counts = np.unique(xtime.time.dt.month, return_counts=True)
     if len(unique) != 12 or not all(counts == counts[0]):
         loggy.warning('Check your data: some months might be missing...')
         loggy.warning('Month counts: %s', counts)
 
     # apparently this is also satisfied by the file browsing
-    set1=set(years)
-    set2=set(xtime.dt.year.values)
+    set1 = set(years)
+    set2 = set(xtime.dt.year.values)
     missing = list(set1.difference(set2))
     if missing:
         loggy.warning('Check your data: some years are missing')
@@ -89,7 +71,7 @@ def check_time_axis(xtime, years):
 def runtime_weights(varlist):
     """
     Define the weights to estimate the best repartition of the cores
-    This is done a-priori, considering that 
+    This is done a-priori, considering that
     1) compound variables are more difficult to compute
     2) 3d variables requires more evaluation
     """
@@ -127,12 +109,13 @@ def weight_split(a, n):
         olists[count].append(fff)
         count = elists.index(min(elists))
 
-    #for f in ordered.keys():
+    # for f in ordered.keys():
     #    elists[count].append(ordered[f])
     #    olists[count].append(f)
     #    count = elists.index(min(elists))
 
     return olists
+
 
 def check_var_interface(var, face):
     """Check if a var is defined in the interface file"""
@@ -142,7 +125,8 @@ def check_var_interface(var, face):
 
     loggy.warning('%s is not defined in the interface file, skipping it!', var)
     return False
-    
+
+
 def check_var_climatology(varlist, reference):
     """Check if a var is defined in the climatology/reference file"""
 
@@ -163,23 +147,20 @@ def get_domain(var, face):
     return domain[comp]
 
 
-# def get_component(face):  # unused function
-#     """Return a dictionary providing the domain associated with a variable
-#     (the interface file specifies the domain for each component instead)"""
-
-#     d = face['component']
-#     p = dict(zip([list(d.values())[x]['domain']
-#              for x in range(len(d.values()))], d.keys()))
-#     return p
-
-
 ####################
 # OUTPUT FUNCTIONS #
 ####################
 
 def dict_to_dataframe(varstat):
-    """very clumsy conversion of the nested 3-level dictionary
-    to a pd.dataframe: NEED TO BE IMPROVED"""
+    """
+    Converts a nested 3-level dictionary to a pandas DataFrame.
+
+    Parameters:
+    varstat (dict): Nested dictionary with 3 levels.
+
+    Returns:
+    pd.DataFrame: Transformed DataFrame with hierarchical keys.
+    """
     data_table = {}
     for i in varstat.keys():
         pippo = {}

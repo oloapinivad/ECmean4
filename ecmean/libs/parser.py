@@ -6,6 +6,7 @@ Shared functions for Ecmean4: parsers arguments from command line
 import argparse
 from ecmean import __version__
 
+
 def parse_arguments(args, script):
     """Parse CLI arguments for global mean
 
@@ -53,7 +54,7 @@ def parse_arguments(args, script):
     # specific to performance indices
     if script == 'pi':
         parser.add_argument('-k', '--climatology', type=str, default='EC23',
-                            help='climatology to be compared. default: EC23. Options: [RK08, EC22, EC23]', 
+                            help='climatology to be compared. default: EC23. Options: [RK08, EC22, EC23]',
                             choices=['RK08', 'EC22', 'EC23'])
         parser.add_argument('-r', '--resolution', type=str, default='',
                             help='climatology resolution')

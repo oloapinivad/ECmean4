@@ -52,7 +52,7 @@ if do_compute:
 
         performance_indices(expname, year1, year2, config=config_file, model=model,
                             ensemble=ensemble, numproc=nprocs, climatology=refclim, 
-                            loglevel='WARNING', plot=False)
+                            loglevel='WARNING')
 
 if do_create_clim:
 
@@ -65,7 +65,6 @@ if do_create_clim:
         filein = glob.glob(os.path.join(cfg['dirs']['tab'], 'PI4_' + refclim + '_' + expname +
                                         '_' + model + '_r1i1p1f*_' + str(year1) + '_' + str(year2) + '.yml'))
         full[model] = load_yaml(filein[0])
-
 
     # idiot averaging
     m0 = models[0]

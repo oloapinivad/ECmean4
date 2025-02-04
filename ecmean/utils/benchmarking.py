@@ -18,6 +18,7 @@ import seaborn as sns
 import matplotlib.pyplot as plt
 from ecmean.performance_indices import performance_indices
 from ecmean.global_mean import global_mean
+from ecmean import __version__ as version
 
 expname = 'historical'
 refclim = 'EC23'
@@ -87,6 +88,8 @@ for model in models:
                     # sys.argv = [expname, str(year1), str(year2), '--config', benchconfig,
                     #            '--model', model, '-j', str(nproc), '-e', ensemble, '-v', 'warning']
                     # single = timeit.timeit(lambda: gm_main(sys.argv), number=nrepeat)
+                else:
+                    raise ValueError('Script not recognized')
 
                 # concatenate
                 d = pd.DataFrame({'script': [script], 'time': [round(single / nrepeat, 1)],
@@ -99,8 +102,8 @@ if not os.path.exists(benchdir):
     os.makedirs(benchdir)
 
 # save to file
-today = str(date.today())
-csvname = os.path.join(benchdir, 'csv-benchmark-' + today + '.csv')
+TODAY = str(date.today())
+csvname = os.path.join(benchdir, 'csv-benchmark-' + TODAY + '.csv')
 howmuch.to_csv(csvname, sep='\t')
 print(howmuch)
 
@@ -112,7 +115,7 @@ palette = ['teal', 'gold']
 how1 = howmuch[howmuch["nyears"] == nyears_fixed]
 chart1 = sns.barplot(data=how1, x='nprocs', y='time', hue='script', palette=palette, ax=axs[0])
 
-axs[0].set_title(f' ECmean4 execution time for CMIP6 {model} ({nyears_fixed} years)', fontsize=15)
+axs[0].set_title(f'ECmean4 {version} execution time for CMIP6 {model} ({nyears_fixed} years)', fontsize=15)
 for i in chart1.containers:
     chart1.bar_label(i,)
 axs[0].set_xlabel('Number of cores', fontsize=15)
@@ -125,7 +128,7 @@ axs[0].legend(hh, ll)
 how2 = howmuch[howmuch["nprocs"] == nprocs_fixed]
 chart2 = sns.barplot(data=how2, x='nyears', y='time', hue='script', palette=palette, ax=axs[1])
 
-axs[1].set_title(f' ECmean4 execution time for CMIP6 {model} ({nprocs_fixed} nprocs)', fontsize=15)
+axs[1].set_title(f'ECmean4 {version} execution time for CMIP6 {model} ({nprocs_fixed} nprocs)', fontsize=15)
 for i in chart2.containers:
     chart2.bar_label(i,)
 axs[1].set_xlabel('Number of years', fontsize=15)
@@ -135,7 +138,7 @@ hh, ll = axs[1].get_legend_handles_labels()
 axs[1].legend(hh, ll)
 
 # save figure for benchmarks
-figurepath = os.path.join(benchdir, 'benchmark-' + today + '.png')
+figurepath = os.path.join(benchdir, 'benchmark-' + TODAY + '.png')
 fig.savefig(figurepath)
 
 localdir = os.path.dirname(os.path.abspath(__file__))

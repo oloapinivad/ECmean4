@@ -9,6 +9,7 @@
 __author__ = "Paolo Davini (p.davini@isac.cnr.it), Sep 2022."
 
 import tempfile
+import sys
 from ecmean.libs.files import load_yaml
 from ecmean.libs.units import units_extra_definition
 from ecmean.libs.ncfixers import xr_preproc
