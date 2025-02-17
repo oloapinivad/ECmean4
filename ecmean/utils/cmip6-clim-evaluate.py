@@ -14,6 +14,7 @@ import warnings
 import glob
 from collections import defaultdict
 import yaml
+import copy
 import numpy as np
 from ecmean.performance_indices import performance_indices
 from ecmean.libs.files import load_yaml
@@ -23,19 +24,20 @@ warnings.simplefilter("ignore")
 year1 = 1985
 year2 = 2014
 expname = 'historical'
-refclim = 'EC23'
+refclim = 'EC24'
 nprocs = 4
-do_compute = False
+do_compute = True
 do_create_clim = True
-do_definitive = False
-config_file = '../config_CMIP6_esgpull.yml'
+do_definitive = True
+config_file = 'config_create_clim.yml'
 climdir = '../climatology/'
 
 #models = ['EC-Earth3', 'IPSL-CM6A-LR', 'FGOALS-g3', 'TaiESM1', 'CanESM5', 'CESM2',
 #          'MIROC6', 'MPI-ESM1-2-HR', 'AWI-CM-1-1-MR', 'CMCC-CM2-SR5', 'NorESM2-MM', 'GFDL-CM4']
-models = ['EC-Earth3', 'IPSL-CM6A-LR'] # 'FGOALS-g3', 'CanESM5', 'CESM2', 'CNRM-CM6-1',
-          #'GISS-E2-1-G', 'ACCESS-CM2', 'CNRM-CM6-1', 'SAM0-UNICON', 'UKESM1-0-LL',
-          #'MIROC6', 'MPI-ESM1-2-HR', 'AWI-CM-1-1-MR', 'NorESM2-MM', 'GFDL-CM4']
+models = ['EC-Earth3', 'IPSL-CM6A-LR', 'FGOALS-g3', 'CanESM5', 'CESM2', 'CNRM-CM6-1',
+          'GISS-E2-1-G', 'ACCESS-CM2', 'CNRM-CM6-1', 'SAM0-UNICON', 'UKESM1-0-LL',
+          'MIROC6', 'MPI-ESM1-2-HR', 'AWI-CM-1-1-MR', 'NorESM2-MM', 'GFDL-CM4']
+#models = ['EC-Earth3']
 
 # models currently missing on the ESGF
 # models= ['CMCC-CM2-SR5', 'TaiESM1']
@@ -44,7 +46,10 @@ models = ['EC-Earth3', 'IPSL-CM6A-LR'] # 'FGOALS-g3', 'CanESM5', 'CESM2', 'CNRM-
 
 # call the loop of global mean on all the models
 if do_compute:
-    for model in models:
+
+    defaultconfig = load_yaml(config_file)
+
+    for model in sorted(models):
         print(model)
 
         if model in ['CNRM-CM6-1', 'UKESM1-0-LL']:
@@ -52,9 +57,19 @@ if do_compute:
         else:
             ENSEMBLE = "r1i1p1f1"
 
-        performance_indices(expname, year1, year2, config=config_file, model=model,
+        model_config = copy.deepcopy(defaultconfig)
+
+        # to possibly drop biased figures
+        drop = []
+        if drop:
+            for var in drop:
+                for kind in ['2d_vars', '3d_vars', 'oce_vars', 'ice_vars']:
+                    if var in model_config['PI'][kind]['field']:
+                        model_config['PI'][kind]['field'].remove(var)
+
+        performance_indices(expname, year1, year2, config=model_config, model=model,
                             ensemble=ENSEMBLE, numproc=nprocs, climatology=refclim,
-                            loglevel='INFO')
+                            loglevel='debug')
 
 if do_create_clim:
 
@@ -106,19 +121,9 @@ if do_create_clim:
             for region, value in region_data.items():
                 piclim[var]['cmip6'][season][region] = float(value)
         piclim[var]['cmip6']['models'] = mout[var]
+        piclim[var]['cmip6']['nmodels'] = len(mout[var])
         piclim[var]['cmip6']['year1'] = year1
         piclim[var]['cmip6']['year2'] = year2
-
-    # # update the climatology
-    # for var in out.keys():
-    #     piclim[var]['cmip6'] = {}
-    #     for season in out[var].keys():
-    #         piclim[var]['cmip6'][season] = {}
-    #         for region in out[var][season].keys():
-    #             piclim[var]['cmip6'][season][region] = float(out[var][season][region])
-    #     piclim[var]['cmip6']['models'] = mout[var]
-    #     piclim[var]['cmip6']['year1'] = year1
-    #     piclim[var]['cmip6']['year2'] = year2
 
     # dump the new file
     with open(update_pifile, 'w', encoding='utf8') as file:

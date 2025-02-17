@@ -123,16 +123,24 @@ def select_region(xfield, region):
 
     if region == 'Global':
         return xfield
-    
-    if region == 'North Midlat':
+    if region == 'NH':
+        lat_min, lat_max = 20.0, 90.0
+    elif region == 'SH':
+        lat_min, lat_max = -90.0, -20.0
+    elif region == 'Equatorial':
+        lat_min, lat_max = -20.0, 20.0
+    elif region == 'Tropical':
+        lat_min, lat_max = -30.0, 30.0
+    elif region == 'North Midlat':
         lat_min, lat_max = 30.0, 90.0
     elif region == 'South Midlat':
         lat_min, lat_max = -90.0, -30.0
-    elif region == 'Tropical':
-        lat_min, lat_max = -30.0, 30.0
+    elif region == 'North Pole':
+        lat_min, lat_max = 60.0, 90.0
+    elif region == 'South Pole':
+        lat_min, lat_max = -90.0, -60.0
     else:
         raise KeyError(region + "region not supported!!!")
 
     # new version more flexible than the slice one
     return xfield.where((xfield.lat >= lat_min) & (xfield.lat <= lat_max))
-
