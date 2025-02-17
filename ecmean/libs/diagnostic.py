@@ -196,7 +196,7 @@ class Diagnostic():
 
         # hard-coded seasons (due to climatological dataset)
         if self.climatology in ['EC22', 'RK08']:
-            loggy.error('Only EC23 climatology supports multiple seasons! Keeping only yearly seasons!')
+            loggy.error('Only EC23/EC24 climatology supports multiple seasons! Keeping only yearly seasons!')
             self.seasons = ['ALL']
 
         self.clmdir = Path(self.indir, '../climatology', self.climatology)

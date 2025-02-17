@@ -8,22 +8,24 @@
 
 __author__ = "Paolo Davini (p.davini@isac.cnr.it), Sep 2022."
 
-import tempfile
-import sys
-from ecmean.libs.files import load_yaml
-from ecmean.libs.units import units_extra_definition
-from ecmean.libs.ncfixers import xr_preproc
-from dask.distributed import Client, LocalCluster, progress
-from ecmean.libs.climatology import full_histogram, check_histogram, variance_threshold, mask_from_field
-import yaml
+import logging
 import os
-import xarray as xr
+import sys
+import tempfile
+from time import time
+
+import matplotlib
 import numpy as np
 import pandas as pd
-import logging
-from time import time
-import matplotlib
+import xarray as xr
+import yaml
 from cdo import *
+#from dask.distributed import Client, LocalCluster, progress
+
+from ecmean.libs.climatology import check_histogram, full_histogram, mask_from_field, variance_threshold
+from ecmean.libs.files import load_yaml
+from ecmean.libs.ncfixers import xr_preproc
+from ecmean.libs.units import units_extra_definition
 
 # activate CDO class
 cdo = Cdo(logging=True)
@@ -39,11 +41,12 @@ variables = ['tas', 'pr', 'net_sfc', 'tauu', 'tauv', 'psl',
              'ua', 'va', 'ta', 'hus', 'tos', 'sos', 'siconc']
 
 # to set: time period (default, can be shorter if data are missing) #WARNING MISSING
-year1 = 1990
-year2 = 2019
+year1 = 1985
+year2 = 2014
 
 # yml file to get information on dataset on some machine
-clim_info = '/home/paolo/ECmean4/ecmean/climatology/create-clim-wilma-EC23.yml'
+CLIM = 'EC24'
+clim_info = f'/home/paolo/ECmean4/ecmean/utils/create-clim-wilma-{CLIM}.yml'
 
 # figures : some diagnostic figures can be saved to check the consistency of mean and variance fields
 do_figures = True
@@ -88,8 +91,9 @@ def main():
     tmpdir = info['dirs']['tmpdir']
     tgtdir = info['dirs']['tgtdir'].format(clim=clim_name)
     datadir = info['dirs']['datadir']
-    for dir in [tmpdir, tgtdir, datadir]:
-        os.makedirs(dir, exist_ok=True)
+    archivedir = info['dirs']['archivedir']
+    for directory in [tmpdir, tgtdir, datadir]:
+        os.makedirs(directory, exist_ok=True)
 
     # climatology yaml output
     clim_file = os.path.join(tgtdir, 'pi_climatology_' + clim_name + '.yml')
@@ -97,11 +101,11 @@ def main():
     # loop on variables to be processed
     for var in variables:
 
-        print(var)
+        logging.info(var)
         tic = time()
         # get the directory
         filedata = str(os.path.expandvars(info[var]['dir'])).format(
-            datadir=info['dirs']['datadir'],
+            datadir=datadir, archivedir=archivedir,
             dataset=info[var]['dataset'],
             varname=info[var]['varname'])
         logging.info(filedata)
@@ -120,9 +124,9 @@ def main():
         real_year1 = np.min(cfield.time.dt.year.values)
         real_year2 = np.max(cfield.time.dt.year.values)
         if (real_year1 != year1):
-            logging.warning("Initial year different from what expected: " + str(real_year1))
+            logging.warning("Initial year different from what expected: %s", real_year1)
         if (real_year2 != year2):
-            logging.warning("Final year different from what expected: " + str(real_year2))
+            logging.warning("Final year different from what expected: %s", real_year2)
 
         # check existence of unit, then apply from file
         if 'units' in info[var]:
@@ -135,11 +139,11 @@ def main():
         logging.info(cfield)
 
         # monthly average using resample/pandas
-        print("resampling...")
+        logging.info("resampling...")
         zfield = cfield.resample(time='1MS', skipna=nanskipper).mean('time', skipna=nanskipper)
-        zfield = zfield.persist()
-        progress(zfield)
-        # zfield.compute()
+        #zfield = zfield.persist()
+        #progress(zfield)
+        zfield.compute()
 
         if do_figures:
             print("Full histogram...")
@@ -149,7 +153,7 @@ def main():
             full_histogram(zfield, file)
 
         # dump the netcdf file to disk
-        print("new file...")
+        logging.info("new file...")
         temp_name = next(tempfile._get_candidate_names()) + '.nc'
         tmpout = os.path.join(tmpdir, temp_name)
 
@@ -166,7 +170,7 @@ def main():
             os.makedirs(os.path.join(tgtdir, grid), exist_ok=True)
 
             # use cdo to interpolate: call to attribute to exploit different interpolation
-            print("interpolation..")
+            logging.info("interpolation..")
             interpolator = getattr(cdo, info[var]['remap'])
             yfield = interpolator(grid, input=tmpout, returnXArray=var)
 
@@ -180,13 +184,13 @@ def main():
             d2 = []
 
             # compute the yearly mean and the season mean
-            print("Averaging...")
-            gfield1 = yfield.resample(time='AS', skipna=nanskipper).mean('time', skipna=nanskipper)
-            gfield2 = yfield.resample(time='Q-NOV', skipna=nanskipper).mean('time', skipna=nanskipper)
+            logging.info("Averaging...")
+            gfield1 = yfield.resample(time='YS', skipna=nanskipper).mean('time', skipna=nanskipper)
+            gfield2 = yfield.resample(time='QE-NOV', skipna=nanskipper).mean('time', skipna=nanskipper)
 
             # loop on seasons
             for season in ['ALL', 'DJF', 'MAM', 'JJA', 'SON']:
-                print(season)
+                logging.info(season)
 
                 # select the season
                 if season == 'ALL':
@@ -198,11 +202,13 @@ def main():
                     if season == 'DJF':
                         gfield = gfield.drop_isel(time=[0, gfield.sizes['time'] - 1])
 
-                logging.info(gfield.shape)
+                logging.debug(gfield.shape)
 
                 # zonal averaging for 3D fields
                 if 'plev' in gfield.coords:
                     gfield = gfield.mean(dim='lon')
+                    # select only up to 10hpa
+                    gfield = gfield.sel(plev=slice(100000, 1000))
 
                 # create a reference time (average year, average month of the season)
                 reftime = pd.to_datetime(str(int((year1 + year2) / 2)) + '-' +
@@ -217,17 +223,17 @@ def main():
 
                 # define the variance threshold
                 low, high = variance_threshold(ovar)
-                logging.info(low)
-                logging.info(high)
+                logging.debug(low)
+                logging.debug(high)
 
                 # clean according to thresholds
                 fvar = ovar.where((ovar >= low) & (ovar <= high))
                 fmean = omean.where((ovar >= low) & (ovar <= high))
 
-                print(fvar)
+                #print(fvar)
 
                 if do_figures:
-                    print("Mean and variance histograms...")
+                    logging.info("Mean and variance histograms...")
                     figname = var + '_' + info[var]['dataset'] + '_' + grid + '_' + \
                         str(real_year1) + '_' + str(real_year2) + '_' + season + '.pdf'
                     os.makedirs(os.path.join(figdir, var), exist_ok=True)
@@ -264,7 +270,7 @@ def main():
             season_mean.to_netcdf(os.path.join(tgtdir, grid, 'seasons_average_' + suffix), encoding=compression)
 
             toc = time()
-            print('Processing in {:.4f} seconds'.format(toc - tic))
+            logging.info('Processing in {:.4f} seconds'.format(toc - tic))
 
             # preparing clim file
             if os.path.isfile(clim_file):
@@ -278,6 +284,7 @@ def main():
 
             # assign to the dictionary the required info
             dclim[var]['dataset'] = info[var]['dataset']
+            dclim[var]['description'] = info[var]['description']
             # dclim[var]['dataname'] = info[var]['varname']
             dclim[var]['remap'] = info[var]['remap']
             dclim[var]['mask'] = mask_from_field(full_mean)
@@ -286,7 +293,7 @@ def main():
             dclim[var]['year2'] = int(real_year2)
 
             # dump the yaml file
-            with open(clim_file, 'w') as file:
+            with open(clim_file, 'w', encoding='utf8') as file:
                 yaml.safe_dump(dclim, file, sort_keys=False)
 
             logging.debug(dclim)
@@ -296,7 +303,7 @@ def main():
 if __name__ == "__main__":
 
     # set up clusters
-    cluster = LocalCluster(threads_per_worker=threads, n_workers=workers)
-    client = Client(cluster)
-    logging.warning(client)
+    #cluster = LocalCluster(threads_per_worker=threads, n_workers=workers)
+    #client = Client(cluster)
+    #logging.warning(client)
     main()
