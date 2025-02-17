@@ -177,12 +177,12 @@ class Diagnostic():
         self.regions = cfg['performance_indices']['regions']
         self.seasons = cfg['performance_indices']['seasons']
 
-        self.field_atm_2d = cfg['performance_indices']['variables'].get('atm_2d', [])
-        self.field_atm_3d = cfg['performance_indices']['variables'].get('atm_3d', [])
+        self.field_atm2d = cfg['performance_indices']['variables'].get('atm2d', [])
+        self.field_atm3d = cfg['performance_indices']['variables'].get('atm3d', [])
         self.field_oce = cfg['performance_indices']['variables'].get('oce', [])
         self.field_ice = cfg['performance_indices']['variables'].get('ice', [])
 
-        self.field_all = self.field_atm_2d + self.field_atm_3d + self.field_oce + self.field_ice
+        self.field_all = self.field_atm2d + self.field_atm3d + self.field_oce + self.field_ice
 
         # hard-coded resolution (due to climatological dataset)
         if self.climatology == 'RK08':

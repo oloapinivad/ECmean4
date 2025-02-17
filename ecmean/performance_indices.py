@@ -150,7 +150,7 @@ class PerformanceIndices:
         # loop on the variables, create the parallel process
         for varlist in weight_split(self.diag.field_all, self.diag.numproc):
             core = Process(target=self.pi_worker, args=(self.util_dictionary, self.piclim,
-                                                        self.face, self.diag, self.diag.field_atm_3d,
+                                                        self.face, self.diag, self.diag.field_atm3d,
                                                         self.varstat, varlist))
             core.start()
             processes.append(core)
