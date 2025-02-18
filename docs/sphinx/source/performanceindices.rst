@@ -128,10 +128,130 @@ An example of the the output for a single year of the EC-Earth3 historical simul
 
    An example for a single year of the EC-Earth3 historical r1i1p1f1 simulation. Values smaller than one implies a better results than CMIP6 ensemble average.
 
+Climatologies available
+^^^^^^^^^^^^^^^^^^^^^^^
+
+Currently, three different Climatologies are available:
+
+RK08
+----
+
+The old climatology, based on old datasets (e.g. ERA40) and defined on a 2.5x2.5 deg resolution (deprecated, and going to be removed).
+
+
+EC23
+----
+This is built with high-resolution data (e.g. CRU, ERA5, MSWEP, etc.) and defined on a 1x1 deg resolution for year 1990-2019. It uses a 30-year time window for CMIP6 models.
+
+
+.. list-table:: Data used in EC23 climatology
+   :header-rows: 1
+   :widths: 30 30 30
+
+   * - **Variable**
+     - **Observations**
+     - **Models**
+   * - 2m temperature (land-only)
+     - CRU TS 4.05, 1990-2019
+     - 11 CMIP6 models over 1981-2010
+   * - Precipitation
+     - MSWEP, 1990-2019
+     - 12 CMIP6 models over 1981-2010
+   * - Net surface radiation
+     - NOCS, 1990-2014
+     - 8 CMIP6 models over 1981-2010
+   * - Eastward wind stress
+     - ORAS5, 1990-2019
+     - 10 CMIP6 models over 1981-2010
+   * - Meridional wind stress
+     - ORAS5, 1990-2019
+     - 10 CMIP6 models over 1981-2010
+   * - Mean sea level pressure
+     - ERA5, 1990-2019
+     - 11 CMIP6 models over 1981-2010
+   * - Zonal wind
+     - ERA5, 1990-2019
+     - 11 CMIP6 models over 1981-2010
+   * - Meridional wind
+     - ERA5, 1990-2019
+     - 11 CMIP6 models over 1981-2010
+   * - Air temperature
+     - ERA5, 1990-2019
+     - 11 CMIP6 models over 1981-2010
+   * - Specific humidity
+     - ERA5, 1990-2019
+     - 10 CMIP6 models over 1981-2010
+   * - Sea surface temperature
+     - ESA-CCI-L4
+     - 12 CMIP6 models over 1981-2010
+   * - Sea surface salinity
+     - ORAS5, 1990-2019
+     - 8 CMIP6 models over 1981-2010
+   * - Sea ice concentration
+     - ESA-CCI-L4
+     - 6 CMIP6 models over 1981-2010
+
+EC24
+----
+
+This is an upgrade of EC23, with the following improvements:
+  - It is scaled to 1985-2014, to be consistent with the CMIP6 historical simulations.
+  - It removes data above 10hPa for 3D fields, to avoid unrealistic large PIs due to stratospheric low variances.
+  - It extend the amount of regions to be considered, allowing also for Northern/Southern Hemisphere, Equatorial and South/North Pole regions.
+  - It includes more climate models, that now ranges between 10 to 15 according to the variable.
+
+
+.. list-table:: Data used in EC24 climatology
+   :header-rows: 1
+   :widths: 30 30 30
+
+   * - **Variable**
+     - **Observations**
+     - **Models**
+   * - 2m temperature (land-only)
+     - CRU TS 4.05, 1985-2014
+     - 12 CMIP6 models over 1985-2014
+   * - Precipitation
+     - MSWEP, 1985-2014
+     - 12 CMIP6 models over 1985-2014
+   * - Net surface radiation
+     - NOCS, 1985-2014
+     - 10 CMIP6 models over 1985-2014
+   * - Eastward wind stress
+     - ORAS5, 1985-2014
+     - 14 CMIP6 models over 1985-2014
+   * - Meridional wind stress
+     - ORAS5, 1985-2014
+     - 12 CMIP6 models over 1985-2014
+   * - Mean sea level pressure
+     - ERA5, 1985-2014
+     - 12 CMIP6 models over 1985-2014
+   * - Zonal wind
+     - ERA5, 1985-2014
+     - 12 CMIP6 models over 1985-2014
+   * - Meridional wind
+     - ERA5, 1985-2014
+     - 13 CMIP6 models over 1985-2014
+   * - Air temperature
+     - ERA5, 1985-2014
+     - 15 CMIP6 models over 1985-2014
+   * - Specific humidity
+     - ERA5, 1985-2014
+     - 13 CMIP6 models over 1985-2014
+   * - Sea surface temperature
+     - ESA-CCI-L4
+     - 14 CMIP6 models over 1985-2014
+   * - Sea surface salinity
+     - ORAS5, 1985-2014
+     - 14 CMIP6 models over 1985-2014
+   * - Sea ice concentration
+     - ESA-CCI-L4
+     - 11 CMIP6 models over 1985-2014
+
+
+
 Climatology computaton
 ^^^^^^^^^^^^^^^^^^^^^^
-
-The performance indices built on the comparison between model data and a pre-computed climatology of several variables. Only the ``EC23`` climatology is currently recommended for usage.
 
 Climatology is computed by the ``ecmean/utils/clim-create.py`` script, which is included in the repository for documentation.
 It is based on a YML file which is tells the script where to retrieve the data, identifying all the required data folder, names and description. 
@@ -143,14 +263,14 @@ The tool loops over the variable and produces the yearly and seasonal average of
   If the variance of a grid point is above or below the 5-sigma, the grid point is excluded from the computation of the PIs.
   However, some fields as specific humidity (`hus`) are still characterized by very large PIs (due to stratospheric low variances).
 
-Current climatology has been developed making use of high-resolution data (e.g. CRU, ERA5, MSWEP, etc.) and is defined as ``EC23``, using a 1x1 deg resolution and being the default. 
-Properties of each climatology - as which interpolation method and which CMIP6 models has been used - can be inspected looking at ``ecmean/climatology/{clim}/pi_climatology_ECE23.yml`` files.
+.. Current climatology has been developed making use of high-resolution data (e.g. CRU, ERA5, MSWEP, etc.) and is defined as ``EC23``, using a 1x1 deg resolution and being the default. 
+.. Properties of each climatology - as which interpolation method and which CMIP6 models has been used - can be inspected looking at ``ecmean/climatology/{clim}/pi_climatology_ECE23.yml`` files.
 
 CMIP6 comparison
 ^^^^^^^^^^^^^^^^
 
 Once the climatology is created, the script ``ecmean/utils/cmip6-clim-evaluate.py`` is used to run iteratively on a set of CMIP6 models and to compute the multi model mean of the PIs (for each region and season).
-A single ensemble member is used for each CMIP6 model, which is regridded toward the climatology grid. For CMIP6 models, a 30-year time window from 1981 to 2010 is used.
+A single ensemble member is used for each CMIP6 model, which is regridded toward the climatology grid. For CMIP6 models, a 30-year time window is used.
 This is then stored in the ``ecmean/climatology/{clim}/pi_climatology_{clim}.yml`` and then used to provide a ratio between the original PI and the CMIP6 ensemble. 
 
 Historical simulations for 12 CMIP6 models have been considered for the reference data climatology, namely:
