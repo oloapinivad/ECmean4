@@ -25,11 +25,12 @@ global_mean:
 
 performance_indices:
   variables:
-    atm_2d: [net_sfc, tas, psl, pr, tauu, tauv]
-    atm_3d: [ta, ua, va, hus]
+    atm2d: [net_sfc, tas, psl, pr, tauu, tauv]
+    atm3d: [ta, ua, va, hus]
     oce: [tos, sos]
     ice: [siconc]
   regions: ['Global', 'North Midlat', 'Tropical', 'South Midlat']
   seasons: ['ALL', 'DJF', 'JJA']
   resolution: r360x180
+  climatology: EC23
 
