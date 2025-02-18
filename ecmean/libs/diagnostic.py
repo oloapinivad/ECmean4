@@ -195,7 +195,7 @@ class Diagnostic():
                 self.resolution = cfg['PI']['resolution']
 
         # hard-coded seasons (due to climatological dataset)
-        if self.climatology in ['EC22', 'RK08']:
+        if self.climatology in ['RK08']:
             loggy.error('Only EC23/EC24 climatology supports multiple seasons! Keeping only yearly seasons!')
             self.seasons = ['ALL']
 

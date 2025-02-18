@@ -131,17 +131,21 @@ An example of the the output for a single year of the EC-Earth3 historical simul
 Climatologies available
 ^^^^^^^^^^^^^^^^^^^^^^^
 
-Currently, three different Climatologies are available:
+Currently, three different climatologies are available:
 
 RK08
 ----
 
 The old climatology, based on old datasets (e.g. ERA40) and defined on a 2.5x2.5 deg resolution (deprecated, and going to be removed).
 
+Usage of this climatology is discouraged. 
+
 
 EC23
 ----
 This is built with high-resolution data (e.g. CRU, ERA5, MSWEP, etc.) and defined on a 1x1 deg resolution for year 1990-2019. It uses a 30-year time window for CMIP6 models.
+
+Properties of the climatology - as which interpolation method and which CMIP6 models has been used - can be inspected looking at ``ecmean/climatology/EC24/pi_climatology_ECE24.yml`` file.
 
 
 .. list-table:: Data used in EC23 climatology
@@ -200,6 +204,7 @@ This is an upgrade of EC23, with the following improvements:
   - It extend the amount of regions to be considered, allowing also for Northern/Southern Hemisphere, Equatorial and South/North Pole regions.
   - It includes more climate models, that now ranges between 10 to 15 according to the variable.
 
+Properties of the climatology - as which interpolation method and which CMIP6 models has been used - can be inspected looking at ``ecmean/climatology/EC24/pi_climatology_ECE24.yml`` file.
 
 .. list-table:: Data used in EC24 climatology
    :header-rows: 1
@@ -248,8 +253,6 @@ This is an upgrade of EC23, with the following improvements:
      - ESA-CCI-L4
      - 11 CMIP6 models over 1985-2014
 
-
-
 Climatology computaton
 ^^^^^^^^^^^^^^^^^^^^^^
 
@@ -272,75 +275,6 @@ CMIP6 comparison
 Once the climatology is created, the script ``ecmean/utils/cmip6-clim-evaluate.py`` is used to run iteratively on a set of CMIP6 models and to compute the multi model mean of the PIs (for each region and season).
 A single ensemble member is used for each CMIP6 model, which is regridded toward the climatology grid. For CMIP6 models, a 30-year time window is used.
 This is then stored in the ``ecmean/climatology/{clim}/pi_climatology_{clim}.yml`` and then used to provide a ratio between the original PI and the CMIP6 ensemble. 
-
-Historical simulations for 12 CMIP6 models have been considered for the reference data climatology, namely:
-
-- EC-Earth3
-- IPSL-CM6A-LR
-- FGOALS-g3
-- TaiESM1
-- CanESM5
-- CESM2
-- MIROC6
-- MPI-ESM1-2-HR
-- AWI-CM-1-1-MR
-- CMCC-CM2-SR5
-- NorESM2-MM
-- GFDL-CM4
-
-However for some variable issues with the grids or lack of data have been found, so that the number of models used for each variable is reported in the table below.
-
-.. list-table:: Data used in EC23 climatology
-   :header-rows: 1
-   :widths: 30 30 30
-
-   * - **Variable**
-     - **Observations**
-     - **Models**
-   * - 2m temperature (land-only)
-     - CRU TS 4.05, 1990-2019
-     - 11 CMIP6 models over 1981-2010
-   * - Precipitation
-     - MSWEP, 1990-2019
-     - 12 CMIP6 models over 1981-2010
-   * - Net surface radiation
-     - NOCS, 1990-2014
-     - 8 CMIP6 models over 1981-2010
-   * - Eastward wind stress
-     - ORAS5, 1990-2019
-     - 10 CMIP6 models over 1981-2010
-   * - Meridional wind stress
-     - ORAS5, 1990-2019
-     - 10 CMIP6 models over 1981-2010
-   * - Mean sea level pressure
-     - ERA5, 1990-2019
-     - 11 CMIP6 models over 1981-2010
-   * - Zonal wind
-     - ERA5, 1990-2019
-     - 11 CMIP6 models over 1981-2010
-   * - Meridional wind
-     - ERA5, 1990-2019
-     - 11 CMIP6 models over 1981-2010
-   * - Air temperature
-     - ERA5, 1990-2019
-     - 11 CMIP6 models over 1981-2010
-   * - Specific humidity
-     - ERA5, 1990-2019
-     - 10 CMIP6 models over 1981-2010
-   * - Sea surface temperature
-     - ESA-CCI-L4
-     - 12 CMIP6 models over 1981-2010
-   * - Sea surface salinity
-     - ORAS5, 1990-2019
-     - 8 CMIP6 models over 1981-2010
-   * - Sea ice concentration
-     - ESA-CCI-L4
-     - 6 CMIP6 models over 1981-2010
-
-
-.. note:: 
-
-  The older ECmean climatology - from the previous CDO-based code - is currently defined as ``RK08``, and although still available, is not recommended for use since it is based on old datasets (e.g. ERA40). 
 
 
 

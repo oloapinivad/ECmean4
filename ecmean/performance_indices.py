@@ -195,13 +195,13 @@ class PerformanceIndices:
         if self.extrafigure:
             self.loggy.debug('Plotting extra results...')
             print(self.outarray)
-            debugfig = os.path.join(self.diag.figdir, f'map_{os.path.basename(self.diag.filenames('png'))}')
+            debugfig = os.path.join(self.diag.figdir, f"map_{os.path.basename(self.diag.filenames('png'))}")
             plot_xarray(self.outarray['map'], filename=debugfig, log_scale=True, cmap='viridis')
-            debugfig = os.path.join(self.diag.figdir, f'bias_{os.path.basename(self.diag.filenames('png'))}')
+            debugfig = os.path.join(self.diag.figdir, f"bias_{os.path.basename(self.diag.filenames('png'))}")
             plot_xarray(self.outarray['bias'], filename=debugfig, cmap='seismic', log_scale=False)
 
         # to this date, only EC23/EC24 support comparison with CMIP6 data
-        if self.diag.climatology in ['EC23']:
+        if self.diag.climatology in ['EC23', 'EC24']:
 
             # load yaml file if is missing
             if not self.varstat:
@@ -224,7 +224,7 @@ class PerformanceIndices:
 
             heatmap_comparison_pi(data_dict=data2plot, cmip6_dict=cmip6, diag=self.diag, longnames=longnames, filemap=mapfile)
         else:
-            self.loggy.warning('Only EC23 climatology is supported for comparison with CMIP6 data.')
+            self.loggy.warning('Only EC23 and EC24 climatology is supported for comparison with CMIP6 data.')
 
         self.toc('Plotting')
 
