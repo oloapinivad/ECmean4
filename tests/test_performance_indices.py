@@ -1,7 +1,7 @@
 """Tests for performance indices functions"""
 
 # test for PIs: run on ECE4 test data, both amip and coupled, and on CMIP6 EC-Earth3 data.
-# all run for both EC23 and RK08 climatologies
+# all run for EC23 climatologies
 import os
 import subprocess
 import pytest
@@ -21,7 +21,7 @@ env = {**os.environ, "COVERAGE_PROCESS_START": ".coveragerc"}
 # test on coupled
 
 
-@pytest.mark.parametrize("clim", ['RK08', 'EC23'])
+@pytest.mark.parametrize("clim", ['EC23'])
 def test_performance_indices_cpld(clim):
     performance_indices('cpld', 1990, 1990, numproc=4,
                         climatology=clim, config='tests/config.yml')
@@ -35,7 +35,7 @@ def test_performance_indices_cpld(clim):
 
 
 # test on amip
-@pytest.mark.parametrize("clim", ['RK08', 'EC23'])
+@pytest.mark.parametrize("clim", ['EC23'])
 def test_performance_indices_amip(clim):
     performance_indices('amip', 1990, 1990, numproc=1,
                         climatology=clim, config='tests/config.yml', outputdir='tests/pluto')
@@ -49,7 +49,7 @@ def test_performance_indices_amip(clim):
 
 
 # test performance_indices from commnand line + debug
-@pytest.mark.parametrize("clim", ['RK08', 'EC23'])
+@pytest.mark.parametrize("clim", ['EC23'])
 def test_cmd_performance_indices_CMIP6(clim):
     subprocess.run(['performance_indices', 'historical', '1990', '1990', '-j', '2', '-c',
                     'tests/config_CMIP6.yml', '-k', clim, '-m', 'EC-Earth3', '-v', 'debug'],
@@ -65,7 +65,7 @@ def test_cmd_performance_indices_CMIP6(clim):
 # test on amip but with access from xarray dataset
 
 
-@pytest.mark.parametrize("clim", ['RK08', 'EC23'])
+@pytest.mark.parametrize("clim", ['EC23'])
 def test_performance_indices_amip_xdataset(clim):
     file1 = 'tests/table/PI4_' + clim + '_amip_EC-Earth4_r1i1p1f1_1990_1990.yml'
     file2 = 'tests/table/PI4_' + clim + '_amip_1990_1990.ref'

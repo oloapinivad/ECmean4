@@ -303,22 +303,12 @@ class PerformanceIndices:
                             cfield = cfield.sel(time=cfield.time.dt.season.isin(season))
                             vfield = vfield.sel(time=vfield.time.dt.season.isin(season))
 
-                        # averaging
-                        tmean = tmean.mean(dim='time')
-                        cfield = cfield.load()  # this ensure no crash with multiprocessing
-                        vfield = vfield.load()
+                        # averaging, applying offset and factor and loading
+                        tmean = (tmean.mean(dim='time') * factor + offset).load()
 
-                        # safe check for old RK08 which has a different format
-                        if diag.climatology != 'RK08':
-                            cfield = cfield.mean(dim='time')
-                            vfield = vfield.mean(dim='time')
-
-                        tmean = tmean * factor + offset
-
-                        # this computation is required to ensure that file access is done in a
-                        # correct way. resource errors found if disabled in some specific
-                        # configuration
-                        tmean = tmean.compute()
+                        # averaging and loading the climatology
+                        cfield = cfield.mean(dim='time').load()
+                        vfield = vfield.mean(dim='time').load()
 
                         # apply interpolation, if fixer is available and with different grids
                         fix = getattr(util, f'{domain}fix')

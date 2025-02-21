@@ -186,18 +186,8 @@ class Diagnostic():
         self.field_ice = cfg['PI']['ice_vars']['field']
         self.field_all = self.field_2d + self.field_3d + self.field_oce + self.field_ice
 
-        # hard-coded resolution (due to climatological dataset)
-        if self.climatology == 'RK08':
-            loggy.error('RK08 can work only with r180x91 grid')
-            self.resolution = 'r180x91'
-        else:
-            if not self.resolution:
-                self.resolution = cfg['PI']['resolution']
-
-        # hard-coded seasons (due to climatological dataset)
-        if self.climatology in ['RK08']:
-            loggy.error('Only EC23/EC24 climatology supports multiple seasons! Keeping only yearly seasons!')
-            self.seasons = ['ALL']
+        if not self.resolution:
+            self.resolution = cfg['PI']['resolution']
 
         self.clmdir = Path(self.indir, '../climatology', self.climatology)
         self.resclmdir = Path(self.clmdir, self.resolution)

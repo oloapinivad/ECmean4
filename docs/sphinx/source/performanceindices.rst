@@ -133,14 +133,6 @@ Climatologies available
 
 Currently, three different climatologies are available:
 
-RK08
-----
-
-The old climatology, based on old datasets (e.g. ERA40) and defined on a 2.5x2.5 deg resolution (deprecated, and going to be removed).
-
-Usage of this climatology is discouraged. 
-
-
 EC23
 ----
 This is built with high-resolution data (e.g. CRU, ERA5, MSWEP, etc.) and defined on a 1x1 deg resolution for year 1990-2019. It uses a 30-year time window for CMIP6 models.
