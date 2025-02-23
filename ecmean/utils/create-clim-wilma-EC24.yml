@@ -14,6 +14,7 @@ dirs:
 # climatological dataset, remapping method and other features
 tas: 
   dataset: CRU
+  longname: 2m Temperature (land-only)
   description: CRU TS4.05 Mean Temperature
   varname: tmp
   units: degC
@@ -21,6 +22,7 @@ tas:
   dir: "{datadir}/{dataset}/data/*.nc" 
 pr:
   dataset: MSWEP
+  longname: Precipitation
   description: Multi-Source Weighted-Ensemble Precipitation v2.1
   varname: precipitation
   units: mm/month
@@ -28,6 +30,7 @@ pr:
   dir: "{archivedir}/{dataset}/mon/*.nc"
 ua: 
   dataset: ERA5
+  longname: Zonal Wind
   description: ECMWF ERA5 reanalysis
   varname: var131
   remap: remapbil
@@ -35,6 +38,7 @@ ua:
   dir: "{archivedir}/{dataset}/u_component_of_wind/mon/{dataset}_*.nc"
 va: 
   dataset: ERA5
+  longname: Meridional Wind
   description: ECMWF ERA5 reanalysis
   varname: v
   units: m s-1  
@@ -42,6 +46,7 @@ va:
   dir: "{archivedir}/{dataset}/v_component_of_wind/mon/{dataset}_*.nc"
 ta: 
   dataset: ERA5
+  longname: Air Temperature
   description: ECMWF ERA5 reanalysis
   varname: t
   remap: remapbil
@@ -49,6 +54,7 @@ ta:
   dir: "{archivedir}/{dataset}/temperature/mon/{dataset}_*.nc"
 psl: 
   dataset: ERA5
+  longname: Mean Sea Level Pressure
   description: ECMWF ERA5 reanalysis
   varname: msl
   remap: remapbil
@@ -56,6 +62,7 @@ psl:
   dir: "{archivedir}/{dataset}/mean_sea_level_pressure/mon/{dataset}_*.nc"
 hus: 
   dataset: ERA5
+  longname: Specific humidity
   description: ECMWF ERA5 reanalysis
   varname: q
   remap: remapbil
@@ -63,24 +70,28 @@ hus:
   dir: "{archivedir}/{dataset}/specific_humidity/mon/{dataset}_*.nc"
 sos: 
   dataset: ORAS5
+  longname: Sea Surface Salinity
   description: ECMWF Ocean Reanalysis System 5
   varname: sosaline
   remap: remapbil
   dir: "{datadir}/{dataset}/data/{varname}*.nc"
 tauu: 
   dataset: ORAS5
+  longname: Eastward wind stress
   varname: sozotaux
   description: ECMWF Ocean Reanalysis System 5
   remap: remapbil
   dir: "{datadir}/{dataset}/data/{varname}*.nc"
 tauv: 
   dataset: ORAS5
+  longname: Northward wind stress
   varname: sometauy
   description: ECMWF Ocean Reanalysis System 5
   remap: remapbil
   dir: "{datadir}/{dataset}/data/{varname}*.nc"
 tos: 
   dataset: ESA-CCI-L4
+  longname: Sea Surface Temperature
   description: ESA SST CCI OSTIA L4 product
   varname: analysed_sst
   remap: remapbil
@@ -88,6 +99,7 @@ tos:
   dir: "{archivedir}/{dataset}/mon/{varname}/*{varname}*.nc"
 siconc: 
   dataset: ESA-CCI-L4
+  longname: Sea-ice Concentration
   varname: sea_ice_fraction
   description: ESA SST CCI OSTIA L4 product
   remap: remapbil
@@ -95,6 +107,7 @@ siconc:
   dir: "{archivedir}/{dataset}/mon/{varname}/*{varname}*.nc"
 net_sfc:
   dataset: NOCS
+  longname: Net surface radiation flux (downward)
   description: NOCS Surface Flux Dataset v2.0
   varname: net_sfc
   remap: remapcon
