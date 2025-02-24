@@ -28,7 +28,7 @@ from ecmean.libs.masks import mask_field, select_region
 from ecmean.libs.areas import guess_bounds
 from ecmean.libs.units import units_extra_definition
 from ecmean.libs.ncfixers import xr_preproc, adjust_clim_file
-from ecmean.libs.plotting import heatmap_comparison_pi, prepare_clim_dictionaries_pi
+from ecmean.libs.plotting import heatmap_comparison_pi, prepare_clim_dictionaries_pi, plot_xarray
 from ecmean.libs.parser import parse_arguments
 from ecmean.libs.loggy import setup_logger
 
@@ -79,7 +79,8 @@ class PerformanceIndices:
     def __init__(self, exp, year1, year2, config='config.yml',
                  loglevel='WARNING', numproc=1, climatology='EC23',
                  interface=None, model=None, ensemble='r1i1p1f1',
-                 silent=None, xdataset=None, outputdir=None):
+                 silent=None, xdataset=None, outputdir=None,
+                 extrafigure=False):
         """Initialize the PerformanceIndices class with the given parameters."""
 
         self.loglevel = loglevel
@@ -95,6 +96,8 @@ class PerformanceIndices:
         self.piclim = None
         self.util_dictionary = None
         self.varstat = None
+        self.extrafigure = extrafigure #special key to be set for manual debugging, producing extra figures: DO NOT USE
+        self.outarray = None
         self.start_time = time()
 
     def toc(self, message):
@@ -147,11 +150,20 @@ class PerformanceIndices:
         self.varstat = mgr.dict()
         processes = []
 
+        # special dictionary for extra figures
+        if self.extrafigure:
+            self.loggy.debug('Extra figures requested, defining arrays')
+            self.outarray = mgr.dict()
+            for kind in ['bias', 'map']:
+                self.outarray[kind] = mgr.dict()
+        else:
+            self.outarray = False
+
         # loop on the variables, create the parallel process
         for varlist in weight_split(self.diag.field_all, self.diag.numproc):
             core = Process(target=self.pi_worker, args=(self.util_dictionary, self.piclim,
                                                         self.face, self.diag, self.diag.field_3d,
-                                                        self.varstat, varlist))
+                                                        self.varstat, self.outarray, varlist))
             core.start()
             processes.append(core)
 
@@ -181,8 +193,16 @@ class PerformanceIndices:
             mapfile (str): Path to the output file. If None, it will be defined automatically following ECmean syntax.
             figformat (str): Format of the output file. Default is 'pdf'.
         """
-        # to this date, only EC23 support comparison with CMIP6 data
-        if self.diag.climatology == 'EC23':
+        if self.extrafigure:
+            self.loggy.debug('Plotting extra results...')
+            print(self.outarray)
+            debugfig = os.path.join(self.diag.figdir, f"map_{os.path.basename(self.diag.filenames('png'))}")
+            plot_xarray(self.outarray['map'], filename=debugfig, log_scale=True, cmap='viridis')
+            debugfig = os.path.join(self.diag.figdir, f"bias_{os.path.basename(self.diag.filenames('png'))}")
+            plot_xarray(self.outarray['bias'], filename=debugfig, cmap='seismic', log_scale=False)
+
+        # to this date, only EC23/EC24 support comparison with CMIP6 data
+        if self.diag.climatology in ['EC23', 'EC24']:
 
             # load yaml file if is missing
             if not self.varstat:
@@ -205,12 +225,12 @@ class PerformanceIndices:
 
             heatmap_comparison_pi(data_dict=data2plot, cmip6_dict=cmip6, diag=self.diag, longnames=longnames, filemap=mapfile)
         else:
-            self.loggy.warning('Only EC23 climatology is supported for comparison with CMIP6 data.')
+            self.loggy.warning('Only EC23 and EC24 climatology is supported for comparison with CMIP6 data.')
 
         self.toc('Plotting')
 
     @staticmethod
-    def pi_worker(util, piclim, face, diag, field_3d, varstat, varlist):
+    def pi_worker(util, piclim, face, diag, field_3d, varstat, dictarray, varlist):
         """
         Main parallel diagnostic worker for performance indices.
 
@@ -221,10 +241,10 @@ class PerformanceIndices:
             diag (Diagnostic): Diagnostic instance.
             field_3d (list): List of 3D fields.
             varstat (dict): Dictionary to store variable statistics.
+            dictarray (dict): Dictionary to store the output array.
             varlist (list): List of variables to process.
         """
         loggy = logging.getLogger(__name__)
-
         for var in varlist:
             # store NaN in dict (can't use defaultdict due to multiprocessing)
             result = init_mydict(diag.seasons, diag.regions)
@@ -284,22 +304,12 @@ class PerformanceIndices:
                             cfield = cfield.sel(time=cfield.time.dt.season.isin(season))
                             vfield = vfield.sel(time=vfield.time.dt.season.isin(season))
 
-                        # averaging
-                        tmean = tmean.mean(dim='time')
-                        cfield = cfield.load()  # this ensure no crash with multiprocessing
-                        vfield = vfield.load()
+                        # averaging, applying offset and factor and loading
+                        tmean = (tmean.mean(dim='time') * factor + offset).load()
 
-                        # safe check for old RK08 which has a different format
-                        if diag.climatology != 'RK08':
-                            cfield = cfield.mean(dim='time')
-                            vfield = vfield.mean(dim='time')
-
-                        tmean = tmean * factor + offset
-
-                        # this computation is required to ensure that file access is done in a
-                        # correct way. resource errors found if disabled in some specific
-                        # configuration
-                        tmean = tmean.compute()
+                        # averaging and loading the climatology
+                        cfield = cfield.mean(dim='time').load()
+                        vfield = vfield.mean(dim='time').load()
 
                         # apply interpolation, if fixer is available and with different grids
                         fix = getattr(util, f'{domain}fix')
@@ -361,6 +371,11 @@ class PerformanceIndices:
                             # diagnostic
                             if region == 'Global':
                                 loggy.info('PI for %s %s %s %s', region, season, var, result[season][region])
+
+                # debug array for extrafigures
+                if not isinstance(dictarray, bool):
+                    dictarray['map'][var] = complete if 'complete' in locals() else None
+                    dictarray['bias'][var] = final - cfield if 'final' in locals() else None
 
             # nested dictionary, to be redefined as a dict to remove lambdas
             varstat[var] = result

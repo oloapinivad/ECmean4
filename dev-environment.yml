@@ -10,6 +10,7 @@ dependencies:
   - python>=3.9,<3.13
   - libnetcdf
   - xesmf
+  - dask
   - eccodes
   - esmpy
   - cdo

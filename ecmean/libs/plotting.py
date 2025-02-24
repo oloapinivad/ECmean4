@@ -9,9 +9,8 @@ Shared functions for XArray ECmean4
 
 import textwrap
 import logging
-from matplotlib.colors import TwoSlopeNorm
 import matplotlib.pyplot as plt
-from matplotlib.colors import ListedColormap
+from matplotlib.colors import  TwoSlopeNorm, ListedColormap, LogNorm
 import seaborn as sns
 import numpy as np
 from ecmean.libs.general import dict_to_dataframe, init_mydict
@@ -274,3 +273,40 @@ def prepare_clim_dictionaries_gm(data, clim, shortnames, seasons, regions):
     units_list = [clim[var]['units'] for var in shortnames]
 
     return obsmean, obsstd, data2plot, units_list
+
+def plot_xarray(data_dict: dict, filename: str, cmap: str = "viridis", log_scale: bool = False):
+    """
+    Plots multiple 2D xarray DataArrays from a dictionary and saves them as a multi-panel PDF.
+    
+    Parameters:
+        data_dict (dict[str, xr.DataArray]): Dictionary of 2D data arrays.
+        filename (str): Output PDF filename.
+        cmap (str, optional): Colormap for the plots. Defaults to 'viridis'.
+    """
+    num_plots = len(data_dict)
+    cols = int(np.ceil(np.sqrt(num_plots)))
+    rows = int(np.ceil(num_plots / cols))
+    vmin = 10**-4
+    vmax = 10**4
+    
+    fig, axes = plt.subplots(rows, cols, figsize=(3 * cols, 3 * rows), constrained_layout=True)
+    
+    if num_plots == 1:
+        axes = [axes]
+    else:
+        axes = axes.flatten()
+    
+    for ax, (name, data_array) in zip(axes, sorted(data_dict.items())):
+        if data_array is not None:
+            if data_array.ndim != 2:
+                raise ValueError(f"DataArray '{name}' must be 2D.")
+            
+            norm = LogNorm(vmin=vmin, vmax=vmax) if log_scale else None
+            im = ax.pcolormesh(data_array, cmap=cmap, norm=norm)
+            ax.set_title(name)
+            ax.set_xlabel(str(data_array.dims[1]))
+            ax.set_ylabel(str(data_array.dims[0]))
+            fig.colorbar(im, ax=ax)
+    
+    plt.savefig(filename, format="png", bbox_inches="tight")
+    plt.close()

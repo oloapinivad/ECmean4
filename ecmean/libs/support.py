@@ -97,7 +97,8 @@ class Supporter():
         """Create land-sea masks for atmosphere model"""
 
         # prepare ATM LSM
-        loggy.info('maskatmfile is %s', self.atmmaskfile)
+        if self.atmmaskfile:
+            loggy.info('maskatmfile is %s', self.atmmaskfile)
         self.atmmaskfile = check_file_exist(self.atmmaskfile)
 
         if self.atmcomponent == 'oifs':
@@ -140,7 +141,8 @@ class Supporter():
         """Create land-sea masks for oceanic model. This is used only for CMIP"""
 
         # prepare ocean LSM:
-        loggy.info('maskocefile is %s', self.ocemaskfile)
+        if self.ocemaskfile:
+            loggy.info('maskocefile is %s', self.ocemaskfile)
         self.ocemaskfile = check_file_exist(self.ocemaskfile)
 
         if self.ocecomponent in ['cmoroce', 'nemo']:
@@ -173,7 +175,8 @@ class Supporter():
     def load_area_field(self, areafile, comp):
         """Loading files for area and interpolation"""
 
-        loggy.info(f'{comp}mareafile is ' + areafile)
+        if areafile:
+            loggy.info(f'{comp}mareafile is ' + areafile)
         areafile = check_file_exist(areafile)
         return xr.open_mfdataset(areafile, preprocess=xr_preproc).load()
 

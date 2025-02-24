@@ -1,0 +1,23 @@
+# Choice of model name, determines the chosen interface and is printed in the output table
+interface: CMIP6
+model:
+   name: EC-Earth3
+
+dirs:
+   exp: tests/data
+   tab: tests/table
+   clm: ecmean/climatology
+   fig: tests/figures
+
+PI: 
+  2d_vars:
+    field: [pr]
+  3d_vars: 
+    field: []
+  oce_vars: 
+    field: []
+  ice_vars:
+    field: []
+  regions: ['NH', 'SH', 'Equatorial', 'North Pole', 'South Pole']
+  seasons: ['ALL']
+  resolution: r360x180
