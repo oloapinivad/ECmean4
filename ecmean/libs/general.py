@@ -151,12 +151,13 @@ def get_domain(var, face):
 # OUTPUT FUNCTIONS #
 ####################
 
-def dict_to_dataframe(varstat):
+def dict_to_dataframe(varstat, allowed = ['ALL', 'DJF', 'JJA', 'MAM', 'SON']):
     """
     Converts a nested 3-level dictionary to a pandas DataFrame.
 
     Parameters:
     varstat (dict): Nested dictionary with 3 levels.
+    allowed (list): List of keys to be included in the DataFrame at the lower level.
 
     Returns:
     pd.DataFrame: Transformed DataFrame with hierarchical keys.
@@ -165,8 +166,9 @@ def dict_to_dataframe(varstat):
     for i in varstat.keys():
         pippo = {}
         for outerKey, innerDict in varstat[i].items():
-            for innerKey, values in innerDict.items():
-                pippo[(outerKey, innerKey)] = values
+            if outerKey in allowed:
+                for innerKey, values in innerDict.items():
+                    pippo[(outerKey, innerKey)] = values
         data_table[i] = pippo
     data_table = pd.DataFrame(data_table).T
     return data_table
