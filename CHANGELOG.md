@@ -7,13 +7,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 Unreleased is the current development version, which is currently lying in `main` branch.
 
+- Cleaner configuration files (#382)
 - New EC24 climatology introduced and removal of RK08 climatology (#116)
 - New region definitions, available in EC24 climatology (#166) 
 
 ## [v0.1.12]
 
 - Allowing for configuration file as dictionary (#106)
-- GlobalMean and PerformanceIndices classe introduced (#110, #111)
+- GlobalMean and PerformanceIndices classes introduced (#110, #111)
 
 ## [v0.1.11]
 
