@@ -77,7 +77,7 @@ class PerformanceIndices:
     """
 
     def __init__(self, exp, year1, year2, config='config.yml',
-                 loglevel='WARNING', numproc=1, climatology='EC23',
+                 loglevel='WARNING', numproc=1, climatology=None,
                  interface=None, model=None, ensemble='r1i1p1f1',
                  silent=None, xdataset=None, outputdir=None,
                  extrafigure=False):
@@ -163,7 +163,7 @@ class PerformanceIndices:
         for varlist in weight_split(self.diag.field_all, self.diag.numproc):
             core = Process(target=self.pi_worker, args=(self.util_dictionary, self.piclim,
                                                         self.face, self.diag, self.diag.field_atm3d,
-                                                        self.varstat, varlist))
+                                                        self.varstat, self.outarray, varlist))
             core.start()
             processes.append(core)
 

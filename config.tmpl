@@ -2,13 +2,14 @@
 interface: EC-Earth4
 # Choice of model name. It is printed in the output table
 model:
-   name: EC-Earth4
+  name: EC-Earth4
 
 dirs:
-   exp: 'EXPERIMENT FOLDER'
-   tab: 'TABLE OUTPUT FOLDER'
-   fig: 'WHERE TO PUT YOUR FIGURE OUTPUT'
+  exp: 'EXPERIMENT FOLDER'
+  tab: 'TABLE OUTPUT FOLDER'
+  fig: 'WHERE TO PUT YOUR FIGURE OUTPUT'
 
+# global mean configuration options
 global_mean:
   variables: 
     atm: [tas, psl, pr, evspsbl, pme, clt, cll, clm, clh,
@@ -23,6 +24,7 @@ global_mean:
   regions: ['Global', 'North Midlat', 'Tropical', 'South Midlat']
   seasons: ['ALL', 'DJF', 'JJA']
 
+# performance_indices configuration options
 performance_indices:
   variables:
     atm2d: [net_sfc, tas, psl, pr, tauu, tauv]
@@ -32,5 +34,5 @@ performance_indices:
   regions: ['Global', 'North Midlat', 'Tropical', 'South Midlat']
   seasons: ['ALL', 'DJF', 'JJA']
   resolution: r360x180
-  climatology: EC23
+  climatology: EC24
 

@@ -25,7 +25,7 @@ class Diagnostic():
                  resolution=None, ensemble='r1i1p1', addnan=False,
                  interface=None, modelname=None, outputdir=None,
                  xdataset=None, silent=None,
-                 numproc=1, climatology='EC23'):
+                 numproc=1, climatology=None):
         """
         Initialize the Diagnostic instance.
 
@@ -185,7 +185,10 @@ class Diagnostic():
         self.field_all = self.field_atm2d + self.field_atm3d + self.field_oce + self.field_ice
 
         if not self.resolution:
-            self.resolution = cfg['PI']['resolution']
+            self.resolution = cfg['performance_indices']['resolution']
+
+        if not self.climatology:
+            self.climatology = cfg['performance_indices']['climatology']
 
         self.clmdir = Path(self.indir, '../climatology', self.climatology)
         self.resclmdir = Path(self.clmdir, self.resolution)
