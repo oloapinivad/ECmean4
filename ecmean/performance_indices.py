@@ -79,7 +79,8 @@ class PerformanceIndices:
     def __init__(self, exp, year1, year2, config='config.yml',
                  loglevel='WARNING', numproc=1, climatology='EC23',
                  interface=None, model=None, ensemble='r1i1p1f1',
-                 silent=None, xdataset=None, outputdir=None):
+                 silent=None, xdataset=None, outputdir=None,
+                 extrafigure=False):
         """Initialize the PerformanceIndices class with the given parameters."""
 
         self.loglevel = loglevel
@@ -95,7 +96,7 @@ class PerformanceIndices:
         self.piclim = None
         self.util_dictionary = None
         self.varstat = None
-        self.extrafigure = False #special key to be set for manual debugging, producing extra figures: DO NOT USE
+        self.extrafigure = extrafigure #special key to be set for manual debugging, producing extra figures: DO NOT USE
         self.outarray = None
         self.start_time = time()
 
