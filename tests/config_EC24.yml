@@ -9,15 +9,12 @@ dirs:
    clm: ecmean/climatology
    fig: tests/figures
 
-PI: 
-  2d_vars:
-    field: [pr]
-  3d_vars: 
-    field: []
-  oce_vars: 
-    field: []
-  ice_vars:
-    field: []
+performance_indices:
+  variables:
+    atm2d: [pr]
+    atm3d: []
+    oce: []
+    ice: []
   regions: ['NH', 'SH', 'Equatorial', 'North Pole', 'South Pole']
   seasons: ['ALL']
-  resolution: r360x180
+  climatology: EC24

@@ -50,6 +50,9 @@ def parse_arguments(args, script):
                             help='compute trends')
         parser.add_argument('-l', '--line', action='store_true',
                             help='appends also single line to a table')
+        parser.add_argument('-k', '--reference', type=str, default='EC23',
+                            help='reference climatology to be compared. default: EC23',
+                            choices=['EC23'])
 
     # specific to performance indices
     if script == 'pi':

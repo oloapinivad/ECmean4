@@ -93,7 +93,7 @@ def test_performance_indices_amip_xdataset(clim):
 
 def test_pi_plot(tmp_path):
     outputfile = tmp_path / 'PI4_heatmap.png'
-    pi = PerformanceIndices('amip', 1990, 1990, config='tests/config.yml')
+    pi = PerformanceIndices('amip', 1990, 1990, config='tests/config.yml', climatology='EC23')
     pi.prepare()
     pi.plot(mapfile=outputfile)
     assert os.path.isfile(outputfile), "Plot not created."

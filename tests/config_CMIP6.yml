@@ -9,24 +9,22 @@ dirs:
    clm: ecmean/climatology
    fig: tests/figures
 
-global:
-  atm_vars: [pr, pr_land, pr_oce]
-  oce_vars: [tos]
-  ice_vars: [siconc_north, siconc_south]
-  tab_vars: [pr, tos]
+global_mean:
+  variables:
+    atm: [pr, pr_land, pr_oce]
+    oce: [tos]
+    ice: [siconc_north, siconc_south]
+    tab: [pr, tos]
   regions: ['Global', 'North Midlat', 'Tropical', 'South Midlat']
   seasons: ['ALL', 'JJA']
 
 
-PI: 
-  2d_vars:
-    field: [pr]
-  3d_vars: 
-    field: [ta]
-  oce_vars: 
-    field: [tos]
-  ice_vars:
-    field: [siconc]
+performance_indices: 
+  variables:
+    atm2d: [pr]
+    atm3d: [ta]
+    oce: [tos]
+    ice: [siconc]
   regions: ['Global', 'North Midlat', 'Tropical', 'South Midlat']
   seasons: ['ALL', 'JJA']
   resolution: r360x180
