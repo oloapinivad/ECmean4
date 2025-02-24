@@ -30,8 +30,6 @@ def test_performance_indices_cpld(clim):
         data1 = yaml.safe_load(f1)
         data2 = yaml.safe_load(f2)
     assert are_dicts_equal(data1, data2, TOLERANCE), f"YAML files are not identical.\nData1: {data1}\nData2: {data2}"
-    if CLEANUP:
-        os.remove(file1)
 
 
 # test on amip
@@ -45,8 +43,6 @@ def test_performance_indices_amip(clim):
         data1 = yaml.safe_load(f1)
         data2 = yaml.safe_load(f2)
     assert are_dicts_equal(data1, data2, TOLERANCE), f"YAML files are not identical.\nData1: {data1}\nData2: {data2}"
-    if CLEANUP:
-        os.remove(file1)
 
 
 # test performance_indices from commnand line + debug
@@ -61,8 +57,6 @@ def test_cmd_performance_indices_CMIP6(clim):
         data1 = yaml.safe_load(f1)
         data2 = yaml.safe_load(f2)
     assert are_dicts_equal(data1, data2, TOLERANCE), f"YAML files are not identical.\nData1: {data1}\nData2: {data2}"
-    if CLEANUP:
-        os.remove(file1)
 
 #test performance_indices from commnand line + debug
 @pytest.mark.parametrize("clim", ['EC24'])
@@ -81,8 +75,6 @@ def test_cmd_performance_indices_CMIP6_special(clim):
         data1 = yaml.safe_load(f1)
         data2 = yaml.safe_load(f2)
     assert are_dicts_equal(data1, data2, TOLERANCE), f"YAML files are not identical.\nData1: {data1}\nData2: {data2}"
-    if CLEANUP:
-        os.remove(file1)
 
 # test on amip but with access from xarray dataset
 @pytest.mark.parametrize("clim", ['EC23'])
