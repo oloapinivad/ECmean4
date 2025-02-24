@@ -14,7 +14,7 @@ from ecmean.libs.general import are_dicts_equal
 
 # set TOLERANCE
 TOLERANCE = 1e-1
-CLEANUP = True
+CLEANUP = False
 
 # set up coverage env var
 env = {**os.environ, "COVERAGE_PROCESS_START": ".coveragerc"}
@@ -98,8 +98,6 @@ def test_performance_indices_amip_xdataset(clim):
         data1 = yaml.safe_load(f1)
         data2 = yaml.safe_load(f2)
     assert are_dicts_equal(data1, data2, TOLERANCE), f"YAML files are not identical.\nData1: {data1}\nData2: {data2}"
-    if CLEANUP:
-        os.remove(file1)
 
 def test_pi_plot(tmp_path):
     outputfile = tmp_path / 'PI4_heatmap.png'
