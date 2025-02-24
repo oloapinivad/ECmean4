@@ -148,19 +148,15 @@ class Diagnostic():
             None
         """
 
-        self.regions = cfg['global']['regions']
-        self.seasons = cfg['global']['seasons']
+        self.regions = cfg['global_mean']['regions']
+        self.seasons = cfg['global_mean']['seasons']
 
-        # define the different list required
-        self.var_atm = cfg['global']['atm_vars']
-        self.var_oce = cfg['global']['oce_vars']
-        self.var_ice = cfg['global']['ice_vars']
-        self.var_table = cfg['global']['tab_vars']
-        self.var_all = list(dict.fromkeys(
-            self.var_atm +
-            self.var_table +
-            self.var_oce +
-            self.var_ice))
+        self.var_atm = cfg['global_mean']['variables'].get('atm', [])
+        self.var_oce = cfg['global_mean']['variables'].get('oce', [])
+        self.var_ice = cfg['global_mean']['variables'].get('ice', [])
+        self.var_table = cfg['global_mean']['variables'].get('tab', [])
+
+        self.var_all = self.var_atm + self.var_oce + self.var_ice
 
         self.reffile = self.indir / '../reference/gm_reference_EC23.yml'
 
@@ -178,13 +174,15 @@ class Diagnostic():
             None
         """
 
-        self.regions = cfg['PI']['regions']
-        self.seasons = cfg['PI']['seasons']
-        self.field_2d = cfg['PI']['2d_vars']['field']
-        self.field_3d = cfg['PI']['3d_vars']['field']
-        self.field_oce = cfg['PI']['oce_vars']['field']
-        self.field_ice = cfg['PI']['ice_vars']['field']
-        self.field_all = self.field_2d + self.field_3d + self.field_oce + self.field_ice
+        self.regions = cfg['performance_indices']['regions']
+        self.seasons = cfg['performance_indices']['seasons']
+
+        self.field_atm2d = cfg['performance_indices']['variables'].get('atm2d', [])
+        self.field_atm3d = cfg['performance_indices']['variables'].get('atm3d', [])
+        self.field_oce = cfg['performance_indices']['variables'].get('oce', [])
+        self.field_ice = cfg['performance_indices']['variables'].get('ice', [])
+
+        self.field_all = self.field_atm2d + self.field_atm3d + self.field_oce + self.field_ice
 
         if not self.resolution:
             self.resolution = cfg['PI']['resolution']

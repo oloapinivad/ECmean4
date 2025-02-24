@@ -162,8 +162,8 @@ class PerformanceIndices:
         # loop on the variables, create the parallel process
         for varlist in weight_split(self.diag.field_all, self.diag.numproc):
             core = Process(target=self.pi_worker, args=(self.util_dictionary, self.piclim,
-                                                        self.face, self.diag, self.diag.field_3d,
-                                                        self.varstat, self.outarray, varlist))
+                                                        self.face, self.diag, self.diag.field_atm3d,
+                                                        self.varstat, varlist))
             core.start()
             processes.append(core)
 
@@ -396,7 +396,7 @@ def pi_entry_point():
 
 
 def performance_indices(exp, year1, year2, config='config.yml', loglevel='WARNING',
-                        numproc=1, climatology='EC23', interface=None, model=None,
+                        numproc=1, climatology=None, interface=None, model=None,
                         ensemble='r1i1p1f1', silent=None, xdataset=None, outputdir=None):
     """
     Wrapper function to compute the performance indices for a given experiment and years.
