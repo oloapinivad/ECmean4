@@ -131,7 +131,7 @@ An example of the the output for a single year of the EC-Earth3 historical simul
 Climatologies available
 ^^^^^^^^^^^^^^^^^^^^^^^
 
-Currently, three different climatologies are available:
+Currently, two different climatologies are available:
 
 EC23
 ----
@@ -264,9 +264,14 @@ The tool loops over the variable and produces the yearly and seasonal average of
 CMIP6 comparison
 ^^^^^^^^^^^^^^^^
 
-Once the climatology is created, the script ``ecmean/utils/cmip6-clim-evaluate.py`` is used to run iteratively on a set of CMIP6 models and to compute the multi model mean of the PIs (for each region and season).
-A single ensemble member is used for each CMIP6 model, which is regridded toward the climatology grid. For CMIP6 models, a 30-year time window is used.
+Once the climatology is created, the script ``ecmean/utils/cmip6-clim-evaluate.py`` is used to run iteratively on a set 
+of CMIP6 models and to compute the multi model mean of the PIs (for each region and season).
+A single ensemble member is used for each CMIP6 model, which is regridded toward the climatology grid. 
+For CMIP6 models, a 30-year time window is used.
 This is then stored in the ``ecmean/climatology/{clim}/pi_climatology_{clim}.yml`` and then used to provide a ratio between the original PI and the CMIP6 ensemble. 
+
+Following the same script, it would be possible to create a new comparison set to be used to scale the results of the PI, but at this stage
+this is not yet possible. 
 
 
 
