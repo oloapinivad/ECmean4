@@ -22,10 +22,10 @@ class Diagnostic():
 
     def __init__(self, exp, year1, year2, config, funcname,
                  line=False, trend=False,
-                 resolution=None, ensemble='r1i1p1', addnan=False,
+                 resolution="r360x180", ensemble='r1i1p1f1', addnan=False,
                  interface=None, modelname=None, outputdir=None,
                  xdataset=None, silent=None,
-                 numproc=1, climatology=None):
+                 numproc=1, climatology=None, reference=None):
         """
         Initialize the Diagnostic instance.
 
@@ -44,6 +44,7 @@ class Diagnostic():
         self.climatology = climatology
         self.silent = silent
         self.resolution = resolution
+        self.reference = reference
         self.ensemble = ensemble
         self.interface = interface
         self.funcname = funcname
@@ -158,7 +159,10 @@ class Diagnostic():
 
         self.var_all = self.var_atm + self.var_oce + self.var_ice
 
-        self.reffile = self.indir / '../reference/gm_reference_EC23.yml'
+        if not self.reference:
+            self.reference = cfg['global_mean']['reference']
+
+        self.reffile = self.indir / f'../reference/gm_reference_{self.reference}.yml'
 
         if self.ftable:
             self.linefile = self.tabdir / 'global_means.txt'

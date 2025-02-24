@@ -21,8 +21,9 @@ global_mean:
     ice: [siconc]
     tab: [rsnt, rlnt, net_toa, rsns, rlns, hfss, hfls, swcf, lwcf, net_sfc, toamsfc, 
             tas, clt, cll, clm, clh, pr, pme, psl]
-  regions: ['Global', 'North Midlat', 'Tropical', 'South Midlat']
-  seasons: ['ALL', 'DJF', 'JJA']
+  regions: ['Global', 'North Midlat', 'Tropical', 'South Midlat'] # for available regions, please check documentation
+  seasons: ['ALL', 'DJF', 'JJA'] # also `MAM` and `SON` are available
+  reference: EC23
 
 # performance_indices configuration options
 performance_indices:
@@ -31,8 +32,7 @@ performance_indices:
     atm3d: [ta, ua, va, hus]
     oce: [tos, sos]
     ice: [siconc]
-  regions: ['Global', 'North Midlat', 'Tropical', 'South Midlat']
-  seasons: ['ALL', 'DJF', 'JJA']
-  resolution: r360x180
+  regions: ['Global', 'North Midlat', 'Tropical', 'South Midlat']  # for available regions, please check documentation
+  seasons: ['ALL', 'DJF', 'JJA'] 
   climatology: EC24
 

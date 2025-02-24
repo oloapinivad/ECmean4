@@ -79,7 +79,7 @@ class GlobalMean:
 
     def __init__(self, exp, year1, year2, config='config.yml', loglevel='WARNING', numproc=1,
                  interface=None, model=None, ensemble='r1i1p1f1', addnan=False, silent=None,
-                 trend=None, line=None, outputdir=None, xdataset=None):
+                 trend=None, line=None, outputdir=None, xdataset=None, reference='EC23'):
 
         self.loglevel = loglevel
         self.loggy = setup_logger(level=self.loglevel)
@@ -88,7 +88,7 @@ class GlobalMean:
                                numproc=numproc, ensemble=ensemble, interface=interface,
                                modelname=model, addnan=addnan, silent=silent,
                                trend=trend, line=line, outputdir=outputdir,
-                               xdataset=xdataset)
+                               xdataset=xdataset, reference=reference)
         self.face = None
         self.ref = None
         self.util_dictionary = None
@@ -323,18 +323,19 @@ def gm_entry_point():
     global_mean(exp=args.exp, year1=args.year1, year2=args.year2, numproc=args.numproc,
                 trend=args.trend, line=args.line, loglevel=args.loglevel,
                 interface=args.interface, config=args.config, model=args.model,
-                ensemble=args.ensemble, addnan=args.addnan, outputdir=args.outputdir)
+                ensemble=args.ensemble, addnan=args.addnan, outputdir=args.outputdir,
+                reference=args.reference)
     print('ECmean4 Global Mean successfully computed!')
 
 
 def global_mean(exp, year1, year2, config='config.yml', loglevel='WARNING', numproc=1,
                 interface=None, model=None, ensemble='r1i1p1f1', addnan=False, silent=None,
-                trend=None, line=None, outputdir=None, xdataset=None):
+                trend=None, line=None, outputdir=None, xdataset=None, reference=None):
     """Wrapper function to compute the global mean."""
     gm = GlobalMean(exp, year1, year2, config,
                     loglevel=loglevel, numproc=numproc, interface=interface, model=model,
                     ensemble=ensemble, addnan=addnan, silent=silent, trend=trend,
-                    line=line, outputdir=outputdir, xdataset=xdataset)
+                    line=line, outputdir=outputdir, xdataset=xdataset, reference=reference)
     gm.prepare()
     gm.run()
     gm.store()

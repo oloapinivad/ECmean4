@@ -48,6 +48,9 @@ Modification to this is not necessary, but please be aware that the variable con
 **seasons**:
 	the list of seasons on which compute the PI. Four standard seasons are supported expressed as 3-string character (e.g. ``DJF``). ``ALL`` defines the yearly average. Default includes yearly, winter and summer.
 
+**reference**:
+	the global mean reference climatology. Only EC23 is currently available
+
 Performance indices configuration
 ---------------------------------
 
@@ -59,16 +62,14 @@ Modification to this is not necessary, but please be aware that the variable con
 	``atm2d`` includes atmospheric 2d fields, ``atm3d`` includes atmospheric 3d fields, ``oce`` includes oceanic fields and ``ice`` includes sea-ice fields.
 
 **regions**: 
-	the list of regions on which compute the PI. Four regions are supported. Supported regions are: ``Global`` (90S-90N), ``North Midlat`` (30N-90N), ``Tropical`` (30S-30N), ``South Midlat`` (90S-30S) 
+	the list of regions on which compute the PI. Four regions are supported. Default regions are: ``Global`` (90S-90N), ``North Midlat`` (30N-90N), ``Tropical`` (30S-30N), ``South Midlat`` (90S-30S).
+	For EC24 climatology, other regions are also available: ``NH`` (20N-90N), ``SH``(20S-90S), ``Equatorial`` (20S-20N), ``North Pole`` (60N-90N), ``South Pole`` (60S-90S).
 
 **seasons**:
-	the list of seasons on which compute the PI. Four standard seasons are supported expressed as 3-string character (e.g. ``DJF``). ``ALL`` defines the yearly average. Default includes yearly, winter and summer.
-
-**resolution**:
-	the resolution on which compute PI. Do not change.
+	the list of seasons on which compute the PI. ``ALL`` defines the yearly average. Also ``DJF`` and ``JJA`` are supported.
 
 **climatology**:
-	the climatology to be used. EC23 is the default.
+	the climatology to be used. EC23 and EC24 are avaiable. 
 
 
 Interface files
