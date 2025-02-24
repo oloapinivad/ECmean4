@@ -285,7 +285,7 @@ def main():
             # assign to the dictionary the required info
             dclim[var]['dataset'] = info[var]['dataset']
             dclim[var]['description'] = info[var]['description']
-            dclim[var]['longame'] = info[var]['longname']
+            dclim[var]['longname'] = info[var]['longname']
             # dclim[var]['dataname'] = info[var]['varname']
             dclim[var]['remap'] = info[var]['remap']
             dclim[var]['mask'] = mask_from_field(full_mean)

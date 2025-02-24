@@ -53,6 +53,7 @@ tas:
     nmodels: 12
     year1: 1985
     year2: 2014
+  longname: 2m Temperature (land-only)
 pr:
   dataset: MSWEP
   description: Multi-Source Weighted-Ensemble Precipitation v2.1
@@ -108,6 +109,7 @@ pr:
     nmodels: 12
     year1: 1985
     year2: 2014
+  longname: Precipitation
 net_sfc:
   dataset: NOCS
   description: NOCS Surface Flux Dataset v2.0
@@ -161,6 +163,7 @@ net_sfc:
     nmodels: 10
     year1: 1985
     year2: 2014
+  longname: Net surface radiation flux (downward)
 tauu:
   dataset: ORAS5
   description: ECMWF Ocean Reanalysis System 5
@@ -218,6 +221,7 @@ tauu:
     nmodels: 14
     year1: 1985
     year2: 2014
+  longname: Eastward wind stress
 tauv:
   dataset: ORAS5
   description: ECMWF Ocean Reanalysis System 5
@@ -273,6 +277,7 @@ tauv:
     nmodels: 12
     year1: 1985
     year2: 2014
+  longname: Northward wind stress
 psl:
   dataset: ERA5
   description: ECMWF ERA5 reanalysis
@@ -328,6 +333,7 @@ psl:
     nmodels: 12
     year1: 1985
     year2: 2014
+  longname: Mean Sea Level Pressure
 ua:
   dataset: ERA5
   description: ECMWF ERA5 reanalysis
@@ -383,6 +389,7 @@ ua:
     nmodels: 12
     year1: 1985
     year2: 2014
+  longname: Zonal Wind
 va:
   dataset: ERA5
   description: ECMWF ERA5 reanalysis
@@ -439,6 +446,7 @@ va:
     nmodels: 13
     year1: 1985
     year2: 2014
+  longname: Meridional Wind
 ta:
   dataset: ERA5
   description: ECMWF ERA5 reanalysis
@@ -497,6 +505,7 @@ ta:
     nmodels: 15
     year1: 1985
     year2: 2014
+  longname: Air Temperature
 hus:
   dataset: ERA5
   description: ECMWF ERA5 reanalysis
@@ -553,6 +562,7 @@ hus:
     nmodels: 13
     year1: 1985
     year2: 2014
+  longname: Specific humidity
 tos:
   dataset: ESA-CCI-L4
   description: ESA SST CCI OSTIA L4 product
@@ -610,6 +620,7 @@ tos:
     nmodels: 14
     year1: 1985
     year2: 2014
+  longname: Sea Surface Temperature
 sos:
   dataset: ORAS5
   description: ECMWF Ocean Reanalysis System 5
@@ -667,6 +678,7 @@ sos:
     nmodels: 14
     year1: 1985
     year2: 2014
+  longname: Sea Surface Salinity
 siconc:
   dataset: ESA-CCI-L4
   description: ESA SST CCI OSTIA L4 product
@@ -721,3 +733,4 @@ siconc:
     nmodels: 11
     year1: 1985
     year2: 2014
+  longname: Sea-ice Concentration
