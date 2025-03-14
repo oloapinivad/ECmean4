@@ -7,6 +7,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 Unreleased is the current development version, which is currently lying in `main` branch.
 
+
+## [v0.1.13]
+
+- Support for python==3.13
+
+## [v0.1.12]
+
 - Allowing for configuration file as dictionary (#106)
 - GlobalMean and PerformanceIndices classe introduced (#110, #111)
 
