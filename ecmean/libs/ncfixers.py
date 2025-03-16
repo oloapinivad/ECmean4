@@ -59,11 +59,11 @@ def adjust_clim_file(cfield, remove_zero=False):
     """Routine to fix file format of climatology"""
 
     # fix coordinates
-    org = ['LONGITUDE', 'LATITUDE', 'lev']
-    new = ['lon', 'lat', 'plev']
-    for o, n in zip(org, new):
-        if o in cfield.coords:
-            cfield = cfield.rename({o: n})
+    #org = ['LONGITUDE', 'LATITUDE', 'lev']
+    #new = ['lon', 'lat', 'plev']
+    #for o, n in zip(org, new):
+    #    if o in cfield.coords:
+    #        cfield = cfield.rename({o: n})
 
     # extract data_array
     cname = list(cfield.data_vars)[-1]

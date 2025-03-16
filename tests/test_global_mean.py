@@ -62,7 +62,7 @@ def test_global_mean_amip():
     if os.path.isfile(file1):
         os.remove(file1)
     global_mean(exp='amip', year1=1990, year2=1990, numproc=1, config='tests/config.yml',
-                line=True, addnan=True)
+                line=True, addnan=True, reference='EC23')
 
     data1 = load_gm_txt_files(file1)
     data2 = load_gm_txt_files(file2)
@@ -79,7 +79,7 @@ def test_global_mean_amip_xdataset_config_dict():
     xfield = xr.open_mfdataset('tests/data/amip/output/oifs/*.nc', preprocess=xr_preproc)
     config = load_yaml('tests/config.yml')
     global_mean(exp='amip', year1=1990, year2=1990, numproc=4, config=config,
-                xdataset=xfield)
+                xdataset=xfield, reference='EC23')
     data1 = load_gm_txt_files(file1)
     data2 = load_gm_txt_files(file2)
 
@@ -93,7 +93,8 @@ def test_global_mean_CMIP6():
     file2 = 'tests/table/global_mean_CMIP6_1990_1991.ref'
     if os.path.isfile(file1):
         os.remove(file1)
-    global_mean(exp='historical', year1=1990, year2=1991, numproc=2, config='tests/config_CMIP6.yml', trend=True)
+    global_mean(exp='historical', year1=1990, year2=1991, numproc=2, 
+                config='tests/config_CMIP6.yml', trend=True, reference='EC23')
 
     data1 = load_gm_txt_files(file1)
     data2 = load_gm_txt_files(file2)

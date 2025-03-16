@@ -22,10 +22,10 @@ class Diagnostic():
 
     def __init__(self, exp, year1, year2, config, funcname,
                  line=False, trend=False,
-                 resolution=None, ensemble='r1i1p1', addnan=False,
+                 resolution="r360x180", ensemble='r1i1p1f1', addnan=False,
                  interface=None, modelname=None, outputdir=None,
                  xdataset=None, silent=None,
-                 numproc=1, climatology='EC23'):
+                 numproc=1, climatology=None, reference=None):
         """
         Initialize the Diagnostic instance.
 
@@ -44,6 +44,7 @@ class Diagnostic():
         self.climatology = climatology
         self.silent = silent
         self.resolution = resolution
+        self.reference = reference
         self.ensemble = ensemble
         self.interface = interface
         self.funcname = funcname
@@ -148,21 +149,20 @@ class Diagnostic():
             None
         """
 
-        self.regions = cfg['global']['regions']
-        self.seasons = cfg['global']['seasons']
+        self.regions = cfg['global_mean']['regions']
+        self.seasons = cfg['global_mean']['seasons']
 
-        # define the different list required
-        self.var_atm = cfg['global']['atm_vars']
-        self.var_oce = cfg['global']['oce_vars']
-        self.var_ice = cfg['global']['ice_vars']
-        self.var_table = cfg['global']['tab_vars']
-        self.var_all = list(dict.fromkeys(
-            self.var_atm +
-            self.var_table +
-            self.var_oce +
-            self.var_ice))
+        self.var_atm = cfg['global_mean']['variables'].get('atm', [])
+        self.var_oce = cfg['global_mean']['variables'].get('oce', [])
+        self.var_ice = cfg['global_mean']['variables'].get('ice', [])
+        self.var_table = cfg['global_mean']['variables'].get('tab', [])
 
-        self.reffile = self.indir / '../reference/gm_reference_EC23.yml'
+        self.var_all = self.var_atm + self.var_oce + self.var_ice
+
+        if not self.reference:
+            self.reference = cfg['global_mean']['reference']
+
+        self.reffile = self.indir / f'../reference/gm_reference_{self.reference}.yml'
 
         if self.ftable:
             self.linefile = self.tabdir / 'global_means.txt'
@@ -178,26 +178,21 @@ class Diagnostic():
             None
         """
 
-        self.regions = cfg['PI']['regions']
-        self.seasons = cfg['PI']['seasons']
-        self.field_2d = cfg['PI']['2d_vars']['field']
-        self.field_3d = cfg['PI']['3d_vars']['field']
-        self.field_oce = cfg['PI']['oce_vars']['field']
-        self.field_ice = cfg['PI']['ice_vars']['field']
-        self.field_all = self.field_2d + self.field_3d + self.field_oce + self.field_ice
+        self.regions = cfg['performance_indices']['regions']
+        self.seasons = cfg['performance_indices']['seasons']
 
-        # hard-coded resolution (due to climatological dataset)
-        if self.climatology == 'RK08':
-            loggy.error('RK08 can work only with r180x91 grid')
-            self.resolution = 'r180x91'
-        else:
-            if not self.resolution:
-                self.resolution = cfg['PI']['resolution']
+        self.field_atm2d = cfg['performance_indices']['variables'].get('atm2d', [])
+        self.field_atm3d = cfg['performance_indices']['variables'].get('atm3d', [])
+        self.field_oce = cfg['performance_indices']['variables'].get('oce', [])
+        self.field_ice = cfg['performance_indices']['variables'].get('ice', [])
 
-        # hard-coded seasons (due to climatological dataset)
-        if self.climatology in ['EC22', 'RK08']:
-            loggy.error('Only EC23 climatology supports multiple seasons! Keeping only yearly seasons!')
-            self.seasons = ['ALL']
+        self.field_all = self.field_atm2d + self.field_atm3d + self.field_oce + self.field_ice
+
+        if not self.resolution:
+            self.resolution = cfg['performance_indices']['resolution']
+
+        if not self.climatology:
+            self.climatology = cfg['performance_indices']['climatology']
 
         self.clmdir = Path(self.indir, '../climatology', self.climatology)
         self.resclmdir = Path(self.clmdir, self.resolution)

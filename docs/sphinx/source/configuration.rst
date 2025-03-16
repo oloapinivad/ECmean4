@@ -37,23 +37,19 @@ Global Mean configuration
 The configuration files defines also the details of the global mean. 
 Modification to this is not necessary, but please be aware that the variable convention follow a CMOR-like definition.
 
-atm_vars: 
-	the list of atmospheric fields to be processed
+**variables**: 
+	the main block to control variables. It is divided in three sub-blocks: ``atm``, ``oce`` and ``ice``. Each of them contains the list of fields to be processed. 
+	``atm`` includes atmospheric fields, ``oce`` includes oceanic fields and ``ice`` includes sea-ice fields. 
+	``tab`` includes the list of fields to be reported in the output table.
 
-oce_vars: 
-	the list of oceanic fields to be processed
-
-ice_vars:
-        the list of sea-ice fields to be processed
-
-tab_vars: 
-	the list of fields to be reported in the output table
-
-regions: 
+**regions**: 
 	the list of regions on which compute the PI. Four regions are supported. Supported regions are: ``Global`` (90S-90N), ``North Midlat`` (30N-90N), ``Tropical`` (30S-30N), ``South Midlat`` (90S-30S) 
 
-seasons:
+**seasons**:
 	the list of seasons on which compute the PI. Four standard seasons are supported expressed as 3-string character (e.g. ``DJF``). ``ALL`` defines the yearly average. Default includes yearly, winter and summer.
+
+**reference**:
+	the global mean reference climatology. Only EC23 is currently available
 
 Performance indices configuration
 ---------------------------------
@@ -61,26 +57,19 @@ Performance indices configuration
 The configuration files defines also the details of the performance indices. 
 Modification to this is not necessary, but please be aware that the variable convention follow a CMOR-like definition.
 
-2d_vars: 
-	the list of atmospheric 2d fields to be processed
+**variables**:
+	The main block to control variables. All blocks should be list. It is divided in four sub-blocks: ``atm2d``, ``atm3d``, ``oce`` and ``ice``. Each of them contains the list of fields to be processed. 
+	``atm2d`` includes atmospheric 2d fields, ``atm3d`` includes atmospheric 3d fields, ``oce`` includes oceanic fields and ``ice`` includes sea-ice fields.
 
-3d_vars: 
-	the list of atmospheric 3d fields to be processed. For this, PIs are computed based on the zonal mean cross-section.
+**regions**: 
+	the list of regions on which compute the PI. Four regions are supported. Default regions are: ``Global`` (90S-90N), ``North Midlat`` (30N-90N), ``Tropical`` (30S-30N), ``South Midlat`` (90S-30S).
+	For EC24 climatology, other regions are also available: ``NH`` (20N-90N), ``SH``(20S-90S), ``Equatorial`` (20S-20N), ``North Pole`` (60N-90N), ``South Pole`` (60S-90S).
 
-oce_vars: 
-	the list of oceanic 2d fields to be processed
+**seasons**:
+	the list of seasons on which compute the PI. ``ALL`` defines the yearly average. Also ``DJF`` and ``JJA`` are supported.
 
-ice_vars: 
-	the list of sea-ice 2d fields to be processed
-
-regions: 
-	the list of regions on which compute the PI. Four regions are supported. Supported regions are: ``Global`` (90S-90N), ``North Midlat`` (30N-90N), ``Tropical`` (30S-30N), ``South Midlat`` (90S-30S) 
-
-seasons:
-	the list of seasons on which compute the PI. Four standard seasons are supported expressed as 3-string character (e.g. ``DJF``). ``ALL`` defines the yearly average. Default includes yearly, winter and summer.
-
-resolution:
-	the resolution on which compute PI. Do not change. 
+**climatology**:
+	the climatology to be used. EC23 and EC24 are avaiable. 
 
 
 Interface files
