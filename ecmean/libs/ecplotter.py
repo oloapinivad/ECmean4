@@ -3,7 +3,7 @@ import textwrap
 import logging
 import yaml
 import matplotlib.pyplot as plt
-from matplotlib.colors import  TwoSlopeNorm, ListedColormap, LogNorm
+from matplotlib.colors import  TwoSlopeNorm, ListedColormap #, LogNorm
 import seaborn as sns
 import numpy as np
 from ecmean.libs.general import dict_to_dataframe, init_mydict
@@ -16,11 +16,21 @@ class ECPlotter:
     This class is designed to handle all plotting needs for the ECMean package.
     """
 
-    def __init__(self,
-                 diagnostic="performance_indices", 
-                 modelname=None, expname=None, year1=None, year2=None,
+    def __init__(self, diagnostic,
+                 modelname, expname, year1, year2,
                  regions=None, seasons=None):
-        """Initialize the ECPlotter class."""
+        """Initialize the ECPlotter class.
+
+        Args:
+            diagnostic (str): Type of diagnostic to plot, either "performance_indices" or "global_mean".
+            modelname (str): Name of the model.
+            expname (str): Name of the experiment. 
+            year1 (int): Start year of the data.
+            year2 (int): End year of the data.
+            regions (list, optional): List of regions to consider. Defaults to None, only for global mean.
+            seasons (list, optional): List of seasons to consider. Defaults to None, only for global mean.
+    
+        """
         
         if diagnostic not in ["performance_indices", "global_mean"]:
             raise ValueError("Invalid diagnostic type. Choose 'performance_indices' or 'global_mean'.")
