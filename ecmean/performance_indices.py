@@ -22,7 +22,7 @@ from ecmean.libs.general import weight_split, get_domain, \
     check_time_axis, init_mydict, check_var_interface, check_var_climatology, \
     set_multiprocessing_start_method
 from ecmean.libs.files import var_is_there, get_inifiles, load_yaml, \
-    make_input_filename, get_clim_files
+    make_input_filename, get_clim_files, load_output_yaml
 from ecmean.libs.formula import formula_wrapper
 from ecmean.libs.masks import mask_field, select_region
 from ecmean.libs.areas import guess_bounds
@@ -181,22 +181,32 @@ class PerformanceIndices:
         # dump the yaml file for PI, including all the seasons (need to copy to avoid mess)
         if yamlfile is None:
             yamlfile = self.diag.filenames('yml')
+        self.loggy.info('Storing the performance indices in %s', yamlfile)
         with open(yamlfile, 'w', encoding='utf-8') as file:
             yaml.safe_dump(self.varstat, file, default_flow_style=False, sort_keys=False)
         self.toc('Storing')
 
-    def plot(self, diagname='performance_indices', mapfile=None, storefig=True, returnfig=False):
-        
+
+
+    def plot(self, diagname='performance_indices', mapfile=None, figformat='pdf', storefig=True, returnfig=False):     
         """
         Generate the heatmap for performance indices.
 
-        Note: This method is currently commented out. Uncomment to use.
+        Args:
+            diagname (str): Name of the diagnostic. Default is 'performance_indices'.
+            mapfile (str): Path to the output file. If None, it will be defined automatically following ECmean syntax.
+            storefig (bool): If True, store the figure in the specified file. Default is True.
+            returnfig (bool): If True, return the figure object. Default is False.
         """
         plotter = ECPlotter(
             diagnostic=diagname, modelname=self.diag.modelname,
             expname=self.diag.expname, year1=self.diag.year1,
             year2=self.diag.year2, regions=self.diag.regions,
             seasons=self.diag.seasons)
+        if self.varstat is None:
+            self.varstat = load_output_yaml(self.diag.filenames('yml'))
+        if mapfile is None:
+            mapfile = self.diag.filenames(figformat)
         fig = plotter.heatmap_plot(
             data=self.varstat, reference=self.piclim,
             variables=self.diag.field_all, climatology=self.diag.climatology,

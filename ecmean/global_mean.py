@@ -25,7 +25,7 @@ from ecmean import Diagnostic, Supporter, UnitsHandler
 from ecmean.libs.general import weight_split, write_tuning_table, get_domain, \
     check_time_axis, init_mydict, \
     check_var_interface, check_var_climatology, set_multiprocessing_start_method
-from ecmean.libs.files import var_is_there, get_inifiles, load_yaml, make_input_filename
+from ecmean.libs.files import var_is_there, get_inifiles, load_yaml, make_input_filename, load_output_yaml
 from ecmean.libs.formula import formula_wrapper
 from ecmean.libs.masks import masked_meansum, select_region
 from ecmean.libs.units import units_extra_definition
@@ -213,23 +213,33 @@ class GlobalMean:
             yaml.safe_dump(self.varmean, file, default_flow_style=False, sort_keys=False)
         self.toc('Storing')
 
-    def plot(self, diagname="global_mean", mapfile=None, storefig=True, returnfig=False):
+    def plot(self, diagname="global_mean", mapfile=None, figformat='pdf', storefig=True, returnfig=False, addnan=True):
         
         """
         Generate the heatmap for performance indices.
 
-        Note: This method is currently commented out. Uncomment to use.
+        Args:
+            diagname (str): Name of the diagnostic. Default is 'performance_indices'.
+            mapfile (str): Path to the output file. If None, it will be defined automatically following ECmean syntax.
+            figformat (str): Format of the output file. Default is 'pdf'.
+            storefig (bool): If True, store the figure in the specified file. Default is True.
+            returnfig (bool): If True, return the figure object. Default is False.
+            addnan (bool): If True, add NaN values to the plot. Default is True.
         """
         plotter = ECPlotter(
             diagnostic=diagname, modelname=self.diag.modelname,
             expname=self.diag.expname, year1=self.diag.year1,
             year2=self.diag.year2, regions=self.diag.regions,
             seasons=self.diag.seasons)
+        if self.varmean is None:
+            self.varmean = load_output_yaml(self.diag.filenames('yml'))
+        if mapfile is None:
+            mapfile = self.diag.filenames(figformat)
         fig = plotter.heatmap_plot(
             data=self.varmean, reference=self.ref,
             variables=self.diag.var_all,
-            filename=mapfile, storefig=storefig, addnan=True)
-        
+            filename=mapfile, storefig=storefig, addnan=addnan
+        )
         if self.diag.ftable:
             self.loggy.info('Line file is: %s', self.diag.linefile)
             write_tuning_table(self.diag.linefile, self.varmean, self.diag.var_table, self.diag, self.ref)

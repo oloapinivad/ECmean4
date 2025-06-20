@@ -37,7 +37,7 @@ def test_performance_indices_cpld(clim):
 def test_performance_indices_amip(clim):
     performance_indices('amip', 1990, 1990, numproc=1,
                         climatology=clim, config='tests/config.yml', outputdir='tests/pluto')
-    file1 = 'tests/pluto/YAML/PI4_' + clim + '_amip_EC-Earth4_r1i1p1f1_1990_1990.yml'
+    file1 = 'tests/pluto/yml/PI4_' + clim + '_amip_EC-Earth4_r1i1p1f1_1990_1990.yml'
     file2 = 'tests/table/PI4_' + clim + '_amip_1990_1990.ref'
     with open(file1, 'r', encoding='utf8') as f1, open(file2, 'r', encoding='utf8') as f2:
         data1 = yaml.safe_load(f1)
