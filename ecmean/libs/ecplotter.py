@@ -41,7 +41,7 @@ class ECPlotter:
         self.year2 = year2
         self.regions = regions
         self.seasons = seasons
-        self.default_title = f"{diagnostic.replace("_", " ").upper()} {self.modelname} {self.expname} {self.year1} {self.year2}"
+        self.default_title = f"{diagnostic.replace('_', ' ').upper()} {self.modelname} {self.expname} {self.year1} {self.year2}"
 
     def _save_and_close(self, fig, filemap):
         """Helper function to save and close the figure."""
