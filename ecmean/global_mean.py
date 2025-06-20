@@ -31,7 +31,7 @@ from ecmean.libs.masks import masked_meansum, select_region
 from ecmean.libs.units import units_extra_definition
 from ecmean.libs.ncfixers import xr_preproc
 from ecmean.libs.parser import parse_arguments
-from ecmean.libs.plotting import heatmap_comparison_gm, prepare_clim_dictionaries_gm
+from ecmean.libs.ecplotter import ECPlotter
 from ecmean.libs.loggy import setup_logger
 
 dask.config.set(scheduler="synchronous")
@@ -213,41 +213,65 @@ class GlobalMean:
             yaml.safe_dump(self.varmean, file, default_flow_style=False, sort_keys=False)
         self.toc('Storing')
 
-    def plot(self, mapfile=None, figformat='pdf'):
-        """"
-        Plot the global mean values.
-        Args:
-            mapfile: Path to the output file. If None, it will be defined automatically following ECmean syntax
-            figformat: Format of the output file.
+    def plot(self, diagname="global_mean", mapfile=None, storefig=True, returnfig=False):
+        
         """
+        Generate the heatmap for performance indices.
 
-        # load yaml file if is missing
-        if not self.varmean:
-            yamlfile = self.diag.filenames('yml')
-            self.loggy.info('Loading the stored data from the yaml file %s', yamlfile)
-            if os.path.isfile(yamlfile):
-                with open(yamlfile, 'r', encoding='utf-8') as file:
-                    self.varmean = yaml.safe_load(file)
-            else:
-                raise FileNotFoundError(f'YAML file {yamlfile} not found')
-
-        # prepare the dictionaries for the plotting
-        obsmean, obsstd, data2plot, units_list = prepare_clim_dictionaries_gm(self.varmean, self.ref,
-                                                                              self.diag.var_all, self.diag.seasons,
-                                                                              self.diag.regions)
-        if mapfile is None:
-            mapfile = self.diag.filenames(figformat)
-        self.loggy.info('Figure file is: %s', mapfile)
-
-        # call the heatmap for plottinh
-        heatmap_comparison_gm(data_dict=data2plot, mean_dict=obsmean, std_dict=obsstd,
-                              diag=self.diag, units_list=units_list,
-                              filemap=mapfile, addnan=self.diag.addnan)
-
+        Note: This method is currently commented out. Uncomment to use.
+        """
+        plotter = ECPlotter(
+            diagnostic=diagname, modelname=self.diag.modelname,
+            expname=self.diag.expname, year1=self.diag.year1,
+            year2=self.diag.year2, regions=self.diag.regions,
+            seasons=self.diag.seasons)
+        fig = plotter.heatmap_plot(
+            data=self.varmean, reference=self.ref,
+            variables=self.diag.var_all,
+            filename=mapfile, storefig=storefig, addnan=True)
+        
         if self.diag.ftable:
             self.loggy.info('Line file is: %s', self.diag.linefile)
             write_tuning_table(self.diag.linefile, self.varmean, self.diag.var_table, self.diag, self.ref)
+        
         self.toc('Plotting')
+
+        if returnfig:
+            self.loggy.info('Returning figure object')
+            return fig
+
+    # def plot(self, mapfile=None, figformat='pdf'):
+    #     """"
+    #     Plot the global mean values.
+    #     Args:
+    #         mapfile: Path to the output file. If None, it will be defined automatically following ECmean syntax
+    #         figformat: Format of the output file.
+    #     """
+
+    #     # load yaml file if is missing
+    #     if not self.varmean:
+    #         yamlfile = self.diag.filenames('yml')
+    #         self.loggy.info('Loading the stored data from the yaml file %s', yamlfile)
+    #         if os.path.isfile(yamlfile):
+    #             with open(yamlfile, 'r', encoding='utf-8') as file:
+    #                 self.varmean = yaml.safe_load(file)
+    #         else:
+    #             raise FileNotFoundError(f'YAML file {yamlfile} not found')
+
+    #     # prepare the dictionaries for the plotting
+    #     obsmean, obsstd, data2plot, units_list = prepare_clim_dictionaries_gm(self.varmean, self.ref,
+    #                                                                           self.diag.var_all, self.diag.seasons,
+    #                                                                           self.diag.regions)
+    #     if mapfile is None:
+    #         mapfile = self.diag.filenames(figformat)
+    #     self.loggy.info('Figure file is: %s', mapfile)
+
+    #     # call the heatmap for plottinh
+    #     heatmap_comparison_gm(data_dict=data2plot, mean_dict=obsmean, std_dict=obsstd,
+    #                           diag=self.diag, units_list=units_list,
+    #                           filemap=mapfile, addnan=self.diag.addnan)
+
+
 
     @staticmethod
     def gm_worker(util, ref, face, diag, varmean, vartrend, varlist):

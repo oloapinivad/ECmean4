@@ -85,8 +85,8 @@ class Diagnostic():
                 raise ValueError('No figure directory defined in config file')
             self.figdir = Path(os.path.expandvars(cfg['dirs']['fig']))
         else:
-            self.tabdir = Path(os.path.join(outputdir, 'YAML'))
-            self.figdir = Path(os.path.join(outputdir, 'PDF'))
+            self.tabdir = Path(os.path.join(outputdir, 'yml'))
+            self.figdir = Path(os.path.join(outputdir, 'pdf'))
 
         # init for global mean
         if self.funcname == 'GlobalMean':
