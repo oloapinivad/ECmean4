@@ -41,6 +41,13 @@ class ECPlotter:
         self.year2 = year2
         self.regions = regions
         self.seasons = seasons
+        self.default_title = f"{diagnostic.replace("_", " ").upper()} {self.modelname} {self.expname} {self.year1} {self.year2}"
+
+    def _save_and_close(self, fig, filemap):
+        """Helper function to save and close the figure."""
+        loggy.info("Saving heatmap to %s", filemap)
+        fig.savefig(filemap, bbox_inches="tight")
+        plt.close(fig)
         
 
     def heatmap_plot(self, data, reference, variables, filename=None, storefig=True, climatology="EC23", addnan=False):
@@ -134,11 +141,7 @@ class ECPlotter:
         thr = [0, 1, 5]
         tictoc = [0, 0.25, 0.5, 0.75, 1, 2, 3, 4, 5]
 
-        if 'title' in kwargs:
-            title = kwargs['title']
-        else:
-            title = 'CMIP6 RELATIVE PI'
-            title += f" {self.modelname} {self.expname} {self.year1} {self.year2}"
+        title = kwargs.get('title') if 'title' in kwargs else self.default_title
 
         tot = len(myfield.columns)
         # Extract the region (second element) from each column tuple
@@ -166,10 +169,7 @@ class ECPlotter:
 
         # save and close
         if storefig:
-            loggy.info("Saving heatmap to %s", filemap)
-            plt.savefig(filemap)
-            plt.cla()
-            plt.close()
+            self._save_and_close(fig, filemap)
         return fig
 
     def heatmap_comparison_gm(self, data_dict, mean_dict, std_dict, units_list, filemap=None,
@@ -216,11 +216,7 @@ class ECPlotter:
         yfig = len(clean.index)
         fig, axs = plt.subplots(1, 1, sharey=True, tight_layout=True, figsize=(xfig + 5, yfig + 2))
 
-        if 'title' in kwargs:
-            title = kwargs['title']
-        else:
-            title = 'GLOBAL MEAN'
-            title += f" {self.modelname} {self.expname} {self.year1} {self.year2}"
+        title = kwargs.get('title') if 'title' in kwargs else self.default_title
 
         # set color range and palette
         thr = 10
@@ -266,10 +262,8 @@ class ECPlotter:
             filemap = 'Global_Mean_Heatmap.pdf'
 
         # save and close
-        if storefig: 
-            plt.savefig(filemap)
-            plt.cla()
-            plt.close()
+        if storefig:
+            self._save_and_close(fig, filemap)
         return fig
 
     @staticmethod
