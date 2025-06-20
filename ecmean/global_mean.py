@@ -145,8 +145,13 @@ class GlobalMean:
             proc.join()
         self.toc('Computation')
 
-    def store(self, yamlfile=None):
-        """Rearrange the data and save the yaml file and the table."""
+    def store(self, yamlfile=None, tablefile=None):
+        """
+        Rearrange the data and save the yaml file and the table.
+        Args:
+            yamlfile: Path to the output YAML file. If None, it will be defined automatically.
+            tablefile: Path to the output TXT file. If None, it will be defined automatically.
+        """
         global_table = []
 
         # reorder the data to be stored
@@ -189,7 +194,9 @@ class GlobalMean:
         ]
 
         # save table
-        tablefile = self.diag.filenames('txt')
+        if tablefile is None:
+            tablefile = self.diag.filenames('txt')
+        
         self.loggy.info('TXT file is: %s', tablefile)
         with open(tablefile, 'w', encoding='utf-8') as out:
             out.write(tabulate(global_table, headers=head, stralign='center', tablefmt='orgtbl'))

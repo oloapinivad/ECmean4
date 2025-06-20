@@ -1,6 +1,6 @@
 """ECmean4 module"""
 
-__version__ = '0.1.13'
+__version__ = '0.1.14'
 
 # functions to be accessible everywhere
 from ecmean.libs.diagnostic import Diagnostic
