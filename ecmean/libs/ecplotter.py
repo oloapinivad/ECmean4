@@ -38,12 +38,16 @@ class ECPlotter:
         Prepare data for plotting performance indices.
 
         Args:
-            data (dict): Dictionary containing performance indices data.
-            clim (dict): Dictionary containing climatology information.
-            shortnames (list): List of short names for the variables.
+            data (dict or str): Dictionary with data to plot or path to a YAML file.
+            reference (dict or str): Dictionary with reference data or path to a YAML file.
+            variables (list): List of variable short names to plot.
+            filename (str, optional): Path to save the plot. Defaults to None, it would be derived automatically.
+            storefig (bool, optional): Whether to save the figure. Defaults to True.
+            climatology (str, optional): Type of climatology, either "EC23" or "EC24". Defaults to "EC23".
+            addnan (bool, optional): Whether to add NaN values in the final plots. Defaults to False, only for global mean.
 
         Returns:
-            tuple: A tuple containing dictionaries for data to plot, CMIP6 data, and long names.
+            fig: The generated matplotlib figure object, if requested.
         """
         if climatology not in ["EC23", "EC24"]:
             raise ValueError("Invalid climatology type. Choose 'EC23' or 'EC24'.")
