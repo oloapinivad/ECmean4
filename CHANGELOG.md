@@ -7,6 +7,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 Unreleased is the current development version, which is currently lying in `main` branch.
 
+- Refactor of plotting routines in to the `ECPlotter()` class (#120)
 - Cleaner configuration files (#382)
 - New EC24 climatology introduced and removal of RK08 climatology (#116)
 - New region definitions, available in EC24 climatology (#166) 
