@@ -23,9 +23,11 @@ warnings.simplefilter("ignore")
 # the 30-year climatological window to be used as a baseline
 year1 = 1985
 year2 = 2014
-expname = 'historical'
+
 refclim = 'EC24'
-nprocs = 4
+#refmip = 'CMIP6'
+refmip = 'HighResMIP'
+nprocs = 6
 do_compute = True
 do_create_clim = True
 do_definitive = True
@@ -34,15 +36,30 @@ climdir = '../climatology/'
 
 #models = ['EC-Earth3', 'IPSL-CM6A-LR', 'FGOALS-g3', 'TaiESM1', 'CanESM5', 'CESM2',
 #          'MIROC6', 'MPI-ESM1-2-HR', 'AWI-CM-1-1-MR', 'CMCC-CM2-SR5', 'NorESM2-MM', 'GFDL-CM4']
-models = ['EC-Earth3', 'IPSL-CM6A-LR', 'FGOALS-g3', 'CanESM5', 'CESM2', 'CNRM-CM6-1',
-          'GISS-E2-1-G', 'ACCESS-CM2', 'CNRM-CM6-1', 'SAM0-UNICON', 'UKESM1-0-LL',
-          'MIROC6', 'MPI-ESM1-2-HR', 'AWI-CM-1-1-MR', 'NorESM2-MM', 'GFDL-CM4']
-#models = ['EC-Earth3']
+if refmip == 'CMIP6':
+    models = ['EC-Earth3', 'IPSL-CM6A-LR', 'FGOALS-g3', 'CanESM5', 'CESM2', 'CNRM-CM6-1',
+            'GISS-E2-1-G', 'ACCESS-CM2', 'CNRM-CM6-1', 'SAM0-UNICON', 'UKESM1-0-LL',
+            'MIROC6', 'MPI-ESM1-2-HR', 'AWI-CM-1-1-MR', 'NorESM2-MM', 'GFDL-CM4']
+    interface = 'CMIP6_esgpull'
+    expname = 'historical'
+    # models currently missing on the ESGF
+    # models= ['CMCC-CM2-SR5', 'TaiESM1']
+if refmip == 'HighResMIP':
+    models = ['HadGEM3-GC31-HH', 'ECMWF-IFS-HR']
+    interface = 'HighResMIP_esgpull'
+    expname = 'hist-1950'
 
-# models currently missing on the ESGF
-# models= ['CMCC-CM2-SR5', 'TaiESM1']
+else:
+    raise ValueError(f'Unknown refmip {refmip} for climatology {refclim}')
 
 
+def _fix_ensemble(model):
+    """Fix the ensemble for some models"""
+    if model in ['CNRM-CM6-1', 'UKESM1-0-LL']:
+        return "r1i1p1f2"
+    if model in ['EC-Earth3P-HR']:
+        return "r1i1p1f2"
+    return "r1i1p1f1"
 
 # call the loop of global mean on all the models
 if do_compute:
@@ -52,10 +69,7 @@ if do_compute:
     for model in sorted(models):
         print(model)
 
-        if model in ['CNRM-CM6-1', 'UKESM1-0-LL']:
-            ENSEMBLE = "r1i1p1f2"
-        else:
-            ENSEMBLE = "r1i1p1f1"
+        ENSEMBLE = _fix_ensemble(model)
 
         model_config = copy.deepcopy(defaultconfig)
 
@@ -63,12 +77,13 @@ if do_compute:
         drop = []
         if drop:
             for var in drop:
-                for kind in ['2d_vars', '3d_vars', 'oce_vars', 'ice_vars']:
+                for kind in ['atm2d', 'atm3d', 'oce', 'ice']:
                     if var in model_config['PI'][kind]['field']:
                         model_config['PI'][kind]['field'].remove(var)
 
         performance_indices(expname, year1, year2, config=model_config, model=model,
                             ensemble=ENSEMBLE, numproc=nprocs, climatology=refclim,
+                            interface=interface,
                             loglevel='debug')
 
 if do_create_clim:
@@ -108,9 +123,9 @@ if do_create_clim:
     # clim files
     pifile = os.path.join(climdir, refclim, f'pi_climatology_{refclim}.yml')
     if not do_definitive:
-        update_pifile = os.path.join(climdir, refclim, f'pi_climatology_{refclim}_test.yml')
+        update_pifile = os.path.join(climdir, refclim, f'pi_climatology_{refclim}_{refmip}_test.yml')
     else:
-        update_pifile = os.path.join(climdir, refclim, f'pi_climatology_{refclim}.yml')
+        update_pifile = os.path.join(climdir, refclim, f'pi_climatology_{refclim}_{refmip}.yml')
     piclim = load_yaml(pifile)
 
     # Update the climatology

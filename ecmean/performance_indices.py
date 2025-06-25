@@ -137,8 +137,20 @@ class PerformanceIndices:
         units_extra_definition()
 
         # create remap dictionary with atm and oce interpolators
-        self.util_dictionary = Supporter(comp, inifiles['atm'], inifiles['oce'],
-                                         areas=False, remap=True, targetgrid=target_remap_grid)
+        self.util_dictionary = Supporter(
+            comp, inifiles['atm'], inifiles['oce'],
+            areas=False, remap=True, targetgrid=target_remap_grid
+        )
+        
+        # check if we can run the performance indices
+        if not self.util_dictionary.oceareafile and not self.util_dictionary.ocemaskfile:
+            self.loggy.warning('No oceanic file found, assuming this is an AMIP run without oceanic variables.')
+            self.diag.field_all = [var for var in self.diag.field_all if var not in (self.diag.field_oce + self.diag.field_ice)]
+        if not self.util_dictionary.atmareafile and not self.util_dictionary.atmmaskfile:
+            self.loggy.warning('No atmospheric file found, assuming this is an oceanic run without atmospheric variables.')
+            self.diag.field_all = [var for var in self.diag.field_all if var not in (self.diag.field_atm2d + self.diag.field_atm3d)]
+        if self.diag.field_all == []:
+            raise ValueError('No variables to process, check your configuration file!')
         self.toc('Preparation')
 
     def run(self):
