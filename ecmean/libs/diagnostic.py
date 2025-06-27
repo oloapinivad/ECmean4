@@ -203,8 +203,8 @@ class Diagnostic():
         self.climfile = self.clmdir / f'pi_climatology_{self.climatology}.yml'
 
     def _remove_variables(self, var_list, vars_to_remove):
-        """Helper function to remove variables from a list."""
-        return list(set(var_list) - set(vars_to_remove))
+        """Helper function to remove variables from a list while preserving order."""
+        return [var for var in var_list if var not in set(vars_to_remove)]
 
     def configure_amip_omip_cpld(self, support_dictionary):
         """

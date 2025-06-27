@@ -120,7 +120,13 @@ class GlobalMean:
 
         units_extra_definition()
 
-        self.util_dictionary = Supporter(comp, inifiles['atm'], inifiles['oce'], areas=True, remap=False)
+        self.util_dictionary = Supporter(
+            comp, inifiles['atm'], inifiles['oce'], areas=True, remap=False
+        )
+
+        # verify if we can run amip, omip or coupled run
+        self.diag.configure_amip_omip_cpld(self.util_dictionary)
+
         self.toc('Preparation')
 
     def run(self):

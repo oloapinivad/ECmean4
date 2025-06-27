@@ -69,6 +69,20 @@ def test_global_mean_amip():
 
     assert are_dicts_equal(data1, data2, TOLERANCE), "TXT files are not identical."
 
+# call on amip ECE
+def test_global_mean_omip():
+    file1 = 'tests/table/global_mean_omip_EC-Earth4_r1i1p1f1_1990_1990.txt'
+    file2 = 'tests/table/global_mean_omip_1990_1990.ref'
+    if os.path.isfile(file1):
+        os.remove(file1)
+    global_mean(exp='omip', year1=1990, year2=1990, numproc=1, config='tests/config.yml',
+                reference='EC23')
+
+    data1 = load_gm_txt_files(file1)
+    data2 = load_gm_txt_files(file2)
+
+    assert are_dicts_equal(data1, data2, TOLERANCE), "TXT files are not identical."
+
 
 # call on amip ECE using the xdataset option
 def test_global_mean_amip_xdataset_config_dict():

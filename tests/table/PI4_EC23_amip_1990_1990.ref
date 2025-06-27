@@ -108,36 +108,3 @@ hus:
     North Midlat: 175.862
     Tropical: 96.158
     South Midlat: 184.858
-tos:
-  ALL:
-    Global: .nan
-    North Midlat: .nan
-    Tropical: .nan
-    South Midlat: .nan
-  JJA:
-    Global: .nan
-    North Midlat: .nan
-    Tropical: .nan
-    South Midlat: .nan
-sos:
-  ALL:
-    Global: .nan
-    North Midlat: .nan
-    Tropical: .nan
-    South Midlat: .nan
-  JJA:
-    Global: .nan
-    North Midlat: .nan
-    Tropical: .nan
-    South Midlat: .nan
-siconc:
-  ALL:
-    Global: .nan
-    North Midlat: .nan
-    Tropical: .nan
-    South Midlat: .nan
-  JJA:
-    Global: .nan
-    North Midlat: .nan
-    Tropical: .nan
-    South Midlat: .nan

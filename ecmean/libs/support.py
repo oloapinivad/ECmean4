@@ -48,22 +48,23 @@ class Supporter():
         # areas and mask for amip case
         self.ocemask = None
         self.ocearea = None
+        
+        if self.atmareafile:
+            # loading and examining atmospheric file
+            self.atmfield = self.load_area_field(self.atmareafile, comp='atm')
+            self.atmgridtype = identify_grid(self.atmfield)
+            loggy.info('Atmosphere grid is is a %s grid!', self.atmgridtype)
 
-        # loading and examining atmospheric file
-        self.atmfield = self.load_area_field(self.atmareafile, comp='atm')
-        self.atmgridtype = identify_grid(self.atmfield)
-        loggy.info('Atmosphere grid is is a %s grid!', self.atmgridtype)
+            # compute atmopheric area
+            if areas:
+                self.atmarea = self.make_areas(self.atmgridtype, self.atmfield)
 
-        # compute atmopheric area
-        if areas:
-            self.atmarea = self.make_areas(self.atmgridtype, self.atmfield)
+            # initialize the interpolation for atmosphere
+            if self.targetgrid and remap:
+                self.atmfix, self.atmremap = self.make_atm_interp_weights(self.atmfield)
 
-        # initialize the interpolation for atmosphere
-        if self.targetgrid and remap:
-            self.atmfix, self.atmremap = self.make_atm_interp_weights(self.atmfield)
-
-        # init the land-sea mask for atm (mandatory)
-        self.atmmask = self.make_atm_masks()
+            # init the land-sea mask for atm (mandatory)
+            self.atmmask = self.make_atm_masks()
 
         # do the same if oceanic file is found
         if self.oceareafile:

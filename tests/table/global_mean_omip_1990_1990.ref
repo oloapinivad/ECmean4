@@ -1,0 +1,8 @@
+|   Variable   |              Longname              |   Units   |   EC-Earth4 |     Obs.     |  Dataset   |   Years   |
+|--------------+------------------------------------+-----------+-------------+--------------+------------+-----------|
+|     tos      |      Sea Surface Temperature       |  celsius  | 18.9061     | 18.754±0.15  | ESA-CCI-L4 | 1991-2020 |
+|     sos      |        Sea Surface Salinity        |    PSU    | 34.4368     | 34.814±0.014 |  ESA-CCI   | 2010-2020 |
+|     zos      |                SSH                 |     m     |  0.00120878 |      0       |    None    |     -     |
+|     wfo      |     Net Water Flux into ocean      | m/century | -1.40863    |      0       |    None    |     -     |
+| siconc_north | Sea Ice Area (Northern Hemisphere) |   Mm^2    | 10.6708     |    9.562     | ESA-CCI-L4 |     -     |
+| siconc_south | Sea Ice Area (Southern Hemisphere) |   Mm^2    |  3.11234    |     9.66     | ESA-CCI-L4 |     -     |
