@@ -120,7 +120,13 @@ class GlobalMean:
 
         units_extra_definition()
 
-        self.util_dictionary = Supporter(comp, inifiles['atm'], inifiles['oce'], areas=True, remap=False)
+        self.util_dictionary = Supporter(
+            comp, inifiles['atm'], inifiles['oce'], areas=True, remap=False
+        )
+
+        # verify if we can run amip, omip or coupled run
+        self.diag.configure_amip_omip_cpld(self.util_dictionary)
+
         self.toc('Preparation')
 
     def run(self):
@@ -304,7 +310,7 @@ class GlobalMean:
 
                 if isavail:
                     offset, factor = UnitsHandler(var, org_units=varunit,
-                                                  clim=ref, face=face).offset_factor()
+                                                  clim=ref, face=face).units_converter()
 
                     if not isinstance(infile, (xr.DataArray, xr.Dataset)):
                         xfield = xr.open_mfdataset(infile, preprocess=xr_preproc, chunks={'time': 12})

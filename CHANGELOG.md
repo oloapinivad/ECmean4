@@ -9,9 +9,11 @@ Unreleased is the current development version, which is currently lying in `main
 
 - Refactor of plotting routines in to the `ECPlotter()` class (#120)
 - Output file in lower cases, e.g `pdf` instead of `PDF` (#120)
-- Cleaner configuration files (#382)
+- Safe checks in case of missing area/mask files to activate only AMIP/OMIP runs (#122)
+- Minor code cleaning using more pythonic approach (#121)
+- Cleaner configuration files (#115)
 - New EC24 climatology introduced and removal of RK08 climatology (#116)
-- New region definitions, available in EC24 climatology (#166) 
+- New region definitions, available in EC24 climatology (#116) 
 
 ## [v0.1.13]
 

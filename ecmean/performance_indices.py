@@ -137,8 +137,14 @@ class PerformanceIndices:
         units_extra_definition()
 
         # create remap dictionary with atm and oce interpolators
-        self.util_dictionary = Supporter(comp, inifiles['atm'], inifiles['oce'],
-                                         areas=False, remap=True, targetgrid=target_remap_grid)
+        self.util_dictionary = Supporter(
+            comp, inifiles['atm'], inifiles['oce'],
+            areas=False, remap=True, targetgrid=target_remap_grid
+        )
+
+        # verify if we can run amip, omip or coupled run
+        self.diag.configure_amip_omip_cpld(self.util_dictionary)
+
         self.toc('Preparation')
 
     def run(self):
@@ -310,7 +316,7 @@ class PerformanceIndices:
                 if isavail:
                     # perform the unit conversion extracting offset and factor
                     offset, factor = UnitsHandler(var, org_units=varunit,
-                                                  clim=piclim, face=face).offset_factor()
+                                                  clim=piclim, face=face).units_converter()
 
                     # open file: chunking on time only, might be improved
                     if not isinstance(infile, (xr.DataArray, xr.Dataset)):

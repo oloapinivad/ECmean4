@@ -22,12 +22,8 @@ def formula_wrapper(var, face, xfield):
 
     if 'derived' in face['variables'][var].keys():
         cmd = face['variables'][var]['derived']
-        outfield = _eval_formula(cmd, xfield)
-    else:
-        outfield = xfield[var]
-
-    return outfield
-
+        return _eval_formula(cmd, xfield)
+    return xfield[var]
 
 # this is a tool to parse a CDO-based formula into mathematical operatos
 # there might exists something more intelligent such as the pyparsing package
@@ -40,11 +36,8 @@ def _eval_formula(mystring, xdataset):
     token = [i for i in re.split('(\\W+)', mystring) if i]
     if len(token) > 1:
         # Use order of operations
-        out = _operation(token, xdataset)
-    else:
-        out = xdataset[token[0]]
-    return out
-
+        return _operation(token, xdataset)
+    return xdataset[token[0]]
 
 def _operation(token, xdataset):
     """Parsing of the CDO-based commands using operator package
