@@ -5,7 +5,7 @@ Main concepts
 ^^^^^^^^^^^^^
 
 The ``global_mean`` command is based on ``global_mean.py`` script which computes the global averages for many dynamical and physical fields
-It compares the output against a set of pre-computed climatological values defined in ``ecmean/reference/gm_reference_EC23.yml``, including the most important dynamical and physical fields 
+It compares the output against a set of pre-computed ``EC23`` climatological values defined in ``ecmean/reference/gm_reference_EC23.yml``, including the most important dynamical and physical fields 
 for both the atmosphere and the ocean (e.g. land temperature, salinity, etc.).
 Different datasates are taken in consideration, providing an estimate of the interannual variability in the form of standard deviation.
 
@@ -109,7 +109,8 @@ A txt table including the comparison with some predefined dataset, for the globa
    An example for a single year of the EC-Earth3 historical r1i1p1f1 simulation.
 
 
-In addition, it produces also a figure including a more detailed comparison for different seasons and regions.
+In the same time, data are stored in more machine-readable format in a YAML file, which includes much more details as the global and regional mean over different seasons.
+In addition, ECmean4 it produces also a figure including a more detailed comparison for different seasons and regions.
 This is available only for the datasets for which we have access to a gridded dataset.
 
 .. figure:: _static/globaltestfigure.png

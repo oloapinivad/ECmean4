@@ -66,10 +66,9 @@ Or alternatively, in bibtex format:
       author       = {Paolo Davini, Jost von Hardenberg},
       title        = {ECmean4: : a lightweight climate model evaluation tool},
       year         = {2024},
-      version      = {0.1.10},
-      doi          = {10.5281/zenodo.13834628},
+      doi          = {10.5281/zenodo.13834627},
       url          = {https://github.com/ecmean4/ecmean4},
-      howpublished = {\url{https://doi.org/10.5281/zenodo.13834628}},
+      howpublished = {\url{https://doi.org/10.5281/zenodo.13834627}},
       note         = {Open-source software}
    }
 
