@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 '''
-Shared functions for XArray ECmean4
+Shared functions for masking in ECmean4
 '''
 
 import logging
@@ -26,121 +26,97 @@ def masked_meansum(xfield, weights, mask, operation, domain, mask_type):
 
     # global mean
     if operation in ['average', 'mean']:
-        out = masked.weighted(weights.fillna(0)).mean(dim=notimedim).data
+        return masked.weighted(weights.fillna(0)).mean(dim=notimedim).data
     # global integrals
-    elif operation in ['integral', 'sum']:
-        out = masked.weighted(weights.fillna(0)).sum(dim=notimedim).data
-    else:
-        raise ValueError("ERROR: masked_meansum-> mask undefined, this cannot be handled!")
+    if operation in ['integral', 'sum']:
+        return masked.weighted(weights.fillna(0)).sum(dim=notimedim).data
 
-    return out
-
-
-# def _merge_mask(var, xfield, mask):
-
-#     # check that we are receiving a dataset and not a datarray
-#     if isinstance(xfield, xr.DataArray):
-#         xfield = xfield.to_dataset(name=var)
-
-#     # convert from datarray to dataset and merge
-#     mask = mask.to_dataset(name='mask')
-
-#     # the compat='override' option forces the merging. some CMIP6 data might
-#     # have different float type, this simplies the handling
-#     bfield = xr.merge([xfield, mask], compat='override')
-
-#     return bfield
+    raise ValueError("ERROR: masked_meansum-> mask undefined, this cannot be handled!")
 
 def mask_field(xfield, mask_type, dom, mask):
-    """Apply a land/sea mask on a xarray variable var"""
+    """
+    Apply a land/sea or hemisphere mask to an xarray DataArray or Dataset.
 
-    # nothing to be done
+    Args:
+        xfield (xr.DataArray or xr.Dataset): Input data to mask.
+        mask_type (str): Type of mask to apply (e.g., 'land', 'sea', 'north').
+        dom (str): Domain type ('oce' or 'atm').
+        mask (xr.DataArray): Land-sea mask with values (1 = land, 0 = sea).
+
+    Returns:
+        xr.DataArray or xr.Dataset: Masked data.
+
+    Raises:
+        ValueError: If the mask_type or domain is invalid.
+    """
+
+    # Global — no mask applied
     if mask_type == 'global':
-        out = xfield
-    # northern and southern hemisphere
-    elif mask_type == 'north':
-        out = xfield.where(xfield['lat'] > 0)
-    elif mask_type == 'south':
-        out = xfield.where(xfield['lat'] < 0)
-    else:
-        # if oceanic, apply the ocenanic mask (if it exists!)
-        if dom == 'oce':
-            if isinstance(mask, xr.DataArray):
-                out = xfield.where(mask.data < 0.5)
-            else:
-                out = xfield
-        elif dom == 'atm':
+        return xfield
 
-            # conditions
-            if mask_type == 'land':
-                out = xfield.where(mask.data >= 0.5)
-            elif mask_type == 'land-no-antarctica':
-                out = xfield.where(mask.lat > (-60)).where(mask.data >= 0.5)
-            elif mask_type in ['sea', 'ocean']:
-                out = xfield.where(mask.data < 0.5)
-            else:
-                raise ValueError("ERROR: mask_field -> Mask undefined, this cannot be handled!")
-        else:
-            raise ValueError("ERROR: mask_field -> Domain undefined, this cannot be handled!")
+    # Hemisphere masks
+    if mask_type == 'north':
+        return xfield.where(xfield['lat'] > 0)
+    if mask_type == 'south':
+        return xfield.where(xfield['lat'] < 0)
 
-    return out
+    # Oceanic domain: optional ocean mask
+    if dom == 'oce':
+        if isinstance(mask, xr.DataArray):
+            return xfield.where(mask < 0.5)
+        return xfield  # no mask provided
 
-# def mask_field_old(xfield, var, mask_type, dom, mask):
-#     """Apply a land/sea mask on a xarray variable var"""
+    # Atmospheric domain: land/sea/land-no-antarctica
+    if dom == 'atm':
+        if not isinstance(mask, xr.DataArray):
+            raise ValueError("Land-sea mask must be provided for atmospheric masking.")
 
-#     # if oceanic, apply the ocenanic mask (if it exists!)
-#     if dom == 'oce' and isinstance(mask, xr.DataArray):
-#         bfield = _merge_mask(var, xfield, mask)
-#         xfield = bfield[var].where(bfield['mask'] < 0.5)
-#         # xfield.to_netcdf(var+'okmasked.nc')
+        if mask_type == 'land':
+            return xfield.where(mask >= 0.5)
+        if mask_type == 'land-no-antarctica':
+            return xfield.where(mask['lat'] > -60).where(mask >= 0.5)
+        if mask_type in ['sea', 'ocean']:
+            return xfield.where(mask < 0.5)
 
-#     # nothing to be done
-#     if mask_type == 'global':
-#         out = xfield
-#     elif mask_type == 'north':
-#         out = xfield.where(xfield['lat'] > 0)
-#     elif mask_type == 'south':
-#         out = xfield.where(xfield['lat'] < 0)
-#     else:
+        raise ValueError(f"Invalid mask_type '{mask_type}' for domain 'atm'.")
 
-#         bfield = _merge_mask(var, xfield, mask)
-#         # conditions
-#         if mask_type == 'land':
-#             out = bfield[var].where(bfield['mask'] >= 0.5)
-#         elif mask_type in ['sea', 'ocean']:
-#             out = bfield[var].where(bfield['mask'] < 0.5)
-#         else:
-#             sys.exit("ERROR: mask_field -> Mask undefined, this cannot be handled!")
-
-#     # out.to_netcdf(var+'masked.nc')
-
-#     return out
-
+    raise ValueError(f"Unknown domain '{dom}'. Expected 'oce' or 'atm'.")
 
 def select_region(xfield, region):
-    """Trivial function to convert region definition to xarray
-    sliced array to compute the PIs or global means on selected regions"""
+    """
+    Selects a latitude-defined region from an xarray object.
 
-    if region == 'Global':
-        return xfield
-    if region == 'NH':
-        lat_min, lat_max = 20.0, 90.0
-    elif region == 'SH':
-        lat_min, lat_max = -90.0, -20.0
-    elif region == 'Equatorial':
-        lat_min, lat_max = -20.0, 20.0
-    elif region == 'Tropical':
-        lat_min, lat_max = -30.0, 30.0
-    elif region == 'North Midlat':
-        lat_min, lat_max = 30.0, 90.0
-    elif region == 'South Midlat':
-        lat_min, lat_max = -90.0, -30.0
-    elif region == 'North Pole':
-        lat_min, lat_max = 60.0, 90.0
-    elif region == 'South Pole':
-        lat_min, lat_max = -90.0, -60.0
-    else:
-        raise KeyError(region + "region not supported!!!")
+    Args:
+        xfield (xarray.DataArray or xarray.Dataset): Input data with a latitude dimension.
+        region (str): Name of the region to select.
 
-    # new version more flexible than the slice one
+    Returns:
+        xarray object: Subset of xfield for the selected region.
+
+    Raises:
+        KeyError: If the region is unknown.
+        AttributeError: If the input data does not contain 'lat'.
+    """
+    region_bounds = {
+        'Global': (-90.0, 90.0),
+        'NH': (20.0, 90.0),
+        'SH': (-90.0, -20.0),
+        'Equatorial': (-20.0, 20.0),
+        'Tropical': (-30.0, 30.0),
+        'North Midlat': (30.0, 90.0),
+        'South Midlat': (-90.0, -30.0),
+        'North Pole': (60.0, 90.0),
+        'South Pole': (-90.0, -60.0)
+    }
+
+    if 'lat' not in xfield.coords:
+        raise AttributeError("Input xarray object does not contain 'lat' coordinate.")
+
+    if region not in region_bounds:
+        raise KeyError(f"Region '{region}' is not supported. Choose from: {list(region_bounds.keys())}")
+
+    lat_min, lat_max = region_bounds[region]
+
+    # Apply latitude mask
     return xfield.where((xfield.lat >= lat_min) & (xfield.lat <= lat_max))
+

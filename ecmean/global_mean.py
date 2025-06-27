@@ -263,7 +263,7 @@ class GlobalMean:
 
                 if isavail:
                     offset, factor = UnitsHandler(var, org_units=varunit,
-                                                  clim=ref, face=face).offset_factor()
+                                                  clim=ref, face=face).units_converter()
 
                     if not isinstance(infile, (xr.DataArray, xr.Dataset)):
                         xfield = xr.open_mfdataset(infile, preprocess=xr_preproc, chunks={'time': 12})
