@@ -46,7 +46,7 @@ def test_cmd_global_mean_coupled():
     if os.path.isfile(file1):
         os.remove(file1)
     subprocess.run(['global_mean', 'cpld', '1990', '1990', '-j', '2',
-                    '-c', 'tests/config.yml', '-t', '-v', 'debug'],
+                    '-c', 'tests/config.yml', '--trend', '-l', 'debug'],
                    env=env, check=True)
 
     data1 = load_gm_txt_files(file1)

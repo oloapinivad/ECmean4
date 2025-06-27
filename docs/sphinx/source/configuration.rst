@@ -63,7 +63,7 @@ Modification to this is not necessary, but please be aware that the variable con
 
 **regions**: 
 	the list of regions on which compute the PI. Four regions are supported. Default regions are: ``Global`` (90S-90N), ``North Midlat`` (30N-90N), ``Tropical`` (30S-30N), ``South Midlat`` (90S-30S).
-	For EC24 climatology, other regions are also available: ``NH`` (20N-90N), ``SH``(20S-90S), ``Equatorial`` (20S-20N), ``North Pole`` (60N-90N), ``South Pole`` (60S-90S).
+	For EC24 climatology, other regions are also available: ``NH`` (20N-90N), ``SH`` (20S-90S), ``Equatorial`` (20S-20N), ``North Pole`` (60N-90N), ``South Pole`` (60S-90S).
 
 **seasons**:
 	the list of seasons on which compute the PI. ``ALL`` defines the yearly average. Also ``DJF`` and ``JJA`` are supported.
@@ -92,6 +92,7 @@ CMOR compatibility
 ------------------
 
 It is possible to use ECmean4 tools also to analyze CMOR-like files for CMIP5 or CMIP6. This assumes a standard ESGF directory structure but you can change it by modifying the corresponding interface files ``ecmean/interfaces/interface_CMIP6.yml`` and ``ecmean/interfaces/interface_CMIP6.yml``.
-In order to allow masking and interpolation you will need the ``sftlf`` (mandatory), ``sftof`` (not required, but suggested) and ``areacello`` (mandatory) variables for you experiment of interest too.
+In order to allow masking and interpolation you will need some files to guide ECmean. `fx` variables ``sftlf`` and ``areacella`` are requried for atmospheric domain,
+while `Ofx` variables ``sftof``  and ``areacello``are required for oceanic domain. At least one of these files is required for each domain, but it is recommended to provide both.
 
 

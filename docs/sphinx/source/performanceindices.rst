@@ -59,7 +59,7 @@ Optional Arguments
 
     Do not print anything to std output.
 
-.. option:: -v LOGLEVEL, --loglevel LOGLEVEL
+.. option:: -l LOGLEVEL, --loglevel LOGLEVEL
 
     Define the level of logging. Default: error.
 
@@ -87,11 +87,11 @@ Optional Arguments
 
     Activate CDO debugging.
 
-.. option:: -k CLIMATOLOGY
+.. option:: --climatology CLIMATOLOGY
 
     Specify the climatology you want to use (EC23: default).
 
-.. option:: -r RESOLUTION
+.. option:: --resolution RESOLUTION
 
     Only EC23: Specify the resolution of the climatology (r180x90 or r360x180).
 
@@ -190,7 +190,7 @@ Properties of the climatology - as which interpolation method and which CMIP6 mo
 EC24
 ----
 
-This is an upgrade of EC23, with the following improvements:
+This is an upgrade of EC23 - currently under testing - with the following improvements:
   - It is scaled to 1985-2014, to be consistent with the CMIP6 historical simulations.
   - It removes data above 10hPa for 3D fields, to avoid unrealistic large PIs due to stratospheric low variances.
   - It extend the amount of regions to be considered, allowing also for Northern/Southern Hemisphere, Equatorial and South/North Pole regions.

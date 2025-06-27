@@ -35,9 +35,7 @@ def parse_arguments(args, script):
                         help='variant label (ripf number for cmor)')
     parser.add_argument('-s', '--silent', action='store_true',
                         help='do not print anything to std output')
-    parser.add_argument('--addnan', action='store_true',
-                        help='provide figures also where observations are missing')
-    parser.add_argument('-v', '--loglevel', type=str, default='WARNING',
+    parser.add_argument('-l', '--loglevel', type=str, default='WARNING',
                         help='define the level of logging.')
     parser.add_argument('-o', '--outputdir', type=str,
                         help='force the output directory')
@@ -46,20 +44,22 @@ def parse_arguments(args, script):
 
     # specific to global mean
     if script == 'gm':
-        parser.add_argument('-t', '--trend', action='store_true',
+        parser.add_argument('--trend', action='store_true',
                             help='compute trends')
-        parser.add_argument('-l', '--line', action='store_true',
+        parser.add_argument('--line', action='store_true',
                             help='appends also single line to a table')
-        parser.add_argument('-k', '--reference', type=str, default='EC23',
+        parser.add_argument('--reference', type=str, default='EC23',
                             help='reference climatology to be compared. default: EC23',
                             choices=['EC23'])
+        parser.add_argument('--addnan', action='store_true',
+                        help='provide figures also where observations are missing')
 
     # specific to performance indices
     if script == 'pi':
-        parser.add_argument('-k', '--climatology', type=str, default='EC23',
+        parser.add_argument('--climatology', type=str, default='EC23',
                             help='climatology to be compared. default: EC23. Options: [EC23, EC24]',
                             choices=['EC23', 'EC24'])
-        parser.add_argument('-r', '--resolution', type=str, default='',
+        parser.add_argument('--resolution', type=str, default='',
                             help='climatology resolution')
 
     return parser.parse_args(args)

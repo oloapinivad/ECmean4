@@ -25,13 +25,13 @@ from ecmean import Diagnostic, Supporter, UnitsHandler
 from ecmean.libs.general import weight_split, write_tuning_table, get_domain, \
     check_time_axis, init_mydict, \
     check_var_interface, check_var_climatology, set_multiprocessing_start_method
-from ecmean.libs.files import var_is_there, get_inifiles, load_yaml, make_input_filename
+from ecmean.libs.files import var_is_there, get_inifiles, load_yaml, make_input_filename, load_output_yaml
 from ecmean.libs.formula import formula_wrapper
 from ecmean.libs.masks import masked_meansum, select_region
 from ecmean.libs.units import units_extra_definition
 from ecmean.libs.ncfixers import xr_preproc
 from ecmean.libs.parser import parse_arguments
-from ecmean.libs.plotting import heatmap_comparison_gm, prepare_clim_dictionaries_gm
+from ecmean.libs.ecplotter import ECPlotter
 from ecmean.libs.loggy import setup_logger
 
 dask.config.set(scheduler="synchronous")
@@ -151,8 +151,13 @@ class GlobalMean:
             proc.join()
         self.toc('Computation')
 
-    def store(self, yamlfile=None):
-        """Rearrange the data and save the yaml file and the table."""
+    def store(self, yamlfile=None, tablefile=None):
+        """
+        Rearrange the data and save the yaml file and the table.
+        Args:
+            yamlfile: Path to the output YAML file. If None, it will be defined automatically.
+            tablefile: Path to the output TXT file. If None, it will be defined automatically.
+        """
         global_table = []
 
         # reorder the data to be stored
@@ -195,7 +200,9 @@ class GlobalMean:
         ]
 
         # save table
-        tablefile = self.diag.filenames('txt')
+        if tablefile is None:
+            tablefile = self.diag.filenames('txt')
+        
         self.loggy.info('TXT file is: %s', tablefile)
         with open(tablefile, 'w', encoding='utf-8') as out:
             out.write(tabulate(global_table, headers=head, stralign='center', tablefmt='orgtbl'))
@@ -212,41 +219,75 @@ class GlobalMean:
             yaml.safe_dump(self.varmean, file, default_flow_style=False, sort_keys=False)
         self.toc('Storing')
 
-    def plot(self, mapfile=None, figformat='pdf'):
-        """"
-        Plot the global mean values.
-        Args:
-            mapfile: Path to the output file. If None, it will be defined automatically following ECmean syntax
-            figformat: Format of the output file.
+    def plot(self, diagname="global_mean", mapfile=None, figformat='pdf', storefig=True, returnfig=False, addnan=True):
+        
         """
+        Generate the heatmap for performance indices.
 
-        # load yaml file if is missing
-        if not self.varmean:
-            yamlfile = self.diag.filenames('yml')
-            self.loggy.info('Loading the stored data from the yaml file %s', yamlfile)
-            if os.path.isfile(yamlfile):
-                with open(yamlfile, 'r', encoding='utf-8') as file:
-                    self.varmean = yaml.safe_load(file)
-            else:
-                raise FileNotFoundError(f'YAML file {yamlfile} not found')
-
-        # prepare the dictionaries for the plotting
-        obsmean, obsstd, data2plot, units_list = prepare_clim_dictionaries_gm(self.varmean, self.ref,
-                                                                              self.diag.var_all, self.diag.seasons,
-                                                                              self.diag.regions)
+        Args:
+            diagname (str): Name of the diagnostic. Default is 'performance_indices'.
+            mapfile (str): Path to the output file. If None, it will be defined automatically following ECmean syntax.
+            figformat (str): Format of the output file. Default is 'pdf'.
+            storefig (bool): If True, store the figure in the specified file. Default is True.
+            returnfig (bool): If True, return the figure object. Default is False.
+            addnan (bool): If True, add NaN values to the plot. Default is True.
+        """
+        plotter = ECPlotter(
+            diagnostic=diagname, modelname=self.diag.modelname,
+            expname=self.diag.expname, year1=self.diag.year1,
+            year2=self.diag.year2, regions=self.diag.regions,
+            seasons=self.diag.seasons)
+        if self.varmean is None:
+            self.varmean = load_output_yaml(self.diag.filenames('yml'))
         if mapfile is None:
             mapfile = self.diag.filenames(figformat)
-        self.loggy.info('Figure file is: %s', mapfile)
-
-        # call the heatmap for plottinh
-        heatmap_comparison_gm(data_dict=data2plot, mean_dict=obsmean, std_dict=obsstd,
-                              diag=self.diag, units_list=units_list,
-                              filemap=mapfile, addnan=self.diag.addnan)
-
+        fig = plotter.heatmap_plot(
+            data=self.varmean, reference=self.ref,
+            variables=self.diag.var_all,
+            filename=mapfile, storefig=storefig, addnan=addnan
+        )
         if self.diag.ftable:
             self.loggy.info('Line file is: %s', self.diag.linefile)
             write_tuning_table(self.diag.linefile, self.varmean, self.diag.var_table, self.diag, self.ref)
+        
         self.toc('Plotting')
+
+        if returnfig:
+            self.loggy.info('Returning figure object')
+            return fig
+
+    # def plot(self, mapfile=None, figformat='pdf'):
+    #     """"
+    #     Plot the global mean values.
+    #     Args:
+    #         mapfile: Path to the output file. If None, it will be defined automatically following ECmean syntax
+    #         figformat: Format of the output file.
+    #     """
+
+    #     # load yaml file if is missing
+    #     if not self.varmean:
+    #         yamlfile = self.diag.filenames('yml')
+    #         self.loggy.info('Loading the stored data from the yaml file %s', yamlfile)
+    #         if os.path.isfile(yamlfile):
+    #             with open(yamlfile, 'r', encoding='utf-8') as file:
+    #                 self.varmean = yaml.safe_load(file)
+    #         else:
+    #             raise FileNotFoundError(f'YAML file {yamlfile} not found')
+
+    #     # prepare the dictionaries for the plotting
+    #     obsmean, obsstd, data2plot, units_list = prepare_clim_dictionaries_gm(self.varmean, self.ref,
+    #                                                                           self.diag.var_all, self.diag.seasons,
+    #                                                                           self.diag.regions)
+    #     if mapfile is None:
+    #         mapfile = self.diag.filenames(figformat)
+    #     self.loggy.info('Figure file is: %s', mapfile)
+
+    #     # call the heatmap for plottinh
+    #     heatmap_comparison_gm(data_dict=data2plot, mean_dict=obsmean, std_dict=obsstd,
+    #                           diag=self.diag, units_list=units_list,
+    #                           filemap=mapfile, addnan=self.diag.addnan)
+
+
 
     @staticmethod
     def gm_worker(util, ref, face, diag, varmean, vartrend, varlist):

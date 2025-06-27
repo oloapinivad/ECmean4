@@ -303,3 +303,13 @@ def _get_variables_to_load(var, face):
 
     return [var]
 
+def load_output_yaml(yamlfile):
+
+    """Load the variable statistics from the yaml file."""
+    loggy.info('Loading the stored data from the yaml file %s', yamlfile)
+    if os.path.isfile(yamlfile):
+        with open(yamlfile, 'r', encoding='utf-8') as file:
+            return yaml.safe_load(file)
+    
+    raise FileNotFoundError(f'File {yamlfile} not found.')
+    
