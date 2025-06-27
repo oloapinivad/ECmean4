@@ -178,7 +178,7 @@ for var in variables:
                                              operation=info[var].get('operation', 'mean'),
                                              org_direction=info[var].get('direction', 'down')
                                              )
-                offset, factor = units_handler.offset, units_handler.factor
+                offset, factor = units_handler.units_converter()
                 # new_units = _units_are_integrals(info[var]['org_units'], info[var])
                 # offset, factor = units_converter(new_units, info[var]['tgt_units'])
                 # down = {'direction': 'down'}
