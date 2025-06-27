@@ -59,7 +59,7 @@ Optional Arguments
 
     Do not print anything to std output.
 
-.. option:: -v LOGLEVEL, --loglevel LOGLEVEL
+.. option:: -l LOGLEVEL, --loglevel LOGLEVEL
 
     Define the level of logging. Default: error.
 
@@ -87,11 +87,11 @@ Optional Arguments
 
     Activate CDO debugging.
 
-.. option:: -k CLIMATOLOGY
+.. option:: --climatology CLIMATOLOGY
 
     Specify the climatology you want to use (EC23: default).
 
-.. option:: -r RESOLUTION
+.. option:: --resolution RESOLUTION
 
     Only EC23: Specify the resolution of the climatology (r180x90 or r360x180).
 

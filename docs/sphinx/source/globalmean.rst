@@ -46,11 +46,11 @@ Optional Arguments
 
    Do not print anything to standard output.
 
-.. option:: -t, --trend
+.. option:: --trend
 
    Compute trends on multiple years. This option is only available in table format.
 
-.. option:: -l, --line
+.. option:: --line
 
    Append a single line to the table.
 
@@ -74,7 +74,7 @@ Optional Arguments
 
    Activate to plot also in the heatmap also fields which does not have a comparison against observations. Default is False.
 
-.. option:: -v LOGLEVEL, --loglevel LOGLEVEL
+.. option:: -l LOGLEVEL, --loglevel LOGLEVEL
 
    Define the level of logging. The default is 'warning'.
 

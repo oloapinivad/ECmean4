@@ -7,6 +7,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 Unreleased is the current development version, which is currently lying in `main` branch.
 
+- Cleaner command line arguments, notably loglevel -l instead -v (#120)
 - Refactor of plotting routines in to the `ECPlotter()` class (#120)
 - Output file in lower cases, e.g `pdf` instead of `PDF` (#120)
 - Safe checks in case of missing area/mask files to activate only AMIP/OMIP runs (#122)
