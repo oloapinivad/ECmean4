@@ -197,8 +197,8 @@ def _filter_filename_by_year(template, filenames, year):
         else:
             year2 = year1
         # filter names
-        filternames = [filenames[i] for i in range(len(year1))
-                       if year >= year1[i] and year <= year2[i]]
+        filternames = [fname for y1, y2, fname in zip(year1, year2, filenames)
+                       if year >= y1 and year <= y2]
     else:
         # this is introduced for file that does not have year in their filename
         filternames = filenames
@@ -299,8 +299,7 @@ def _get_variables_to_load(var, face):
 
     if 'derived' in face['variables'][var].keys():
         cmd = face['variables'][var]['derived']
-        dervars = [x for x in re.split('[*+-/]', cmd) if not x.isdigit()]
-    else:
-        dervars = [var]
+        return [x for x in re.split('[*+-/]', cmd) if not x.isdigit()]
 
-    return dervars
+    return [var]
+
