@@ -109,11 +109,6 @@ def weight_split(a, n):
         olists[count].append(fff)
         count = elists.index(min(elists))
 
-    # for f in ordered.keys():
-    #    elists[count].append(ordered[f])
-    #    olists[count].append(f)
-    #    count = elists.index(min(elists))
-
     return olists
 
 
@@ -165,10 +160,10 @@ def dict_to_dataframe(varstat, allowed = ['ALL', 'DJF', 'JJA', 'MAM', 'SON']):
     data_table = {}
     for i in varstat.keys():
         pippo = {}
-        for outerKey, innerDict in varstat[i].items():
-            if outerKey in allowed:
-                for innerKey, values in innerDict.items():
-                    pippo[(outerKey, innerKey)] = values
+        for outerkey, innerdict in varstat[i].items():
+            if outerkey in allowed:
+                for innerkey, values in innerdict.items():
+                    pippo[(outerkey, innerkey)] = values
         data_table[i] = pippo
     data_table = pd.DataFrame(data_table).T
     return data_table
@@ -230,12 +225,12 @@ def are_dicts_equal(dict1, dict2, tolerance=1e-6):
             if not are_dicts_equal(dict1[key], dict2[key], tolerance):
                 return False
         return True
-    else:
-        try:
-            dict1 = float(dict1)
-            dict2 = float(dict2)
-            if math.isnan(dict1) and math.isnan(dict2):
-                return True
-            return math.isclose(dict1, dict2, rel_tol=tolerance)
-        except ValueError:
-            return dict1 == dict2
+
+    try:
+        dict1 = float(dict1)
+        dict2 = float(dict2)
+        if math.isnan(dict1) and math.isnan(dict2):
+            return True
+        return math.isclose(dict1, dict2, rel_tol=tolerance)
+    except ValueError:
+        return dict1 == dict2

@@ -267,7 +267,7 @@ class PerformanceIndices:
                 if isavail:
                     # perform the unit conversion extracting offset and factor
                     offset, factor = UnitsHandler(var, org_units=varunit,
-                                                  clim=piclim, face=face).offset_factor()
+                                                  clim=piclim, face=face).units_converter()
 
                     # open file: chunking on time only, might be improved
                     if not isinstance(infile, (xr.DataArray, xr.Dataset)):

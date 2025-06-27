@@ -11,7 +11,7 @@ import xesmf as xe
 import numpy as np
 from ecmean.libs.ncfixers import xr_preproc
 from ecmean.libs.files import inifiles_priority
-from ecmean.libs.areas import area_cell
+from ecmean.libs.areas import AreaCalculator
 
 loggy = logging.getLogger(__name__)
 
@@ -192,7 +192,7 @@ class Supporter():
         elif 'e1t' in xfield.data_vars:  # ECE4 NEMO case for domaing_cfg.nc
             area = xfield['e1t'] * xfield['e2t']
         else:  # automatic solution, wish you luck!
-            area = area_cell(xfield, gridtype)
+            area = AreaCalculator().calculate_area(xfield, gridtype)
 
         return area
 
