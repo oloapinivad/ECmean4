@@ -137,8 +137,14 @@ class PerformanceIndices:
         units_extra_definition()
 
         # create remap dictionary with atm and oce interpolators
-        self.util_dictionary = Supporter(comp, inifiles['atm'], inifiles['oce'],
-                                         areas=False, remap=True, targetgrid=target_remap_grid)
+        self.util_dictionary = Supporter(
+            comp, inifiles['atm'], inifiles['oce'],
+            areas=False, remap=True, targetgrid=target_remap_grid
+        )
+
+        # verify if we can run amip, omip or coupled run
+        self.diag.configure_amip_omip_cpld(self.util_dictionary)
+
         self.toc('Preparation')
 
     def run(self):

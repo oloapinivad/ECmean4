@@ -28,9 +28,3 @@
 |   net_sfc    |            Net Surface             |   W/m2    |    0.472922  |      0.6       | Wild 2020  |     -     |
 | toamsfc_nosn | TOA - Sfc Net Radiation (no snow)  |   W/m2    |   -0.433919  |       0        |    None    |     -     |
 |   toamsfc    |      TOA - Sfc Net Radiation       |   W/m2    |    0.301943  |       0        |    None    |     -     |
-|     tos      |      Sea Surface Temperature       |  celsius  |  nan         |  18.754±0.15   | ESA-CCI-L4 | 1991-2020 |
-|     sos      |        Sea Surface Salinity        |    PSU    |  nan         |  34.814±0.014  |  ESA-CCI   | 2010-2020 |
-|     zos      |                SSH                 |     m     |  nan         |       0        |    None    |     -     |
-|     wfo      |     Net Water Flux into ocean      | m/century |  nan         |       0        |    None    |     -     |
-| siconc_north | Sea Ice Area (Northern Hemisphere) |   Mm^2    |  nan         |     9.562      | ESA-CCI-L4 |     -     |
-| siconc_south | Sea Ice Area (Southern Hemisphere) |   Mm^2    |  nan         |      9.66      | ESA-CCI-L4 |     -     |

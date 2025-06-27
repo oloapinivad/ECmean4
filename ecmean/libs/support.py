@@ -48,22 +48,23 @@ class Supporter():
         # areas and mask for amip case
         self.ocemask = None
         self.ocearea = None
+        
+        if self.atmareafile:
+            # loading and examining atmospheric file
+            self.atmfield = self.load_area_field(self.atmareafile, comp='atm')
+            self.atmgridtype = identify_grid(self.atmfield)
+            loggy.info('Atmosphere grid is is a %s grid!', self.atmgridtype)
 
-        # loading and examining atmospheric file
-        self.atmfield = self.load_area_field(self.atmareafile, comp='atm')
-        self.atmgridtype = identify_grid(self.atmfield)
-        loggy.info('Atmosphere grid is is a %s grid!', self.atmgridtype)
+            # compute atmopheric area
+            if areas:
+                self.atmarea = self.make_areas(self.atmgridtype, self.atmfield)
 
-        # compute atmopheric area
-        if areas:
-            self.atmarea = self.make_areas(self.atmgridtype, self.atmfield)
+            # initialize the interpolation for atmosphere
+            if self.targetgrid and remap:
+                self.atmfix, self.atmremap = self.make_atm_interp_weights(self.atmfield)
 
-        # initialize the interpolation for atmosphere
-        if self.targetgrid and remap:
-            self.atmfix, self.atmremap = self.make_atm_interp_weights(self.atmfield)
-
-        # init the land-sea mask for atm (mandatory)
-        self.atmmask = self.make_atm_masks()
+            # init the land-sea mask for atm (mandatory)
+            self.atmmask = self.make_atm_masks()
 
         # do the same if oceanic file is found
         if self.oceareafile:
@@ -89,9 +90,6 @@ class Supporter():
                 # otherwise, no solution!
                 else:
                     loggy.warning('No mask available for oceanic vars, this might lead to inconsistent results...')
-
-        else:
-            loggy.warning("Ocereafile cannot be found, assuming this is an AMIP run")
 
     def make_atm_masks(self):
         """Create land-sea masks for atmosphere model"""
@@ -176,7 +174,7 @@ class Supporter():
         """Loading files for area and interpolation"""
 
         if areafile:
-            loggy.info(f'{comp}mareafile is ' + areafile)
+            loggy.info('%smareafile is %s', comp, areafile)
         areafile = check_file_exist(areafile)
         return xr.open_mfdataset(areafile, preprocess=xr_preproc).load()
 
@@ -186,15 +184,13 @@ class Supporter():
 
         # this might be universal, but keep this as for supported components only
         if 'areacello' in xfield.data_vars:  # as oceanic CMOR case
-            area = xfield['areacello']
+            return xfield['areacello']
         elif 'cell_area' in xfield.data_vars:  # as ECE4 NEMO case for nemo-initial-state.nc
-            area = xfield['cell_area']
+            return xfield['cell_area']
         elif 'e1t' in xfield.data_vars:  # ECE4 NEMO case for domaing_cfg.nc
-            area = xfield['e1t'] * xfield['e2t']
+            return xfield['e1t'] * xfield['e2t']
         else:  # automatic solution, wish you luck!
-            area = AreaCalculator().calculate_area(xfield, gridtype)
-
-        return area
+            return AreaCalculator().calculate_area(xfield, gridtype)
 
     def make_atm_interp_weights(self, xfield):
         """Create atmospheric interpolator weights"""
@@ -341,23 +337,20 @@ def identify_grid(xfield):
 
             # if lat grid spacing is equal, is regular lonlat, otherwise gaussian
             if (lat[3] - lat[2]) == (lat[1] - lat[0]):
-                gridtype = 'lonlat'
-            else:
-                gridtype = 'gaussian'
-        else:
-            # if the coords are 2D, we are curvilinear
-            if xfield.coords['lon'].ndim == 2 and xfield.coords['lon'].ndim == 2:
-                gridtype = 'curvilinear'
-            else:
-                # check the first four elements of the grid (arbitrary)
-                lat = xfield.coords['lat'].values[0:5]
+                return 'lonlat'
+            return 'gaussian'
+        
+        # if the coords are 2D, we are curvilinear
+        if xfield.coords['lon'].ndim == 2 and xfield.coords['lon'].ndim == 2:
+            return 'curvilinear'
+           
+        # check the first four elements of the grid (arbitrary)
+        lat = xfield.coords['lat'].values[0:5]
 
-                # if they are all the same, we have a gaussian reduced, else unstructured
-                if (lat == lat[0]).all():
-                    gridtype = 'gaussian_reduced'
-                else:
-                    gridtype = 'unstructured'
-    else:
-        raise ValueError("Cannot find any lon/lat dimension, aborting...")
+        # if they are all the same, we have a gaussian reduced, else unstructured
+        if (lat == lat[0]).all():
+            return 'gaussian_reduced'
 
-    return gridtype
+        return 'unstructured'
+    
+    raise ValueError("Cannot find any lon/lat dimension, aborting...")

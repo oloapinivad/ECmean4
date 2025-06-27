@@ -7,6 +7,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 Unreleased is the current development version, which is currently lying in `main` branch.
 
+- Safe checks in case of missing area/mask files to activate only AMIP/OMIP runs (#122)
 - Minor code cleaning using more pythonic approach (#121)
 - Cleaner configuration files (#115)
 - New EC24 climatology introduced and removal of RK08 climatology (#116)
