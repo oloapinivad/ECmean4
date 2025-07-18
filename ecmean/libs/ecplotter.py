@@ -84,7 +84,7 @@ class ECPlotter:
                                                                         variables, self.seasons, self.regions)
             fig = self.heatmap_comparison_gm(
                 data_dict=data2plot, mean_dict=obsmean, std_dict=obsstd,
-                units_list=units_list,
+                units_list=units_list, storefig=storefig,
                 filemap=filename, addnan=addnan)
         else:
             loggy.error("Invalid diagnostic type %s. Choose 'performance_indices' or 'global_mean'.", self.diagnostic)
