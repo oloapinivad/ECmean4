@@ -29,7 +29,7 @@ nprocs = 4
 do_compute = True
 do_create_clim = True
 do_definitive = False
-config_file = 'config_create_clim.yml'
+
 climdir = '../climatology/'
 
 #models = ['EC-Earth3', 'IPSL-CM6A-LR', 'FGOALS-g3', 'TaiESM1', 'CanESM5', 'CESM2',
@@ -44,12 +44,22 @@ if refclim == 'EC24':
     # models currently missing on the ESGF
 # models= ['CMCC-CM2-SR5', 'TaiESM1']
 elif refclim == 'HM25':
-    models= ['AWI-CM-1-1-HR', 'EC-Earth3', 'BCC-CSM2-HR', 'CMCC-CM2-VHR4', 'HadGEM3-GC31-HM', 'INM-CM5-H']
+    models= ['EC-Earth3P-HR', 'AWI-CM-1-1-HR', 'BCC-CSM2-HR', 'CMCC-CM2-VHR4', 'HadGEM3-GC31-HM', 'INM-CM5-H']
     expname ='hist-1950'
-    year1 = 2000 # test
-    year2 = 2000
+    year1 = 1985
+    year2 = 2014
 else:
     raise ValueError(f"Unknown climatology {refclim}.")
+
+config_file = f'config-create-clim-{refclim}.yml'
+
+def cfg_ensemble(model):
+    
+    if model in ['CNRM-CM6-1', 'UKESM1-0-LL']:
+        return "r1i1p1f2"
+    if model in ['EC-Earth3P-HR']:
+        return  "r1i1p2f1"
+    return "r1i1p1f1"
 
 
 
@@ -60,26 +70,19 @@ if do_compute:
 
     for model in sorted(models):
         print(model)
-
-        if model in ['CNRM-CM6-1', 'UKESM1-0-LL']:
-            ENSEMBLE = "r1i1p1f2"
-        elif model in ['EC-Earth3P-HR']:
-            ENSEMBLE = "r1i1p2f1"
-        else:
-            ENSEMBLE = "r1i1p1f1"
-
+        ensemble = cfg_ensemble(model)
         model_config = copy.deepcopy(defaultconfig)
 
         # to possibly drop biased figures
         drop = []
         if drop:
             for var in drop:
-                for kind in ['2d_vars', '3d_vars', 'oce_vars', 'ice_vars']:
-                    if var in model_config['PI'][kind]['field']:
-                        model_config['PI'][kind]['field'].remove(var)
+                for kind in ['atm2d', 'atm3d', 'oce', 'ice']:
+                    if var in model_config['performance_indices']['variables'][kind]:
+                        model_config['performance_indices']['variables'][kind].remove(var)
 
         performance_indices(expname, year1, year2, config=model_config, model=model,
-                            ensemble=ENSEMBLE, numproc=nprocs, climatology=refclim,
+                            ensemble=ensemble, numproc=nprocs, climatology=refclim,
                             loglevel='debug')
 
 if do_create_clim:
@@ -89,8 +92,12 @@ if do_create_clim:
     # dictionary with all elements
     full = {}
     for model in models:
-        print(model)
-        filein = glob.glob(os.path.join(cfg['dirs']['tab'], f'PI4_{refclim}_{expname}_{model}_r1i1p1f*_{year1}_{year2}.yml'))
+        ensemble = cfg_ensemble(model)
+        filename = os.path.join(cfg['dirs']['tab'], f'PI4_{refclim}_{expname}_{model}_{ensemble}_{year1}_{year2}.yml')
+        if not os.path.exists(filename):
+            raise ValueError(f'File {filename} does not exist, please run the performance indices first!')
+        print(filename)
+        filein = glob.glob(filename)
         full[model] = load_yaml(filein[0])
 
     # idiot averaging
@@ -126,6 +133,7 @@ if do_create_clim:
 
     # Update the climatology
     for var, season_data in out.items():
+        print(f'Updating {var} climatology for {refclim}...')
         piclim[var]['cmip6'] = {}
         for season, region_data in season_data.items():
             piclim[var]['cmip6'][season] = {}
