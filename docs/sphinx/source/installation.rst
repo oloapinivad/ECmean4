@@ -18,7 +18,7 @@ You can create a conda/mamba environment which incudes the python, `eccodes <htt
 However, you should start by cloning the repository from GitHub, since the configuration files used for running ECmean4 are placed there ::
 
     > git clone https://github.com/oloapinivad/ECmean4.git
-    > mamba create -n ecmean "python>=3.9" xesmf eccodes
+    > mamba create -n ecmean python xesmf eccodes
     > mamba activate ecmean
     > pip install ECmean4
 
@@ -72,7 +72,7 @@ The required packages are listed in ``environment.yml`` and in ``pyproject.toml`
 A secondary environment available in  ``dev-environment.yml`` can be used for development, including testing capabilities and jupyter notebooks. 
 
 .. note::
-	Both Unix and MacOS are supported. Python >=3.9 is requested.
+	Both Unix and MacOS are supported. Python >3.9 is requested.
 
 
 
