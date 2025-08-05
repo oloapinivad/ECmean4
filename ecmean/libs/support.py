@@ -48,6 +48,8 @@ class Supporter():
         # areas and mask for amip case
         self.ocemask = None
         self.ocearea = None
+        self.atmmask = None
+        self.atmarea = None
         
         if self.atmareafile:
             # loading and examining atmospheric file
@@ -85,7 +87,7 @@ class Supporter():
                 self.ocemask = self.make_oce_masks()
             else:
                 # if it is missing, when remapping I can use the atmospheric one
-                if self.targetgrid and remap:
+                if self.targetgrid and remap and self.atmmask:
                     self.ocemask = self.atmmask
                 # otherwise, no solution!
                 else:

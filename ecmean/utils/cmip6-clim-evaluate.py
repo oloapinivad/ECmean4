@@ -21,26 +21,35 @@ from ecmean.libs.files import load_yaml
 warnings.simplefilter("ignore")
 
 # the 30-year climatological window to be used as a baseline
-year1 = 1985
-year2 = 2014
-expname = 'historical'
-refclim = 'EC24'
+
+#refclim = 'EC24'
+refclim = 'HM25'
+
 nprocs = 4
 do_compute = True
 do_create_clim = True
-do_definitive = True
+do_definitive = False
 config_file = 'config_create_clim.yml'
 climdir = '../climatology/'
 
 #models = ['EC-Earth3', 'IPSL-CM6A-LR', 'FGOALS-g3', 'TaiESM1', 'CanESM5', 'CESM2',
 #          'MIROC6', 'MPI-ESM1-2-HR', 'AWI-CM-1-1-MR', 'CMCC-CM2-SR5', 'NorESM2-MM', 'GFDL-CM4']
-models = ['EC-Earth3', 'IPSL-CM6A-LR', 'FGOALS-g3', 'CanESM5', 'CESM2', 'CNRM-CM6-1',
-          'GISS-E2-1-G', 'ACCESS-CM2', 'CNRM-CM6-1', 'SAM0-UNICON', 'UKESM1-0-LL',
-          'MIROC6', 'MPI-ESM1-2-HR', 'AWI-CM-1-1-MR', 'NorESM2-MM', 'GFDL-CM4']
-#models = ['EC-Earth3']
-
-# models currently missing on the ESGF
+if refclim == 'EC24':
+    expname = 'historical'
+    models = ['EC-Earth3', 'IPSL-CM6A-LR', 'FGOALS-g3', 'CanESM5', 'CESM2', 'CNRM-CM6-1',
+            'GISS-E2-1-G', 'ACCESS-CM2', 'CNRM-CM6-1', 'SAM0-UNICON', 'UKESM1-0-LL',
+            'MIROC6', 'MPI-ESM1-2-HR', 'AWI-CM-1-1-MR', 'NorESM2-MM', 'GFDL-CM4']
+    year1 = 1985
+    year2 = 2014
+    # models currently missing on the ESGF
 # models= ['CMCC-CM2-SR5', 'TaiESM1']
+elif refclim == 'HM25':
+    models= ['AWI-CM-1-1-HR', 'EC-Earth3', 'BCC-CSM2-HR', 'CMCC-CM2-VHR4', 'HadGEM3-GC31-HM', 'INM-CM5-H']
+    expname ='hist-1950'
+    year1 = 2000 # test
+    year2 = 2000
+else:
+    raise ValueError(f"Unknown climatology {refclim}.")
 
 
 
@@ -54,6 +63,8 @@ if do_compute:
 
         if model in ['CNRM-CM6-1', 'UKESM1-0-LL']:
             ENSEMBLE = "r1i1p1f2"
+        elif model in ['EC-Earth3P-HR']:
+            ENSEMBLE = "r1i1p2f1"
         else:
             ENSEMBLE = "r1i1p1f1"
 
