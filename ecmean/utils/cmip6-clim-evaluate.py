@@ -25,9 +25,9 @@ warnings.simplefilter("ignore")
 #refclim = 'EC24'
 refclim = 'HM25'
 
-nprocs = 4
+nprocs = 1
 do_compute = True
-do_create_clim = True
+do_create_clim = False
 do_definitive = False
 
 climdir = '../climatology/'
@@ -39,13 +39,16 @@ if refclim == 'EC24':
     models = ['EC-Earth3', 'IPSL-CM6A-LR', 'FGOALS-g3', 'CanESM5', 'CESM2', 'CNRM-CM6-1',
             'GISS-E2-1-G', 'ACCESS-CM2', 'CNRM-CM6-1', 'SAM0-UNICON', 'UKESM1-0-LL',
             'MIROC6', 'MPI-ESM1-2-HR', 'AWI-CM-1-1-MR', 'NorESM2-MM', 'GFDL-CM4']
+    mip = 'CMIP'
     year1 = 1985
     year2 = 2014
     # models currently missing on the ESGF
 # models= ['CMCC-CM2-SR5', 'TaiESM1']
 elif refclim == 'HM25':
-    models= ['EC-Earth3P-HR', 'AWI-CM-1-1-HR', 'BCC-CSM2-HR', 'CMCC-CM2-VHR4', 'HadGEM3-GC31-HM', 'INM-CM5-H']
+    models = ['EC-Earth3P-HR', 'AWI-CM-1-1-HR', 'BCC-CSM2-HR', 'CMCC-CM2-VHR4', 'HadGEM3-GC31-HH', 'INM-CM5-H']
+    models = ['HadGEM3-GC31-HH']
     expname ='hist-1950'
+    mip = 'HighResMIP'
     year1 = 1985
     year2 = 2014
 else:
@@ -55,11 +58,16 @@ config_file = f'config-create-clim-{refclim}.yml'
 
 def cfg_ensemble(model):
     
-    if model in ['CNRM-CM6-1', 'UKESM1-0-LL']:
+    if model in ['CNRM-CM6-1', 'UKESM1-0-LL', 'AWI-CM-1-1-HR']:
         return "r1i1p1f2"
     if model in ['EC-Earth3P-HR']:
         return  "r1i1p2f1"
     return "r1i1p1f1"
+
+def cfg_consortium(model):
+    if model == 'HadGEM3-GC31-HM':
+        return 'NERC'
+    return '*'
 
 
 
@@ -71,6 +79,7 @@ if do_compute:
     for model in sorted(models):
         print(model)
         ensemble = cfg_ensemble(model)
+        consortium = cfg_consortium(model)
         model_config = copy.deepcopy(defaultconfig)
 
         # to possibly drop biased figures
@@ -82,7 +91,7 @@ if do_compute:
                         model_config['performance_indices']['variables'][kind].remove(var)
 
         performance_indices(expname, year1, year2, config=model_config, model=model,
-                            ensemble=ensemble, numproc=nprocs, climatology=refclim,
+                            ensemble=ensemble, consortium=consortium, mip=mip, numproc=nprocs, climatology=refclim,
                             loglevel='debug')
 
 if do_create_clim:

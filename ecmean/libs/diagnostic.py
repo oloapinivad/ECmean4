@@ -26,8 +26,8 @@ class Diagnostic():
                  interface=None, outputdir=None,
                  xdataset=None, silent=None,
                  numproc=1, climatology=None, reference=None,
-                 modelname=None, ensemble='r1i1p1f1',
-                 consortium='*', mip='CMIP'):
+                 modelname=None, ensemble=None,
+                 consortium=None, mip=None):
         """
         Initialize the Diagnostic instance.
 
@@ -103,11 +103,8 @@ class Diagnostic():
         else:
             cfg = load_yaml(self.indir / '../../config.yml')
 
-        # setting up model name, ennsemble, consortium and mip
-        self.modelname = modelname or cfg['model'].get('name')
-        self.ensemble = ensemble or cfg['model'].get('ensemble')
-        self.consortium = consortium or cfg['model'].get('consortium')
-        self.mip = mip or cfg['model'].get('mip')
+        self.set_defaults(cfg, modelname=modelname,
+                          ensemble=ensemble, consortium=consortium, mip=mip)
 
         # Various raise and input and output directories
         if not cfg['dirs']['exp']:
@@ -150,6 +147,26 @@ class Diagnostic():
                 raise ValueError('Cannot used the xdataset, is not Xarray object')
         else:
             self.xdataset = None
+
+    def set_defaults(self, cfg, modelname=None, ensemble=None,
+                     consortium=None, mip=None):
+        """
+        Set default values for model, ensemble, consortium, and mip.
+        """
+
+        # setting up model name, ennsemble, consortium and mip
+        self.modelname = modelname or cfg['model'].get('name')
+        if not self.modelname:
+            raise ValueError('No model name defined in config file')
+        self.ensemble = ensemble or cfg['model'].get('ensemble')
+        if not self.ensemble:
+            self.ensemble = 'r1i1p1f1'
+        self.consortium = consortium or cfg['model'].get('consortium')
+        if not self.consortium:
+            self.consortium = '*'
+        self.mip = mip or cfg['model'].get('mip')
+        if not self.mip:
+            self.mip = 'CMIP'
 
     def filenames(self, kind):
         """
