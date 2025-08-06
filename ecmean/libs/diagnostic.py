@@ -22,15 +22,41 @@ class Diagnostic():
 
     def __init__(self, exp, year1, year2, config, funcname,
                  line=False, trend=False,
-                 resolution="r360x180", ensemble='r1i1p1f1', addnan=False,
-                 interface=None, modelname=None, outputdir=None,
+                 resolution="r360x180", addnan=False,
+                 interface=None, outputdir=None,
                  xdataset=None, silent=None,
-                 numproc=1, climatology=None, reference=None):
+                 numproc=1, climatology=None, reference=None,
+                 modelname=None, ensemble='r1i1p1f1',
+                 consortium='*', mip='CMIP'):
         """
         Initialize the Diagnostic instance.
 
         Args:
-            args: Arguments from command line/function.
+            exp: Experiment name
+            year1: Starting year
+            year2: Ending year
+            config: Configuration file or dictionary
+            funcname: Function name (e.g., 'GlobalMean', 'PerformanceIndices')
+            line: Whether to append a single line to a table
+            trend: Whether to compute trends
+            resolution: Resolution of the data (default is 'r360x180')
+            addnan: Whether to provide figures where observations are missing
+            interface: Interface file or name
+            outputdir: Directory for output files
+            xdataset: Optional xarray dataset or data array
+            silent: Whether to suppress output messages
+            numproc: Number of processors to use
+            climatology: Climatology type for performance indices
+            reference: Reference climatology for global mean diagnostics
+            modelname: Model name (overrides config)
+            ensemble: Ensemble label (default is 'r1i1p1f1')
+            consortium: Consortium name (default is '*')
+            mip: MIP name (default is 'CMIP')
+
+        Raises:
+            ValueError: If the config file cannot be loaded or if no experiment directory is defined.
+            ValueError: If no table or figure directory is defined in the config file and outputdir is None.
+            ValueError: If no variables are available to process due to missing area/mask files.
         """
 
         # arguments from command line/function
@@ -45,7 +71,7 @@ class Diagnostic():
         self.silent = silent
         self.resolution = resolution
         self.reference = reference
-        self.ensemble = ensemble
+        
         self.interface = interface
         self.funcname = funcname
         self.version = version
@@ -58,7 +84,7 @@ class Diagnostic():
         self.grid = '*'
         self.version = '*'
         self.frequency = '*mon'
-
+    
         # base init
         self.field_all = []
         self.var_all = []
@@ -76,6 +102,12 @@ class Diagnostic():
                 raise ValueError('Cannot load the config file')
         else:
             cfg = load_yaml(self.indir / '../../config.yml')
+
+        # setting up model name, ennsemble, consortium and mip
+        self.modelname = modelname or cfg['model'].get('name')
+        self.ensemble = ensemble or cfg['model'].get('ensemble')
+        self.consortium = consortium or cfg['model'].get('consortium')
+        self.mip = mip or cfg['model'].get('mip')
 
         # Various raise and input and output directories
         if not cfg['dirs']['exp']:
@@ -102,9 +134,6 @@ class Diagnostic():
 
         # setting up interface file
         self.interface = interface or cfg['interface']
-
-        # setting up model name
-        self.modelname = modelname or cfg['model']['name']
 
         # allow for both interface name or interface file
         if not os.path.exists(self.interface):

@@ -58,7 +58,7 @@ From now on the two command line function of ECmean4 (``global_mean`` and ``perf
 You can test by running in shell command line and you should and output as::
 
     > global_mean
-    > usage: global_mean [-h] [-s] [-t] [-l] [-o FILE] [-m MODEL] [-c CONFIG] [-v LOGLEVEL] [-j NUMPROC] [-e ENSEMBLE] [-i INTERFACE] EXP Y1 Y2 
+    > usage: global_mean [-h] [-i INTERFACE] [-c CONFIG] [-j NUMPROC] [-l LOGLEVEL] [-o OUTPUTDIR] [--model MODEL] [--ensemble ENSEMBLE] [--consortium CONSORTIUM] [--mip MIP] [-s] [--version] [--trend] [--line] [--reference {EC23}] [--addnan] EXP Y1 Y2 [-i INTERFACE] EXP Y1 Y2 
     > global_mean: error: the following arguments are required: EXP, Y1, Y2
 
 You can also run tests by simply calling ``pytest`` - as long as you have the corresponding Python package installed - from the ECmean4 folder ::

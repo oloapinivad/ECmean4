@@ -180,7 +180,9 @@ def _expand_filename(filenames, var, diag):
         ensemble=diag.ensemble,
         grid=diag.grid,
         model=diag.modelname,
-        version=diag.version
+        version=diag.version,
+        consortium=diag.consortium,
+        mip=diag.mip
     ))
 
 
