@@ -33,7 +33,6 @@ from ecmean.libs.parser import parse_arguments
 from ecmean.libs.loggy import setup_logger
 
 dask.config.set(scheduler="synchronous")
-tool = 'CDO'
 
 
 class PerformanceIndices:
@@ -81,7 +80,7 @@ class PerformanceIndices:
                  loglevel='WARNING', numproc=1, climatology=None,
                  interface=None, model=None, ensemble='r1i1p1f1',
                  silent=None, xdataset=None, outputdir=None,
-                 extrafigure=False):
+                 extrafigure=False, tool='ESMF'):
         """Initialize the PerformanceIndices class with the given parameters."""
 
         self.loglevel = loglevel
@@ -99,6 +98,7 @@ class PerformanceIndices:
         self.varstat = None
         self.extrafigure = extrafigure #special key to be set for manual debugging, producing extra figures: DO NOT USE
         self.outarray = None
+        self.tool = tool
         self.start_time = time()
 
     def toc(self, message):
@@ -140,7 +140,8 @@ class PerformanceIndices:
         # create remap dictionary with atm and oce interpolators
         self.util_dictionary = Supporter(
             comp, inifiles['atm'], inifiles['oce'],
-            areas=False, remap=True, targetgrid=target_remap_grid
+            areas=False, remap=True, targetgrid=target_remap_grid,
+            tool=self.tool
         )
 
         # verify if we can run amip, omip or coupled run
@@ -170,7 +171,7 @@ class PerformanceIndices:
         for varlist in weight_split(self.diag.field_all, self.diag.numproc):
             core = Process(target=self.pi_worker, args=(self.util_dictionary, self.piclim,
                                                         self.face, self.diag, self.diag.field_atm3d,
-                                                        self.varstat, self.outarray, varlist))
+                                                        self.varstat, self.outarray, varlist, self.tool))
             core.start()
             processes.append(core)
 
@@ -280,7 +281,7 @@ class PerformanceIndices:
 
 
     @staticmethod
-    def pi_worker(util, piclim, face, diag, field_3d, varstat, dictarray, varlist):
+    def pi_worker(util, piclim, face, diag, field_3d, varstat, dictarray, varlist, tool='ESMF'):
         """
         Main parallel diagnostic worker for performance indices.
 
@@ -368,7 +369,10 @@ class PerformanceIndices:
                         if fix:
                             tmean = fix(tmean, keep_attrs=True)
                         try:
-                            final = remap(tmean, keep_attrs=True)
+                            if tool == 'CDO':
+                                final = remap(tmean)
+                            else:
+                                final = remap(tmean, keep_attrs=True)
                         except ValueError:
                             loggy.error('Cannot interpolate %s with the current weights...', var)
                             continue
@@ -442,19 +446,21 @@ def pi_entry_point():
                         numproc=args.numproc, loglevel=args.loglevel,
                         climatology=args.climatology,
                         interface=args.interface, config=args.config,
-                        model=args.model, ensemble=args.ensemble, outputdir=args.outputdir)
+                        model=args.model, ensemble=args.ensemble, outputdir=args.outputdir,
+                        tool=args.tool)
 
 
 def performance_indices(exp, year1, year2, config='config.yml', loglevel='WARNING',
                         numproc=1, climatology=None, interface=None, model=None,
-                        ensemble='r1i1p1f1', silent=None, xdataset=None, outputdir=None):
+                        ensemble='r1i1p1f1', silent=None, xdataset=None, outputdir=None,
+                        tool='ESMF'):
     """
     Wrapper function to compute the performance indices for a given experiment and years.
     """
     pi = PerformanceIndices(exp=exp, year1=year1, year2=year2, config=config,
                             loglevel=loglevel, numproc=numproc, climatology=climatology,
                             interface=interface, model=model, ensemble=ensemble, silent=silent,
-                            xdataset=xdataset, outputdir=outputdir)
+                            xdataset=xdataset, outputdir=outputdir, tool=tool)
     pi.prepare()
     pi.run()
     pi.store()
