@@ -1,9 +1,9 @@
 |   Variable   |              Longname              |   Units   |    EC-Earth4 |      Obs.      |  Dataset   |   Years   |
 |--------------+------------------------------------+-----------+--------------+----------------+------------+-----------|
-|     tas      |     2m Temperature (land-only)     |  celsius  |    8.64361   |  13.697±0.301  |    CRU     | 1991-2020 |
+|     tas      |     2m Temperature (land-only)     |  celsius  |   12.6847    |  13.697±0.301  |    CRU     | 1991-2020 |
 |     psl      |      Mean Sea Level Pressure       |    hPa    | 1011.15      | 1011.43±0.052  |    ERA5    | 1991-2020 |
 |      pr      |           Precipitation            |  mm/day   |    2.86608   |   2.85±0.039   |   MSWEP    | 1991-2020 |
-|   evspsbl    |            Evaporation             |  mm/day   |    2.88457   |  -2.906±0.056  |    ERA5    | 1991-2020 |
+|   evspsbl    |            Evaporation             |  mm/day   |   -2.88457   |  -2.906±0.056  |    ERA5    | 1991-2020 |
 |     pme      |        Precip. minus Evap.         |  mm/day   |   -0.0184938 |  0.023±0.021   |    ERA5    | 1991-2020 |
 |     clt      |         Total Cloud Cover          |   frac    |    0.658197  |  0.675±0.002   | CERES-EBAF | 2000-2020 |
 |     cll      |          Low Cloud Cover           |   frac    |    0.378427  |  0.382±0.003   |    ERA5    | 1991-2020 |
@@ -28,9 +28,3 @@
 |   net_sfc    |            Net Surface             |   W/m2    |    0.472922  |      0.6       | Wild 2020  |     -     |
 | toamsfc_nosn | TOA - Sfc Net Radiation (no snow)  |   W/m2    |   -0.433919  |       0        |    None    |     -     |
 |   toamsfc    |      TOA - Sfc Net Radiation       |   W/m2    |    0.301943  |       0        |    None    |     -     |
-|     tos      |      Sea Surface Temperature       |  celsius  |  nan         |  18.754±0.15   | ESA-CCI-L4 | 1991-2020 |
-|     sos      |        Sea Surface Salinity        |    PSU    |  nan         |  34.814±0.014  |  ESA-CCI   | 2010-2020 |
-|     zos      |                SSH                 |     m     |  nan         |       0        |    None    |     -     |
-|     wfo      |     Net Water Flux into ocean      | m/century |  nan         |       0        |    None    |     -     |
-| siconc_north | Sea Ice Area (Northern Hemisphere) |   Mm^2    |  nan         |     9.562      | ESA-CCI-L4 |     -     |
-| siconc_south | Sea Ice Area (Southern Hemisphere) |   Mm^2    |  nan         |      9.66      | ESA-CCI-L4 |     -     |

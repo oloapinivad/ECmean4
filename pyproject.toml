@@ -11,7 +11,7 @@ authors = [
 ]
 description = "ECmean4 Global Climate Model lightweight evaluation tool"
 readme = "README.md"
-requires-python = ">=3.8"
+requires-python = ">=3.9"
 classifiers = [
     "Programming Language :: Python :: 3",
     "Intended Audience :: Science/Research",
@@ -20,11 +20,14 @@ classifiers = [
 ]
 dependencies = [
     "xarray",
+    "numpy",
     "netcdf4",
     "numba",
     "dask",
     "esmpy",
+    "xesmf",
     "metpy",
+    "matplotlib",
     "tabulate",
     "cfgrib",
     "seaborn"
@@ -59,3 +62,7 @@ performance_indices = "ecmean.performance_indices:pi_entry_point"
 
 [tool.setuptools.dynamic]
 version = {attr = "ecmean.__version__"}
+
+[tool.coverage.run]
+concurrency = ["multiprocessing"]
+

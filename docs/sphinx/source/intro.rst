@@ -49,3 +49,26 @@ Scaling has been tested on a Xeon 16-Core 6130 2,1Ghz machine, analysing EC-Eart
 
 .. warning ::
 	Please do not use more cores than available variables: this might lead to code crash due to a limitation of multiprocessing. See the corresponding `GitHub issue <https://github.com/oloapinivad/ECmean4/issues/54>`_ .
+
+
+How to cite
+------------
+
+ECmean4 is distributed via GitHub and pypi and released under the Apache License, version 2.0. Citation of the software DOI is kindly requested upon use:
+
+- P. Davini, & J. von Hardenberg. (2024). ECmean4: a lightweight climate model evaluation tool. Zenodo. https://doi.org/10.5281/zenodo.13834628
+
+Or alternatively, in bibtex format:
+
+.. code-block:: bibtex
+
+   @software{ecmean4,
+      author       = {Paolo Davini, Jost von Hardenberg},
+      title        = {ECmean4: : a lightweight climate model evaluation tool},
+      year         = {2024},
+      doi          = {10.5281/zenodo.13834627},
+      url          = {https://github.com/ecmean4/ecmean4},
+      howpublished = {\url{https://doi.org/10.5281/zenodo.13834627}},
+      note         = {Open-source software}
+   }
+

@@ -110,34 +110,34 @@ hus:
     South Midlat: 184.858
 tos:
   ALL:
-    Global: 37.305
-    North Midlat: 13.749
-    Tropical: 11.601
-    South Midlat: 94.773
+    Global: 37.288
+    North Midlat: 13.713
+    Tropical: 11.607
+    South Midlat: 94.775
   JJA:
-    Global: 48.028
-    North Midlat: 28.98
-    Tropical: 20.587
-    South Midlat: 112.662
+    Global: 48.014
+    North Midlat: 28.972
+    Tropical: 20.589
+    South Midlat: 112.66
 sos:
   ALL:
-    Global: 55.17
-    North Midlat: 237.696
+    Global: 55.36
+    North Midlat: 238.273
     Tropical: 14.841
-    South Midlat: 24.287
+    South Midlat: 24.279
   JJA:
-    Global: 37.702
-    North Midlat: 153.467
-    Tropical: 11.512
-    South Midlat: 19.157
+    Global: 37.787
+    North Midlat: 153.627
+    Tropical: 11.511
+    South Midlat: 19.152
 siconc:
   ALL:
-    Global: 9.203
-    North Midlat: 2.076
+    Global: 9.188
+    North Midlat: 2.072
     Tropical: .nan
-    South Midlat: 14.765
+    South Midlat: 14.775
   JJA:
-    Global: 13.636
+    Global: 13.604
     North Midlat: 5.487
     Tropical: .nan
-    South Midlat: 19.361
+    South Midlat: 19.367

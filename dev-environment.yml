@@ -3,13 +3,14 @@
 # or 
 # conda env create -f dev-environment.yml
 
-name : ecmean
+name : dev-ecmean
 channels:
   - conda-forge
 dependencies:
-  - python=>3.8
+  - python>=3.9
   - libnetcdf
   - xesmf
+  - dask
   - eccodes
   - esmpy
   - cdo

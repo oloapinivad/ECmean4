@@ -3,6 +3,7 @@
 Shared functions for Support class for ECmean4
 '''
 
+from glob import glob
 import logging
 import xarray as xr
 import xesmf as xe
@@ -11,13 +12,16 @@ from glob import glob
 from smmregrid import cdo_generate_weights, Regridder
 from ecmean.libs.ncfixers import xr_preproc
 from ecmean.libs.files import inifiles_priority
-from ecmean.libs.areas import area_cell
-from ecmean.libs.units import UnitsHandler
+from ecmean.libs.areas import AreaCalculator
 
 loggy = logging.getLogger(__name__)
 
-class Supporter():
+# mask to be searched
+atm_mask_names = ['lsm', 'sftlf']
+oce_mask_names = ['lsm', 'sftof', 'mask_opensea']
 
+
+class Supporter():
     """
     Support class for ECmean4, including areas and masks to be used
     in global mean and performance indices
@@ -26,6 +30,8 @@ class Supporter():
     def __init__(self, component, atmdict, ocedict, tool='ESMF', areas=True, remap=False, targetgrid=None):
         """Class for masks, areas and interpolation (xESMF-based)
         for both atmospheric and oceanic component"""
+
+        loggy.debug('Running with xesmf version %s', xe.__version__)
 
         # define the basics
         self.atmareafile = inifiles_priority(atmdict)
@@ -44,28 +50,29 @@ class Supporter():
         # areas and mask for amip case
         self.ocemask = None
         self.ocearea = None
+        
+        if self.atmareafile:
+            # loading and examining atmospheric file
+            self.atmfield = self.load_area_field(self.atmareafile, comp='atm')
+            self.atmgridtype = identify_grid(self.atmfield)
+            loggy.info('Atmosphere grid is is a %s grid!', self.atmgridtype)
 
-        # loading and examining atmospheric file
-        self.atmfield = self.load_field(self.atmareafile, comp='atm')
-        self.atmgridtype = identify_grid(self.atmfield)
-        loggy.warning('Atmosphere grid is is a %s grid!', self.atmgridtype)
+            # compute atmopheric area
+            if areas:
+                self.atmarea = self.make_areas(self.atmgridtype, self.atmfield)
 
-        # compute atmopheric area
-        if areas:
-            self.atmarea = self.make_areas(self.atmgridtype, self.atmfield)
+            # initialize the interpolation for atmosphere
+            if self.targetgrid and remap:
+                self.atmfix, self.atmremap = self.make_atm_interp_weights(self.atmfield)
 
-        # initialize the interpolation for atmosphere
-        if self.targetgrid and remap:
-            self.atmfix, self.atmremap = self.make_atm_interp_weights(self.atmfield)
-
-        # init the land-sea mask for atm (mandatory)
-        self.atmmask = self.make_atm_masks()
+            # init the land-sea mask for atm (mandatory)
+            self.atmmask = self.make_atm_masks()
 
         # do the same if oceanic file is found
         if self.oceareafile:
-            self.ocefield = self.load_field(self.oceareafile, comp='oce')
+            self.ocefield = self.load_area_field(self.oceareafile, comp='oce')
             self.ocegridtype = identify_grid(self.ocefield)
-            loggy.warning('Oceanic grid is is a %s grid!', self.ocegridtype)
+            loggy.info('Oceanic grid is is a %s grid!', self.ocegridtype)
 
             # compute oceanic area
             if areas:
@@ -84,22 +91,19 @@ class Supporter():
                     self.ocemask = self.atmmask
                 # otherwise, no solution!
                 else:
-                    loggy.warning('Oceanic mask not found!')
-
-        else:
-            loggy.warning("Ocereafile cannot be found, assuming this is an AMIP run")
+                    loggy.warning('No mask available for oceanic vars, this might lead to inconsistent results...')
 
     def make_atm_masks(self):
         """Create land-sea masks for atmosphere model"""
 
         # prepare ATM LSM
-        loggy.info('maskatmfile is %s', self.atmmaskfile)
-        if not self.atmmaskfile:
-            raise KeyError("ERROR: maskatmfile cannot be found")
+        if self.atmmaskfile:
+            loggy.info('maskatmfile is %s', self.atmmaskfile)
+        self.atmmaskfile = check_file_exist(self.atmmaskfile)
 
         if self.atmcomponent == 'oifs':
             # create mask: opening a grib and loading only lsm to avoid
-            # inconsistencies # in the grib structure ->
+            # inconsistencies in the grib structure ->
             # see here https://github.com/ecmwf/cfgrib/issues/13
             mask = xr.open_mfdataset(
                 self.atmmaskfile,
@@ -110,22 +114,20 @@ class Supporter():
                 preprocess=xr_preproc)['lsm']
 
         elif self.atmcomponent in ['cmoratm', 'globo']:
+
             dmask = xr.open_mfdataset(self.atmmaskfile, preprocess=xr_preproc)
-            if 'sftlf' in dmask.data_vars:
-                mask = dmask['sftlf']
-                mask = mask / 100  # cmor mask are %
-            elif 'lsm' in dmask.data_vars:
-                mask = dmask['lsm']
+            mvar = [var for var in dmask.data_vars if var in atm_mask_names]
+            # the case we cannot find the variable we are looking for in the required file
+            if len(mvar) > 0:
+                mask = fix_mask_values(dmask[mvar[0]])
+            else:
+                raise KeyError(f"ERROR: make_atm_masks -> Cannot find mask variable in {self.atmmaskfile}")
 
-            # globo has a reversed mask
-            if self.atmcomponent == 'globo':
-                mask = abs(1 - mask)
         else:
-            raise KeyError("ERROR: _make_atm_masks -> Mask undefined yet mismatch, this cannot be handled!")
+            raise KeyError("ERROR: make_atm_masks -> Atmospheric component not supported!")
 
-        # safe check to operate only on single timeframe
-        if 'time' in mask.dims:
-            mask = mask.isel(time=0)
+        # loading the mask to avoid issues with xesmf
+        mask = mask.load()
 
         # interp the mask if required
         if self.atmremap is not None:
@@ -142,39 +144,33 @@ class Supporter():
         """Create land-sea masks for oceanic model. This is used only for CMIP"""
 
         # prepare ocean LSM:
-        loggy.info('maskocefile is %s', self.ocemaskfile)
-        if not self.ocemaskfile:
-            raise KeyError("ERROR: maskocefile cannot be found")
+        if self.ocemaskfile:
+            loggy.info('maskocefile is %s', self.ocemaskfile)
+        self.ocemaskfile = check_file_exist(self.ocemaskfile)
 
-        if self.ocecomponent == 'cmoroce':
+        if self.ocecomponent in ['cmoroce', 'nemo']:
             dmask = xr.open_mfdataset(self.ocemaskfile, preprocess=xr_preproc)
-            if 'sftof' in dmask.data_vars:
-                # use fillna to have a binary max (0 land, 1 sea)
-                mask = dmask['sftof'].fillna(0)
 
-            # check if we need to convert from % to fraction
-            # offset should not count!
-            if mask.units:
-                units_handler = UnitsHandler(org_units=mask.units, tgt_units='frac')
-                offset, factor = units_handler.offset, units_handler.factor
-                # offset, factor = units_converter(mask.units, 'frac')
-                mask = (mask * factor) + offset
-
-            # to keep coehrence in other operations, oceanic mask is set to be
-            # identical to atmospheric mask, i.e. 1 over land and 0 over ocean
-            mask = abs(1 - mask)
+            mvar = [var for var in dmask.data_vars if var in oce_mask_names]
+            # the case we cannot find the variable we are looking for in the required file
+            if len(mvar) > 0:
+                mask = fix_mask_values(dmask[mvar[0]])
+            else:
+                loggy.warning(
+                    'No mask array found in %s for oceanic vars, this might lead to inconsistent results...',
+                    self.ocemaskfile)
+                return None
 
         else:
-            raise KeyError("ERROR: _make_oce_masks -> Mask undefined yet mismatch, this cannot be handled!")
+            raise KeyError("ERROR: make_oce_masks -> Oceanic component not supported!")
 
-        # safe check to operate only on single timeframe
-        if 'time' in mask.dims:
-            mask = mask.isel(time=0)
+        # load mask to avoid issue with xesmf
+        mask = mask.load()
 
         # interp the mask if required
         if self.oceremap is not None:
-            if self.ocefix:
-                mask = self.ocefix(mask, keep_attrs=True)
+            # if self.ocefix:
+            #     mask = self.ocefix(mask, keep_attrs=True)
             if self.tool == 'CDO':
                 mask = self.oceremap(mask)
             elif self.tool == 'ESMF':
@@ -182,17 +178,13 @@ class Supporter():
 
         return mask
 
-    def load_field(self, areafile, comp):
+    def load_area_field(self, areafile, comp):
         """Loading files for area and interpolation"""
 
-        # loading and examining atmospheric file
         if areafile:
-            loggy.info(f'{comp}mareafile is ' + areafile)
-            if not areafile:
-                raise FileExistsError(f'ERROR: {comp}reafile cannot be found')
-            return xr.open_mfdataset(areafile, preprocess=xr_preproc).load()
-        else:
-            raise FileExistsError('ERROR: Cannot find any file to load! Does your experiment exit?')
+            loggy.info('%smareafile is %s', comp, areafile)
+        areafile = check_file_exist(areafile)
+        return xr.open_mfdataset(areafile, preprocess=xr_preproc).load()
 
     def make_areas(self, gridtype, xfield):
         """Create weights for area operations.
@@ -200,16 +192,14 @@ class Supporter():
 
         # this might be universal, but keep this as for supported components only
         if 'areacello' in xfield.data_vars:  # as oceanic CMOR case
-            area = xfield['areacello']
+            return xfield['areacello']
         elif 'cell_area' in xfield.data_vars:  # as ECE4 NEMO case for nemo-initial-state.nc
-            area = xfield['cell_area']
+            return xfield['cell_area']
         elif 'e1t' in xfield.data_vars:  # ECE4 NEMO case for domaing_cfg.nc
-            area = xfield['e1t'] * xfield['e2t']
+            return xfield['e1t'] * xfield['e2t']
         else:  # automatic solution, wish you luck!
-            area = area_cell(xfield, gridtype)
+            return AreaCalculator().calculate_area(xfield, gridtype)
 
-        return area
-    
     def make_atm_interp_weights(self, xfield):
         """Switch between interpolation method"""
 
@@ -282,13 +272,21 @@ class Supporter():
             raise KeyError(f'Cannot initialize {self.tool} interpolator')
 
     def _make_oce_interp_weights_esmf(self, xfield):
-        """Create oceanic interpolator weights"""
+        """Create oceanic interpolator weights
 
-        if self.ocecomponent in ['nemo', 'cmoroce']:
-            if 'areacello' in xfield.data_vars:  # CMOR case
-                xname = 'areacello'
-            elif 'cell_area' in xfield.data_vars:  # ECE4 NEMO case for nemo-initial-state.nc
-                xname = 'cell_area'
+        Args:
+            xfield (xarray.DataArray): The field to interpolate.
+
+        Returns:
+            tuple: The fix and remap objects.
+
+        """
+
+        if self.ocecomponent in ["nemo", "cmoroce"]:
+            if "areacello" in xfield.data_vars:  # CMOR case
+                xname = "areacello"
+            elif "cell_area" in xfield.data_vars:  # ECE4 NEMO case for nemo-initial-state.nc
+                xname = "cell_area"
             else:
                 # tentative extraction
                 xname = list(xfield.data_vars)[-1]
@@ -296,25 +294,25 @@ class Supporter():
             raise KeyError(
                 "ERROR: Oce weights not defined for this component, this cannot be handled!")
 
-        if self.ocegridtype in ['unstructured']:
-            # print("Detecting a unstructured grid, using nearest neighbour!")
-            fix = None
+        # Use the nearest neighbor method for unstructured grids
+
+        if self.ocegridtype in ["unstructured"]:
             remap = xe.Regridder(
                 xfield[xname],
                 self.targetgrid,
                 method="nearest_s2d",
                 locstream_in=True,
-                periodic=True)
-
+                periodic=True,
+            )
         else:
-            # print("Detecting regular or curvilinear grid, using bilinear!")
-            fix = None
+            # Use the bilinear method for regular or curvilinear grids
             remap = xe.Regridder(
                 xfield[xname],
                 self.targetgrid,
                 method="bilinear",
                 periodic=True,
-                ignore_degenerate=True)
+                ignore_degenerate=True,
+            )
 
         return fix, remap
     
@@ -344,6 +342,31 @@ class Supporter():
         remap = Regridder(weights=weights).regrid
 
         return fix, remap
+    
+def fix_mask_values(mask):
+    """
+    Function to normalize the mask whatever format. By convention in ECmean
+    masks are 1 over land and 0 over the ocean. It might cause a bit of slowdown since we
+    need to load the data
+    """
+
+    if 'time' in mask.dims:
+        mask = mask.isel(time=0).squeeze()
+
+    # safety filler
+    mask = mask.fillna(0)
+
+    # if it is a percentage
+    if mask.max() > 99:
+        loggy.info('%s is being normalized', mask.name)
+        mask = mask / 100
+
+    # if it is an ocean mask
+    if mask.mean() > 0.5:
+        loggy.info('%s is being flipped', mask.name)
+        mask = abs(1 - mask)
+
+    return mask
 
 
 def identify_grid(xfield):
@@ -369,23 +392,20 @@ def identify_grid(xfield):
 
             # if lat grid spacing is equal, is regular lonlat, otherwise gaussian
             if (lat[3] - lat[2]) == (lat[1] - lat[0]):
-                gridtype = 'lonlat'
-            else:
-                gridtype = 'gaussian'
-        else:
-            # if the coords are 2D, we are curvilinear
-            if xfield.coords['lon'].ndim == 2 and xfield.coords['lon'].ndim == 2:
-                gridtype = 'curvilinear'
-            else:
-                # check the first four elements of the grid (arbitrary)
-                lat = xfield.coords['lat'].values[0:5]
+                return 'lonlat'
+            return 'gaussian'
+        
+        # if the coords are 2D, we are curvilinear
+        if xfield.coords['lon'].ndim == 2 and xfield.coords['lon'].ndim == 2:
+            return 'curvilinear'
+           
+        # check the first four elements of the grid (arbitrary)
+        lat = xfield.coords['lat'].values[0:5]
 
-                # if they are all the same, we have a gaussian reduced, else unstructured
-                if (lat == lat[0]).all():
-                    gridtype = 'gaussian_reduced'
-                else:
-                    gridtype = 'unstructured'
-    else:
-        raise ValueError("Cannot find any lon/lat dimension, aborting...")
+        # if they are all the same, we have a gaussian reduced, else unstructured
+        if (lat == lat[0]).all():
+            return 'gaussian_reduced'
 
-    return gridtype
+        return 'unstructured'
+    
+    raise ValueError("Cannot find any lon/lat dimension, aborting...")

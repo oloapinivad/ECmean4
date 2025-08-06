@@ -9,8 +9,15 @@ Shared functions for Xarray
 
 
 def xr_preproc(ds):
-    """Preprocessing functuin to adjust coordinate and dimensions
-    names to a common format. To be called by xr.open_mf_dataset()"""
+    """Preprocessing function to adjust coordinate and dimension
+    names to a common format. To be called by xr.open_mf_dataset()
+
+    Parameters:
+    ds (xarray.Dataset): The dataset to be preprocessed.
+
+    Returns:
+    xarray.Dataset: The preprocessed dataset with adjusted coordinate and dimension names.
+    """
 
     rename_dict = {
         "time_counter": "time",
@@ -45,7 +52,6 @@ def xr_preproc(ds):
             if g in ds.dims:
                 ds = ds.rename({g: h})
 
-
     return ds
 
 
@@ -53,11 +59,11 @@ def adjust_clim_file(cfield, remove_zero=False):
     """Routine to fix file format of climatology"""
 
     # fix coordinates
-    org = ['LONGITUDE', 'LATITUDE', 'lev']
-    new = ['lon', 'lat', 'plev']
-    for o, n in zip(org, new):
-        if o in cfield.coords:
-            cfield = cfield.rename({o: n})
+    #org = ['LONGITUDE', 'LATITUDE', 'lev']
+    #new = ['lon', 'lat', 'plev']
+    #for o, n in zip(org, new):
+    #    if o in cfield.coords:
+    #        cfield = cfield.rename({o: n})
 
     # extract data_array
     cname = list(cfield.data_vars)[-1]
