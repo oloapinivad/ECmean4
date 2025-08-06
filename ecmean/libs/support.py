@@ -76,14 +76,17 @@ class Supporter():
 
             # compute oceanic area
             if areas:
+                loggy.debug('Computing oceanic areas...')
                 self.ocearea = self.make_areas(self.ocegridtype, self.ocefield)
 
             # init the ocean interpolation
             if self.targetgrid and remap:
+                loggy.debug('Computing oceanic interpolation weights...')
                 self.ocefix, self.oceremap = self.make_oce_interp_weights(self.ocefield)
 
             # ocean mask
             if self.ocemaskfile:
+                loggy.debug('Computing oceanic masks...')
                 self.ocemask = self.make_oce_masks()
             else:
                 # if it is missing, when remapping I can use the atmospheric one
@@ -259,6 +262,7 @@ class Supporter():
         # Use the nearest neighbor method for unstructured grids
 
         if self.ocegridtype in ["unstructured"]:
+            loggy.debug('Using nearest neighbour for unstructured grid...')
             remap = xe.Regridder(
                 xfield[xname],
                 self.targetgrid,
@@ -267,6 +271,7 @@ class Supporter():
                 periodic=True,
             )
         else:
+            loggy.debug('Using bilinear method for regular or curvilinear grids...')
             # Use the bilinear method for regular or curvilinear grids
             remap = xe.Regridder(
                 xfield[xname],

@@ -45,8 +45,13 @@ if refclim == 'EC24':
     # models currently missing on the ESGF
 # models= ['CMCC-CM2-SR5', 'TaiESM1']
 elif refclim == 'HM25':
-    models = ['EC-Earth3P-HR', 'AWI-CM-1-1-HR', 'BCC-CSM2-HR', 'CMCC-CM2-VHR4', 'HadGEM3-GC31-HH', 'INM-CM5-H']
-    models = ['HadGEM3-GC31-HH']
+    models = [
+        'EC-Earth3P-HR', 'AWI-CM-1-1-HR', 'BCC-CSM2-HR', 'CMCC-CM2-VHR4', 
+        'HadGEM3-GC31-HH', 'INM-CM5-H', 'CNRM-CM6-1-HR', 'ECMWF-IFS-HR']
+    #models = ['CESM1-CAM5-SE-HR'] # crashes with the current code
+    #models = ['CNRM-CM6-1-HR'] # fake EC-Earth3P-HR Ofx
+    #models = ['ECMWF-IFS-HR'] # missing Ofx
+    #models = ['AWI-CM-1-1-HR']
     expname ='hist-1950'
     mip = 'HighResMIP'
     year1 = 1985
@@ -58,7 +63,7 @@ config_file = f'config-create-clim-{refclim}.yml'
 
 def cfg_ensemble(model):
     
-    if model in ['CNRM-CM6-1', 'UKESM1-0-LL', 'AWI-CM-1-1-HR']:
+    if model in ['CNRM-CM6-1', 'UKESM1-0-LL', 'AWI-CM-1-1-HR', 'CNRM-CM6-1-HR']:
         return "r1i1p1f2"
     if model in ['EC-Earth3P-HR']:
         return  "r1i1p2f1"
