@@ -50,13 +50,13 @@ filetype:
 # If a relative path is used this is attached to $ECEDIR/$basedir
 component:
   cmoratm:
-    maskfile: 'r?i?p?f?/*/sftlf/*/*/sftlf_fx_{model}_*_{grid}.nc'
+    maskfile: 'r?i?p?f?/*/sftlf/*/*/sftlf_fx_*_*_{grid}.nc'
     gridfile: ''
-    areafile: 'r?i?p?f?/*/areacella/*/*/areacella_fx_{model}_*_{grid}.nc'
+    areafile: 'r?i?p?f?/*/areacella/*/*/areacella_fx_*_*_{grid}.nc'
   cmoroce:
-    maskfile: 'r?i?p?f?/*/sftof/*/*/sftof_Ofx_{model}_*_{grid}.nc'
+    maskfile: 'r?i?p?f?/*/sftof/*/*/sftof_Ofx_*_*_{grid}.nc'
     gridfile: ''
-    areafile: 'r?i?p?f?/*/areacello/*/*/areacello_Ofx_{model}_*_{grid}.nc'
+    areafile: 'r?i?p?f?/*/areacello/*/*/areacello_Ofx_*_*_{grid}.nc'
 
 # Definition of individual variables
 variables:
