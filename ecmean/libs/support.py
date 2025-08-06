@@ -3,12 +3,12 @@
 Shared functions for Support class for ECmean4
 '''
 
+import os
 from glob import glob
 import logging
 import xarray as xr
 import xesmf as xe
 import numpy as np
-from glob import glob
 from smmregrid import cdo_generate_weights, Regridder
 from ecmean.libs.ncfixers import xr_preproc
 from ecmean.libs.files import inifiles_priority
@@ -314,7 +314,7 @@ class Supporter():
                 ignore_degenerate=True,
             )
 
-        return fix, remap
+        return None, remap
     
     def _make_oce_interp_weights_cdo(self):
         """Create oceanic interpolator weights"""
@@ -367,6 +367,17 @@ def fix_mask_values(mask):
         mask = abs(1 - mask)
 
     return mask
+
+
+def check_file_exist(file):
+    """Simple check to verify that a file to be loaded is defined and found on disk"""
+
+    if file is None:
+        raise KeyError("ERROR: file not defined!")
+    file = glob(file)[0]
+    if not os.path.isfile(file):
+        raise KeyError(f"ERROR: {file} cannot be found")
+    return file
 
 
 def identify_grid(xfield):
