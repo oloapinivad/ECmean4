@@ -362,20 +362,13 @@ class PerformanceIndices:
                         cfield = cfield.mean(dim='time').load()
                         vfield = vfield.mean(dim='time').load()
 
-                        # apply interpolation, if fixer is available and with different grids
-                        fix = getattr(util, f'{domain}fix')
-                        remap = getattr(util, f'{domain}remap')
-
-                        if fix:
-                            tmean = fix(tmean, keep_attrs=True)
-                        try:
-                            if tool == 'CDO':
-                                final = remap(tmean)
-                            else:
-                                final = remap(tmean, keep_attrs=True)
-                        except ValueError:
-                            loggy.error('Cannot interpolate %s with the current weights...', var)
-                            continue
+                        # apply interpolation, if interpolator is available and with different grids
+                        interpolator = getattr(util, f'{domain}interpolator')
+                        
+                        if interpolator:
+                            final = interpolator.interpolate(tmean, keep_attrs=True)
+                        else:
+                            final = tmean
 
                         # vertical interpolation
                         if var in field_3d:
