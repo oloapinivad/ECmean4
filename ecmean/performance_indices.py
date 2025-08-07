@@ -110,6 +110,7 @@ class PerformanceIndices:
 
     def prepare(self):
         """Prepare the necessary components for performance indices calculation."""
+        
         # set dask and multiprocessing fork
         plat, mprocmethod = set_multiprocessing_start_method()
         self.loggy.info('Running on %s and multiprocessing method set as "%s"', plat, mprocmethod)
@@ -303,19 +304,15 @@ class PerformanceIndices:
                             vfield = vfield.sel(time=vfield.time.dt.season.isin(season))
 
                         # averaging, applying offset and factor and loading
-                        tmean = (tmean.mean(dim='time') * factor + offset).load()
+                        tmean = (tmean.mean(dim='time') * factor + offset)
 
                         # averaging and loading the climatology
                         cfield = cfield.mean(dim='time').load()
                         vfield = vfield.mean(dim='time').load()
 
-                        # apply interpolation, if interpolator is available and with different grids
+                        # apply interpolation
                         interpolator = getattr(util, f'{domain}interpolator')
-                        
-                        if interpolator:
-                            final = interpolator.interpolate(tmean, keep_attrs=True)
-                        else:
-                            final = tmean
+                        final = interpolator.interpolate(tmean, keep_attrs=True).load()
 
                         # vertical interpolation
                         if var in field_3d:
@@ -356,7 +353,7 @@ class PerformanceIndices:
                             result[season][region] = round(out, 3)
 
                             # diagnostic
-                            if region == 'Global':
+                            if region == 'Global' and season == 'ALL':
                                 loggy.info('PI for %s %s %s %s', region, season, var, result[season][region])
 
                 # debug array for extrafigures
