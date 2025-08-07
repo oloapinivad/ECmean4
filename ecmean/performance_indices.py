@@ -31,6 +31,7 @@ from ecmean.libs.ncfixers import xr_preproc, adjust_clim_file
 from ecmean.libs.ecplotter import ECPlotter
 from ecmean.libs.parser import parse_arguments
 from ecmean.libs.loggy import setup_logger
+from ecmean.libs.pi_helpers import vertical_interpolation, extract_scalar
 
 dask.config.set(scheduler="synchronous")
 
@@ -225,60 +226,6 @@ class PerformanceIndices:
         if returnfig:
             self.loggy.info('Returning figure object')
             return fig
-        
-    # def plot(self, mapfile=None, figformat='pdf', returnfig=False, storefig=True):
-    #     """
-    #     Generate the heatmap for performance indices.
-
-    #     Args:
-    #         mapfile (str): Path to the output file. If None, it will be defined automatically following ECmean syntax.
-    #         figformat (str): Format of the output file. Default is 'pdf'.
-    #         returnfig (bool): If True, return the figure object. Default is False.
-    #         storefig (bool): If True, store the figure in the specified file. Default is True.
-    #     """
-    #     if self.extrafigure:
-    #         self.loggy.debug('Plotting extra results...')
-    #         print(self.outarray)
-    #         debugfig = os.path.join(self.diag.figdir, f"map_{os.path.basename(self.diag.filenames('png'))}")
-    #         plot_xarray(self.outarray['map'], filename=debugfig, log_scale=True, cmap='viridis')
-    #         debugfig = os.path.join(self.diag.figdir, f"bias_{os.path.basename(self.diag.filenames('png'))}")
-    #         plot_xarray(self.outarray['bias'], filename=debugfig, cmap='seismic', log_scale=False)
-
-    #     # to this date, only EC23/EC24 support comparison with CMIP6 data
-    #     if self.diag.climatology in ['EC23', 'EC24']:
-
-    #         # load yaml file if is missing
-    #         if not self.varstat:
-    #             yamlfile = self.diag.filenames('yml')
-    #             self.loggy.info('Loading the stored data from the yaml file %s', yamlfile)
-    #             if os.path.isfile(yamlfile):
-    #                 with open(yamlfile, 'r', encoding='utf-8') as file:
-    #                     self.varstat = yaml.safe_load(file)
-    #             else:
-    #                 raise FileNotFoundError(f'File {yamlfile} not found.')
-
-    #         # prepare the data for the heatmap from the original yaml dictionaries
-    #         self.loggy.debug('%s, %s, %s', self.varstat, self.piclim, self.diag.field_all)
-    #         data2plot, cmip6, longnames = prepare_clim_dictionaries_pi(data=self.varstat,
-    #                                                                    clim=self.piclim,
-    #                                                                    shortnames=self.diag.field_all)
-
-    #         # call the heatmap routine for a plot
-    #         if mapfile is None:
-    #             mapfile = self.diag.filenames(figformat)
-
-    #         fig = heatmap_comparison_pi(
-    #             data_dict=data2plot, cmip6_dict=cmip6, 
-    #             diag=self.diag, longnames=longnames, filemap=mapfile,
-    #             storefig=storefig)
-
-    #         self.toc('Plotting')
-    #         if returnfig:
-    #             return fig
-        
-    #     else:
-    #         self.loggy.warning('Only EC23 and EC24 climatology is supported for comparison with CMIP6 data.')
-
 
     @staticmethod
     def pi_worker(util, piclim, face, diag, field_3d, varstat, dictarray, varlist, tool='ESMF'):
@@ -372,19 +319,8 @@ class PerformanceIndices:
 
                         # vertical interpolation
                         if var in field_3d:
-                            # xarray interpolation on plev, forcing to be in Pascal
-                            final = final.metpy.convert_coordinate_units('plev', 'Pa')
-                            if set(final['plev'].data) != set(cfield['plev'].data):
-                                loggy.warning('%s: Need to interpolate vertical levels...', var)
-                                final = final.interp(plev=cfield['plev'].data, method='linear')
-
-                                # safety check for missing values
-                                sample = final.isel(lon=0, lat=0)
-                                if np.sum(np.isnan(sample)) != 0:
-                                    loggy.warning(
-                                        '%s: You have NaN after the interpolation, this will affect your PIs...', var)
-                                    levnan = cfield['plev'].where(np.isnan(sample))
-                                    loggy.warning(levnan[~np.isnan(levnan)].data)
+                            # Handle vertical interpolation with improved error handling
+                            final = vertical_interpolation(final, cfield, var)
 
                             # zonal mean
                             final = final.mean(dim='lon')
@@ -411,9 +347,13 @@ class PerformanceIndices:
 
                             # latitude-based averaging
                             weights = np.cos(np.deg2rad(slicearray.lat))
-                            out = slicearray.weighted(weights).mean().data
+                            weighted_mean = slicearray.weighted(weights).mean()
+                            
+                            # Safely extract scalar value avoiding dask issues
+                            out = extract_scalar(weighted_mean)
+                            
                             # store the PI
-                            result[season][region] = round(float(out), 3)
+                            result[season][region] = round(out, 3)
 
                             # diagnostic
                             if region == 'Global':
