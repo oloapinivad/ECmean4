@@ -35,6 +35,7 @@ dependencies = [
 
 [project.optional-dependencies]
 tests = [
+    "flake8",
     "coverage>=7.10.0",
     "coveralls",
     "pytest"
