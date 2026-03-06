@@ -5,8 +5,8 @@ Main concepts
 ^^^^^^^^^^^^^
 
 The ``global_mean`` command is based on ``global_mean.py`` script which computes the global averages for many dynamical and physical fields
-It compares the output against a set of pre-computed ``EC23`` or ``HIST26`` or ``PDAY26`` climatological values defined in ``ecmean/reference/gm_reference_EC23.yml`` or ``ecmean/reference/gm_reference/gm_reference_HIST26.yml`` or ``ecmean/reference/gm_reference/gm_reference_PDAY26.yml``, including the most important dynamical and physical fields 
-for both the atmosphere and the ocean (e.g. land temperature, salinity, etc.).
+It compares the output against a set of pre-computed ``EC23`` or ``EC26-CMIP`` or ``EC26-HIST`` or ``EC26-PDAY`` climatological values defined in ``ecmean/reference/gm_reference_EC23.yml`` or ``ecmean/reference/gm_reference/gm_reference_EC26-CMIP.yml`` or ``ecmean/reference/gm_reference/gm_reference_EC26-HIST.yml``, or ``ecmean/reference/gm_reference/gm_reference_EC26-PDAY.yml`` 
+including the most important dynamical and physical fields for both the atmosphere and the ocean (e.g. land temperature, salinity, etc.).
 Different datasates are taken in consideration, providing an estimate of the interannual variability in the form of standard deviation.
 
 Most importantly, it provides estimate for the radiative budget (including clouds radiative forcing) and for the hydrological cycle (including integrals over land and ocean) 
@@ -128,3 +128,62 @@ Climatology is computed by the ``ecmean/utils/reference-create.py`` script, whic
 It is based on a YML file which is tells the script where to retrieve the data, identifying all the required data folder and names. 
 The results are produced into a YML file for in ``ecmean/reference/gm_reference_EC**.yml`` which includes the global and regional mean 
 over different seasons as well the interannual standard deviation. All details on the datasets are found there. 
+
+
+References available 
+^^^^^^^^^^^^^^^^^^^^
+
+Currently, four different references for climatological values are available, covering different observation periods.
+
+EC23
+----
+This is from the old version of ECmean4 and does not include values for global tas. 
+This reference dataset collects global mean observational targets used by the global_mean.py script to compute global averages.
+The variables are derived from a combination of observational and reanalysis products (e.g. CRU, ERA5, MSWEP, CERES-EBAF, ESA-CCI, Wild 2020), depending on the physical quantity considered. 
+Most fields are defined over the 1991–2020 period, while other variables use shorter observational windows due to data availability.
+All metadata (datasets, masks, periods and other properties) are defined in the corresponding YAML configuration file.
+
+.. include:: tables/reference_EC23.rst
+
+
+EC26
+----
+EC26 is an updated reference framework for global mean observational targets used in ECmean4. 
+It provides temporally consistent baselines tailored to different model forcing configurations. 
+It also includes a global near-surface air temperature target, which was not available in the older reference.
+The variables are derived from a combination of observational and reanalysis products (e.g. CRU v4.09, Berkeley Earth, ERA5, MSWEP v2.80, CERES EBAF v4.2.1, ESA-CCI, Wild 2020), depending on the physical quantity considered. 
+
+EC26 is structured into three configurations, each designed to match a specific class of climate model simulations:
+
+  - CMIP
+  - HIST
+  - PDAY
+
+All configurations share the same variable definitions and masking strategy (global, land, ocean), but differ in their temporal averaging window to ensure consistency with the intended model experiments.
+
+
+ECE26_CMIP
+----------
+This reference dataset is designed for the evaluation of CMIP6 historical simulations against a consistent observational baseline.
+It is aligned with the CMIP6 historical period (1985–2014), ensuring temporal consistency between model climatologies and observational targets. 
+Radiative fluxes are restricted to the satellite era (2000–2014), while ocean salinity follows its specific observational availability window.
+All metadata (datasets, masks, periods and other properties) are defined in the corresponding YAML configuration file.
+
+.. include:: tables/reference_EC26_CMIP.rst
+
+ECE26_HIST
+----------
+This configuration is designed for comparison with model simulations using historical forcing or present-day forcing fixed around 1990.
+The reference period spans 1981–2010 where observational coverage allows. Radiative fluxes follow the CERES satellite era (starting in 2000), while other variables use the 1981–2010 window.
+All metadata (datasets, masks, periods and other properties) are defined in the corresponding YAML configuration file.
+
+.. include:: tables/reference_EC26_HIST.rst
+
+ECE26_PDAY
+----------
+This configuration is intended for evaluation of model simulations using present-day forcing conditions representative of the 2010–2012 period.
+The reference period spans 2000–2024 (or the maximum available year depending on dataset availability; e.g. 2023 for ESA-CCI-L4 products).
+By using a more recent averaging window, EC26-PDAY reflects contemporary radiative balance and hydrological cycle conditions, making it suitable for fixed present-day forcing experiments.
+All metadata (datasets, masks, periods and other properties) are defined in the corresponding YAML configuration file.
+
+.. include:: tables/reference_EC26_PDAY.rst
