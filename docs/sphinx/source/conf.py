@@ -32,6 +32,12 @@ templates_path = ["_templates"]
 autoclass_content = 'both'
 exclude_patterns = []
 
+# -- RST substitutions -------------------------------------------------------
+
+rst_prolog = """
+.. |ecmean| replace:: ECmean
+"""
+
 
 # -- Options for HTML output -------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#options-for-html-output

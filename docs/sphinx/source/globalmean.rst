@@ -109,8 +109,8 @@ A txt table including the comparison with some predefined dataset, for the globa
 
 
 In the same time, data are stored in more machine-readable format in a YAML file, which includes much more details as the global and regional mean over different seasons.
-In addition, ECmean4 it produces also a figure including a more detailed comparison for different seasons and regions.
-This is availecmeanly for the datasets for which we have access to a gridded dataset.
+In addition, |ecmean| 4 produces also a figure including a more detailed comparison for different seasons and regions.
+This is available only for the datasets for which we have access to a gridded dataset.
 
 .. figure:: _static/globaltestfigure.png
    :align: center
@@ -137,7 +137,7 @@ Currently, four different references for climatological values are available, co
 
 EC23
 ----
-This is from the old version of ECmean4 and does not include values for global tas. 
+This is from the old version of |ecmean| and does not include values for global tas. 
 This reference dataset collects global mean observational targets used by the global_mean.py script to compute global averages.
 The variables are derived from a combination of observational and reanalysis products (e.g. CRU, ERA5, MSWEP, CERES-EBAF, ESA-CCI, Wild 2020), depending on the physical quantity considered. 
 Most fields are defined over the 1991–2020 period, while other variables use shorter observational windows due to data availability.
@@ -148,7 +148,7 @@ All metadata (datasets, masks, periods and other properties) are defined in the 
 
 EC26
 ----
-EC26 is an updated reference framework for global mean observational targets used in ECmean4. 
+EC26 is an updated reference framework for global mean observational targets used in |ecmean| 4. 
 It provides temporally consistent baselines tailored to different model forcing configurations. 
 It also includes a global near-surface air temperature target, which was not available in the older reference.
 The variables are derived from a combination of observational and reanalysis products (e.g. CRU v4.09, Berkeley Earth, ERA5, MSWEP v2.80, CERES EBAF v4.2.1, ESA-CCI, Wild 2020), depending on the physical quantity considered. 

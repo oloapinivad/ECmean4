@@ -2,7 +2,7 @@ Installation
 ============
 
 
-ecmean is a lightweight python package, but it depends on some binaries for interpolation and netcdf/grib data access, thus both installation options requires conda/mamba. 
+|ecmean| is a lightweight python package, but it depends on some binaries for interpolation and netcdf/grib data access, thus both installation options requires conda/mamba. 
 We recommend to use `mamba <https://mamba.readthedocs.io/en/latest/user_guide/mamba.html>`_ since it provides a lighter and deal in a better way with dependencies.
 
 Using PyPi
@@ -10,7 +10,7 @@ Using PyPi
 
 .. warning::
 
-	Please note that although ecmean is distributed via PyPi, it depends on packages that currently are available only on conda-forge and on configuration files available from the GitHub repository. Therefore, the installation via pip requires the creation of a conda environment as well as the clone from the repository.
+	Please note that although |ecmean| is distributed via PyPi, it depends on packages that currently are available only on conda-forge and on configuration files available from the GitHub repository. Therefore, the installation via pip requires the creation of a conda environment as well as the clone from the repository.
 
 
 It will bring you the last version available on PyPi.
@@ -54,7 +54,7 @@ Then you should activate the environment ::
 Checking everything is ok
 -------------------------
 
-From now on the two command line function of ecmean (``global_mean`` and ``performance_indices``) should be available in your environment. 
+From now on the two command line function of |ecmean| (``global_mean`` and ``performance_indices``) should be available in your environment. 
 You can test by running in shell command line and you should and output as::
 
     > global_mean

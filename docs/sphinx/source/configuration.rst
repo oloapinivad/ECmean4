@@ -29,7 +29,7 @@ dirs: clm
 	Where the ecmean climatology is installed, i.e. the ``ecmean/climatology`` folder
 
 .. note::
-	You could call a specific configuration file with ``-c config_myconfig.yml`` when executing the ecmean commands (see Usage section), so that you can have multiple models on the same machine.
+	You could call a specific configuration file with ``-c config_myconfig.yml`` when executing the |ecmean| commands (see Usage section), so that you can have multiple models on the same machine.
 
 Global Mean configuration
 -------------------------
@@ -92,8 +92,8 @@ A function named ``xr_preproc()``  within ``ecmean/libs/ncfixers.py``  might be 
 CMOR compatibility
 ------------------
 
-It is possible to use ecmean tools also to analyze CMOR-like files for CMIP5 or CMIP6. This assumes a standard ESGF directory structure but you can change it by modifying the corresponding interface files ``ecmean/interfaces/interface_CMIP6.yml`` and ``ecmean/interfaces/interface_CMIP6.yml``.
-In order to allow masking and interpolation you will need some files to guide ECmean. `fx` variables ``sftlf`` and ``areacella`` are requried for atmospheric domain,
-while `Ofx` variables ``sftof``  and ``areacello``are required for oceanic domain. At least one of these files is required for each domain, but it is recommended to provide both.
+It is possible to use |ecmean| tools also to analyze CMOR-like files for CMIP5 or CMIP6. This assumes a standard ESGF directory structure but you can change it by modifying the corresponding interface files ``ecmean/interfaces/interface_CMIP6.yml`` and ``ecmean/interfaces/interface_CMIP6.yml``.
+In order to allow masking and interpolation you will need some files to guide |ecmean|. ``fx`` variables ``sftlf`` and ``areacella`` are requried for atmospheric domain,
+while ``Ofx`` variables ``sftof`` and ``areacello`` are required for oceanic domain. At least one of these files is required for each domain, but it is recommended to provide both.
 
 
