@@ -27,7 +27,18 @@ def variance_threshold(xvariance, sigma=5):
     high = 10**(m + sigma * s)
     return low, high
 
-def variance_clipping(xvariance, epsilon=1e-3):
+def variance_iqr(xvariance):
+    """This defines the two thresholds (high and low) for filtering the dataset
+    based on the interquartile range of the log10 distribution."""
+
+    f = np.log10(xvariance.where(xvariance > 0))
+    qqq = f.quantile([0.25, 0.75])
+    iqr = qqq[1] - qqq[0]
+    iqleft = 10**(qqq[0] - 1.5 * iqr)
+    iqright = 10**(qqq[1] + 1.5 * iqr)
+    return iqleft.values, iqright.values
+
+def variance_fraction(xvariance, epsilon=1e-3):
     """
     Alternative method for variance clipping, based on the median of the distribution. 
     The threshold is defined as a fraction of the median.

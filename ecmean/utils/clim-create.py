@@ -22,7 +22,7 @@ from cdo import *
 #from dask.distributed import Client, LocalCluster, progress
 
 from ecmean.libs.climatology import check_histogram, full_histogram, \
-    mask_from_field, variance_threshold, variance_clipping
+    mask_from_field, variance_threshold, variance_fraction, variance_iqr
 from ecmean.libs.files import load_yaml
 from ecmean.libs.ncfixers import xr_preproc
 from ecmean.libs.units import units_extra_definition
@@ -46,11 +46,12 @@ variables = ['tas', 'pr', 'net_sfc', 'tauu', 'tauv', 'psl',
 # target resolution
 GRID = 'r360x180'
 
-# method for variance filtering: "sigma" or "clipping"
-method = "clipping"
+# method for variance filtering: "sigma", "fraction" or "iqr"
+method = "iqr"
+cutting = "clipping"
 # method = "sigma"
 SIGMA = 5
-# clipping method: fraction of the median
+# fraction method: fraction of the median
 EPSILON = 0.01
 
 # skip NaN: if False, yearly/season average require that all
@@ -61,7 +62,7 @@ NANSKIP = False
 # irrealistic high values of PI due to the  division by variance performend
 # a hack is to use 5 sigma from the mean of the log10 distribution of variance
 # define a couple of threshold to remove variance outliers
-FIGDIR = '/scratch/users/paolo/ecmean-py-variances2/'
+FIGDIR = '/scratch/users/paolo/ecmean-py-variances3/'
 TMPDIR = '/scratch/users/paolo'
 
 # add other units
@@ -227,17 +228,26 @@ def main(climdata='EC26', timeframe='HIST', machine='wilma', do_figures=False, o
             if method == "sigma":
                 low, high = variance_threshold(ovar, sigma=SIGMA)
                 logging.info('Variance threshold: low = %s, high = %s', low, high)
-                # clean according to thresholds
-                fvar = ovar.where((ovar >= low) & (ovar <= high))
-                fmean = omean.where((ovar >= low) & (ovar <= high))
-            elif method == "clipping":
-                low, high = variance_clipping(ovar, epsilon=EPSILON)
-                logging.info('Variance clipping: low = %s, high = %s', low, high)
-                # clip variance to thresholds and keep the corresponding mean field
-                fvar = ovar.clip(min=low, max=high)
-                fmean = omean
+            elif method == "fraction":
+                low, high = variance_fraction(ovar, fraction=FRACTION)
+                logging.info('Variance fraction: low = %s, high = %s', low, high)
+            elif method == "iqr":
+                low, high = variance_iqr(ovar)
+                logging.info('Variance IQR: low = %s, high = %s', low, high)
             else:
                 raise ValueError(f"Unknown method for variance filtering: {method}")
+
+            # clipping
+            if cutting == "clipping":
+                logging.info('Applying variance clipping...')
+                fvar = ovar.clip(min=low, max=high)
+                fmean = omean
+            elif cutting == "nan":
+                logging.info('Applying variance sigma filtering...')
+                fvar = ovar.where((ovar >= low) & (ovar <= high))
+                fmean = omean.where((ovar >= low) & (ovar <= high))
+            else:
+                raise ValueError(f"Unknown method for variance filtering: {cutting}")
 
             if do_figures:
                 logging.info("Mean and variance histograms...")
