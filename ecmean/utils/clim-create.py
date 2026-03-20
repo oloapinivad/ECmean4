@@ -239,10 +239,6 @@ def main(climdata='EC26', timeframe='HIST', machine='wilma', do_figures=False, o
             else:
                 raise ValueError(f"Unknown method for variance filtering: {method}")
 
-            logging.info('Variance threshold: low = %s, high = %s', low, high)
-
-
-
             if do_figures:
                 logging.info("Mean and variance histograms...")
                 figname = f'{var}_{info[var]["dataset"]}_{GRID}_{real_year1}_{real_year2}_{season}.pdf'
