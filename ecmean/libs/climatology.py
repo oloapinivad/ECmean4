@@ -11,7 +11,7 @@ import matplotlib.pyplot as plt
 loggy = logging.getLogger(__name__)
 
 
-SUPPORTED_REFERENCE = ['EC23', 'EC25', 'EC26-PDAY', 'EC26-CMIP', 'EC26-HIST']
+SUPPORTED_REFERENCE = ['EC23', 'EC26-PDAY', 'EC26-CMIP', 'EC26-HIST']
 SUPPORTED_CLIMATOLOGY = ['EC23', 'EC24', 'EC26-HIST', 'EC26-CMIP']
 
 def variance_threshold(xvariance):
