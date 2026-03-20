@@ -38,7 +38,8 @@ tests = [
     "flake8",
     "coverage>=7.10.0",
     "coveralls",
-    "pytest"
+    "pytest",
+    "cdo"
 ]
 
 docs = [
