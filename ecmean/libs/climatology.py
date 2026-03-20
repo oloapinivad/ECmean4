@@ -14,27 +14,30 @@ loggy = logging.getLogger(__name__)
 SUPPORTED_REFERENCE = ['EC23', 'EC26-PDAY', 'EC26-CMIP', 'EC26-HIST']
 SUPPORTED_CLIMATOLOGY = ['EC23', 'EC24', 'EC26-HIST', 'EC26-CMIP']
 
-def variance_threshold(xvariance):
-    """this defines the two thresholds (high and low) for filtering the dataset
-    So far it is done on the 5-sigma of the log10 distribution"""
+def variance_threshold(xvariance, sigma=5):
+    """
+    This defines the two thresholds (high and low) for filtering the dataset
+    So far it is done on the 5-std of the log10 distribution
+    """
     f = np.log10(xvariance.where(xvariance > 0))
-    m = float(np.mean(f).values)
-    s = float(np.std(f).values)
-    low = 10**(m - 5 * s)
-    high = 10**(m + 5 * s)
+    m = float(f.mean())
+    loggy.info(f'Mean log10 variance: {m}')
+    s = float(f.std())
+    low = 10**(m - sigma * s)
+    high = 10**(m + sigma * s)
     return low, high
 
-# function to set absurd value from a specific dataset
-
-
-def fix_specific_dataset(var, dataset, xfield):
-    """in the case some dataset show unexpected values this can be filtered here"""
-    # variance of SST under sea ice is almost zero. We need to get rid of those points
-    if var == 'tos' and dataset == 'ESA-CCI-L4':
-        # xfield = xfield.where(xfield > 271.15)
-        xfield = xfield.where(xfield > 1 * 10**-2)
-    return xfield
-
+def variance_clipping(xvariance, epsilon=1e-3):
+    """
+    Alternative method for variance clipping, based on the median of the distribution. 
+    The threshold is defined as a fraction of the median.
+    """
+    f = xvariance.where(xvariance > 0)
+    m = float(f.median())
+    loggy.info(f'Median variance: {m}')
+    low = epsilon * m
+    high = m / epsilon
+    return low, high
 
 def full_histogram(field, figname, n_bins=100):
     """Compute the histogram of the full field before it is processed.
@@ -55,7 +58,7 @@ def full_histogram(field, figname, n_bins=100):
     fig.savefig(figname)
 
 
-def check_histogram(ymean, yvar, yvar_filtered, figname, n_bins=100):
+def check_histogram(ymean, yvar, yvar_filtered, figname, n_bins=100, sigma=5, epsilon=1e-2):
     """Four histograms made for inspection of mean and variance of the field
     Mean field, variance and variance after filtering are passed and then plotted
     using histograms. log10 scales is used to highlight outliers."""
@@ -68,7 +71,9 @@ def check_histogram(ymean, yvar, yvar_filtered, figname, n_bins=100):
 
     # stats
     avg = f.mean()
-    sss = 5 * f.std()
+    median = yvar.where(yvar > 0).median()
+
+    sss = sigma * f.std()
     qqq = f.quantile([0.25, 0.75])
     iqr = qqq[1] - qqq[0]
     iqleft = qqq[0] - 1.5 * iqr
@@ -93,6 +98,10 @@ def check_histogram(ymean, yvar, yvar_filtered, figname, n_bins=100):
         axs[k].axvline(avg, color='k', linewidth=1)
         axs[k].axvline(avg - sss, color='k', linestyle='dashed', linewidth=1)
         axs[k].axvline(avg + sss, color='k', linestyle='dashed', linewidth=1)
+        axs[k].axvline(np.log10(median), color='g', linewidth=1)
+        axs[k].axvline(np.log10(median/epsilon), color='g', linestyle='dashed', linewidth=1)
+        axs[k].axvline(np.log10(median*epsilon), color='g', linestyle='dashed', linewidth=1)
+
         axs[k].axvline(iqleft, color='r', linestyle='dashed', linewidth=1)
         axs[k].axvline(iqright, color='r', linestyle='dashed', linewidth=1)
 

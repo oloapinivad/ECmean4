@@ -5,10 +5,15 @@ Installation
 |ecmean| is a lightweight python package, but it depends on some binaries for interpolation and netcdf/grib data access, thus both installation options requires conda/mamba. 
 We recommend to use `mamba <https://mamba.readthedocs.io/en/latest/user_guide/mamba.html>`_ since it provides a lighter and deal in a better way with dependencies.
 
+.. warning::
+    
+     Since |ecmean| v0.2, the packages is called ecmean instead of ECmean4. 
+     The old name is still available on PyPi but it will not be updated anymore, thus we recommend to use the new name for installation and usage.
+
 Using PyPi
 ----------
 
-.. warning::
+.. note::
 
 	Please note that although |ecmean| is distributed via PyPi, it depends on packages that currently are available only on conda-forge and on configuration files available from the GitHub repository. Therefore, the installation via pip requires the creation of a conda environment as well as the clone from the repository.
 
