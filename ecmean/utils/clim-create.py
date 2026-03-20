@@ -22,7 +22,7 @@ from cdo import *
 #from dask.distributed import Client, LocalCluster, progress
 
 from ecmean.libs.climatology import check_histogram, full_histogram, \
-    mask_from_field, variance_threshold
+    mask_from_field, variance_threshold, variance_clipping
 from ecmean.libs.files import load_yaml
 from ecmean.libs.ncfixers import xr_preproc
 from ecmean.libs.units import units_extra_definition
@@ -46,6 +46,13 @@ variables = ['tas', 'pr', 'net_sfc', 'tauu', 'tauv', 'psl',
 # target resolution
 GRID = 'r360x180'
 
+# method for variance filtering: "sigma" or "clipping"
+method = "clipping"
+# method = "sigma"
+SIGMA = 5
+# clipping method: fraction of the median
+EPSILON = 0.01
+
 # skip NaN: if False, yearly/season average require that all
 # the points are defined in the correspondent time window.
 NANSKIP = False
@@ -54,7 +61,7 @@ NANSKIP = False
 # irrealistic high values of PI due to the  division by variance performend
 # a hack is to use 5 sigma from the mean of the log10 distribution of variance
 # define a couple of threshold to remove variance outliers
-FIGDIR = '/work/users/malbanes/figures/ecmean-py-variances/'
+FIGDIR = '/scratch/users/paolo/ecmean-py-variances2/'
 TMPDIR = '/scratch/users/paolo'
 
 # add other units
@@ -108,6 +115,10 @@ def main(climdata='EC26', timeframe='HIST', machine='wilma', do_figures=False, o
     for var in variables:
 
         logging.warning('Processing variable: %s', var)
+        
+        #if var not in 'siconc':
+        #    continue
+
         tic = time()
         # get the directory
         filedata = str(os.path.expandvars(info[var]['dir'])).format(
@@ -120,7 +131,7 @@ def main(climdata='EC26', timeframe='HIST', machine='wilma', do_figures=False, o
         logging.info("Loading multiple files...")
         # unable to operate with Parallel=True
         xfield = xr.open_mfdataset(filedata, chunks='auto',
-                                   parallel=False, preprocess=xr_preproc, engine='netcdf4',
+                                   parallel=True, preprocess=xr_preproc, engine='netcdf4',
                                    data_vars='all', join='outer', compat='no_conflicts')
         xfield = xfield.rename({info[var]['varname']: var})
         
@@ -145,20 +156,16 @@ def main(climdata='EC26', timeframe='HIST', machine='wilma', do_figures=False, o
         elif not hasattr(cfield, 'units'):
             raise ValueError('no unit found or defined!')
 
-        # cleaning
-        # cfield = fix_specific_dataset(var, info[var]['dataset'], cfield)
         logging.debug(cfield)
 
         # monthly average using resample/pandas
         logging.info("resampling...")
         zfield = cfield.resample(time='1MS', skipna=NANSKIP).mean('time', skipna=NANSKIP)
-        #zfield = zfield.persist()
-        #progress(zfield)
-        zfield.compute()
 
         if do_figures:
-            logging.debug("Full histogram...")
+            logging.info("Full histogram...")
             figname = f'values_{var}_{info[var]["dataset"]}_{real_year1}_{real_year2}_full.pdf'
+            os.makedirs(os.path.join(figdir, var), exist_ok=True)
             file = os.path.join(figdir, var, figname)
             full_histogram(zfield, file)
 
@@ -186,8 +193,8 @@ def main(climdata='EC26', timeframe='HIST', machine='wilma', do_figures=False, o
 
         # compute the yearly mean and the season mean
         logging.info("Averaging...")
-        gfield1 = yfield.resample(time='YS', skipna=NANSKIP).mean('time', skipna=NANSKIP).load()
-        gfield2 = yfield.resample(time='QE-NOV', skipna=NANSKIP).mean('time', skipna=NANSKIP).load()
+        gfield1 = yfield.resample(time='YS', skipna=NANSKIP).mean('time', skipna=NANSKIP).persist()
+        gfield2 = yfield.resample(time='QE-NOV', skipna=NANSKIP).mean('time', skipna=NANSKIP).persist()
 
         # loop on seasons
         for season in ['ALL', 'DJF', 'MAM', 'JJA', 'SON']:
@@ -211,20 +218,37 @@ def main(climdata='EC26', timeframe='HIST', machine='wilma', do_figures=False, o
             omean = gfield.mean('time', skipna=True, keepdims=True)
             ovar = gfield.var('time', skipna=True, keepdims=True)
 
+            if do_figures:
+                os.makedirs(os.path.join(figdir, var), exist_ok=True)
+                omean.to_netcdf(os.path.join(figdir, var, f'mean_{season}.nc'))
+                ovar.to_netcdf(os.path.join(figdir, var, f'var_{season}.nc'))
+
             # define the variance threshold
-            low, high = variance_threshold(ovar)
+            if method == "sigma":
+                low, high = variance_threshold(ovar, sigma=SIGMA)
+                logging.info('Variance threshold: low = %s, high = %s', low, high)
+                # clean according to thresholds
+                fvar = ovar.where((ovar >= low) & (ovar <= high))
+                fmean = omean.where((ovar >= low) & (ovar <= high))
+            elif method == "clipping":
+                low, high = variance_clipping(ovar, epsilon=EPSILON)
+                logging.info('Variance clipping: low = %s, high = %s', low, high)
+                # clip variance to thresholds and keep the corresponding mean field
+                fvar = ovar.clip(min=low, max=high)
+                fmean = omean
+            else:
+                raise ValueError(f"Unknown method for variance filtering: {method}")
+
             logging.info('Variance threshold: low = %s, high = %s', low, high)
 
-            # clean according to thresholds
-            fvar = ovar.where((ovar >= low) & (ovar <= high))
-            fmean = omean.where((ovar >= low) & (ovar <= high))
+
 
             if do_figures:
                 logging.info("Mean and variance histograms...")
                 figname = f'{var}_{info[var]["dataset"]}_{GRID}_{real_year1}_{real_year2}_{season}.pdf'
                 os.makedirs(os.path.join(figdir, var), exist_ok=True)
                 file = os.path.join(figdir, var, figname)
-                check_histogram(omean, ovar, fvar, file)
+                check_histogram(omean, ovar, fvar, file, sigma=SIGMA, epsilon=EPSILON)
 
             # add a reference time
             ymean = fmean.assign_coords({"time": ("time", [reftime])})
