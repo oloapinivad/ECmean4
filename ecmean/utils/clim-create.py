@@ -22,12 +22,12 @@ from cdo import *
 #from dask.distributed import Client, LocalCluster, progress
 
 from ecmean.libs.climatology import check_histogram, full_histogram, \
-    mask_from_field, variance_threshold, variance_fraction, variance_iqr
+    mask_from_field, variance_threshold, variance_fraction, variance_iqr, \
+    select_time_period, timeframe_years, \
+    parse_create_args, select_time_data, get_climatology_files, CLIMATOLOGY_PREFIXES
 from ecmean.libs.files import load_yaml
 from ecmean.libs.ncfixers import xr_preproc
 from ecmean.libs.units import units_extra_definition
-from ecmean.utils.utils import select_time_period, timeframe_years, \
-    parse_create_args, select_time_data, get_climatology_files, CLIMATOLOGY_PREFIXES
 
 # activate CDO class
 cdo = Cdo(logging=True)
@@ -35,8 +35,12 @@ cdo = Cdo(logging=True)
 # output for matplot lib
 matplotlib.use('Agg')
 
-# set default logging
-logging.basicConfig(level=logging.INFO)
+# setup logging
+logging.basicConfig(
+    level=logging.INFO, 
+    format='%(asctime)s | %(name)s | %(levelname)8s -> %(message)s',
+    datefmt='%Y-%m-%d %H:%M:%S'
+)
 
 # variable list
 variables = ['tas', 'pr', 'net_sfc', 'tauu', 'tauv', 'psl',
@@ -47,12 +51,12 @@ variables = ['tas', 'pr', 'net_sfc', 'tauu', 'tauv', 'psl',
 GRID = 'r360x180'
 
 # method for variance filtering: "sigma", "fraction" or "iqr"
-method = "iqr"
+method = "fraction"
 cutting = "clipping"
 # method = "sigma"
 SIGMA = 5
 # fraction method: fraction of the median
-EPSILON = 0.01
+FRACTION = 0.001
 
 # skip NaN: if False, yearly/season average require that all
 # the points are defined in the correspondent time window.
@@ -62,7 +66,7 @@ NANSKIP = False
 # irrealistic high values of PI due to the  division by variance performend
 # a hack is to use 5 sigma from the mean of the log10 distribution of variance
 # define a couple of threshold to remove variance outliers
-FIGDIR = '/scratch/users/paolo/ecmean-py-variances3/'
+FIGDIR = f'/scratch/users/paolo/ecmean-py-variances-{method}-{cutting}/'
 TMPDIR = '/scratch/users/paolo'
 
 # add other units
@@ -116,7 +120,7 @@ def main(climdata='EC26', timeframe='HIST', machine='wilma', do_figures=False, o
     for var in variables:
 
         logging.warning('Processing variable: %s', var)
-        
+
         #if var not in 'siconc':
         #    continue
 
@@ -135,7 +139,7 @@ def main(climdata='EC26', timeframe='HIST', machine='wilma', do_figures=False, o
                                    parallel=True, preprocess=xr_preproc, engine='netcdf4',
                                    data_vars='all', join='outer', compat='no_conflicts')
         xfield = xfield.rename({info[var]['varname']: var})
-        
+
         # select time based on data availability
         cfield, real_year1, real_year2 = select_time_period(xfield, var, year1, year2)
 
@@ -239,8 +243,8 @@ def main(climdata='EC26', timeframe='HIST', machine='wilma', do_figures=False, o
 
             # clipping
             if cutting == "clipping":
-                logging.info('Applying variance clipping...')
-                fvar = ovar.clip(min=low, max=high)
+                logging.info('Applying variance clipping to minimum...')
+                fvar = ovar.clip(min=low)
                 fmean = omean
             elif cutting == "nan":
                 logging.info('Applying variance sigma filtering...')
@@ -254,7 +258,7 @@ def main(climdata='EC26', timeframe='HIST', machine='wilma', do_figures=False, o
                 figname = f'{var}_{info[var]["dataset"]}_{GRID}_{real_year1}_{real_year2}_{season}.pdf'
                 os.makedirs(os.path.join(figdir, var), exist_ok=True)
                 file = os.path.join(figdir, var, figname)
-                check_histogram(omean, ovar, fvar, file, sigma=SIGMA, epsilon=EPSILON)
+                check_histogram(omean, ovar, fvar, file, sigma=SIGMA, fraction=FRACTION)
 
             # add a reference time
             ymean = fmean.assign_coords({"time": ("time", [reftime])})
