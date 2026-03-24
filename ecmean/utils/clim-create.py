@@ -37,7 +37,7 @@ matplotlib.use('Agg')
 
 # setup logging
 logging.basicConfig(
-    level=logging.INFO, 
+    level=logging.INFO,
     format='%(asctime)s | %(name)s | %(levelname)8s -> %(message)s',
     datefmt='%Y-%m-%d %H:%M:%S'
 )
@@ -45,18 +45,19 @@ logging.basicConfig(
 # variable list
 variables = ['tas', 'pr', 'net_sfc', 'tauu', 'tauv', 'psl',
              'ua', 'va', 'ta', 'hus', 'tos', 'sos', 'siconc']
+#variables = ['tas']
 #variables.reverse()
 
 # target resolution
 GRID = 'r360x180'
 
 # method for variance filtering: "sigma", "fraction" or "iqr"
-method = "fraction"
+METHOD = "sigma"
 cutting = "clipping"
 # method = "sigma"
-SIGMA = 5
+SIGMA = 3
 # fraction method: fraction of the median
-FRACTION = 0.001
+FRACTION = 0.01
 
 # skip NaN: if False, yearly/season average require that all
 # the points are defined in the correspondent time window.
@@ -66,14 +67,13 @@ NANSKIP = False
 # irrealistic high values of PI due to the  division by variance performend
 # a hack is to use 5 sigma from the mean of the log10 distribution of variance
 # define a couple of threshold to remove variance outliers
-FIGDIR = f'/scratch/users/paolo/ecmean-py-variances-{method}-{cutting}/'
-TMPDIR = '/scratch/users/paolo'
+
 
 # add other units
 units_extra_definition()
 
 
-def main(climdata='EC26', timeframe='HIST', machine='wilma', do_figures=False, overwrite=False):
+def main(climdata='EC26', timeframe='HIST', machine='wilma', do_figures=False, overwrite=False, method="sigma"):
     """Main function to create the climatology.
     
     Parameters
@@ -88,7 +88,12 @@ def main(climdata='EC26', timeframe='HIST', machine='wilma', do_figures=False, o
         Generate diagnostic figures (default: False)
     overwrite : bool
         Overwrite existing climatology files (default: False)
+    method : str
+        Variance filtering method (default: 'sigma')   
     """
+    FIGDIR = f'/scratch/users/paolo/ecmean-py-variances/{method}-{cutting}/'
+    TMPDIR = '/scratch/users/paolo'
+
     # define the years from timeframe
     year1, year2 = timeframe_years(timeframe)
     climname = f'{climdata}-{timeframe}'
@@ -167,12 +172,12 @@ def main(climdata='EC26', timeframe='HIST', machine='wilma', do_figures=False, o
         logging.info("resampling...")
         zfield = cfield.resample(time='1MS', skipna=NANSKIP).mean('time', skipna=NANSKIP)
 
-        if do_figures:
-            logging.info("Full histogram...")
-            figname = f'values_{var}_{info[var]["dataset"]}_{real_year1}_{real_year2}_full.pdf'
-            os.makedirs(os.path.join(figdir, var), exist_ok=True)
-            file = os.path.join(figdir, var, figname)
-            full_histogram(zfield, file)
+        #if do_figures:
+        #    logging.info("Full histogram...")
+        #    figname = f'values_{var}_{info[var]["dataset"]}_{real_year1}_{real_year2}_full.pdf'
+        #    os.makedirs(os.path.join(figdir, var), exist_ok=True)
+        #    file = os.path.join(figdir, var, figname)
+        #    full_histogram(zfield, file)
 
         # dump the netcdf file to disk
         logging.info("new file...")
@@ -223,21 +228,21 @@ def main(climdata='EC26', timeframe='HIST', machine='wilma', do_figures=False, o
             omean = gfield.mean('time', skipna=True, keepdims=True)
             ovar = gfield.var('time', skipna=True, keepdims=True)
 
-            if do_figures:
-                os.makedirs(os.path.join(figdir, var), exist_ok=True)
-                omean.to_netcdf(os.path.join(figdir, var, f'mean_{season}.nc'))
-                ovar.to_netcdf(os.path.join(figdir, var, f'var_{season}.nc'))
+            #if do_figures:
+            #    os.makedirs(os.path.join(figdir, var), exist_ok=True)
+            #    omean.to_netcdf(os.path.join(figdir, var, f'mean_{season}.nc'))
+            #    ovar.to_netcdf(os.path.join(figdir, var, f'var_{season}.nc'))
 
             # define the variance threshold
             if method == "sigma":
-                low, high = variance_threshold(ovar, sigma=SIGMA)
-                logging.info('Variance threshold: low = %s, high = %s', low, high)
+                low, center, high = variance_threshold(ovar, sigma=SIGMA)
+                logging.info('Variance threshold: low = %s, center = %s, high = %s', low, center, high)
             elif method == "fraction":
-                low, high = variance_fraction(ovar, fraction=FRACTION)
-                logging.info('Variance fraction: low = %s, high = %s', low, high)
+                low, center, high = variance_fraction(ovar, fraction=FRACTION)
+                logging.info('Variance fraction: low = %s, center = %s, high = %s', low, center, high)
             elif method == "iqr":
-                low, high = variance_iqr(ovar)
-                logging.info('Variance IQR: low = %s, high = %s', low, high)
+                low, center, high = variance_iqr(ovar)
+                logging.info('Variance IQR: low = %s, center = %s, high = %s', low, center, high)
             else:
                 raise ValueError(f"Unknown method for variance filtering: {method}")
 
@@ -258,7 +263,9 @@ def main(climdata='EC26', timeframe='HIST', machine='wilma', do_figures=False, o
                 figname = f'{var}_{info[var]["dataset"]}_{GRID}_{real_year1}_{real_year2}_{season}.pdf'
                 os.makedirs(os.path.join(figdir, var), exist_ok=True)
                 file = os.path.join(figdir, var, figname)
-                check_histogram(omean, ovar, fvar, file, sigma=SIGMA, fraction=FRACTION)
+                check_histogram(
+                    ovar, fvar, file, method=method, 
+                    center=center, low=low, high=high)
 
             # add a reference time
             ymean = fmean.assign_coords({"time": ("time", [reftime])})
@@ -355,6 +362,14 @@ if __name__ == "__main__":
         default=False,
         help='Generate diagnostic figures (default: False)'
     )
+    parser.add_argument(
+        '--method',
+        type=str,
+        default=METHOD,
+        help='Variance filtering method (default: %(default)s)',
+        choices=['sigma', 'fraction', 'iqr']
+    )
+
     args = parser.parse_args()
 
     logging.getLogger().setLevel(args.loglevel.upper())
@@ -365,7 +380,7 @@ if __name__ == "__main__":
         client = Client(cluster)
         logging.warning(client)
 
-    main(args.climdata, args.timeframe, args.machine, args.figures, args.overwrite)
+    main(args.climdata, args.timeframe, args.machine, args.figures, args.overwrite, args.method)
 
     if args.cores > 1:
         client.close()

@@ -112,29 +112,31 @@ def select_time_period(xfield, var, year1, year2):
 
     return cfield, real_year1, real_year2
 
-def variance_threshold(xvariance, sigma=5):
+def variance_threshold(xvariance, sigma=3):
     """
     This defines the two thresholds (high and low) for filtering the dataset
-    So far it is done on the 5-std of the log10 distribution
+    So far it is done on the 3-std of the log10 distribution
     """
     f = np.log10(xvariance.where(xvariance > 0))
     m = float(f.mean())
-    loggy.debug('Median log10 variance: %s', m)
+    loggy.debug('Median variance: %s', m)
     s = float(f.std())
     low = 10**(m - sigma * s)
     high = 10**(m + sigma * s)
-    return low, high
+    m = 10**m
+    return low, m, high
 
 def variance_iqr(xvariance):
     """This defines the two thresholds (high and low) for filtering the dataset
     based on the interquartile range of the log10 distribution."""
 
     f = np.log10(xvariance.where(xvariance > 0))
+    median = float(f.median())
     qqq = f.quantile([0.25, 0.75])
     iqr = qqq[1] - qqq[0]
     iqleft = 10**(qqq[0] - 1.5 * iqr)
     iqright = 10**(qqq[1] + 1.5 * iqr)
-    return iqleft.values, iqright.values
+    return iqleft.values, 10**median, iqright.values
 
 def variance_fraction(xvariance, fraction=1e-3):
     """
@@ -146,7 +148,7 @@ def variance_fraction(xvariance, fraction=1e-3):
     loggy.debug('Median variance: %s', m)
     low = fraction * m
     high = m / fraction
-    return low, high
+    return low, m, high
 
 def full_histogram(field, figname, n_bins=100):
     """Compute the histogram of the full field before it is processed.
@@ -167,52 +169,55 @@ def full_histogram(field, figname, n_bins=100):
     fig.savefig(figname)
 
 
-def check_histogram(ymean, yvar, yvar_filtered, figname, n_bins=100, sigma=5, fraction=1e-2):
+def check_histogram(yvar, yvar_filtered, figname, n_bins=100, method="sigma", center=None, low=None, high=None):
     """Four histograms made for inspection of mean and variance of the field
     Mean field, variance and variance after filtering are passed and then plotted
-    using histograms. log10 scales is used to highlight outliers."""
+    using histograms. log10 scale is used to highlight outliers."""
 
-    fig, axs = plt.subplots(4, 1, sharey=True, tight_layout=True, figsize=(20, 15))
+    fig, axs = plt.subplots(3, 1, sharey=True, tight_layout=True, figsize=(15, 10))
 
-    # log 10 fields
+    # log10 fields
     f = np.log10(yvar.where(yvar > 0))
-    g = np.log10(yvar_filtered.where(yvar > 0))
+    g = np.log10(yvar_filtered.where(yvar_filtered > 0))
 
-    # stats
-    avg = f.mean()
-    median = yvar.where(yvar > 0).median()
+    # Convert thresholds to log10 scale for plotting
+    center_log = np.log10(center) if center is not None and center > 0 else None
+    low_log = np.log10(low) if low is not None and low > 0 else None
+    high_log = np.log10(high) if high is not None and high > 0 else None
 
-    sss = sigma * f.std()
-    qqq = f.quantile([0.25, 0.75])
-    iqr = qqq[1] - qqq[0]
-    iqleft = qqq[0] - 1.5 * iqr
-    iqright = qqq[1] + 1.5 * iqr
-    left = np.min([avg - sss, f.min(skipna=True)])
-    right = np.max([avg + sss, f.max(skipna=True)])
+    # xlim in log10 scale
+    left = np.min([low_log if low_log is not None else f.min(skipna=True), f.min(skipna=True)])
+    right = np.max([high_log if high_log is not None else f.max(skipna=True), f.max(skipna=True)])
     extra = abs(left - right) / 20
-    # print([avg, sss, left, right, left - extra, right - extra])
 
     # mean and variance field
-    ymean.plot.hist(ax=axs[0], bins=n_bins, yscale='log', color="goldenrod")
-    axs[0].title.set_text('Original Mean ' + yvar.name)
-    yvar.plot.hist(ax=axs[1], bins=n_bins, yscale='log')
-    axs[1].title.set_text('Original variance ' + yvar.name)
+    yvar.plot.hist(ax=axs[0], bins=n_bins, yscale='log', color = 'goldenrod')
+    axs[0].title.set_text('Original variance ' + yvar.name)
 
-    # log10 plots
-    f.plot.hist(ax=axs[2], bins=n_bins, yscale='log', xlim=[left - extra, right + extra])
-    axs[2].title.set_text('Original variance log10 ' + yvar.name)
-    g.plot.hist(ax=axs[3], bins=n_bins, yscale='log', color='red', xlim=[left - extra, right + extra])
-    axs[3].title.set_text('Filtered variance log10 ' + yvar.name)
-    for k in [2, 3]:
-        axs[k].axvline(avg, color='k', linewidth=1)
-        axs[k].axvline(avg - sss, color='k', linestyle='dashed', linewidth=1)
-        axs[k].axvline(avg + sss, color='k', linestyle='dashed', linewidth=1)
-        axs[k].axvline(np.log10(median), color='g', linewidth=1)
-        axs[k].axvline(np.log10(median/fraction), color='g', linestyle='dashed', linewidth=1)
-        axs[k].axvline(np.log10(median*fraction), color='g', linestyle='dashed', linewidth=1)
+    color = 'magenta' if method == "sigma" else 'green' if method == "fraction" else 'blue'
 
-        axs[k].axvline(iqleft, color='r', linestyle='dashed', linewidth=1)
-        axs[k].axvline(iqright, color='r', linestyle='dashed', linewidth=1)
+    # log10 plots with linear x-axis
+    f.plot.hist(ax=axs[1],  bins=n_bins, yscale='log', xlim=[left - extra, right + extra])
+    axs[1].title.set_text('Original variance log10 ' + yvar.name)
+    g.plot.hist(ax=axs[2], bins=n_bins, yscale='log', color='red', xlim=[left - extra, right + extra])
+    axs[2].title.set_text('Filtered variance log10 ' + yvar.name + ' (' + method + ' method)')
+    for k in [1, 2]:
+        if center_log is not None:
+            axs[k].axvline(center_log, color='k', linewidth=1)
+        if low_log is not None:
+            axs[k].axvline(low_log, color=color, linestyle='--', linewidth=2)
+            # Add text annotation for low threshold
+            axs[k].text(low_log, axs[k].get_ylim()[1] * 0.5,
+                       f' low={low:.2e}',
+                       verticalalignment='bottom',
+                       fontsize=10, fontweight='bold')
+        if high_log is not None:
+            axs[k].axvline(high_log, color=color, linestyle='--', linewidth=2)
+            # # Add text annotation for high threshold
+            # axs[k].text(high_log, axs[k].get_ylim()[1] * 0.5,
+            #            f' high={high:.2e}',
+            #            verticalalignment='bottom',
+            #            fontsize=10, fontweight='bold')
 
     fig.savefig(figname)
 
