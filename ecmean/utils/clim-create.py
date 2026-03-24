@@ -21,8 +21,10 @@ import yaml
 from cdo import *
 #from dask.distributed import Client, LocalCluster, progress
 
-from ecmean.libs.climatology import check_histogram, full_histogram, \
+#from ecmean.libs.climatology import full_histogram
+from ecmean.libs.climatology import check_histogram, \
     mask_from_field, variance_threshold, variance_fraction, variance_iqr, \
+    variance_iqr_adjusted, \
     select_time_period, timeframe_years, \
     parse_create_args, select_time_data, get_climatology_files, CLIMATOLOGY_PREFIXES
 from ecmean.libs.files import load_yaml
@@ -243,6 +245,9 @@ def main(climdata='EC26', timeframe='HIST', machine='wilma', do_figures=False, o
             elif method == "iqr":
                 low, center, high = variance_iqr(ovar)
                 logging.info('Variance IQR: low = %s, center = %s, high = %s', low, center, high)
+            elif method == "iqr_adjusted":
+                low, center, high = variance_iqr_adjusted(ovar)
+                logging.info('Variance IQR adjusted: low = %s, center = %s, high = %s', low, center, high)
             else:
                 raise ValueError(f"Unknown method for variance filtering: {method}")
 
@@ -367,7 +372,7 @@ if __name__ == "__main__":
         type=str,
         default=METHOD,
         help='Variance filtering method (default: %(default)s)',
-        choices=['sigma', 'fraction', 'iqr']
+        choices=['sigma', 'fraction', 'iqr', 'iqr_adjusted']
     )
 
     args = parser.parse_args()

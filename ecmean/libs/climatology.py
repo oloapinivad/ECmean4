@@ -9,6 +9,7 @@ import logging
 import numpy as np
 import dask.array as da
 import matplotlib.pyplot as plt
+from statsmodels.stats.stattools import medcouple
 
 loggy = logging.getLogger(__name__)
 
@@ -126,6 +127,23 @@ def variance_threshold(xvariance, sigma=3):
     m = 10**m
     return low, m, high
 
+def variance_iqr_adjusted(xvariance):
+    """This defines the two thresholds (high and low) for filtering the dataset
+    based on the interquartile range of the log10 distribution applying  
+    the medcouple adjustment for skewness. This method is more robust to outliers
+    from Hubert, M. & Vandervieren, E. (2008)"""
+
+    f = np.log10(xvariance.where(xvariance > 0))
+    median = float(f.median())
+    qqq = f.quantile([0.25, 0.75])
+    mc = medcouple(f.values[~np.isnan(f.values)])
+    loggy.info('Medcouple: %s', mc)
+    iqr = qqq[1] - qqq[0]
+    f1, f2 = (-4, 3) if mc > 0 else (-3, 4)
+    iqleft = 10**(qqq[0] - 1.5 *iqr * np.exp(f1 * mc))
+    iqright = 10**(qqq[1] + 1.5 * iqr * np.exp(f2 * mc))
+    return iqleft.values, 10**median, iqright.values
+
 def variance_iqr(xvariance):
     """This defines the two thresholds (high and low) for filtering the dataset
     based on the interquartile range of the log10 distribution."""
@@ -194,7 +212,7 @@ def check_histogram(yvar, yvar_filtered, figname, n_bins=100, method="sigma", ce
     yvar.plot.hist(ax=axs[0], bins=n_bins, yscale='log', color = 'goldenrod')
     axs[0].title.set_text('Original variance ' + yvar.name)
 
-    color = 'magenta' if method == "sigma" else 'green' if method == "fraction" else 'blue'
+    color = 'magenta' if method == "sigma" else 'green' if method == "fraction" else 'cyan' if method=="iqr_adjusted" else 'blue'
 
     # log10 plots with linear x-axis
     f.plot.hist(ax=axs[1],  bins=n_bins, yscale='log', xlim=[left - extra, right + extra])
