@@ -138,7 +138,7 @@ EC26-HIST (1981–2010)
 
 This configuration is designed for comparison with model simulations using historical forcing or present-day forcing fixed around 1990.
 
-.. include:: tables/climatology_EC26_HIST.rst
+.. include:: tables/climatology_EC26-HIST.rst
 
 Properties of the climatology - as which interpolation method and which CMIP6 models has been used - can be inspected looking at ``ecmean/climatology/EC23/pi_climatology_EC26-HIST.yml`` file.
 
@@ -148,7 +148,7 @@ EC26-CMIP (1985–2014)
 This reference dataset is designed for the evaluation of CMIP6 historical simulations against a consistent observational baseline.
 It is aligned with the CMIP6 historical period (1985–2014), ensuring temporal consistency between model climatologies and observational targets. 
 
-.. include:: tables/climatology_EC26_CMIP.rst
+.. include:: tables/climatology_EC26-CMIP.rst
 
 
 Properties of the climatology - as which interpolation method and which CMIP6 models has been used - can be inspected looking at ``ecmean/climatology/EC23/pi_climatology_EC26-CMIP.yml`` file.
@@ -164,7 +164,7 @@ This is an upgrade of EC23 - and currently the default - with the following impr
 
 Properties of the climatology - as which interpolation method and which CMIP6 models has been used - can be inspected looking at ``ecmean/climatology/EC24/pi_climatology_EC24.yml`` file.
 
-.. include:: tables/climatology_EC24.rst
+.. include:: tables/climatology-EC24.rst
 
 EC23
 ----

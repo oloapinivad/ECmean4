@@ -143,7 +143,7 @@ It is aligned with the CMIP6 historical period (1985–2014), ensuring temporal 
 Radiative fluxes are restricted to the satellite era (2000–2014), while ocean salinity follows its specific observational availability window.
 
 
-.. include:: tables/reference_EC26_CMIP.rst
+.. include:: tables/reference_EC26-CMIP.rst
 
 ECE26-HIST (1981–2010)
 ~~~~~~~~~~~~~~~~~~~~~~
@@ -151,7 +151,7 @@ This configuration is designed for comparison with model simulations using histo
 The reference period spans 1981–2010 where observational coverage allows. Radiative fluxes follow the CERES satellite era (starting in 2000), while other variables use the 1981–2010 window.
 
 
-.. include:: tables/reference_EC26_HIST.rst
+.. include:: tables/reference_EC26-HIST.rst
 
 ECE26-PDAY (2000–2024)
 ~~~~~~~~~~~~~~~~~~~~~~
@@ -159,7 +159,7 @@ This configuration is intended for evaluation of model simulations using present
 The reference period spans 2000–2024 (or the maximum available year depending on dataset availability; e.g. 2023 for ESA-CCI-L4 products).
 By using a more recent averaging window, EC26-PDAY reflects contemporary radiative balance and hydrological cycle conditions, making it suitable for fixed present-day forcing experiments.
 
-.. include:: tables/reference_EC26_PDAY.rst
+.. include:: tables/reference_EC26-PDAY.rst
 
 EC23
 ----

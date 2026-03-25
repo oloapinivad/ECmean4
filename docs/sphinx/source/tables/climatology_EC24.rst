@@ -8,17 +8,17 @@
      - Period
      - # Models & Period
    * - 2m Temperature (land-only)
-     - CRU (v4.05)
+     - CRU
      - land
      - 1985-2014
      - 12 (1985-2014)
    * - Precipitation
-     - MSWEP (v2.80)
+     - MSWEP
      - global
      - 1985-2014
      - 12 (1985-2014)
    * - Net surface radiation flux (downward)
-     - NOCS (v2.0)
+     - NOCS
      - ocean
      - 1985-2014
      - 10 (1985-2014)
