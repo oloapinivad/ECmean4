@@ -5,9 +5,9 @@ Main concepts
 ^^^^^^^^^^^^^
 
 The ``performance_indices`` command is based on the ``performance_indices.py`` script which computes the `Reichler and Kim Performance Indices <https://journals.ametsoc.org/view/journals/bams/89/3/bams-89-3-303.xml>`_, usually known as PIs. 
-Some minor differences from the original definition has been introduced, so that the PIs are computed on a common grid (user defined, 1deg by default) rather than on the original observational grid.
+Some minor differences from the original definition have been introduced, so that the PIs are computed on a common grid (user defined, 1deg by default) rather than on the original observational grid.
 
-From the original definition a few improvements has been introduced, producing the PIs also for a set of selected regions and seasons. 
+From the original definition a few improvements have been introduced, producing the PIs also for a set of selected regions and seasons. 
 
 PIs are computed as the root mean square error of a 2D field normalized by the interannual variance estimated from the observations, as follows:
 
@@ -15,37 +15,37 @@ PIs are computed as the root mean square error of a 2D field normalized by the i
 
    \text{PI} = \frac{\sum \left( \text{Model climatology} - \text{Observation climatology} \right)^2}{\text{Observation variance}}
 
-Larger values implies worse performance of the climate models.
+Larger values imply worse performance of the climate models.
 For sake of simplicity, they can be normalized by the CMIP6 ensemble average, 
-so that values smaller than one implies a better results than CMIP6 ensemble average.
+so that values smaller than one imply better results than CMIP6 ensemble average.
 
-.. note :: 
+.. note:: 
 
    3D fields (e.g. zonal wind, temperature, etc.) are treated as 2D fields by performing the zonal average. 
-   All vertical levels are considered, and if mismatch is found between the model and the observations, the model data are linearly interpolated to the observation grid.
+   All vertical levels are considered, and if a mismatch is found between the model and the observations, the model data are linearly interpolated to the observation grid.
 
 Usage
 ^^^^^
 
-Running the performance indices evaluation is rather simple ::
+Running the performance indices evaluation is rather simple::
 
-        performance_indices EXP Y1 Y2
+   performance_indices EXP Y1 Y2
 
-You can also run it from the specific python script in ``ecmean`` library ::
+You can also run it from the specific python script in ``ecmean`` library::
 
-        ./performance_indices.py EXP Y1 Y2
+   ./performance_indices.py EXP Y1 Y2
 
 Positional Arguments
 --------------------
 
-* ``EXP``
-  Experiment identification.
+  EXP
+    Experiment identification.
 
-* ``Y1``
-  Starting year of analysis.
+  Y1
+    Starting year of analysis.
 
-* ``Y2``
-  Final year of analysis.
+  Y2
+    Final year of analysis.
 
 
 Optional Arguments
@@ -53,75 +53,75 @@ Optional Arguments
 
 .. option:: -h, --help
 
-    Show this help message and exit.
+   Show this help message and exit.
 
 .. option:: -s, --silent
 
-    Do not print anything to std output.
+   Do not print anything to standard output.
+
+.. option:: --version
+
+   Show |ecmean|'s version number and exit.
 
 .. option:: -l LOGLEVEL, --loglevel LOGLEVEL
 
-    Define the level of logging. Default: error.
+   Define the level of logging. The default is 'warning'.
 
 .. option:: -j NUMPROC
 
-    Specify the number of processors to use.
+   Specify the number of processors to use.
 
 .. option:: -c CONFIG, --config CONFIG
 
-    Set up a specific configuration file (config.yml is default).
+   Set up a specific configuration file. The default is ``config.yml``.
 
 .. option:: -i INTERFACE, --interface INTERFACE
 
-    Set up a specific interface file (override config.yml).
+   Set up a specific interface file, overriding the configuration specified in ``config.yml``.
 
 .. option:: -m MODEL, --model MODEL
 
-    Specify the model name.
+   Specify the model name.
 
 .. option:: -e ENSEMBLE, --ensemble ENSEMBLE
 
-    Specify the variant label (i.e., ripf number for cmor).
-
-.. option:: -d, --debug
-
-    Activate CDO debugging.
-
-.. option:: --climatology CLIMATOLOGY
-
-    Specify the climatology you want to use (EC24: default).
+   Specify the variant label (i.e., ripf number for cmor).
 
 .. option:: -o DIR, --outputdir DIR
 
-   Specify the path of the output directory. This will create a `YAML` and `PDF` folders for table and figures.
+   Specify the path of the output directory. This will create YAML and PDF folders for tables and figures.
 
-Example 
-^^^^^^^
+.. option:: --climatology CLIMATOLOGY
+
+   Specify the climatology you want to use. The default is EC24. Alternatives are EC26-HIST, EC26-CMIP and EC23.
+
+Examples
+^^^^^^^^
 
 Usage example for CMIP6 (running on 12 cores for EC-Earth3 historical)::
 
-  > .performance_indices historical 1990 1999 -j 12 -m EC-Earth3 -e r1i1p1f1 -i CMIP6 
+   performance_indices historical 1990 1999 -j 12 -m EC-Earth3 -e r1i1p1f1 -i CMIP6
 
-Usage example for EC-Earth4 (running on 4 cores for EC-Earth4 experment ABC1)::
+Usage example for EC-Earth4 (running on 4 cores for EC-Earth4 experiment ABC1)::
 
-  > performance_indices ABC1 1990 1999 -j 4
+   performance_indices ABC1 1990 1999 -j 4
 
 
 Output
 ^^^^^^
 
-The result is produced in a form a YAML file, indicating PIs for each variable, region and season, that is stored for later evaluation. 
+The result is produced in the form of a YAML file, indicating PIs for each variable, region and season, that is stored for later evaluation. 
 Most importantly, a figure is produced showing a "score card" for the different regions, variables and seasons.
 
 For the sake of simplicity, the PIs figure is shown as the ratio between the model PI and the average value estimated over the (precomputed) ensemble of CMIP6 models. 
-An example of the the output for a single year of the EC-Earth3 historical simulation is shown here below.
+An example of the output for a single year of the EC-Earth3 historical simulation is shown here below.
 
 .. figure:: _static/pitestfigure.png
    :align: center
    :width: 600px
    :alt: PI for ECearth3
 
-   An example for a single year of the EC-Earth3 historical r1i1p1f1 simulation. Values smaller than one implies a better results than CMIP6 ensemble average.
+   An example for a single year of the EC-Earth3 historical r1i1p1f1 simulation. Values smaller than one imply better results than CMIP6 ensemble average.
 
 Climatologies available
 ^^^^^^^^^^^^^^^^^^^^^^^
@@ -140,7 +140,7 @@ This configuration is designed for comparison with model simulations using histo
 
 .. include:: tables/climatology_EC26-HIST.rst
 
-Properties of the climatology - as which interpolation method and which CMIP6 models has been used - can be inspected looking at ``ecmean/climatology/EC23/pi_climatology_EC26-HIST.yml`` file.
+Properties of the climatology - such as which interpolation method and which CMIP6 models have been used - can be inspected by looking at the ``ecmean/climatology/EC26/pi_climatology_EC26-HIST.yml`` file.
 
 EC26-CMIP (1985–2014)
 ~~~~~~~~~~~~~~~~~~~~~
@@ -151,7 +151,7 @@ It is aligned with the CMIP6 historical period (1985–2014), ensuring temporal 
 .. include:: tables/climatology_EC26-CMIP.rst
 
 
-Properties of the climatology - as which interpolation method and which CMIP6 models has been used - can be inspected looking at ``ecmean/climatology/EC23/pi_climatology_EC26-CMIP.yml`` file.
+Properties of the climatology - such as which interpolation method and which CMIP6 models have been used - can be inspected by looking at the ``ecmean/climatology/EC26/pi_climatology_EC26-CMIP.yml`` file.
 
 EC24
 ----
@@ -162,7 +162,7 @@ This is an upgrade of EC23 - and currently the default - with the following impr
   - It extend the amount of regions to be considered, allowing also for Northern/Southern Hemisphere, Equatorial and South/North Pole regions.
   - It includes more climate models, that now ranges between 10 to 15 according to the variable.
 
-Properties of the climatology - as which interpolation method and which CMIP6 models has been used - can be inspected looking at ``ecmean/climatology/EC24/pi_climatology_EC24.yml`` file.
+Properties of the climatology - such as which interpolation method and which CMIP6 models have been used - can be inspected by looking at the ``ecmean/climatology/EC24/pi_climatology_EC24.yml`` file.
 
 .. include:: tables/climatology_EC24.rst
 
@@ -170,7 +170,7 @@ EC23
 ----
 This is built with high-resolution data (e.g. CRU, ERA5, MSWEP, etc.) and defined on a 1x1 deg resolution for year 1990-2019. It uses a 30-year time window for CMIP6 models.
 
-Properties of the climatology - as which interpolation method and which CMIP6 models has been used - can be inspected looking at ``ecmean/climatology/EC23/pi_climatology_EC23.yml`` file.
+Properties of the climatology - such as which interpolation method and which CMIP6 models have been used - can be inspected by looking at the ``ecmean/climatology/EC23/pi_climatology_EC23.yml`` file.
 
 
 .. list-table:: Data used in EC23 climatology
@@ -234,7 +234,7 @@ An example YML as `create-clim-wilma-EC26.yml` is provided in the repository.
 Variance normalization
 ^^^^^^^^^^^^^^^^^^^^^^^
 
-PIs strongly depends on the interannual variance of the reference datasates. Some datasets have extremely low values which leads to unrealistic large PIs. 
+PIs strongly depend on the interannual variance of the reference datasets. Some datasets have extremely low values which lead to unrealistically large PIs. 
 To avoid that grid points with unrealistic low variance affect the computation of the PIs, a filter to exclude outlier is introduced. 
 
 For EC26 climatology, the filter is based on a combination of two constraints. The minimum accepted variance is defined by the maximum value between 
