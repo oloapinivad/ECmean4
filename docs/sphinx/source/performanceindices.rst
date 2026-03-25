@@ -138,7 +138,9 @@ EC26-HIST (1981–2010)
 
 This configuration is designed for comparison with model simulations using historical forcing or present-day forcing fixed around 1990.
 
-.. include:: tables/climatology_EC26-HIST.rst
+.. include:: tables/climatology_EC26_HIST.rst
+
+Properties of the climatology - as which interpolation method and which CMIP6 models has been used - can be inspected looking at ``ecmean/climatology/EC23/pi_climatology_EC26-HIST.yml`` file.
 
 EC26-CMIP (1985–2014)
 ~~~~~~~~~~~~~~~~~~~~~
@@ -146,7 +148,10 @@ EC26-CMIP (1985–2014)
 This reference dataset is designed for the evaluation of CMIP6 historical simulations against a consistent observational baseline.
 It is aligned with the CMIP6 historical period (1985–2014), ensuring temporal consistency between model climatologies and observational targets. 
 
-.. include:: tables/climatology_EC26-CMIP.rst
+.. include:: tables/climatology_EC26_CMIP.rst
+
+
+Properties of the climatology - as which interpolation method and which CMIP6 models has been used - can be inspected looking at ``ecmean/climatology/EC23/pi_climatology_EC26-CMIP.yml`` file.
 
 EC24
 ----
@@ -157,7 +162,7 @@ This is an upgrade of EC23 - and currently the default - with the following impr
   - It extend the amount of regions to be considered, allowing also for Northern/Southern Hemisphere, Equatorial and South/North Pole regions.
   - It includes more climate models, that now ranges between 10 to 15 according to the variable.
 
-Properties of the climatology - as which interpolation method and which CMIP6 models has been used - can be inspected looking at ``ecmean/climatology/EC24/pi_climatology_ECE24.yml`` file.
+Properties of the climatology - as which interpolation method and which CMIP6 models has been used - can be inspected looking at ``ecmean/climatology/EC24/pi_climatology_EC24.yml`` file.
 
 .. include:: tables/climatology_EC24.rst
 
@@ -165,7 +170,7 @@ EC23
 ----
 This is built with high-resolution data (e.g. CRU, ERA5, MSWEP, etc.) and defined on a 1x1 deg resolution for year 1990-2019. It uses a 30-year time window for CMIP6 models.
 
-Properties of the climatology - as which interpolation method and which CMIP6 models has been used - can be inspected looking at ``ecmean/climatology/EC24/pi_climatology_ECE24.yml`` file.
+Properties of the climatology - as which interpolation method and which CMIP6 models has been used - can be inspected looking at ``ecmean/climatology/EC23/pi_climatology_EC23.yml`` file.
 
 
 .. list-table:: Data used in EC23 climatology

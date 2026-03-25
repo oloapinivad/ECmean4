@@ -145,7 +145,7 @@ Radiative fluxes are restricted to the satellite era (2000–2014), while ocean 
 
 .. include:: tables/reference_EC26_CMIP.rst
 
-ECE26-HIST version (1981–2010)
+ECE26-HIST (1981–2010)
 ~~~~~~~~~~~~~~~~~~~~~~
 This configuration is designed for comparison with model simulations using historical forcing or present-day forcing fixed around 1990.
 The reference period spans 1981–2010 where observational coverage allows. Radiative fluxes follow the CERES satellite era (starting in 2000), while other variables use the 1981–2010 window.
