@@ -24,7 +24,7 @@ from cdo import *
 #from ecmean.libs.climatology import full_histogram
 from ecmean.libs.climatology import check_histogram, \
     mask_from_field, variance_threshold, variance_fraction, variance_iqr, \
-    variance_iqr_adjusted, \
+    variance_iqr_adjusted, variance_combined,\
     select_time_period, timeframe_years, \
     parse_create_args, select_time_data, get_climatology_files, CLIMATOLOGY_PREFIXES
 from ecmean.libs.files import load_yaml
@@ -54,12 +54,12 @@ variables = ['tas', 'pr', 'net_sfc', 'tauu', 'tauv', 'psl',
 GRID = 'r360x180'
 
 # method for variance filtering: "sigma", "fraction" or "iqr"
-METHOD = "sigma"
+METHOD = "combined"
 cutting = "clipping"
 # method = "sigma"
 SIGMA = 3
 # fraction method: fraction of the median
-FRACTION = 0.01
+FRACTION = 3
 
 # skip NaN: if False, yearly/season average require that all
 # the points are defined in the correspondent time window.
@@ -248,6 +248,9 @@ def main(climdata='EC26', timeframe='HIST', machine='wilma', do_figures=False, o
             elif method == "iqr_adjusted":
                 low, center, high = variance_iqr_adjusted(ovar)
                 logging.info('Variance IQR adjusted: low = %s, center = %s, high = %s', low, center, high)
+            elif method == "combined":
+                low, center, high = variance_combined(ovar, sigma=SIGMA, fraction=FRACTION)
+                logging.info('Variance combined: low = %s, center = %s, high = %s', low, center, high)
             else:
                 raise ValueError(f"Unknown method for variance filtering: {method}")
 
@@ -372,7 +375,7 @@ if __name__ == "__main__":
         type=str,
         default=METHOD,
         help='Variance filtering method (default: %(default)s)',
-        choices=['sigma', 'fraction', 'iqr', 'iqr_adjusted']
+        choices=['sigma', 'fraction', 'iqr', 'iqr_adjusted', 'combined']
     )
 
     args = parser.parse_args()

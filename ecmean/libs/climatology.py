@@ -130,8 +130,7 @@ def variance_threshold(xvariance, sigma=3):
 def variance_iqr_adjusted(xvariance):
     """This defines the two thresholds (high and low) for filtering the dataset
     based on the interquartile range of the log10 distribution applying  
-    the medcouple adjustment for skewness. This method is more robust to outliers
-    from Hubert, M. & Vandervieren, E. (2008)"""
+    the medcouple adjustment for skewness from Hubert, M. & Vandervieren, E. (2008)"""
 
     f = np.log10(xvariance.where(xvariance > 0))
     median = float(f.median())
@@ -142,7 +141,30 @@ def variance_iqr_adjusted(xvariance):
     f1, f2 = (-4, 3) if mc > 0 else (-3, 4)
     iqleft = 10**(qqq[0] - 1.5 *iqr * np.exp(f1 * mc))
     iqright = 10**(qqq[1] + 1.5 * iqr * np.exp(f2 * mc))
-    return iqleft.values, 10**median, iqright.values
+
+    return iqleft, 10**median, iqright
+
+def variance_combined(xvariance, fraction=3, sigma=3):
+    """
+    This defines the two thresholds (high and low) for filtering the dataset
+    based on the combination of the 3-sigma method and the fraction of the median in
+    log10 space. The final thresholds are defined as the maximum of the low thresholds
+    and the minimum of the high thresholds, to avoid too wide thresholds in case of low variance fields.
+    """
+
+    f = np.log10(xvariance.where(xvariance > 0))
+    median = f.median().values
+    s = f.std().values
+    sigmaleft = 10**(median - sigma * s)
+    sigmaright = 10**(median + sigma * s)
+    loggy.info('Sigma thresholds: low = %s, high = %s', sigmaleft, sigmaright)
+    varleft = 10**(median - fraction)
+    varright = 10**(median + fraction)
+    loggy.info('Variance fraction: low = %s, high = %s', varleft, varright)
+    left = max(sigmaleft, varleft)
+    right = min(sigmaright, varright)
+
+    return left, 10**median, right
 
 def variance_iqr(xvariance):
     """This defines the two thresholds (high and low) for filtering the dataset
@@ -156,17 +178,17 @@ def variance_iqr(xvariance):
     iqright = 10**(qqq[1] + 1.5 * iqr)
     return iqleft.values, 10**median, iqright.values
 
-def variance_fraction(xvariance, fraction=1e-3):
+def variance_fraction(xvariance, fraction=3):
     """
     Alternative method for variance clipping, based on the median of the distribution. 
     The threshold is defined as a fraction of the median.
     """
-    f = xvariance.where(xvariance > 0)
+    f = np.log10(xvariance.where(xvariance > 0))
     m = float(f.median())
     loggy.debug('Median variance: %s', m)
-    low = fraction * m
-    high = m / fraction
-    return low, m, high
+    low = 10**(m - fraction)
+    high = 10**(m + fraction)
+    return low, 10**m, high
 
 def full_histogram(field, figname, n_bins=100):
     """Compute the histogram of the full field before it is processed.
@@ -250,6 +272,15 @@ def mask_from_field(xfield):
         mask = 'ocean'
     elif 0.2 < ratio < 0.3:
         mask = 'land'
+        # Check if Antarctica is missing (lat < -60)
+        antarctica_missing = False
+        antarctic_data = xfield.where(xfield['lat'] < -60, drop=True)
+        if antarctic_data.size > 0:
+            antarctic_ratio = float(antarctic_data.count() / antarctic_data.size)
+            antarctica_missing = antarctic_ratio < 0.1  # Most of Antarctica is missing
+        if antarctica_missing:
+            mask = 'land-no-antarctica'
+        
     elif 0.55 < ratio < 0.7:
         mask = 'ocean'
     elif ratio > 0.95:

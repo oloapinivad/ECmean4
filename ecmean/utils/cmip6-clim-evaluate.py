@@ -134,7 +134,7 @@ def main(clim='EC26', timeframe='CMIP', nprocs=4,
             for season, region_data in season_data.items():
                 piclim[var]['cmip6'][season] = {}
                 for region, value in region_data.items():
-                    piclim[var]['cmip6'][season][region] = float(value)
+                    piclim[var]['cmip6'][season][region] =  np.nan if value == 0 else float(value)
             piclim[var]['cmip6']['models'] = mout[var]
             piclim[var]['cmip6']['nmodels'] = len(mout[var])
             piclim[var]['cmip6']['year1'] = year1
