@@ -1,6 +1,7 @@
-.. list-table::
+.. list-table:: Date used in PI Climatology - EC24
    :header-rows: 1
-   :widths: 30 20 12 12 10
+   :widths: 35 25 15 15 10
+   :width: 100%
 
    * - Long Name
      - Dataset

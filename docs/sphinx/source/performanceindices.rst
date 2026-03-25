@@ -164,7 +164,7 @@ This is an upgrade of EC23 - and currently the default - with the following impr
 
 Properties of the climatology - as which interpolation method and which CMIP6 models has been used - can be inspected looking at ``ecmean/climatology/EC24/pi_climatology_EC24.yml`` file.
 
-.. include:: tables/climatology-EC24.rst
+.. include:: tables/climatology_EC24.rst
 
 EC23
 ----
