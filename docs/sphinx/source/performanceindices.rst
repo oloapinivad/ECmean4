@@ -126,7 +126,40 @@ An example of the the output for a single year of the EC-Earth3 historical simul
 Climatologies available
 ^^^^^^^^^^^^^^^^^^^^^^^
 
-Currently, two different climatologies are available:
+Currently, three different climatologies are available, EC26, EC24 and EC23, covering different observation periods and based on different datasets.
+
+EC26
+----
+
+This is the updated climatology which further extends EC24 with updated datasets and a more recent reference period when available.
+
+EC26-HIST (1981–2010)
+~~~~~~~~~~~~~~~~~~~~~
+
+This configuration is designed for comparison with model simulations using historical forcing or present-day forcing fixed around 1990.
+
+.. include:: tables/climatology_EC26-HIST.rst
+
+EC26-CMIP (1985–2014)
+~~~~~~~~~~~~~~~~~~~~~
+
+This reference dataset is designed for the evaluation of CMIP6 historical simulations against a consistent observational baseline.
+It is aligned with the CMIP6 historical period (1985–2014), ensuring temporal consistency between model climatologies and observational targets. 
+
+.. include:: tables/climatology_EC26-CMIP.rst
+
+EC24
+----
+
+This is an upgrade of EC23 - and currently the default - with the following improvements:
+  - It is scaled to 1985-2014, to be consistent with the CMIP6 historical simulations.
+  - It removes data above 10hPa for 3D fields, to avoid unrealistic large PIs due to stratospheric low variances.
+  - It extend the amount of regions to be considered, allowing also for Northern/Southern Hemisphere, Equatorial and South/North Pole regions.
+  - It includes more climate models, that now ranges between 10 to 15 according to the variable.
+
+Properties of the climatology - as which interpolation method and which CMIP6 models has been used - can be inspected looking at ``ecmean/climatology/EC24/pi_climatology_ECE24.yml`` file.
+
+.. include:: tables/climatology_EC24.rst
 
 EC23
 ----
@@ -182,63 +215,7 @@ Properties of the climatology - as which interpolation method and which CMIP6 mo
      - ESA-CCI-L4
      - 6 CMIP6 models over 1981-2010
 
-EC24
-----
 
-This is an upgrade of EC23 - and currently the new default - with the following improvements:
-  - It is scaled to 1985-2014, to be consistent with the CMIP6 historical simulations.
-  - It removes data above 10hPa for 3D fields, to avoid unrealistic large PIs due to stratospheric low variances.
-  - It extend the amount of regions to be considered, allowing also for Northern/Southern Hemisphere, Equatorial and South/North Pole regions.
-  - It includes more climate models, that now ranges between 10 to 15 according to the variable.
-
-Properties of the climatology - as which interpolation method and which CMIP6 models has been used - can be inspected looking at ``ecmean/climatology/EC24/pi_climatology_ECE24.yml`` file.
-
-.. list-table:: Data used in EC24 climatology
-   :header-rows: 1
-   :widths: 30 30 30
-
-   * - **Variable**
-     - **Observations**
-     - **Models**
-   * - 2m temperature (land-only)
-     - CRU TS 4.05, 1985-2014
-     - 12 CMIP6 models over 1985-2014
-   * - Precipitation
-     - MSWEP, 1985-2014
-     - 12 CMIP6 models over 1985-2014
-   * - Net surface radiation
-     - NOCS, 1985-2014
-     - 10 CMIP6 models over 1985-2014
-   * - Eastward wind stress
-     - ORAS5, 1985-2014
-     - 14 CMIP6 models over 1985-2014
-   * - Meridional wind stress
-     - ORAS5, 1985-2014
-     - 12 CMIP6 models over 1985-2014
-   * - Mean sea level pressure
-     - ERA5, 1985-2014
-     - 12 CMIP6 models over 1985-2014
-   * - Zonal wind
-     - ERA5, 1985-2014
-     - 12 CMIP6 models over 1985-2014
-   * - Meridional wind
-     - ERA5, 1985-2014
-     - 13 CMIP6 models over 1985-2014
-   * - Air temperature
-     - ERA5, 1985-2014
-     - 15 CMIP6 models over 1985-2014
-   * - Specific humidity
-     - ERA5, 1985-2014
-     - 13 CMIP6 models over 1985-2014
-   * - Sea surface temperature
-     - ESA-CCI-L4
-     - 14 CMIP6 models over 1985-2014
-   * - Sea surface salinity
-     - ORAS5, 1985-2014
-     - 14 CMIP6 models over 1985-2014
-   * - Sea ice concentration
-     - ESA-CCI-L4
-     - 11 CMIP6 models over 1985-2014
 
 Climatology computation
 ^^^^^^^^^^^^^^^^^^^^^^^
@@ -246,15 +223,24 @@ Climatology computation
 Climatology is computed by the ``ecmean/utils/clim-create.py`` script, which is included in the repository for documentation.
 It is based on a YML file which is tells the script where to retrieve the data, identifying all the required data folder, names and description. 
 The tool loops over the variable and produces the yearly and seasonal average of the climate, as well as the interannual variance required for PIs. 
+In the remote case you would like to develop a new climatology, you can create your own YML file and run the script to produce the reference climatology.
+An example YML as `create-clim-wilma-EC26.yml` is provided in the repository.
 
-.. note ::
-  PIs strongly depends on the interannual variance of the reference datasates. Some datasets have extremely low values which leads to unrealistic large PIs. 
-  To avoid that grid points with unrealistic low variance affect the computation of the PIs, a filter to exclude outlier is introduced. This is based on the 5-sigma of the log10 distribution of each variable and each season. 
-  If the variance of a grid point is above or below the 5-sigma, the grid point is excluded from the computation of the PIs.
-  However, some fields as specific humidity (`hus`) are still characterized by very large PIs (due to stratospheric low variances).
+Variance normalization
+^^^^^^^^^^^^^^^^^^^^^^^
 
-.. Current climatology has been developed making use of high-resolution data (e.g. CRU, ERA5, MSWEP, etc.) and is defined as ``EC23``, using a 1x1 deg resolution and being the default. 
-.. Properties of each climatology - as which interpolation method and which CMIP6 models has been used - can be inspected looking at ``ecmean/climatology/{clim}/pi_climatology_ECE23.yml`` files.
+PIs strongly depends on the interannual variance of the reference datasates. Some datasets have extremely low values which leads to unrealistic large PIs. 
+To avoid that grid points with unrealistic low variance affect the computation of the PIs, a filter to exclude outlier is introduced. 
+
+For EC26 climatology, the filter is based on a combination of two constraints. The minimum accepted variance is defined by the maximum value between 
+- The 3-sigma from the mean the log10 distribution 
+- The 0.1% of the median variance of the log10 distribution.
+If a grid point is below the minimum accepted variance, a clipping strategy is applied and the variance is set to the minimum accepted variance.
+
+For EC24 and EC23 climatology, the filter is based on a single constraint, which is the 5-sigma from the mean of the log10 distribution.
+This is based on the 5-sigma of the log10 distribution of each variable and each season. 
+If the variance of a grid point is above or below the 5-sigma, the grid point is excluded from the computation of the PIs.
+
 
 CMIP6 comparison
 ^^^^^^^^^^^^^^^^
