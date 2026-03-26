@@ -91,15 +91,15 @@ class Diagnostic():
                 raise ValueError('No figure directory defined in config file')
             self.figdir = Path(os.path.expandvars(cfg['dirs']['fig']))
         else:
-            self.tabdir = Path(os.path.join(outputdir, 'yml'))
-            self.figdir = Path(os.path.join(outputdir, 'pdf'))
+            self.tabdir = Path(os.path.join(outputdir, 'YAML'))
+            self.figdir = Path(os.path.join(outputdir, 'PDF'))
 
         # init for global mean
         if self.funcname == 'GlobalMean':
             self.cfg_global_mean(cfg)
 
         # init for performance indices
-        if self.funcname in 'PerformanceIndices':
+        if self.funcname == 'PerformanceIndices':
             self.cfg_performance_indices(cfg)
 
         # setting up interface file
@@ -130,9 +130,9 @@ class Diagnostic():
         """
 
         if self.funcname == 'GlobalMean':
-            head = 'global_mean'
+            head = f'GM_{self.reference}'
         elif self.funcname == 'PerformanceIndices':
-            head = f'PI4_{self.climatology}'
+            head = f'PI_{self.climatology}'
         else:
             raise ValueError('Unknown function name')
 
