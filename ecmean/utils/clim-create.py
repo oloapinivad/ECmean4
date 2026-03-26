@@ -18,7 +18,7 @@ import matplotlib
 import pandas as pd
 import xarray as xr
 import yaml
-from cdo import *
+from cdo import Cdo
 #from dask.distributed import Client, LocalCluster, progress
 
 #from ecmean.libs.climatology import full_histogram
@@ -138,6 +138,10 @@ def main(climdata='EC26', timeframe='HIST', machine='wilma', do_figures=False, o
             dataset=info[var]['dataset'],
             varname=info[var]['varname'])
         logging.debug(filedata)
+        if not os.path.isfile(filedata):
+            logging.error('Data file for variable %s not found: %s', var, filedata)
+            logging.error('Are you on the right machine?')
+            continue
 
         # load data and time select
         logging.info("Loading multiple files...")

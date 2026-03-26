@@ -16,7 +16,7 @@ from ecmean.libs.general import are_dicts_equal
 # set TOLERANCE
 TOLERANCE = 1e-1
 # set CLEANUP flag to control removal of generated YML files after tests
-CLEANUP = True
+CLEANUP = False
 OUTPUTDIR = 'tests/pluto'
 
 # set up coverage env var
