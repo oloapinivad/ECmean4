@@ -12,6 +12,7 @@ docs/sphinx/build/
 ecmean.egg-info/
 ecmean/utils/history_benchmark
 dist/
+pluto/
 *.ipynb
 
 

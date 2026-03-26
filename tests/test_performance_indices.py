@@ -125,7 +125,7 @@ def test_performance_indices_amip_xdataset(clim, tmp_path):
 
     # second part of the test: check that the plot can be created from the YML file
     outputfile = tmp_path / 'PI_heatmap.png'
-    pi = PerformanceIndices('amip', 1990, 1990, config='tests/config.yml', climatology='EC23')
+    pi = PerformanceIndices('amip', 1990, 1990, config='tests/config.yml', climatology=clim)
     pi.prepare()
     pi.plot(mapfile=outputfile)
     assert os.path.isfile(outputfile), "Plot not created."
