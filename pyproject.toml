@@ -6,7 +6,7 @@ build-backend = "setuptools.build_meta"
 name = "ecmean"
 dynamic = ["version"]
 authors = [
-  { name="Paolo Davini", email="p.davini@isac.cnr.it" },
+  { name="Paolo Davini", email="paolo.davini@cnr.it" },
   { name="Jost von Hardenberg", email="jost.hardenberg@polito.it" } 
 ]
 description = "A Global Climate Model lightweight evaluation tool"
@@ -30,7 +30,8 @@ dependencies = [
     "matplotlib",
     "tabulate",
     "cfgrib",
-    "seaborn"
+    "seaborn",
+    "statsmodels"
 ]
 
 [project.optional-dependencies]
@@ -38,7 +39,8 @@ tests = [
     "flake8",
     "coverage>=7.10.0",
     "coveralls",
-    "pytest"
+    "pytest",
+    "cdo"
 ]
 
 docs = [

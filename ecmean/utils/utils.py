@@ -138,7 +138,7 @@ def parse_create_args():
     )
     parser.add_argument(
         '-l', '--loglevel',
-        type=str,
+        type=str.upper,
         default='WARNING',
         choices=['DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL'],
         help='Logging level (default: WARNING)'

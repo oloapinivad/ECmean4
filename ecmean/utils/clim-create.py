@@ -21,13 +21,15 @@ import yaml
 from cdo import *
 #from dask.distributed import Client, LocalCluster, progress
 
-from ecmean.libs.climatology import check_histogram, full_histogram, \
-    mask_from_field, variance_threshold
+#from ecmean.libs.climatology import full_histogram
+from ecmean.libs.climatology import check_histogram, \
+    mask_from_field, variance_threshold, variance_fraction, variance_iqr, \
+    variance_iqr_adjusted, variance_combined,\
+    select_time_period, timeframe_years, \
+    parse_create_args, select_time_data, get_climatology_files, CLIMATOLOGY_PREFIXES
 from ecmean.libs.files import load_yaml
 from ecmean.libs.ncfixers import xr_preproc
 from ecmean.libs.units import units_extra_definition
-from ecmean.utils.utils import select_time_period, timeframe_years, \
-    parse_create_args, select_time_data, get_climatology_files, CLIMATOLOGY_PREFIXES
 
 # activate CDO class
 cdo = Cdo(logging=True)
@@ -35,16 +37,29 @@ cdo = Cdo(logging=True)
 # output for matplot lib
 matplotlib.use('Agg')
 
-# set default logging
-logging.basicConfig(level=logging.INFO)
+# setup logging
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s | %(name)s | %(levelname)8s -> %(message)s',
+    datefmt='%Y-%m-%d %H:%M:%S'
+)
 
 # variable list
 variables = ['tas', 'pr', 'net_sfc', 'tauu', 'tauv', 'psl',
              'ua', 'va', 'ta', 'hus', 'tos', 'sos', 'siconc']
+#variables = ['tas']
 #variables.reverse()
 
 # target resolution
 GRID = 'r360x180'
+
+# method for variance filtering: "sigma", "fraction" or "iqr"
+METHOD = "combined"
+cutting = "clipping"
+# method = "sigma"
+SIGMA = 3
+# fraction method: fraction of the median
+FRACTION = 3
 
 # skip NaN: if False, yearly/season average require that all
 # the points are defined in the correspondent time window.
@@ -54,14 +69,13 @@ NANSKIP = False
 # irrealistic high values of PI due to the  division by variance performend
 # a hack is to use 5 sigma from the mean of the log10 distribution of variance
 # define a couple of threshold to remove variance outliers
-FIGDIR = '/work/users/malbanes/figures/ecmean-py-variances/'
-TMPDIR = '/scratch/users/paolo'
+
 
 # add other units
 units_extra_definition()
 
 
-def main(climdata='EC26', timeframe='HIST', machine='wilma', do_figures=False, overwrite=False):
+def main(climdata='EC26', timeframe='HIST', machine='wilma', do_figures=False, overwrite=False, method="sigma"):
     """Main function to create the climatology.
     
     Parameters
@@ -76,7 +90,12 @@ def main(climdata='EC26', timeframe='HIST', machine='wilma', do_figures=False, o
         Generate diagnostic figures (default: False)
     overwrite : bool
         Overwrite existing climatology files (default: False)
+    method : str
+        Variance filtering method (default: 'sigma')   
     """
+    FIGDIR = f'/scratch/users/paolo/ecmean-py-variances/{method}-{cutting}/'
+    TMPDIR = '/scratch/users/paolo'
+
     # define the years from timeframe
     year1, year2 = timeframe_years(timeframe)
     climname = f'{climdata}-{timeframe}'
@@ -108,6 +127,10 @@ def main(climdata='EC26', timeframe='HIST', machine='wilma', do_figures=False, o
     for var in variables:
 
         logging.warning('Processing variable: %s', var)
+
+        #if var not in 'siconc':
+        #    continue
+
         tic = time()
         # get the directory
         filedata = str(os.path.expandvars(info[var]['dir'])).format(
@@ -120,10 +143,10 @@ def main(climdata='EC26', timeframe='HIST', machine='wilma', do_figures=False, o
         logging.info("Loading multiple files...")
         # unable to operate with Parallel=True
         xfield = xr.open_mfdataset(filedata, chunks='auto',
-                                   parallel=False, preprocess=xr_preproc, engine='netcdf4',
+                                   parallel=True, preprocess=xr_preproc, engine='netcdf4',
                                    data_vars='all', join='outer', compat='no_conflicts')
         xfield = xfield.rename({info[var]['varname']: var})
-        
+
         # select time based on data availability
         cfield, real_year1, real_year2 = select_time_period(xfield, var, year1, year2)
 
@@ -145,22 +168,18 @@ def main(climdata='EC26', timeframe='HIST', machine='wilma', do_figures=False, o
         elif not hasattr(cfield, 'units'):
             raise ValueError('no unit found or defined!')
 
-        # cleaning
-        # cfield = fix_specific_dataset(var, info[var]['dataset'], cfield)
         logging.debug(cfield)
 
         # monthly average using resample/pandas
         logging.info("resampling...")
         zfield = cfield.resample(time='1MS', skipna=NANSKIP).mean('time', skipna=NANSKIP)
-        #zfield = zfield.persist()
-        #progress(zfield)
-        zfield.compute()
 
-        if do_figures:
-            logging.debug("Full histogram...")
-            figname = f'values_{var}_{info[var]["dataset"]}_{real_year1}_{real_year2}_full.pdf'
-            file = os.path.join(figdir, var, figname)
-            full_histogram(zfield, file)
+        #if do_figures:
+        #    logging.info("Full histogram...")
+        #    figname = f'values_{var}_{info[var]["dataset"]}_{real_year1}_{real_year2}_full.pdf'
+        #    os.makedirs(os.path.join(figdir, var), exist_ok=True)
+        #    file = os.path.join(figdir, var, figname)
+        #    full_histogram(zfield, file)
 
         # dump the netcdf file to disk
         logging.info("new file...")
@@ -186,8 +205,8 @@ def main(climdata='EC26', timeframe='HIST', machine='wilma', do_figures=False, o
 
         # compute the yearly mean and the season mean
         logging.info("Averaging...")
-        gfield1 = yfield.resample(time='YS', skipna=NANSKIP).mean('time', skipna=NANSKIP).load()
-        gfield2 = yfield.resample(time='QE-NOV', skipna=NANSKIP).mean('time', skipna=NANSKIP).load()
+        gfield1 = yfield.resample(time='YS', skipna=NANSKIP).mean('time', skipna=NANSKIP).persist()
+        gfield2 = yfield.resample(time='QE-NOV', skipna=NANSKIP).mean('time', skipna=NANSKIP).persist()
 
         # loop on seasons
         for season in ['ALL', 'DJF', 'MAM', 'JJA', 'SON']:
@@ -211,20 +230,50 @@ def main(climdata='EC26', timeframe='HIST', machine='wilma', do_figures=False, o
             omean = gfield.mean('time', skipna=True, keepdims=True)
             ovar = gfield.var('time', skipna=True, keepdims=True)
 
-            # define the variance threshold
-            low, high = variance_threshold(ovar)
-            logging.info('Variance threshold: low = %s, high = %s', low, high)
+            #if do_figures:
+            #    os.makedirs(os.path.join(figdir, var), exist_ok=True)
+            #    omean.to_netcdf(os.path.join(figdir, var, f'mean_{season}.nc'))
+            #    ovar.to_netcdf(os.path.join(figdir, var, f'var_{season}.nc'))
 
-            # clean according to thresholds
-            fvar = ovar.where((ovar >= low) & (ovar <= high))
-            fmean = omean.where((ovar >= low) & (ovar <= high))
+            # define the variance threshold
+            if method == "sigma":
+                low, center, high = variance_threshold(ovar, sigma=SIGMA)
+                logging.info('Variance threshold: low = %s, center = %s, high = %s', low, center, high)
+            elif method == "fraction":
+                low, center, high = variance_fraction(ovar, fraction=FRACTION)
+                logging.info('Variance fraction: low = %s, center = %s, high = %s', low, center, high)
+            elif method == "iqr":
+                low, center, high = variance_iqr(ovar)
+                logging.info('Variance IQR: low = %s, center = %s, high = %s', low, center, high)
+            elif method == "iqr_adjusted":
+                low, center, high = variance_iqr_adjusted(ovar)
+                logging.info('Variance IQR adjusted: low = %s, center = %s, high = %s', low, center, high)
+            elif method == "combined":
+                low, center, high = variance_combined(ovar, sigma=SIGMA, fraction=FRACTION)
+                logging.info('Variance combined: low = %s, center = %s, high = %s', low, center, high)
+            else:
+                raise ValueError(f"Unknown method for variance filtering: {method}")
+
+            # clipping
+            if cutting == "clipping":
+                logging.info('Applying variance clipping to minimum...')
+                fvar = ovar.clip(min=low)
+                fmean = omean
+            elif cutting == "nan":
+                logging.info('Applying variance sigma filtering...')
+                fvar = ovar.where((ovar >= low) & (ovar <= high))
+                fmean = omean.where((ovar >= low) & (ovar <= high))
+            else:
+                raise ValueError(f"Unknown method for variance filtering: {cutting}")
 
             if do_figures:
                 logging.info("Mean and variance histograms...")
                 figname = f'{var}_{info[var]["dataset"]}_{GRID}_{real_year1}_{real_year2}_{season}.pdf'
                 os.makedirs(os.path.join(figdir, var), exist_ok=True)
                 file = os.path.join(figdir, var, figname)
-                check_histogram(omean, ovar, fvar, file)
+                check_histogram(
+                    ovar, fvar, file, method=method, 
+                    center=center, low=low, high=high)
 
             # add a reference time
             ymean = fmean.assign_coords({"time": ("time", [reftime])})
@@ -321,6 +370,14 @@ if __name__ == "__main__":
         default=False,
         help='Generate diagnostic figures (default: False)'
     )
+    parser.add_argument(
+        '--method',
+        type=str,
+        default=METHOD,
+        help='Variance filtering method (default: %(default)s)',
+        choices=['sigma', 'fraction', 'iqr', 'iqr_adjusted', 'combined']
+    )
+
     args = parser.parse_args()
 
     logging.getLogger().setLevel(args.loglevel.upper())
@@ -331,7 +388,7 @@ if __name__ == "__main__":
         client = Client(cluster)
         logging.warning(client)
 
-    main(args.climdata, args.timeframe, args.machine, args.figures, args.overwrite)
+    main(args.climdata, args.timeframe, args.machine, args.figures, args.overwrite, args.method)
 
     if args.cores > 1:
         client.close()

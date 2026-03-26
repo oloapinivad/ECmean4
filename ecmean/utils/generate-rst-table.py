@@ -14,7 +14,37 @@ from pathlib import Path
 from ecmean.libs.files import load_yaml
 
 
-def format_rst_table(data):
+def extract_table_name(yaml_file):
+    """
+    Extract table name from YAML filename.
+    
+    Parameters
+    ----------
+    yaml_file : str or Path
+        Path to the YAML file
+        
+    Returns
+    -------
+    str
+        Extracted name for table title
+    """
+    filename = Path(yaml_file).stem
+    
+    # Try to match pi_climatology_$name or gm_reference_$name
+    if filename.startswith('pi_climatology_'):
+        name = filename.replace('pi_climatology_', '')
+        title = f"PI Climatology - {name}"
+    elif filename.startswith('gm_reference_'):
+        name = filename.replace('gm_reference_', '')
+        title = f"GM Reference - {name}"
+    else:
+        # Fallback to generic title
+        title = "Data used in climatology"
+    
+    return title
+
+
+def format_rst_table(data, table_name="Data used in climatology"):
     """
     Create a reStructuredText list-table from YAML data.
     
@@ -22,6 +52,8 @@ def format_rst_table(data):
     ----------
     data : dict
         Dictionary with variable names as keys and metadata as values
+    table_name : str
+        Title for the list-table
         
     Returns
     -------
@@ -35,14 +67,17 @@ def format_rst_table(data):
     )
 
     lines = []
-    lines.append('.. list-table::')
+    lines.append(f'.. list-table:: Date used in {table_name}')
     lines.append('   :header-rows: 1')
 
     # Adjust widths based on CMIP6 models column
+    # Using percentages that sum to 100 for better browser rendering
     if has_cmip6_models:
-        lines.append('   :widths: 30 20 12 12 10')
+        lines.append('   :widths: 35 25 15 15 10')
     else:
-        lines.append('   :widths: 30 20 12 12')
+        lines.append('   :widths: 40 30 15 15')
+    
+    lines.append('   :width: 100%')
 
     lines.append('')
     lines.append('   * - Long Name')
@@ -74,7 +109,7 @@ def format_rst_table(data):
         if year1 and year2:
             period = f"{year1}-{year2}"
         else:
-            period = '-'
+            period = ''
 
         # Get CMIP6 model count if present
         nmodels = info.get('cmip6', {}).get('nmodels', '')
@@ -132,8 +167,11 @@ def main():
         print("Warning: No data found in YAML file.", file=sys.stderr)
         sys.exit(1)
 
+    # Extract table name from filename
+    table_name = extract_table_name(args.yaml_file)
+
     # Generate table
-    table = format_rst_table(data)
+    table = format_rst_table(data, table_name=table_name)
 
     # Output
     if args.output:

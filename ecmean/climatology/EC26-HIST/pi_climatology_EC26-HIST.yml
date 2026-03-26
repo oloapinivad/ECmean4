@@ -1,0 +1,1004 @@
+tas:
+  dataset: CRU
+  description: CRU TS4.09 Mean Temperature
+  longname: 2m Temperature (land-only)
+  version: '4.09'
+  remap: remapbil
+  mask: land-no-antarctica
+  units: degC
+  year1: 1981
+  year2: 2010
+  cmip6:
+    ALL:
+      Global: 26.966
+      North Midlat: 13.179
+      Tropical: 40.688
+      South Midlat: 23.239
+      NH: 17.083
+      SH: 23.982
+      Equatorial: 47.202
+      North Pole: 8.226
+      South Pole: .nan
+    DJF:
+      Global: 15.952
+      North Midlat: 6.878
+      Tropical: 24.706
+      South Midlat: 16.863
+      NH: 8.442
+      SH: 17.03
+      Equatorial: 30.119
+      North Pole: 7.738
+      South Pole: .nan
+    JJA:
+      Global: 26.291
+      North Midlat: 17.57
+      Tropical: 36.414
+      South Midlat: 6.117
+      NH: 22.82
+      SH: 7.057
+      Equatorial: 39.981
+      North Pole: 12.602
+      South Pole: .nan
+    MAM:
+      Global: 14.581
+      North Midlat: 6.912
+      Tropical: 22.6
+      South Midlat: 7.673
+      NH: 8.631
+      SH: 9.608
+      Equatorial: 27.907
+      North Pole: 4.624
+      South Pole: .nan
+    SON:
+      Global: 21.798
+      North Midlat: 7.816
+      Tropical: 35.869
+      South Midlat: 16.197
+      NH: 11.314
+      SH: 15.126
+      Equatorial: 44.532
+      North Pole: 4.845
+      South Pole: .nan
+    models:
+    - EC-Earth3
+    - IPSL-CM6A-LR
+    - FGOALS-g3
+    - CanESM5
+    - CESM2
+    - GISS-E2-1-G
+    - ACCESS-CM2
+    - SAM0-UNICON
+    - MIROC6
+    - MPI-ESM1-2-HR
+    - AWI-CM-1-1-MR
+    - NorESM2-MM
+    nmodels: 12
+    year1: 1981
+    year2: 2010
+pr:
+  dataset: MSWEP
+  description: v2.80; PAST+NRT
+  longname: Precipitation
+  version: '2.80'
+  remap: remapcon
+  mask: global
+  units: mm/month
+  year1: 1981
+  year2: 2010
+  cmip6:
+    ALL:
+      Global: 7.614
+      North Midlat: 4.744
+      Tropical: 10.856
+      South Midlat: 3.998
+      NH: 6.029
+      SH: 4.474
+      Equatorial: 12.158
+      North Pole: 4.052
+      South Pole: 7.635
+    DJF:
+      Global: 6.263
+      North Midlat: 4.065
+      Tropical: 9.279
+      South Midlat: 2.43
+      NH: 3.901
+      SH: 3.722
+      Equatorial: 10.98
+      North Pole: 2.001
+      South Pole: 2.609
+    JJA:
+      Global: 8.844
+      North Midlat: 2.513
+      Tropical: 15.685
+      South Midlat: 1.492
+      NH: 4.845
+      SH: 1.825
+      Equatorial: 19.441
+      North Pole: 1.173
+      South Pole: 2.334
+    MAM:
+      Global: 5.286
+      North Midlat: 3.44
+      Tropical: 8.118
+      South Midlat: 1.469
+      NH: 4.18
+      SH: 1.704
+      Equatorial: 9.797
+      North Pole: 2.624
+      South Pole: 3.167
+    SON:
+      Global: 6.998
+      North Midlat: 1.935
+      Tropical: 12.27
+      South Midlat: 1.517
+      NH: 2.509
+      SH: 2.141
+      Equatorial: 15.988
+      North Pole: 1.677
+      South Pole: 2.721
+    models:
+    - EC-Earth3
+    - IPSL-CM6A-LR
+    - FGOALS-g3
+    - CanESM5
+    - CESM2
+    - GISS-E2-1-G
+    - ACCESS-CM2
+    - SAM0-UNICON
+    - MIROC6
+    - MPI-ESM1-2-HR
+    - AWI-CM-1-1-MR
+    - NorESM2-MM
+    nmodels: 12
+    year1: 1981
+    year2: 2010
+net_sfc:
+  dataset: NOCS
+  description: NOCS Surface Flux Dataset v2.0
+  longname: Net Surface Radiation Flux (downward)
+  version: '2.0'
+  remap: remapcon
+  mask: ocean
+  units: W m-2
+  year1: 1981
+  year2: 2010
+  cmip6:
+    ALL:
+      Global: 4.626
+      North Midlat: 11.38
+      Tropical: 3.618
+      South Midlat: 2.9
+      NH: 9.206
+      SH: 2.693
+      Equatorial: 3.778
+      North Pole: 15.082
+      South Pole: 10.768
+    DJF:
+      Global: 4.32
+      North Midlat: 11.282
+      Tropical: 2.258
+      South Midlat: 4.535
+      NH: 8.425
+      SH: 3.785
+      Equatorial: 2.476
+      North Pole: 38.009
+      South Pole: 20.998
+    JJA:
+      Global: 3.534
+      North Midlat: 6.378
+      Tropical: 2.258
+      South Midlat: 4.354
+      NH: 5.704
+      SH: 3.547
+      Equatorial: 2.182
+      North Pole: 10.39
+      South Pole: 24.749
+    MAM:
+      Global: 2.524
+      North Midlat: 5.836
+      Tropical: 1.98
+      South Midlat: 1.824
+      NH: 4.668
+      SH: 1.647
+      Equatorial: 2.151
+      North Pole: 6.91
+      South Pole: 5.427
+    SON:
+      Global: 3.71
+      North Midlat: 8.926
+      Tropical: 1.749
+      South Midlat: 4.469
+      NH: 6.918
+      SH: 3.599
+      Equatorial: 1.833
+      North Pole: 27.812
+      South Pole: 26.976
+    models:
+    - EC-Earth3
+    - IPSL-CM6A-LR
+    - FGOALS-g3
+    - CanESM5
+    - CNRM-CM6-1
+    - ACCESS-CM2
+    - SAM0-UNICON
+    - UKESM1-0-LL
+    - MIROC6
+    - MPI-ESM1-2-HR
+    - AWI-CM-1-1-MR
+    - NorESM2-MM
+    nmodels: 12
+    year1: 1981
+    year2: 2010
+tauu:
+  dataset: ORAS5
+  description: ECMWF Ocean Reanalysis System 5
+  longname: Eastward Wind Stress
+  remap: remapbil
+  mask: ocean
+  units: N m-2
+  year1: 1981
+  year2: 2010
+  cmip6:
+    ALL:
+      Global: 9.788
+      North Midlat: 9.566
+      Tropical: 12.619
+      South Midlat: 5.052
+      NH: 8.624
+      SH: 6.344
+      Equatorial: 14.218
+      North Pole: 11.572
+      South Pole: 7.756
+    DJF:
+      Global: 7.084
+      North Midlat: 6.026
+      Tropical: 10.207
+      South Midlat: 2.309
+      NH: 5.067
+      SH: 3.74
+      Equatorial: 11.952
+      North Pole: 7.411
+      South Pole: 1.691
+    JJA:
+      Global: 6.55
+      North Midlat: 5.077
+      Tropical: 8.753
+      South Midlat: 3.59
+      NH: 6.222
+      SH: 3.544
+      Equatorial: 9.977
+      North Pole: 4.597
+      South Pole: 4.927
+    MAM:
+      Global: 5.383
+      North Midlat: 4.553
+      Tropical: 7.897
+      South Midlat: 1.524
+      NH: 4.475
+      SH: 2.133
+      Equatorial: 9.44
+      North Pole: 6.583
+      South Pole: 2.677
+    SON:
+      Global: 5.829
+      North Midlat: 3.181
+      Tropical: 8.624
+      South Midlat: 2.501
+      NH: 3.621
+      SH: 3.238
+      Equatorial: 10.024
+      North Pole: 4.687
+      South Pole: 4.359
+    models:
+    - EC-Earth3
+    - IPSL-CM6A-LR
+    - FGOALS-g3
+    - CanESM5
+    - CESM2
+    - CNRM-CM6-1
+    - ACCESS-CM2
+    - SAM0-UNICON
+    - UKESM1-0-LL
+    - MIROC6
+    - MPI-ESM1-2-HR
+    - AWI-CM-1-1-MR
+    - NorESM2-MM
+    - GFDL-CM4
+    nmodels: 14
+    year1: 1981
+    year2: 2010
+tauv:
+  dataset: ORAS5
+  description: ECMWF Ocean Reanalysis System 5
+  longname: Northward Wind Stress
+  remap: remapbil
+  mask: ocean
+  units: N m-2
+  year1: 1981
+  year2: 2010
+  cmip6:
+    ALL:
+      Global: 7.472
+      North Midlat: 6.33
+      Tropical: 8.937
+      South Midlat: 5.583
+      NH: 5.983
+      SH: 5.256
+      Equatorial: 10.8
+      North Pole: 11.344
+      South Pole: 13.465
+    DJF:
+      Global: 5.88
+      North Midlat: 4.977
+      Tropical: 8.438
+      South Midlat: 1.984
+      NH: 4.28
+      SH: 1.963
+      Equatorial: 11.095
+      North Pole: 10.095
+      South Pole: 1.997
+    JJA:
+      Global: 5.821
+      North Midlat: 6.324
+      Tropical: 7.274
+      South Midlat: 3.048
+      NH: 6.901
+      SH: 2.784
+      Equatorial: 8.37
+      North Pole: 3.641
+      South Pole: 8.768
+    MAM:
+      Global: 4.339
+      North Midlat: 4.355
+      Tropical: 5.764
+      South Midlat: 1.874
+      NH: 3.917
+      SH: 1.867
+      Equatorial: 7.248
+      North Pole: 8.532
+      South Pole: 5.894
+    SON:
+      Global: 4.128
+      North Midlat: 2.593
+      Tropical: 5.713
+      South Midlat: 2.254
+      NH: 2.78
+      SH: 2.263
+      Equatorial: 6.991
+      North Pole: 4.88
+      South Pole: 5.378
+    models:
+    - EC-Earth3
+    - IPSL-CM6A-LR
+    - FGOALS-g3
+    - CanESM5
+    - CESM2
+    - CNRM-CM6-1
+    - SAM0-UNICON
+    - MIROC6
+    - MPI-ESM1-2-HR
+    - AWI-CM-1-1-MR
+    - NorESM2-MM
+    - GFDL-CM4
+    nmodels: 12
+    year1: 1981
+    year2: 2010
+psl:
+  dataset: ERA5
+  description: ECMWF ERA5 reanalysis
+  longname: Mean Sea Level Pressure
+  remap: remapbil
+  mask: global
+  units: Pa
+  year1: 1981
+  year2: 2010
+  cmip6:
+    ALL:
+      Global: 11.764
+      North Midlat: 5.682
+      Tropical: 18.009
+      South Midlat: 5.358
+      NH: 7.309
+      SH: 8.166
+      Equatorial: 19.511
+      North Pole: 1.971
+      South Pole: 8.411
+    DJF:
+      Global: 4.515
+      North Midlat: 1.827
+      Tropical: 7.18
+      South Midlat: 1.874
+      NH: 2.283
+      SH: 3.367
+      Equatorial: 7.767
+      North Pole: 0.76
+      South Pole: 1.474
+    JJA:
+      Global: 7.504
+      North Midlat: 6.198
+      Tropical: 10.9
+      South Midlat: 2.017
+      NH: 7.614
+      SH: 2.701
+      Equatorial: 12.019
+      North Pole: 1.605
+      South Pole: 2.752
+    MAM:
+      Global: 6.188
+      North Midlat: 2.129
+      Tropical: 10.241
+      South Midlat: 2.14
+      NH: 3.18
+      SH: 3.498
+      Equatorial: 11.667
+      North Pole: 0.872
+      South Pole: 3.534
+    SON:
+      Global: 7.096
+      North Midlat: 2.962
+      Tropical: 11.719
+      South Midlat: 1.984
+      NH: 4.414
+      SH: 3.197
+      Equatorial: 13.425
+      North Pole: 1.201
+      South Pole: 2.734
+    models:
+    - EC-Earth3
+    - IPSL-CM6A-LR
+    - FGOALS-g3
+    - CanESM5
+    - CESM2
+    - GISS-E2-1-G
+    - ACCESS-CM2
+    - SAM0-UNICON
+    - MIROC6
+    - MPI-ESM1-2-HR
+    - AWI-CM-1-1-MR
+    - NorESM2-MM
+    nmodels: 12
+    year1: 1981
+    year2: 2010
+ua:
+  dataset: ERA5
+  description: ECMWF ERA5 reanalysis
+  longname: Zonal Wind
+  remap: remapbil
+  mask: global
+  units: m s-1
+  year1: 1981
+  year2: 2010
+  cmip6:
+    ALL:
+      Global: 13.424
+      North Midlat: 7.221
+      Tropical: 18.059
+      South Midlat: 10.355
+      NH: 7.832
+      SH: 9.389
+      Equatorial: 22.684
+      North Pole: 1.985
+      South Pole: 25.172
+    DJF:
+      Global: 6.321
+      North Midlat: 2.333
+      Tropical: 8.759
+      South Midlat: 5.433
+      NH: 2.062
+      SH: 5.558
+      Equatorial: 11.15
+      North Pole: 0.644
+      South Pole: 9.619
+    JJA:
+      Global: 8.786
+      North Midlat: 7.059
+      Tropical: 12.282
+      South Midlat: 3.521
+      NH: 11.761
+      SH: 3.301
+      Equatorial: 11.201
+      North Pole: 3.432
+      South Pole: 7.029
+    MAM:
+      Global: 6.858
+      North Midlat: 3.139
+      Tropical: 9.475
+      South Midlat: 5.341
+      NH: 3.264
+      SH: 5.216
+      Equatorial: 11.894
+      North Pole: 1.177
+      South Pole: 10.135
+    SON:
+      Global: 7.275
+      North Midlat: 4.557
+      Tropical: 10.392
+      South Midlat: 3.76
+      NH: 7.689
+      SH: 3.5
+      Equatorial: 10.508
+      North Pole: 2.245
+      South Pole: 6.496
+    models:
+    - EC-Earth3
+    - IPSL-CM6A-LR
+    - FGOALS-g3
+    - CanESM5
+    - CESM2
+    - CNRM-CM6-1
+    - SAM0-UNICON
+    - MIROC6
+    - MPI-ESM1-2-HR
+    - AWI-CM-1-1-MR
+    - NorESM2-MM
+    - GFDL-CM4
+    nmodels: 12
+    year1: 1981
+    year2: 2010
+va:
+  dataset: ERA5
+  description: ECMWF ERA5 reanalysis
+  longname: Meridional Wind
+  remap: remapbil
+  mask: global
+  units: m s-1
+  year1: 1981
+  year2: 2010
+  cmip6:
+    ALL:
+      Global: 36.047
+      North Midlat: 47.832
+      Tropical: 10.316
+      South Midlat: 75.723
+      NH: 38.822
+      SH: 59.621
+      Equatorial: 10.7
+      North Pole: 141.223
+      South Pole: 255.647
+    DJF:
+      Global: 13.531
+      North Midlat: 27.681
+      Tropical: 4.148
+      South Midlat: 18.149
+      NH: 21.364
+      SH: 15.276
+      Equatorial: 4.319
+      North Pole: 89.179
+      South Pole: 52.255
+    JJA:
+      Global: 16.907
+      North Midlat: 11.209
+      Tropical: 8.416
+      South Midlat: 39.588
+      NH: 10.903
+      SH: 30.802
+      Equatorial: 9.318
+      North Pole: 3.69
+      South Pole: 136.171
+    MAM:
+      Global: 22.739
+      North Midlat: 9.035
+      Tropical: 6.125
+      South Midlat: 69.672
+      NH: 7.847
+      SH: 54.327
+      Equatorial: 6.681
+      North Pole: 20.569
+      South Pole: 246.825
+    SON:
+      Global: 10.984
+      North Midlat: 18.668
+      Tropical: 6.722
+      South Midlat: 11.824
+      NH: 16.396
+      SH: 10.008
+      Equatorial: 6.717
+      North Pole: 47.602
+      South Pole: 32.417
+    models:
+    - EC-Earth3
+    - IPSL-CM6A-LR
+    - FGOALS-g3
+    - CanESM5
+    - CESM2
+    - CNRM-CM6-1
+    - GISS-E2-1-G
+    - SAM0-UNICON
+    - MIROC6
+    - MPI-ESM1-2-HR
+    - AWI-CM-1-1-MR
+    - NorESM2-MM
+    - GFDL-CM4
+    nmodels: 13
+    year1: 1981
+    year2: 2010
+ta:
+  dataset: ERA5
+  description: ECMWF ERA5 reanalysis
+  longname: Air Temperature
+  remap: remapbil
+  mask: global
+  units: K
+  year1: 1981
+  year2: 2010
+  cmip6:
+    ALL:
+      Global: 34.494
+      North Midlat: 31.103
+      Tropical: 27.306
+      South Midlat: 52.262
+      NH: 34.377
+      SH: 49.212
+      Equatorial: 20.45
+      North Pole: 21.93
+      South Pole: 93.24
+    DJF:
+      Global: 16.434
+      North Midlat: 8.994
+      Tropical: 14.49
+      South Midlat: 27.763
+      NH: 9.111
+      SH: 30.45
+      Equatorial: 9.996
+      North Pole: 8.443
+      South Pole: 33.518
+    JJA:
+      Global: 33.537
+      North Midlat: 52.101
+      Tropical: 29.366
+      South Midlat: 23.317
+      NH: 62.802
+      SH: 22.451
+      Equatorial: 16.051
+      North Pole: 37.075
+      South Pole: 33.381
+    MAM:
+      Global: 22.881
+      North Midlat: 21.24
+      Tropical: 21.252
+      South Midlat: 27.781
+      NH: 27.338
+      SH: 24.302
+      Equatorial: 17.228
+      North Pole: 7.851
+      South Pole: 35.707
+    SON:
+      Global: 20.858
+      North Midlat: 14.452
+      Tropical: 22.132
+      South Midlat: 24.716
+      NH: 15.872
+      SH: 28.598
+      Equatorial: 18.209
+      North Pole: 16.357
+      South Pole: 34.112
+    models:
+    - EC-Earth3
+    - IPSL-CM6A-LR
+    - FGOALS-g3
+    - CanESM5
+    - CESM2
+    - CNRM-CM6-1
+    - GISS-E2-1-G
+    - ACCESS-CM2
+    - SAM0-UNICON
+    - UKESM1-0-LL
+    - MIROC6
+    - MPI-ESM1-2-HR
+    - AWI-CM-1-1-MR
+    - NorESM2-MM
+    - GFDL-CM4
+    nmodels: 15
+    year1: 1981
+    year2: 2010
+hus:
+  dataset: ERA5
+  description: ECMWF ERA5 reanalysis
+  longname: Specific Humidity
+  remap: remapbil
+  mask: global
+  units: kg kg-1
+  year1: 1981
+  year2: 2010
+  cmip6:
+    ALL:
+      Global: 71.457
+      North Midlat: 83.33
+      Tropical: 37.4
+      South Midlat: 127.699
+      NH: 79.287
+      SH: 107.467
+      Equatorial: 29.288
+      North Pole: 102.684
+      South Pole: 266.898
+    DJF:
+      Global: 53.958
+      North Midlat: 92.768
+      Tropical: 28.093
+      South Midlat: 66.877
+      NH: 82.469
+      SH: 57.77
+      Equatorial: 22.866
+      North Pole: 87.412
+      South Pole: 114.427
+    JJA:
+      Global: 53.598
+      North Midlat: 58.823
+      Tropical: 30.457
+      South Midlat: 94.653
+      NH: 55.193
+      SH: 80.521
+      Equatorial: 26.166
+      North Pole: 71.733
+      South Pole: 210.775
+    MAM:
+      Global: 51.051
+      North Midlat: 77.738
+      Tropical: 28.47
+      South Midlat: 69.527
+      NH: 70.698
+      SH: 60.888
+      Equatorial: 22.692
+      North Pole: 81.233
+      South Pole: 103.451
+    SON:
+      Global: 48.476
+      North Midlat: 61.93
+      Tropical: 30.617
+      South Midlat: 70.74
+      NH: 58.929
+      SH: 62.144
+      Equatorial: 25.273
+      North Pole: 79.917
+      South Pole: 114.593
+    models:
+    - EC-Earth3
+    - IPSL-CM6A-LR
+    - FGOALS-g3
+    - CanESM5
+    - CESM2
+    - CNRM-CM6-1
+    - ACCESS-CM2
+    - SAM0-UNICON
+    - UKESM1-0-LL
+    - MIROC6
+    - MPI-ESM1-2-HR
+    - AWI-CM-1-1-MR
+    - NorESM2-MM
+    - GFDL-CM4
+    nmodels: 14
+    year1: 1981
+    year2: 2010
+tos:
+  dataset: ESA-CCI-L4
+  description: ESA SST CCI OSTIA L4 v3.0.1
+  longname: Sea Surface Temperature
+  version: 3.0.1
+  remap: remapbil
+  mask: ocean
+  units: K
+  year1: 1981
+  year2: 2010
+  cmip6:
+    ALL:
+      Global: 20.172
+      North Midlat: 9.988
+      Tropical: 6.406
+      South Midlat: 48.991
+      NH: 9.679
+      SH: 40.002
+      Equatorial: 5.493
+      North Pole: 14.062
+      South Pole: 158.498
+    DJF:
+      Global: 14.874
+      North Midlat: 18.571
+      Tropical: 4.22
+      South Midlat: 30.839
+      NH: 14.942
+      SH: 24.762
+      Equatorial: 4.096
+      North Pole: 48.926
+      South Pole: 122.585
+    JJA:
+      Global: 33.651
+      North Midlat: 7.506
+      Tropical: 4.84
+      South Midlat: 96.2
+      NH: 7.172
+      SH: 76.127
+      Equatorial: 4.483
+      North Pole: 11.312
+      South Pole: 423.568
+    MAM:
+      Global: 15.256
+      North Midlat: 12.305
+      Tropical: 3.974
+      South Midlat: 35.893
+      NH: 10.51
+      SH: 28.778
+      Equatorial: 3.648
+      North Pole: 25.214
+      South Pole: 145.207
+    SON:
+      Global: 60.867
+      North Midlat: 8.638
+      Tropical: 4.962
+      South Midlat: 182.948
+      NH: 7.735
+      SH: 143.983
+      Equatorial: 4.56
+      North Pole: 20.124
+      South Pole: 825.676
+    models:
+    - EC-Earth3
+    - IPSL-CM6A-LR
+    - FGOALS-g3
+    - CanESM5
+    - CESM2
+    - CNRM-CM6-1
+    - ACCESS-CM2
+    - SAM0-UNICON
+    - UKESM1-0-LL
+    - MIROC6
+    - MPI-ESM1-2-HR
+    - AWI-CM-1-1-MR
+    - NorESM2-MM
+    - GFDL-CM4
+    nmodels: 14
+    year1: 1981
+    year2: 2010
+sos:
+  dataset: ORAS5
+  description: ECMWF Ocean Reanalysis System 5
+  longname: Sea Surface Salinity
+  remap: remapbil
+  mask: ocean
+  units: PSU
+  year1: 1981
+  year2: 2010
+  cmip6:
+    ALL:
+      Global: 65.96
+      North Midlat: 242.557
+      Tropical: 26.151
+      South Midlat: 37.941
+      NH: 186.956
+      SH: 35.589
+      Equatorial: 21.044
+      North Pole: 168.737
+      South Pole: 15.474
+    DJF:
+      Global: 50.099
+      North Midlat: 192.114
+      Tropical: 17.847
+      South Midlat: 27.994
+      NH: 147.215
+      SH: 26.312
+      Equatorial: 13.44
+      North Pole: 138.626
+      South Pole: 8.061
+    JJA:
+      Global: 47.859
+      North Midlat: 170.313
+      Tropical: 18.458
+      South Midlat: 31.519
+      NH: 129.36
+      SH: 29.865
+      Equatorial: 15.01
+      North Pole: 118.728
+      South Pole: 19.254
+    MAM:
+      Global: 47.0
+      North Midlat: 175.925
+      Tropical: 18.537
+      South Midlat: 25.602
+      NH: 136.763
+      SH: 23.947
+      Equatorial: 14.273
+      North Pole: 137.374
+      South Pole: 10.841
+    SON:
+      Global: 48.936
+      North Midlat: 169.453
+      Tropical: 18.676
+      South Midlat: 35.102
+      NH: 128.445
+      SH: 33.093
+      Equatorial: 15.044
+      North Pole: 115.987
+      South Pole: 26.7
+    models:
+    - EC-Earth3
+    - IPSL-CM6A-LR
+    - FGOALS-g3
+    - CanESM5
+    - CESM2
+    - CNRM-CM6-1
+    - ACCESS-CM2
+    - SAM0-UNICON
+    - UKESM1-0-LL
+    - MIROC6
+    - MPI-ESM1-2-HR
+    - AWI-CM-1-1-MR
+    - NorESM2-MM
+    - GFDL-CM4
+    nmodels: 14
+    year1: 1981
+    year2: 2010
+siconc:
+  dataset: ESA-CCI-L4
+  description: ESA SST CCI OSTIA L4 v3.0.1
+  longname: Sea-ice Concentration
+  version: 3.0.1
+  remap: remapbil
+  mask: ocean
+  units: fraction
+  year1: 1981
+  year2: 2010
+  cmip6:
+    ALL:
+      Global: 27.161
+      North Midlat: 140.784
+      Tropical: .nan
+      South Midlat: 10.906
+      NH: 100.158
+      SH: 8.489
+      Equatorial: .nan
+      North Pole: 311.138
+      South Pole: 34.778
+    DJF:
+      Global: 89.823
+      North Midlat: 421.775
+      Tropical: .nan
+      South Midlat: 60.215
+      NH: 300.059
+      SH: 46.856
+      Equatorial: .nan
+      North Pole: 949.871
+      South Pole: 257.169
+    JJA:
+      Global: 18.622
+      North Midlat: 63.07
+      Tropical: .nan
+      South Midlat: 25.813
+      NH: 44.839
+      SH: 20.104
+      Equatorial: .nan
+      North Pole: 211.268
+      South Pole: 116.855
+    MAM:
+      Global: 160.635
+      North Midlat: 937.475
+      Tropical: .nan
+      South Midlat: 6.606
+      NH: 667.057
+      SH: 5.141
+      Equatorial: .nan
+      North Pole: 1584.036
+      South Pole: 32.404
+    SON:
+      Global: 25.095
+      North Midlat: 52.341
+      Tropical: .nan
+      South Midlat: 52.944
+      NH: 37.249
+      SH: 41.212
+      Equatorial: .nan
+      North Pole: 203.238
+      South Pole: 138.597
+    models:
+    - EC-Earth3
+    - IPSL-CM6A-LR
+    - CanESM5
+    - CESM2
+    - CNRM-CM6-1
+    - ACCESS-CM2
+    - SAM0-UNICON
+    - UKESM1-0-LL
+    - MIROC6
+    - MPI-ESM1-2-HR
+    - GFDL-CM4
+    nmodels: 11
+    year1: 1981
+    year2: 2010
