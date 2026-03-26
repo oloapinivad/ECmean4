@@ -74,7 +74,7 @@ Requirements
 ------------
 
 The required packages are listed in ``environment.yml`` and in ``pyproject.toml``.
-A secondary environment is available in ``dev-environment.yml`` and can be used for development, including testing capabilities and jupyter notebooks. 
+A secondary environment is available in ``environment-dev.yml`` and can be used for development, including testing capabilities and jupyter notebooks. 
 
 .. note::
 	Both Unix and MacOS are supported. Python >=3.9 is requested.
