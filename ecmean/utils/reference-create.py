@@ -33,7 +33,7 @@ from ecmean.utils.utils import timeframe_years, expand_filedata, \
                             select_time_period, parse_create_args, \
                             select_time_data
 
-from cdo import *
+from cdo import Cdo
 cdo = Cdo()
 
 # set default logging
@@ -126,6 +126,10 @@ def main(climdata='EC26', timeframe='HIST', machine='wilma'):
             else:
                 filedata = glob(expand_filedata(info[var]['dir'], var, info))
             logging.debug(filedata)
+            if not filedata:
+                logging.error('Data file for variable %s not found: %s', var, info[var]['dir'])
+                logging.error('Are you on the right machine?')
+                continue
 
             # load data and time select
             logging.info("Loading multiple files...")

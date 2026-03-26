@@ -6,6 +6,7 @@ model:
 dirs:
    exp: tests/data
    tab: tests/table
+   clm: ecmean/climatology
    fig: tests/figures
 
 global_mean:
@@ -16,18 +17,7 @@ global_mean:
              rsns, rlns, hfss, hfls, net_sfc_nosn, net_sfc,
              toamsfc_nosn, toamsfc]
     oce: [tos, sos, zos, wfo]
-    ice: [siconc_north, siconc_south]
+    ice: [siconc]
     tab: [rsnt, rlnt, net_toa, rsns, rlns, hfss, hfls, swcf, lwcf, net_sfc, toamsfc, tas, clt, cll, clm, clh, pr, pme, psl]
   regions: ['Global', 'North Midlat', 'Tropical', 'South Midlat']
   seasons: ['ALL', 'JJA']
-
-
-performance_indices: 
-  variables:
-    atm2d: [net_sfc, tas, psl, pr, tauu, tauv]
-    atm3d: [ta, ua, va, hus]
-    oce: [tos, sos]
-    ice: [siconc]
-  regions: ['Global', 'North Midlat', 'Tropical', 'South Midlat']
-  seasons: ['ALL', 'JJA']
-  resolution: r360x180
