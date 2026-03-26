@@ -6,23 +6,27 @@
     It requires to have cdo and cdo-bindings installed
 """
 
-__author__ = "Paolo Davini (p.davini@isac.cnr.it), Sep 2022."
+__author__ = "Paolo Davini (paolo.davini@cnr.it), Sep 2022."
 
 import logging
 import os
-import sys
 import tempfile
 from time import time
+from dask.distributed import Client, LocalCluster
 
 import matplotlib
-import numpy as np
 import pandas as pd
 import xarray as xr
 import yaml
 from cdo import *
 #from dask.distributed import Client, LocalCluster, progress
 
-from ecmean.libs.climatology import check_histogram, full_histogram, mask_from_field, variance_threshold
+#from ecmean.libs.climatology import full_histogram
+from ecmean.libs.climatology import check_histogram, \
+    mask_from_field, variance_threshold, variance_fraction, variance_iqr, \
+    variance_iqr_adjusted, variance_combined,\
+    select_time_period, timeframe_years, \
+    parse_create_args, select_time_data, get_climatology_files, CLIMATOLOGY_PREFIXES
 from ecmean.libs.files import load_yaml
 from ecmean.libs.ncfixers import xr_preproc
 from ecmean.libs.units import units_extra_definition
@@ -33,35 +37,33 @@ cdo = Cdo(logging=True)
 # output for matplot lib
 matplotlib.use('Agg')
 
-# set default logging
-logging.basicConfig(level=logging.INFO)
+# setup logging
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s | %(name)s | %(levelname)8s -> %(message)s',
+    datefmt='%Y-%m-%d %H:%M:%S'
+)
 
 # variable list
 variables = ['tas', 'pr', 'net_sfc', 'tauu', 'tauv', 'psl',
              'ua', 'va', 'ta', 'hus', 'tos', 'sos', 'siconc']
+#variables = ['tas']
+#variables.reverse()
 
-# to set: time period (default, can be shorter if data are missing) #WARNING MISSING
-year1 = 1985
-year2 = 2014
+# target resolution
+GRID = 'r360x180'
 
-# yml file to get information on dataset on some machine
-CLIM = 'EC24'
-clim_info = f'/home/paolo/ECmean4/ecmean/utils/create-clim-wilma-{CLIM}.yml'
+# method for variance filtering: "sigma", "fraction" or "iqr"
+METHOD = "combined"
+cutting = "clipping"
+# method = "sigma"
+SIGMA = 3
+# fraction method: fraction of the median
+FRACTION = 3
 
-# figures : some diagnostic figures can be saved to check the consistency of mean and variance fields
-do_figures = True
-figdir = '/work/users/paolo/figures/ecmean-py-variances/'
-
-# targets resolutio
-grids = ['r360x180']
-
-# number of dask workers and threads
-workers = 1
-threads = 1
-
-# skip NaN: if False, yearly/season average require that all the points are defined in the correspondent
-# time window.
-nanskipper = False
+# skip NaN: if False, yearly/season average require that all
+# the points are defined in the correspondent time window.
+NANSKIP = False
 
 # some dataset show very low variance in some grid point: this might create
 # irrealistic high values of PI due to the  division by variance performend
@@ -72,239 +74,322 @@ nanskipper = False
 # add other units
 units_extra_definition()
 
-# to exploit of dask we need a main function
 
+def main(climdata='EC26', timeframe='HIST', machine='wilma', do_figures=False, overwrite=False, method="sigma"):
+    """Main function to create the climatology.
+    
+    Parameters
+    ----------
+    climdata : str
+        Climate dataset name (default: 'EC26')
+    timeframe : str
+        Time period - HIST, PDAY, or CMIP (default: 'HIST')
+    machine : str
+        Machine name for data paths (default: 'wilma')
+    do_figures : bool
+        Generate diagnostic figures (default: False)
+    overwrite : bool
+        Overwrite existing climatology files (default: False)
+    method : str
+        Variance filtering method (default: 'sigma')   
+    """
+    FIGDIR = f'/scratch/users/paolo/ecmean-py-variances/{method}-{cutting}/'
+    TMPDIR = '/scratch/users/paolo'
 
-def main():
+    # define the years from timeframe
+    year1, year2 = timeframe_years(timeframe)
+    climname = f'{climdata}-{timeframe}'
+
+    # climatology yaml output
+    tgtdir = os.path.join('..', 'climatology', climname)
+    os.makedirs(tgtdir, exist_ok=True)
+    clim_file = os.path.join(tgtdir, 'pi_climatology_' + climname + '.yml')
+    # yml file to get information on dataset on some machine
+    clim_info = f'create-clim-{machine}-{climdata}.yml'
+
+    # figures directory
+    if do_figures:
+        figdir = os.path.join(FIGDIR, climname)
+        os.makedirs(figdir, exist_ok=True)
 
     # always keep the attributes along the xarray
     xr.set_options(keep_attrs=True)
 
     # open the clim info file
+    logging.debug("Loading climatology info from %s", clim_info)
     info = load_yaml(clim_info)
 
-    # set few parameters
-    clim_name = info['clim']
-    years = list(range(year1, year2 + 1))
-
     # directory definitions and creations
-    tmpdir = info['dirs']['tmpdir']
-    tgtdir = info['dirs']['tgtdir'].format(clim=clim_name)
     datadir = info['dirs']['datadir']
     archivedir = info['dirs']['archivedir']
-    for directory in [tmpdir, tgtdir, datadir]:
-        os.makedirs(directory, exist_ok=True)
-
-    # climatology yaml output
-    clim_file = os.path.join(tgtdir, 'pi_climatology_' + clim_name + '.yml')
 
     # loop on variables to be processed
     for var in variables:
 
-        logging.info(var)
+        logging.warning('Processing variable: %s', var)
+
+        #if var not in 'siconc':
+        #    continue
+
         tic = time()
         # get the directory
         filedata = str(os.path.expandvars(info[var]['dir'])).format(
             datadir=datadir, archivedir=archivedir,
             dataset=info[var]['dataset'],
             varname=info[var]['varname'])
-        logging.info(filedata)
+        logging.debug(filedata)
 
         # load data and time select
-        print("Loading multiple files...")
+        logging.info("Loading multiple files...")
         # unable to operate with Parallel=True
         xfield = xr.open_mfdataset(filedata, chunks='auto',
-                                   parallel=False, preprocess=xr_preproc, engine='netcdf4')
+                                   parallel=True, preprocess=xr_preproc, engine='netcdf4',
+                                   data_vars='all', join='outer', compat='no_conflicts')
         xfield = xfield.rename({info[var]['varname']: var})
-        cfield = xfield[var].sel(time=xfield.time.dt.year.isin(years))
 
-        # keep original dtype
-        # cfield = cfield.astype(cfield.encoding['dtype'])
+        # select time based on data availability
+        cfield, real_year1, real_year2 = select_time_period(xfield, var, year1, year2)
 
-        real_year1 = np.min(cfield.time.dt.year.values)
-        real_year2 = np.max(cfield.time.dt.year.values)
-        if (real_year1 != year1):
-            logging.warning("Initial year different from what expected: %s", real_year1)
-        if (real_year2 != year2):
-            logging.warning("Final year different from what expected: %s", real_year2)
+        # check if files already exist and skip if overwrite is False
+        if not overwrite:
+            files_to_check = get_climatology_files(
+                tgtdir, var, info[var]['dataset'], GRID, real_year1, real_year2
+            ).values()
+            if all(os.path.isfile(f) for f in files_to_check):
+                logging.warning('All files for %s already exist. Skipping computation.', var)
+                continue
 
         # check existence of unit, then apply from file
-        if 'units' in info[var]:
+        if 'org_units' in info[var]:
+            cfield.attrs['units'] = info[var]['org_units']
+        elif 'units' in info[var]:
+            # Backward compatibility
             cfield.attrs['units'] = info[var]['units']
         elif not hasattr(cfield, 'units'):
-            sys.exit('ERROR: no unit found or defined!')
+            raise ValueError('no unit found or defined!')
 
-        # cleaning
-        # cfield = fix_specific_dataset(var, info[var]['dataset'], cfield)
-        logging.info(cfield)
+        logging.debug(cfield)
 
         # monthly average using resample/pandas
         logging.info("resampling...")
-        zfield = cfield.resample(time='1MS', skipna=nanskipper).mean('time', skipna=nanskipper)
-        #zfield = zfield.persist()
-        #progress(zfield)
-        zfield.compute()
+        zfield = cfield.resample(time='1MS', skipna=NANSKIP).mean('time', skipna=NANSKIP)
 
-        if do_figures:
-            print("Full histogram...")
-            figname = 'values_' + var + '_' + info[var]['dataset'] + '_' + str(real_year1) + '_' + str(real_year2) + '.pdf'
-            os.makedirs(os.path.join(figdir, var), exist_ok=True)
-            file = os.path.join(figdir, var, figname)
-            full_histogram(zfield, file)
+        #if do_figures:
+        #    logging.info("Full histogram...")
+        #    figname = f'values_{var}_{info[var]["dataset"]}_{real_year1}_{real_year2}_full.pdf'
+        #    os.makedirs(os.path.join(figdir, var), exist_ok=True)
+        #    file = os.path.join(figdir, var, figname)
+        #    full_histogram(zfield, file)
 
         # dump the netcdf file to disk
         logging.info("new file...")
-        temp_name = next(tempfile._get_candidate_names()) + '.nc'
-        tmpout = os.path.join(tmpdir, temp_name)
+        tmpfile = tempfile.NamedTemporaryFile(suffix='.nc', dir=TMPDIR, delete=False)
 
         # preserve dtype for numerical reasons
         codes = ['dtype', '_FillValue', 'scale_factor', 'add_offset', 'missing_value']
         ftype = {k: v for k, v in cfield.encoding.items() if k in codes}
-        logging.info(ftype)
-        zfield.to_netcdf(tmpout, encoding={var: ftype})
+        logging.debug(ftype)
+        zfield.to_netcdf(tmpfile.name, encoding={var: ftype})
 
-        # loop on grids
-        for grid in grids:
+        # create target directory
+        os.makedirs(os.path.join(tgtdir, GRID), exist_ok=True)
 
-            # create target directory
-            os.makedirs(os.path.join(tgtdir, grid), exist_ok=True)
+        # use cdo to interpolate: call to attribute to exploit different interpolation
+        logging.info("interpolation..")
+        interpolator = getattr(cdo, info[var]['remap'])
+        yfield = interpolator(GRID, input=tmpfile.name, returnXArray=var)
 
-            # use cdo to interpolate: call to attribute to exploit different interpolation
-            logging.info("interpolation..")
-            interpolator = getattr(cdo, info[var]['remap'])
-            yfield = interpolator(grid, input=tmpout, returnXArray=var)
+        # create empty lists
+        d1 = []
+        d2 = []
 
-            # keep original dtype
-            # yfield = yfield.astype(yfield.encoding['dtype'])
-            # print(yfield)
-            os.remove(tmpout)
+        # compute the yearly mean and the season mean
+        logging.info("Averaging...")
+        gfield1 = yfield.resample(time='YS', skipna=NANSKIP).mean('time', skipna=NANSKIP).persist()
+        gfield2 = yfield.resample(time='QE-NOV', skipna=NANSKIP).mean('time', skipna=NANSKIP).persist()
 
-            # create empty lists
-            d1 = []
-            d2 = []
+        # loop on seasons
+        for season in ['ALL', 'DJF', 'MAM', 'JJA', 'SON']:
+            logging.info(season)
 
-            # compute the yearly mean and the season mean
-            logging.info("Averaging...")
-            gfield1 = yfield.resample(time='YS', skipna=nanskipper).mean('time', skipna=nanskipper)
-            gfield2 = yfield.resample(time='QE-NOV', skipna=nanskipper).mean('time', skipna=nanskipper)
+            gfield = select_time_data(gfield1, gfield2, season)
 
-            # loop on seasons
-            for season in ['ALL', 'DJF', 'MAM', 'JJA', 'SON']:
-                logging.info(season)
+            logging.debug(gfield.shape)
 
-                # select the season
-                if season == 'ALL':
-                    gfield = gfield1
-                else:
-                    gfield = gfield2.sel(time=gfield2.time.dt.season.isin(season))
-                    # for winter, we drop first and last to have only complete season.
-                    # this reduces the sample by one but it is safer for variance
-                    if season == 'DJF':
-                        gfield = gfield.drop_isel(time=[0, gfield.sizes['time'] - 1])
+            # zonal averaging for 3D fields
+            if 'plev' in gfield.coords:
+                gfield = gfield.mean(dim='lon')
+                # select only up to 10hpa
+                gfield = gfield.sel(plev=slice(100000, 1000))
 
-                logging.debug(gfield.shape)
+            # create a reference time (average year, average month of the season)
+            timestring = f'{int((year1 + year2) / 2)}-{str(gfield.time.dt.month.values[0])}-15'
+            reftime = pd.to_datetime(timestring)
 
-                # zonal averaging for 3D fields
-                if 'plev' in gfield.coords:
-                    gfield = gfield.mean(dim='lon')
-                    # select only up to 10hpa
-                    gfield = gfield.sel(plev=slice(100000, 1000))
+            # compute mean and variance: remove NaN in this case only
+            omean = gfield.mean('time', skipna=True, keepdims=True)
+            ovar = gfield.var('time', skipna=True, keepdims=True)
 
-                # create a reference time (average year, average month of the season)
-                reftime = pd.to_datetime(str(int((year1 + year2) / 2)) + '-' +
-                                         str(gfield.time.dt.month.values[0]) + '-15')
+            #if do_figures:
+            #    os.makedirs(os.path.join(figdir, var), exist_ok=True)
+            #    omean.to_netcdf(os.path.join(figdir, var, f'mean_{season}.nc'))
+            #    ovar.to_netcdf(os.path.join(figdir, var, f'var_{season}.nc'))
 
-                # compute mean and variance: remove NaN in this case only
-                omean = gfield.mean('time', skipna=True, keepdims=True)
-                ovar = gfield.var('time', skipna=True, keepdims=True)
+            # define the variance threshold
+            if method == "sigma":
+                low, center, high = variance_threshold(ovar, sigma=SIGMA)
+                logging.info('Variance threshold: low = %s, center = %s, high = %s', low, center, high)
+            elif method == "fraction":
+                low, center, high = variance_fraction(ovar, fraction=FRACTION)
+                logging.info('Variance fraction: low = %s, center = %s, high = %s', low, center, high)
+            elif method == "iqr":
+                low, center, high = variance_iqr(ovar)
+                logging.info('Variance IQR: low = %s, center = %s, high = %s', low, center, high)
+            elif method == "iqr_adjusted":
+                low, center, high = variance_iqr_adjusted(ovar)
+                logging.info('Variance IQR adjusted: low = %s, center = %s, high = %s', low, center, high)
+            elif method == "combined":
+                low, center, high = variance_combined(ovar, sigma=SIGMA, fraction=FRACTION)
+                logging.info('Variance combined: low = %s, center = %s, high = %s', low, center, high)
+            else:
+                raise ValueError(f"Unknown method for variance filtering: {method}")
 
-                # special fix
-                # ovar = fix_specific_dataset(var, info[var]['dataset'], ovar)
-
-                # define the variance threshold
-                low, high = variance_threshold(ovar)
-                logging.debug(low)
-                logging.debug(high)
-
-                # clean according to thresholds
+            # clipping
+            if cutting == "clipping":
+                logging.info('Applying variance clipping to minimum...')
+                fvar = ovar.clip(min=low)
+                fmean = omean
+            elif cutting == "nan":
+                logging.info('Applying variance sigma filtering...')
                 fvar = ovar.where((ovar >= low) & (ovar <= high))
                 fmean = omean.where((ovar >= low) & (ovar <= high))
-
-                #print(fvar)
-
-                if do_figures:
-                    logging.info("Mean and variance histograms...")
-                    figname = var + '_' + info[var]['dataset'] + '_' + grid + '_' + \
-                        str(real_year1) + '_' + str(real_year2) + '_' + season + '.pdf'
-                    os.makedirs(os.path.join(figdir, var), exist_ok=True)
-                    file = os.path.join(figdir, var, figname)
-                    check_histogram(omean, ovar, fvar, file)
-
-                # add a reference time
-                ymean = fmean.assign_coords({"time": ("time", [reftime])})
-                yvar = fvar.assign_coords({"time": ("time", [reftime])})
-
-                # append the dataset in the list
-                d1.append(ymean)
-                d2.append(yvar)
-
-            # merge into a single dataarray
-            season_mean = xr.concat(d1[1:], dim='time')
-            season_variance = xr.concat(d2[1:], dim='time')
-            full_mean = d1[0]
-            full_variance = d2[0]
-
-            # define compression and dtype for time, keep original dtype
-            ftype["zlib"] = True
-            compression = {var: ftype, 'time': {'dtype': 'f8'}}
-
-            # define file suffix
-            suffix = var + '_' + info[var]['dataset'] + '_' + grid + '_' + str(real_year1) + '-' + str(real_year2) + '.nc'
-
-            # save full - standard format
-            full_variance.to_netcdf(os.path.join(tgtdir, grid, 'climate_variance_' + suffix), encoding=compression)
-            full_mean.to_netcdf(os.path.join(tgtdir, grid, 'climate_average_' + suffix), encoding=compression)
-
-            # save season - 4 season format
-            season_variance.to_netcdf(os.path.join(tgtdir, grid, 'seasons_variance_' + suffix), encoding=compression)
-            season_mean.to_netcdf(os.path.join(tgtdir, grid, 'seasons_average_' + suffix), encoding=compression)
-
-            toc = time()
-            logging.info('Processing in {:.4f} seconds'.format(toc - tic))
-
-            # preparing clim file
-            if os.path.isfile(clim_file):
-                dclim = load_yaml(clim_file)
             else:
-                dclim = {}
+                raise ValueError(f"Unknown method for variance filtering: {cutting}")
 
-            # initialize variable if not exists
-            if var not in dclim:
-                dclim[var] = {}
+            if do_figures:
+                logging.info("Mean and variance histograms...")
+                figname = f'{var}_{info[var]["dataset"]}_{GRID}_{real_year1}_{real_year2}_{season}.pdf'
+                os.makedirs(os.path.join(figdir, var), exist_ok=True)
+                file = os.path.join(figdir, var, figname)
+                check_histogram(
+                    ovar, fvar, file, method=method, 
+                    center=center, low=low, high=high)
 
-            # assign to the dictionary the required info
-            dclim[var]['dataset'] = info[var]['dataset']
-            dclim[var]['description'] = info[var]['description']
-            dclim[var]['longname'] = info[var]['longname']
-            # dclim[var]['dataname'] = info[var]['varname']
-            dclim[var]['remap'] = info[var]['remap']
-            dclim[var]['mask'] = mask_from_field(full_mean)
-            dclim[var]['units'] = full_mean.attrs['units']
-            dclim[var]['year1'] = int(real_year1)
-            dclim[var]['year2'] = int(real_year2)
+            # add a reference time
+            ymean = fmean.assign_coords({"time": ("time", [reftime])})
+            yvar = fvar.assign_coords({"time": ("time", [reftime])})
 
-            # dump the yaml file
-            with open(clim_file, 'w', encoding='utf8') as file:
-                yaml.safe_dump(dclim, file, sort_keys=False)
+            # append the dataset in the list
+            d1.append(ymean)
+            d2.append(yvar)
+        
+        # cleanup temporary file
+        os.remove(tmpfile.name)
 
-            logging.debug(dclim)
+        # merge into a single dataarray
+        season_mean = xr.concat(d1[1:], dim='time')
+        season_variance = xr.concat(d2[1:], dim='time')
+        full_mean = d1[0]
+        full_variance = d2[0]
+
+        # define compression and dtype for time, keep original dtype
+        ftype["zlib"] = True
+        compression = {var: ftype, 'time': {'dtype': 'f8'}}
+
+        # save all climatology files (map climatology prefixes)
+        climatology_data = [
+            full_variance,
+            full_mean,
+            season_variance,
+            season_mean
+    ]
+        
+        climatology_files = get_climatology_files(
+            tgtdir, var, info[var]['dataset'], GRID, real_year1, real_year2
+        )
+
+        for prefix, dataset in zip(CLIMATOLOGY_PREFIXES, climatology_data):
+            logging.info('Saving %s...', prefix)
+            dataset.to_netcdf(climatology_files[prefix], encoding=compression)
+
+        toc = time()
+        logging.warning('Processing in {:.4f} seconds'.format(toc - tic))
+
+        # preparing clim file
+        if os.path.isfile(clim_file):
+            dclim = load_yaml(clim_file)
+        else:
+            dclim = {}
+
+        # initialize variable if not exists
+        if var not in dclim:
+            dclim[var] = {}
+
+        # assign to the dictionary the required info
+        dclim[var]['dataset'] = info[var]['dataset']
+        dclim[var]['description'] = info[var]['description']
+        dclim[var]['longname'] = info[var]['longname']
+        if 'version' in info[var].keys():
+            dclim[var]['version'] = info[var]['version']
+        # dclim[var]['dataname'] = info[var]['varname']
+        dclim[var]['remap'] = info[var]['remap']
+        dclim[var]['mask'] = mask_from_field(full_mean)
+        dclim[var]['units'] = full_mean.attrs['units']
+        dclim[var]['year1'] = int(real_year1)
+        dclim[var]['year2'] = int(real_year2)
+
+        # dump the yaml file
+        with open(clim_file, 'w', encoding='utf8') as file:
+            yaml.safe_dump(dclim, file, sort_keys=False)
+
+        logging.debug(dclim)
+
+    # Reorder climatology dictionary according to variable list order
+    logging.info("Reordering climatology file according to variable list...")
+    dclim = load_yaml(clim_file)
+    dclim = {var: dclim[var] for var in variables if var in dclim}
+    
+    # dump the reordered yaml file
+    with open(clim_file, 'w', encoding='utf8') as file:
+        yaml.safe_dump(dclim, file, sort_keys=False)
+    logging.warning("Climatology file reordered and saved: %s", clim_file)
 
 
 # setting up dask
 if __name__ == "__main__":
+    parser = parse_create_args()
+    parser.add_argument(
+        '--overwrite',
+        action='store_true',
+        default=False,
+        help='Not working yet: overwrite existing climatology files (default: False)'
+    )
+    parser.add_argument(
+        '--figures',
+        action='store_true',
+        default=False,
+        help='Generate diagnostic figures (default: False)'
+    )
+    parser.add_argument(
+        '--method',
+        type=str,
+        default=METHOD,
+        help='Variance filtering method (default: %(default)s)',
+        choices=['sigma', 'fraction', 'iqr', 'iqr_adjusted', 'combined']
+    )
 
-    # set up clusters
-    #cluster = LocalCluster(threads_per_worker=threads, n_workers=workers)
-    #client = Client(cluster)
-    #logging.warning(client)
-    main()
+    args = parser.parse_args()
+
+    logging.getLogger().setLevel(args.loglevel.upper())
+
+    if args.cores > 1:
+        workers = args.cores
+        cluster = LocalCluster(threads_per_worker=1, n_workers=workers)
+        client = Client(cluster)
+        logging.warning(client)
+
+    main(args.climdata, args.timeframe, args.machine, args.figures, args.overwrite, args.method)
+
+    if args.cores > 1:
+        client.close()
+        cluster.close()
