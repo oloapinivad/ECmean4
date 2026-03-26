@@ -115,7 +115,7 @@ palette = ['teal', 'gold']
 how1 = howmuch[howmuch["nyears"] == nyears_fixed]
 chart1 = sns.barplot(data=how1, x='nprocs', y='time', hue='script', palette=palette, ax=axs[0])
 
-axs[0].set_title(f'ECmean4 {version} execution time for CMIP6 {model} ({nyears_fixed} years)', fontsize=15)
+axs[0].set_title(f'ECmean {version} execution time for CMIP6 {model} ({nyears_fixed} years)', fontsize=15)
 for i in chart1.containers:
     chart1.bar_label(i,)
 axs[0].set_xlabel('Number of cores', fontsize=15)
@@ -128,7 +128,7 @@ axs[0].legend(hh, ll)
 how2 = howmuch[howmuch["nprocs"] == nprocs_fixed]
 chart2 = sns.barplot(data=how2, x='nyears', y='time', hue='script', palette=palette, ax=axs[1])
 
-axs[1].set_title(f'ECmean4 {version} execution time for CMIP6 {model} ({nprocs_fixed} nprocs)', fontsize=15)
+axs[1].set_title(f'ECmean {version} execution time for CMIP6 {model} ({nprocs_fixed} nprocs)', fontsize=15)
 for i in chart2.containers:
     chart2.bar_label(i,)
 axs[1].set_xlabel('Number of years', fontsize=15)
