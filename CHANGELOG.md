@@ -9,6 +9,8 @@ Unreleased is the current development version, which is currently lying in `main
 
 ## [v0.2]
 
+- Expand tests for new climatologies (#145)
+- New climatologies EC26 for both global mean and performance indices (#135, #143, #144)
 - Various speed up improvement for ECplotter and multiprocessing (#137)
 - Support for python==3.14 (#136)
 - Refactored colorbar label in performance indices plots; removed kwargs direct title propagation (#133)

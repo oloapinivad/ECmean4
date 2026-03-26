@@ -6,7 +6,6 @@ model:
 dirs:
    exp: tests/data
    tab: tests/table
-   clm: ecmean/climatology
    fig: tests/figures
 
 performance_indices:
