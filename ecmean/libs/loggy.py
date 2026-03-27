@@ -1,4 +1,5 @@
 """Module to implement logging configurations"""
+
 import logging
 
 
@@ -15,7 +16,7 @@ def setup_logger(level=None, name=None):
     if logger.handlers:
         if level != logging.getLevelName(logger.getEffectiveLevel()):
             logger.setLevel(loglev)
-            logger.info('Updating the log_level to %s', loglev)
+            logger.info("Updating the log_level to %s", loglev)
         return logger
 
     # avoid duplication/propagation of loggers
@@ -24,8 +25,10 @@ def setup_logger(level=None, name=None):
     logger.setLevel(loglev)  # Set the desired log level
 
     # Create a formatter to specify the log format
-    formatter = logging.Formatter('%(asctime)s | %(name)s | %(levelname)8s -> %(message)s',
-                                  datefmt='%Y-%m-%d %H:%M:%S')
+    formatter = logging.Formatter(
+        "%(asctime)s | %(name)s | %(levelname)8s -> %(message)s",
+        datefmt="%Y-%m-%d %H:%M:%S",
+    )
 
     # Create a handler for the logger
     handler = logging.StreamHandler()
@@ -56,15 +59,18 @@ def convert_logger(loglev=None):
 
     # If loglev is of an unsupported type, raise a ValueError
     else:
-        raise ValueError('Invalid log level type. Must be a string or an integer.')
+        raise ValueError("Invalid log level type. Must be a string or an integer.")
 
     # Check if the log level exists and retrieve its integer value
     loglev_int = getattr(logging, loglev, None)
 
     # If loglev_int is None, the log level doesn't exist
     if loglev_int is None:
-        logging.warning("Invalid logging level '%s' specified. Setting it back to default '%s'.",
-                        loglev, loglev_default)
+        logging.warning(
+            "Invalid logging level '%s' specified. Setting it back to default '%s'.",
+            loglev,
+            loglev_default,
+        )
         loglev = loglev_default
 
     return loglev

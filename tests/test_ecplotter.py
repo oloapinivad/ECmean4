@@ -10,9 +10,10 @@ def test_ecplotter_title_override():
         diagnostic="performance_indices",
         modelname="EC-Earth4",
         expname="amip",
-        year1=1990, year2=1991,
+        year1=1990,
+        year2=1991,
         regions=["Global"],
-        seasons=["ALL"]
+        seasons=["ALL"],
     )
     assert plotter1.default_title == "PERFORMANCE INDICES EC-Earth4 amip 1990 1991"
 
@@ -21,14 +22,14 @@ def test_ecplotter_title_override():
     mock_data = {mock_longname: {"ALL": {"Global": 1.0}}}
     mock_cmip6 = {mock_longname: {"ALL": {"Global": 1.0}}}
     mock_longnames = [mock_longname]
-    
+
     fig1 = plotter1.heatmap_comparison_pi(
         data_dict=mock_data,
         cmip6_dict=mock_cmip6,
         longnames=mock_longnames,
-        storefig=False
+        storefig=False,
     )
-    
+
     ax1 = fig1.axes[0]
     assert ax1.get_title() == "PERFORMANCE INDICES EC-Earth4 amip 1990 1991"
 
@@ -38,9 +39,9 @@ def test_ecplotter_title_override():
         cmip6_dict=mock_cmip6,
         longnames=mock_longnames,
         storefig=False,
-        title="Custom Title Override"
+        title="Custom Title Override",
     )
-    
+
     ax2 = fig2.axes[0]
     assert ax2.get_title() == "Custom Title Override"
 
@@ -51,17 +52,18 @@ def test_ecplotter_global_mean_title():
         diagnostic="global_mean",
         modelname="EC-Earth4",
         expname="amip",
-        year1=1990, year2=1991,
+        year1=1990,
+        year2=1991,
         regions=["Global"],
-        seasons=["ALL"]
+        seasons=["ALL"],
     )
-    
+
     mock_longname = "Test Variable [units]"
     mock_data = {mock_longname: {"ALL": {"Global": 1.0}}}
     mock_mean = {mock_longname: {"ALL": {"Global": 1.0}}}
     mock_std = {mock_longname: {"ALL": {"Global": 0.1}}}
     mock_units = ["units"]
-    
+
     # Test without reference
     fig1 = plotter.heatmap_comparison_gm(
         data_dict=mock_data,
@@ -69,12 +71,12 @@ def test_ecplotter_global_mean_title():
         std_dict=mock_std,
         units_list=mock_units,
         storefig=False,
-        title="Custom Global Mean Title"
+        title="Custom Global Mean Title",
     )
-    
+
     ax1 = fig1.axes[0]
     assert ax1.get_title() == "Custom Global Mean Title"
-    
+
     # Test with reference - colorbar label should include reference
     fig2 = plotter.heatmap_comparison_gm(
         data_dict=mock_data,
@@ -83,12 +85,12 @@ def test_ecplotter_global_mean_title():
         units_list=mock_units,
         storefig=False,
         title="Custom Global Mean Title",
-        reference="EC23"
+        reference="EC23",
     )
-    
+
     ax2 = fig2.axes[0]
     assert ax2.get_title() == "Custom Global Mean Title"
-    
+
     # Check colorbar label includes reference
     cbar = fig2.axes[-1]  # Colorbar is typically the last axis
     cbar_label = cbar.get_ylabel()

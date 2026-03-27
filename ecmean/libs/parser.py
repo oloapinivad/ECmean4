@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
-'''
+"""
 Shared functions for Ecmean4: parsers arguments from command line
-'''
+"""
 
 import argparse
 from ecmean import __version__
@@ -19,52 +19,89 @@ def parse_arguments(args, script):
 
     # common configuration to be parsed
     parser = argparse.ArgumentParser(
-        description='ECmean global mean diagnostics for Global Climate models')
-    parser.add_argument('exp', metavar='EXP', type=str, help='experiment ID')
-    parser.add_argument('year1', metavar='Y1', type=int, help='starting year')
-    parser.add_argument('year2', metavar='Y2', type=int, help='final year')
-    parser.add_argument('-i', '--interface', type=str, default='',
-                        help='interface (overrides config.yml)')
-    parser.add_argument('-c', '--config', type=str, default='',
-                            help='config file')
-    parser.add_argument('-j', dest="numproc", type=int, default=1,
-                        help='number of processors to use')
-    parser.add_argument('-l', '--loglevel', type=str, default='WARNING',
-                        help='define the level of logging.')
-    parser.add_argument('-o', '--outputdir', type=str,
-                        help='force the output directory')
+        description="ECmean global mean diagnostics for Global Climate models"
+    )
+    parser.add_argument("exp", metavar="EXP", type=str, help="experiment ID")
+    parser.add_argument("year1", metavar="Y1", type=int, help="starting year")
+    parser.add_argument("year2", metavar="Y2", type=int, help="final year")
+    parser.add_argument(
+        "-i",
+        "--interface",
+        type=str,
+        default="",
+        help="interface (overrides config.yml)",
+    )
+    parser.add_argument("-c", "--config", type=str, default="", help="config file")
+    parser.add_argument(
+        "-j", dest="numproc", type=int, default=1, help="number of processors to use"
+    )
+    parser.add_argument(
+        "-l",
+        "--loglevel",
+        type=str,
+        default="WARNING",
+        help="define the level of logging.",
+    )
+    parser.add_argument(
+        "-o", "--outputdir", type=str, help="force the output directory"
+    )
     # cmip specifications
-    parser.add_argument('--model', type=str, default=None,
-                        help='model name')
-    parser.add_argument('--ensemble', type=str, default=None,
-                        help='variant label (ripf number for cmor)')
-    parser.add_argument('--consortium', type=str, default=None,
-                        help='consortium name (e.g. EC-Earth-Consortium, CNRM, etc.)')
-    parser.add_argument('--mip', type=str, default='CMIP',
-                        help='MIP name (e.g. CMIP, HighResMIP, etc.)')
-    parser.add_argument('-s', '--silent', action='store_true',
-                        help='do not print anything to std output')
-    parser.add_argument('--version', action='version',
-                        version='%(prog)s ' + __version__)
+    parser.add_argument("--model", type=str, default=None, help="model name")
+    parser.add_argument(
+        "--ensemble",
+        type=str,
+        default=None,
+        help="variant label (ripf number for cmor)",
+    )
+    parser.add_argument(
+        "--consortium",
+        type=str,
+        default=None,
+        help="consortium name (e.g. EC-Earth-Consortium, CNRM, etc.)",
+    )
+    parser.add_argument(
+        "--mip", type=str, default="CMIP", help="MIP name (e.g. CMIP, HighResMIP, etc.)"
+    )
+    parser.add_argument(
+        "-s",
+        "--silent",
+        action="store_true",
+        help="do not print anything to std output",
+    )
+    parser.add_argument(
+        "--version", action="version", version="%(prog)s " + __version__
+    )
 
     # specific to global mean
-    if script == 'gm':
-        parser.add_argument('--trend', action='store_true',
-                            help='compute trends')
-        parser.add_argument('--line', action='store_true',
-                            help='appends also single line to a table')
-        parser.add_argument('--reference', type=str, default='EC23',
-                            help='reference climatology to be compared. default: EC23',
-                            choices=['EC23'])
-        parser.add_argument('--addnan', action='store_true',
-                        help='provide figures also where observations are missing')
+    if script == "gm":
+        parser.add_argument("--trend", action="store_true", help="compute trends")
+        parser.add_argument(
+            "--line", action="store_true", help="appends also single line to a table"
+        )
+        parser.add_argument(
+            "--reference",
+            type=str,
+            default="EC23",
+            help="reference climatology to be compared. default: EC23",
+            choices=["EC23"],
+        )
+        parser.add_argument(
+            "--addnan",
+            action="store_true",
+            help="provide figures also where observations are missing",
+        )
 
     # specific to performance indices
-    if script == 'pi':
-        parser.add_argument('--climatology', type=str, default='EC23',
-                            help='climatology to be compared. default: EC23. Options: [EC23, EC24]',
-                            choices=['EC23', 'EC24'])
-        parser.add_argument('--resolution', type=str, default='',
-                            help='climatology resolution')
-        
+    if script == "pi":
+        parser.add_argument(
+            "--climatology",
+            type=str,
+            default="EC23",
+            help="climatology to be compared. default: EC23. Options: [EC23, EC24]",
+            choices=["EC23", "EC24"],
+        )
+        parser.add_argument(
+            "--resolution", type=str, default="", help="climatology resolution"
+        )
+
     return parser.parse_args(args)
