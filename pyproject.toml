@@ -39,7 +39,8 @@ dependencies = [
 tests = [
     "flake8",
     "pytest",
-    "pytest-cov"
+    "coverage",
+    "coveralls"
 ]
 
 docs = [
@@ -83,7 +84,6 @@ source = [
 ]
 
 [tool.pytest.ini_options]
-addopts = "--cov=ecmean --cov-report=html --cov-report=term --cov-report=lcov"
 testpaths = ["tests"]
 python_files = "test_*.py"
 

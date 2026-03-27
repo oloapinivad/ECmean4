@@ -54,8 +54,10 @@ jobs:
         flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
         # exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
         flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics --exclude=__init__.py
-    - name: Test with pytest and coverage
-      run: pytest --cov=ecmean --cov-report=term --cov-report=lcov:coverage.lcov
+    - name: Run coverage
+      run: |
+        coverage run -m pytest
+        coverage lcov
     - name: Upload coverage artifact for Python 3.14
       if: matrix.python-version == '3.14'
       uses: actions/upload-artifact@v4
