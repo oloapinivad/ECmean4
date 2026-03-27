@@ -13,23 +13,24 @@
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 import os
 import sys
-sys.path.insert(0, os.path.abspath('../../../'))
+
+sys.path.insert(0, os.path.abspath("../../../"))
 
 # -- Project information -----------------------------------------------------
 
-project = 'ecmean'
-copyright = '2022, Paolo Davini and Jost von Hardenberg'
-author = 'Paolo Davini and Jost von Hardenberg'
+project = "ecmean"
+copyright = "2022, Paolo Davini and Jost von Hardenberg"
+author = "Paolo Davini and Jost von Hardenberg"
 
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
 
-extensions = ['sphinx.ext.autodoc', 'sphinx.ext.napoleon']
+extensions = ["sphinx.ext.autodoc", "sphinx.ext.napoleon"]
 napoleon_google_docstring = True
 napoleon_numpy_docstring = False
 
 templates_path = ["_templates"]
-autoclass_content = 'both'
+autoclass_content = "both"
 exclude_patterns = []
 
 # -- RST substitutions -------------------------------------------------------
