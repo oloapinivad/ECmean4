@@ -11,57 +11,59 @@ from ecmean.libs.climatology import CLIMATOLOGY_PREFIXES
 
 loggy = logging.getLogger(__name__)
 
+
 def get_climatology_files(tgtdir, var, dataset, grid, year1, year2):
-    """Generate climatology file paths.
-    """
+    """Generate climatology file paths."""
 
-    suffix = f'{var}_{dataset}_{grid}_{year1}-{year2}.nc'
+    suffix = f"{var}_{dataset}_{grid}_{year1}-{year2}.nc"
 
-    climatology_files = {
-        prefix: os.path.join(tgtdir, grid, prefix + suffix)
-        for prefix in CLIMATOLOGY_PREFIXES
-    }
+    climatology_files = {prefix: os.path.join(tgtdir, grid, prefix + suffix) for prefix in CLIMATOLOGY_PREFIXES}
 
     return climatology_files
 
+
 def timeframe_years(timeframe):
     """Timeframe to years mapping."""
-    if timeframe == 'HIST':
+    if timeframe == "HIST":
         year1 = 1981
         year2 = 2010
-    elif timeframe == 'PDAY':
+    elif timeframe == "PDAY":
         year1 = 2000
         year2 = 2024
-    elif timeframe == 'CMIP':
+    elif timeframe == "CMIP":
         year1 = 1985
         year2 = 2014
     else:
-        raise ValueError(f"TIMEFRAME {timeframe} not recognized."
-                         "Please choose from HIST, PDAY, CMIP.")
+        raise ValueError(f"TIMEFRAME {timeframe} not recognized.Please choose from HIST, PDAY, CMIP.")
     return year1, year2
+
 
 def select_time_data(yearly, seasonly, season):
     """Select time data based on season."""
 
-    if season == 'ALL':
+    if season == "ALL":
         return yearly
 
     gfield = seasonly.sel(time=seasonly.time.dt.season.isin(season))
     # for winter, we drop first and last to have only complete season.
     # this reduces the sample by one but it is safer for variance
-    if season == 'DJF':
-        gfield = gfield.drop_isel(time=[0, gfield.sizes['time'] - 1])
+    if season == "DJF":
+        gfield = gfield.drop_isel(time=[0, gfield.sizes["time"] - 1])
 
     return gfield
+
 
 def expand_filedata(directory, var, info):
     """Expand filedata directory with environment variables and info dictionary."""
 
     return os.path.expandvars(directory).format(
-        datadir=info['dirs']['datadir'], mswepdir=info['dirs']['mswepdir'],
-        eradir=info['dirs']['eradir'], esadir=info['dirs']['esadir'],
-        dataset=info[var]['dataset']
+        datadir=info["dirs"]["datadir"],
+        mswepdir=info["dirs"]["mswepdir"],
+        eradir=info["dirs"]["eradir"],
+        esadir=info["dirs"]["esadir"],
+        dataset=info[var]["dataset"],
     )
+
 
 def select_time_period(xfield, var, year1, year2):
     """
@@ -70,7 +72,7 @@ def select_time_period(xfield, var, year1, year2):
     # Check available years
     valid_time = xfield[var].dropna("time", how="all").time
     avail_years = np.unique(valid_time.dt.year.values)
-    
+
     # Calculate intersection between requested and available
     real_year1 = max(year1, int(avail_years.min()))
     real_year2 = min(year2, int(avail_years.max()))
@@ -85,16 +87,14 @@ def select_time_period(xfield, var, year1, year2):
 
     # Warn if years differ from requested
     if real_year1 != year1 or real_year2 != year2:
-        logging.warning(
-            "%s: using %s-%s instead of requested %s-%s",
-            var, real_year1, real_year2, year1, year2
-        )
+        logging.warning("%s: using %s-%s instead of requested %s-%s", var, real_year1, real_year2, year1, year2)
 
     # Select time
     years_eff = list(range(real_year1, real_year2 + 1))
     cfield = xfield[var].sel(time=xfield[var].time.dt.year.isin(years_eff))
 
     return cfield, real_year1, real_year2
+
 
 def variance_threshold(xvariance, sigma=3):
     """
@@ -103,29 +103,31 @@ def variance_threshold(xvariance, sigma=3):
     """
     f = np.log10(xvariance.where(xvariance > 0))
     m = float(f.mean())
-    loggy.debug('Median variance: %s', m)
+    loggy.debug("Median variance: %s", m)
     s = float(f.std())
-    low = 10**(m - sigma * s)
-    high = 10**(m + sigma * s)
+    low = 10 ** (m - sigma * s)
+    high = 10 ** (m + sigma * s)
     m = 10**m
     return low, m, high
 
+
 def variance_iqr_adjusted(xvariance):
     """This defines the two thresholds (high and low) for filtering the dataset
-    based on the interquartile range of the log10 distribution applying  
+    based on the interquartile range of the log10 distribution applying
     the medcouple adjustment for skewness from Hubert, M. & Vandervieren, E. (2008)"""
 
     f = np.log10(xvariance.where(xvariance > 0))
     median = float(f.median())
     qqq = f.quantile([0.25, 0.75])
     mc = medcouple(f.values[~np.isnan(f.values)])
-    loggy.info('Medcouple: %s', mc)
+    loggy.info("Medcouple: %s", mc)
     iqr = qqq[1] - qqq[0]
     f1, f2 = (-4, 3) if mc > 0 else (-3, 4)
-    iqleft = 10**(qqq[0] - 1.5 *iqr * np.exp(f1 * mc))
-    iqright = 10**(qqq[1] + 1.5 * iqr * np.exp(f2 * mc))
+    iqleft = 10 ** (qqq[0] - 1.5 * iqr * np.exp(f1 * mc))
+    iqright = 10 ** (qqq[1] + 1.5 * iqr * np.exp(f2 * mc))
 
     return iqleft, 10**median, iqright
+
 
 def variance_combined(xvariance, fraction=3, sigma=3):
     """
@@ -138,16 +140,17 @@ def variance_combined(xvariance, fraction=3, sigma=3):
     f = np.log10(xvariance.where(xvariance > 0))
     median = f.median().values
     s = f.std().values
-    sigmaleft = 10**(median - sigma * s)
-    sigmaright = 10**(median + sigma * s)
-    loggy.info('Sigma thresholds: low = %s, high = %s', sigmaleft, sigmaright)
-    varleft = 10**(median - fraction)
-    varright = 10**(median + fraction)
-    loggy.info('Variance fraction: low = %s, high = %s', varleft, varright)
+    sigmaleft = 10 ** (median - sigma * s)
+    sigmaright = 10 ** (median + sigma * s)
+    loggy.info("Sigma thresholds: low = %s, high = %s", sigmaleft, sigmaright)
+    varleft = 10 ** (median - fraction)
+    varright = 10 ** (median + fraction)
+    loggy.info("Variance fraction: low = %s, high = %s", varleft, varright)
     left = max(sigmaleft, varleft)
     right = min(sigmaright, varright)
 
     return left, 10**median, right
+
 
 def variance_iqr(xvariance):
     """This defines the two thresholds (high and low) for filtering the dataset
@@ -157,21 +160,23 @@ def variance_iqr(xvariance):
     median = float(f.median())
     qqq = f.quantile([0.25, 0.75])
     iqr = qqq[1] - qqq[0]
-    iqleft = 10**(qqq[0] - 1.5 * iqr)
-    iqright = 10**(qqq[1] + 1.5 * iqr)
+    iqleft = 10 ** (qqq[0] - 1.5 * iqr)
+    iqright = 10 ** (qqq[1] + 1.5 * iqr)
     return iqleft.values, 10**median, iqright.values
+
 
 def variance_fraction(xvariance, fraction=3):
     """
-    Alternative method for variance clipping, based on the median of the distribution. 
+    Alternative method for variance clipping, based on the median of the distribution.
     The threshold is defined as a fraction of the median.
     """
     f = np.log10(xvariance.where(xvariance > 0))
     m = float(f.median())
-    loggy.debug('Median variance: %s', m)
-    low = 10**(m - fraction)
-    high = 10**(m + fraction)
+    loggy.debug("Median variance: %s", m)
+    low = 10 ** (m - fraction)
+    high = 10 ** (m + fraction)
     return low, 10**m, high
+
 
 def full_histogram(field, figname, n_bins=100):
     """Compute the histogram of the full field before it is processed.
@@ -188,7 +193,7 @@ def full_histogram(field, figname, n_bins=100):
     x = 0.5 * (bins[1:] + bins[:-1])
     width = np.diff(bins)
     axs.bar(x, hist.compute(), width, log=True)
-    axs.title.set_text('Complete original values ' + field.name)
+    axs.title.set_text("Complete original values " + field.name)
     fig.savefig(figname)
 
 
@@ -214,28 +219,34 @@ def check_histogram(yvar, yvar_filtered, figname, n_bins=100, method="sigma", ce
     extra = abs(left - right) / 20
 
     # mean and variance field
-    yvar.plot.hist(ax=axs[0], bins=n_bins, yscale='log', color = 'goldenrod')
-    axs[0].title.set_text('Original variance ' + yvar.name)
+    yvar.plot.hist(ax=axs[0], bins=n_bins, yscale="log", color="goldenrod")
+    axs[0].title.set_text("Original variance " + yvar.name)
 
-    color = 'magenta' if method == "sigma" else 'green' if method == "fraction" else 'cyan' if method=="iqr_adjusted" else 'blue'
+    color = (
+        "magenta" if method == "sigma" else "green" if method == "fraction" else "cyan" if method == "iqr_adjusted" else "blue"
+    )
 
     # log10 plots with linear x-axis
-    f.plot.hist(ax=axs[1],  bins=n_bins, yscale='log', xlim=[left - extra, right + extra])
-    axs[1].title.set_text('Original variance log10 ' + yvar.name)
-    g.plot.hist(ax=axs[2], bins=n_bins, yscale='log', color='red', xlim=[left - extra, right + extra])
-    axs[2].title.set_text('Filtered variance log10 ' + yvar.name + ' (' + method + ' method)')
+    f.plot.hist(ax=axs[1], bins=n_bins, yscale="log", xlim=[left - extra, right + extra])
+    axs[1].title.set_text("Original variance log10 " + yvar.name)
+    g.plot.hist(ax=axs[2], bins=n_bins, yscale="log", color="red", xlim=[left - extra, right + extra])
+    axs[2].title.set_text("Filtered variance log10 " + yvar.name + " (" + method + " method)")
     for k in [1, 2]:
         if center_log is not None:
-            axs[k].axvline(center_log, color='k', linewidth=1)
+            axs[k].axvline(center_log, color="k", linewidth=1)
         if low_log is not None:
-            axs[k].axvline(low_log, color=color, linestyle='--', linewidth=2)
+            axs[k].axvline(low_log, color=color, linestyle="--", linewidth=2)
             # Add text annotation for low threshold
-            axs[k].text(low_log, axs[k].get_ylim()[1] * 0.5,
-                       f' low={low:.2e}',
-                       verticalalignment='bottom',
-                       fontsize=10, fontweight='bold')
+            axs[k].text(
+                low_log,
+                axs[k].get_ylim()[1] * 0.5,
+                f" low={low:.2e}",
+                verticalalignment="bottom",
+                fontsize=10,
+                fontweight="bold",
+            )
         if high_log is not None:
-            axs[k].axvline(high_log, color=color, linestyle='--', linewidth=2)
+            axs[k].axvline(high_log, color=color, linestyle="--", linewidth=2)
             # # Add text annotation for high threshold
             # axs[k].text(high_log, axs[k].get_ylim()[1] * 0.5,
             #            f' high={high:.2e}',
@@ -252,25 +263,25 @@ def mask_from_field(xfield):
     ratio = float(xfield.count() / np.prod(np.array(xfield.shape)))
     loggy.info(ratio)
     if ratio < 0.2:  # this is a special case for ice, need to be double checked
-        mask = 'ocean'
+        mask = "ocean"
     elif 0.2 < ratio < 0.3:
-        mask = 'land'
+        mask = "land"
         # Check if Antarctica is missing (lat < -60)
         antarctica_missing = False
-        antarctic_data = xfield.where(xfield['lat'] < -60, drop=True)
+        antarctic_data = xfield.where(xfield["lat"] < -60, drop=True)
         if antarctic_data.size > 0:
             antarctic_ratio = float(antarctic_data.count() / antarctic_data.size)
             antarctica_missing = antarctic_ratio < 0.1  # Most of Antarctica is missing
         if antarctica_missing:
-            mask = 'land-no-antarctica'
-        
+            mask = "land-no-antarctica"
+
     elif 0.55 < ratio < 0.7:
-        mask = 'ocean'
+        mask = "ocean"
     elif ratio > 0.95:
-        mask = 'global'
+        mask = "global"
     else:
-        mask = 'undefined'
-        raise ValueError('ERROR: cant recognize mask')
+        mask = "undefined"
+        raise ValueError("ERROR: cant recognize mask")
 
     loggy.debug(mask)
     return mask
@@ -278,41 +289,38 @@ def mask_from_field(xfield):
 
 def parse_create_args():
     """Parse command line arguments for reference/climatology creation."""
-    parser = argparse.ArgumentParser(
-        description='Create ecmean reference/climatology for global mean/performance indices.'
-    )
+    parser = argparse.ArgumentParser(description="Create ecmean reference/climatology for global mean/performance indices.")
     parser.add_argument(
-        '-c', '--climdata',
+        "-c",
+        "--climdata",
         type=str,
-        default='EC26',
-        choices=['EC26', 'EC24'],
-        help='Climatology/reference dataset name (default: EC26)'
+        default="EC26",
+        choices=["EC26", "EC24"],
+        help="Climatology/reference dataset name (default: EC26)",
     )
     parser.add_argument(
-        '-t', '--timeframe',
+        "-t",
+        "--timeframe",
         type=str,
-        default='HIST',
-        choices=['HIST', 'PDAY', 'CMIP'],
-        help='Time period for the climatology (default: HIST)'
+        default="HIST",
+        choices=["HIST", "PDAY", "CMIP"],
+        help="Time period for the climatology (default: HIST)",
     )
+    parser.add_argument("--machine", type=str, default="wilma", help="Machine name for input data path (default: wilma)")
     parser.add_argument(
-        '--machine',
-        type=str,
-        default='wilma',
-        help='Machine name for input data path (default: wilma)'
-    )
-    parser.add_argument(
-        '-j', '--cores',
+        "-j",
+        "--cores",
         type=int,
         default=1,
-        help='Number of cores for parallel processing (default: 1). ' \
-        'Two or more cores will activate Dask for parallel computation.'
+        help="Number of cores for parallel processing (default: 1). "
+        "Two or more cores will activate Dask for parallel computation.",
     )
     parser.add_argument(
-        '-l', '--loglevel',
+        "-l",
+        "--loglevel",
         type=str.upper,
-        default='WARNING',
-        choices=['DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL'],
-        help='Logging level (default: WARNING)'
+        default="WARNING",
+        choices=["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"],
+        help="Logging level (default: WARNING)",
     )
     return parser
