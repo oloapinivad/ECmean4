@@ -7,6 +7,8 @@
 
 ![ECmean4](docs/ecmean4_smallest.png)
 
+⚠️ This package is no longer mantained, and it has been renamed to **ecmean**. Please install it with `pip install ecmean`
+
 *A lightweight climate model evaluation tool*
 
 ECmean4 is a lightweight parallelized tool for evaluation of basic properties of Global Climate Models, such as global mean and climate model performance indices.

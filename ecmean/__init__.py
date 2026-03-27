@@ -1,6 +1,15 @@
 """ECmean4 module"""
 
-__version__ = '0.1.16'
+import warnings
+
+warnings.warn(
+    "ECmean4 is deprecated and has been renamed to 'ecmean'. "
+    "Please install the new package: pip install ecmean",
+    DeprecationWarning,
+    stacklevel=2,
+)
+
+__version__ = '0.1.17'
 
 # functions to be accessible everywhere
 from ecmean.libs.diagnostic import Diagnostic
