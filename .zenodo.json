@@ -28,7 +28,7 @@
     ],
     "description": "A lightweight global climate model evaluation tool",
     "license": "Apache-2.0",
-    "title": "ECmean4",
+    "title": "ECmean",
     "upload_type": "software",
     "keywords": [
         "climate model",

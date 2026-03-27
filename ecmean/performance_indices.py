@@ -75,19 +75,6 @@ class PerformanceIndices:
         funcname (str): Name of the class.
         start_time (float): Start time for performance measurement.
         title (str): Title of the plot, overrides default title.
-    Methods:
-        toc(message):
-            Update the timer and log the elapsed time.
-        prepare():
-            Prepare the necessary components for performance indices calculation.
-        run():
-            Run the performance indices calculation.
-        store(yamlfile=None):
-            Store the performance indices in a yaml file.
-        plot(mapfile=None, figformat='pdf'):
-            Generate the heatmap for performance indices.
-        pi_worker(util, piclim, face, diag, field_3d, varstat, varlist):
-            Main parallel diagnostic worker for performance indices.
     """
 
     def __init__(
