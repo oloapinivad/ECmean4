@@ -52,7 +52,7 @@ dask.config.set(scheduler="synchronous")
 class GlobalMean:
     """
     Class for computing global mean statistics from climate model output.
-    
+
     Attributes:
         exp (str): Experiment name.
         year1 (int): Start year of the experiment.
