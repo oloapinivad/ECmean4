@@ -11,13 +11,14 @@ authors = [
 ]
 description = "A Global Climate Model lightweight evaluation tool"
 readme = "README.md"
-requires-python = ">=3.9"
+requires-python = ">=3.9,<=3.14"
 classifiers = [
     "Programming Language :: Python :: 3",
     "Intended Audience :: Science/Research",
     "License :: OSI Approved :: Apache Software License",
     "Operating System :: OS Independent",
 ]
+keywords = ["climate", "evaluation", "EC-Earth", "climate-model", "diagnostics", "performance-indices", "global-mean"]
 dependencies = [
     "xarray",
     "numpy",
@@ -31,16 +32,16 @@ dependencies = [
     "tabulate",
     "cfgrib",
     "seaborn",
-    "statsmodels"
+    "ruff"
 ]
 
 [project.optional-dependencies]
 tests = [
     "flake8",
-    "coverage>=7.10.0",
-    "coveralls",
     "pytest",
-    "cdo"
+    "coverage",
+    "coveralls",
+    "statsmodels"
 ]
 
 docs = [
@@ -68,7 +69,36 @@ version = {attr = "ecmean.__version__"}
 
 [tool.coverage.run]
 concurrency = ["multiprocessing"]
+parallel = true
+source = ["ecmean"]
+omit = [
+    "*/tests/*",
+    "*/test_*.py",
+]
 
 [tool.coverage.report]
 ignore_errors = true
 
+[tool.coverage.paths]
+source = [
+    "ecmean/",
+    "*/ecmean/",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = "test_*.py"
+
+[tool.ruff]
+# --- Global Settings ---
+line-length = 127
+target-version = "py314"
+exclude = ["**/__init__.py"]
+
+[tool.ruff.lint.isort]
+known-first-party = ["ecmean"]
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+docstring-code-format = true

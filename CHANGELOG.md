@@ -7,6 +7,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 Unreleased is the current development version, which is currently lying in `main` branch.
 
+## [v0.2]
+
 - Expand tests for new climatologies (#145)
 - New climatologies EC26 for both global mean and performance indices (#135, #143, #144)
 - Various speed up improvement for ECplotter and multiprocessing (#137)

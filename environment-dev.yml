@@ -13,8 +13,6 @@ dependencies:
   - cdo
   - ncview
   - ipykernel
-  - flake8
-  - autopep8
   - pip
   - pip:
     - -e .[all]

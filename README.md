@@ -3,6 +3,7 @@
 [![PyTest](https://github.com/oloapinivad/ecmean/actions/workflows/mambatest.yml/badge.svg)](https://github.com/oloapinivad/ecmean/actions/workflows/mambatest.yml)
 [![Coverage Status](https://coveralls.io/repos/github/oloapinivad/ecmean/badge.svg)](https://coveralls.io/github/oloapinivad/ecmean)
 [![PyPI version](https://badge.fury.io/py/ecmean.svg)](https://badge.fury.io/py/ecmean)
+[![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
 [![DOI](https://zenodo.org/badge/460093944.svg)](https://zenodo.org/doi/10.5281/zenodo.13834627)
 
 ![ecmean](docs/ecmean_smallest.png)

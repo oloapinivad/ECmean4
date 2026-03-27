@@ -1,19 +1,21 @@
 """Class to provide a complete plotting solution for the ECMean package."""
+
 import textwrap
 import logging
 import yaml
 import matplotlib
 import matplotlib.pyplot as plt
-from matplotlib.colors import  TwoSlopeNorm, ListedColormap #, LogNorm
+from matplotlib.colors import TwoSlopeNorm, ListedColormap  # , LogNorm
 import seaborn as sns
 import numpy as np
 from ecmean.libs.general import dict_to_dataframe, init_mydict
 from ecmean.libs.climatology import SUPPORTED_CLIMATOLOGY, SUPPORTED_REFERENCE
 
- # OPTIMIZATION: Use non-interactive backend (much faster)
-matplotlib.use('Agg')
+# OPTIMIZATION: Use non-interactive backend (much faster)
+matplotlib.use("Agg")
 
 loggy = logging.getLogger(__name__)
+
 
 class ECPlotter:
     """Class to provide a complete plotting solution for the ECMean package.
@@ -21,21 +23,19 @@ class ECPlotter:
     This class is designed to handle all plotting needs for the ECMean package.
     """
 
-    def __init__(self, diagnostic,
-                 modelname, expname, year1, year2,
-                 regions=None, seasons=None):
+    def __init__(self, diagnostic, modelname, expname, year1, year2, regions=None, seasons=None):
         """Initialize the ECPlotter class.
 
         Args:
             diagnostic (str): Type of diagnostic to plot, either "performance_indices" or "global_mean".
             modelname (str): Name of the model.
-            expname (str): Name of the experiment. 
+            expname (str): Name of the experiment.
             year1 (int): Start year of the data.
             year2 (int): End year of the data.
             regions (list, optional): List of regions to consider. Defaults to None, only for global mean.
             seasons (list, optional): List of seasons to consider. Defaults to None, only for global mean.
         """
-        
+
         if diagnostic not in ["performance_indices", "global_mean"]:
             raise ValueError("Invalid diagnostic type. Choose 'performance_indices' or 'global_mean'.")
         self.diagnostic = diagnostic
@@ -45,17 +45,28 @@ class ECPlotter:
         self.year2 = year2
         self.regions = regions
         self.seasons = seasons
-        self.default_title = f"{diagnostic.replace('_', ' ').upper()} {self.modelname} {self.expname} {self.year1} {self.year2}"
+        self.default_title = (
+            f"{diagnostic.replace('_', ' ').upper()} {self.modelname} {self.expname} {self.year1} {self.year2}"
+        )
 
     def _save_and_close(self, fig, filemap):
         """Helper function to save and close the figure."""
         loggy.info("Saving heatmap to %s", filemap)
         fig.savefig(filemap, bbox_inches="tight")
         plt.close(fig)
-        
 
-    def heatmap_plot(self, data, base, variables, filename=None, storefig=True,
-                     climatology="EC23", addnan=False, title=None, reference="EC23"):
+    def heatmap_plot(
+        self,
+        data,
+        base,
+        variables,
+        filename=None,
+        storefig=True,
+        climatology="EC23",
+        addnan=False,
+        title=None,
+        reference="EC23",
+    ):
         """
         Prepare data for plotting performance indices or global mean.
 
@@ -88,26 +99,37 @@ class ECPlotter:
         if self.diagnostic == "performance_indices":
             data2plot, cmip6, longnames = self.prepare_clim_dictionaries_pi(data, base, variables)
             fig = self.heatmap_comparison_pi(
-                data_dict=data2plot, cmip6_dict=cmip6,
-                longnames=longnames, filemap=filename,
-                storefig=storefig, title=title, climatology=climatology)
+                data_dict=data2plot,
+                cmip6_dict=cmip6,
+                longnames=longnames,
+                filemap=filename,
+                storefig=storefig,
+                title=title,
+                climatology=climatology,
+            )
         elif self.diagnostic == "global_mean":
-            obsmean, obsstd, data2plot, units_list = self.prepare_clim_dictionaries_gm(data, base,
-                                                                        variables, self.seasons, self.regions)
+            obsmean, obsstd, data2plot, units_list = self.prepare_clim_dictionaries_gm(
+                data, base, variables, self.seasons, self.regions
+            )
             fig = self.heatmap_comparison_gm(
-                data_dict=data2plot, mean_dict=obsmean, std_dict=obsstd,
-                units_list=units_list, storefig=storefig,
-                filemap=filename, addnan=addnan, title=title, reference=reference)
+                data_dict=data2plot,
+                mean_dict=obsmean,
+                std_dict=obsstd,
+                units_list=units_list,
+                storefig=storefig,
+                filemap=filename,
+                addnan=addnan,
+                title=title,
+                reference=reference,
+            )
         else:
             loggy.error("Invalid diagnostic type %s. Choose 'performance_indices' or 'global_mean'.", self.diagnostic)
             raise ValueError(f"Invalid diagnostic type {self.diagnostic}. Choose 'performance_indices' or 'global_mean'.")
         return fig
 
-
-    def heatmap_comparison_pi(self, data_dict, cmip6_dict,
-            longnames, storefig=True, filemap=None, size_model=14,
-            title=None, climatology=None
-        ):
+    def heatmap_comparison_pi(
+        self, data_dict, cmip6_dict, longnames, storefig=True, filemap=None, size_model=14, title=None, climatology=None
+    ):
         """
         Function to produce a heatmap - seaborn based - for Performance Indices
         based on CMIP6 ratio
@@ -132,7 +154,7 @@ class ECPlotter:
         relative_table = data_table.div(cmip6_table)
 
         # compute the total PI mean
-        relative_table.loc['Total PI'] = relative_table.mean()
+        relative_table.loc["Total PI"] = relative_table.mean()
 
         # reordering columns if info is available
         lll = [(x, y) for x in self.seasons for y in self.regions]
@@ -162,33 +184,51 @@ class ECPlotter:
         sss = len({region for _, region in myfield.columns})
         divnorm = TwoSlopeNorm(vmin=thr[0], vcenter=thr[1], vmax=thr[2])
         pal = sns.color_palette("Spectral_r", as_cmap=True)
-        chart = sns.heatmap(myfield, norm=divnorm, cmap=pal,
-                            cbar_kws={"ticks": tictoc, 
-                            'label': f"CMIP6 RELATIVE PI for {climatology} climatology"},
-                            ax=axs, annot=True, linewidth=0.5, fmt='.2f',
-                            annot_kws={'fontsize': size_model, 'fontweight': 'bold'})
+        chart = sns.heatmap(
+            myfield,
+            norm=divnorm,
+            cmap=pal,
+            cbar_kws={"ticks": tictoc, "label": f"CMIP6 RELATIVE PI for {climatology} climatology"},
+            ax=axs,
+            annot=True,
+            linewidth=0.5,
+            fmt=".2f",
+            annot_kws={"fontsize": size_model, "fontweight": "bold"},
+        )
 
-        chart = chart.set_facecolor('whitesmoke')
+        chart = chart.set_facecolor("whitesmoke")
         axs.set_title(title, fontsize=25)
-        axs.vlines(list(range(sss, tot + sss, sss)), ymin=-1, ymax=len(myfield.index), colors='k')
-        axs.hlines(len(myfield.index) - 1, xmin=-1, xmax=len(myfield.columns), colors='purple', lw=2)
-        names = [' '.join(x) for x in myfield.columns]
-        axs.set_xticks([x + .5 for x in range(len(names))], names, rotation=45, ha='right', fontsize=16)
-        axs.set_yticks([x + .5 for x in range(len(myfield.index))], myfield.index, rotation=0, fontsize=16)
+        axs.vlines(list(range(sss, tot + sss, sss)), ymin=-1, ymax=len(myfield.index), colors="k")
+        axs.hlines(len(myfield.index) - 1, xmin=-1, xmax=len(myfield.columns), colors="purple", lw=2)
+        names = [" ".join(x) for x in myfield.columns]
+        axs.set_xticks([x + 0.5 for x in range(len(names))], names, rotation=45, ha="right", fontsize=16)
+        axs.set_yticks([x + 0.5 for x in range(len(myfield.index))], myfield.index, rotation=0, fontsize=16)
         axs.figure.axes[-1].tick_params(labelsize=15)
         axs.figure.axes[-1].yaxis.label.set_size(15)
         axs.set(xlabel=None)
 
         if filemap is None:
-            filemap = 'PI4_heatmap.pdf'
+            filemap = "PI4_heatmap.pdf"
 
         # save and close
         if storefig:
             self._save_and_close(fig, filemap)
         return fig
 
-    def heatmap_comparison_gm(self, data_dict, mean_dict, std_dict, units_list, filemap=None,
-                              addnan=True, storefig=True, size_model=14, size_obs=8, title=None, reference=None):
+    def heatmap_comparison_gm(
+        self,
+        data_dict,
+        mean_dict,
+        std_dict,
+        units_list,
+        filemap=None,
+        addnan=True,
+        storefig=True,
+        size_model=14,
+        size_obs=8,
+        title=None,
+        reference=None,
+    ):
         """
         Function to produce a heatmap - seaborn based - for Global Mean
         based on season-averaged standard deviation ratio
@@ -211,7 +251,7 @@ class ECPlotter:
         mean_table = dict_to_dataframe(mean_dict)
         std_table = dict_to_dataframe(std_dict)
         for table in [data_table, mean_table, std_table]:
-            table.index = table.index + ' [' + units_list + ']'
+            table.index = table.index + " [" + units_list + "]"
 
         loggy.debug("Data table")
         loggy.debug(data_table)
@@ -219,16 +259,16 @@ class ECPlotter:
         # define array
         ratio = (data_table - mean_table) / std_table
         if addnan:
-            mask = data_table[('ALL', 'Global')].notna()
+            mask = data_table[("ALL", "Global")].notna()
         else:
-            mask = ratio[('ALL', 'Global')].notna()
+            mask = ratio[("ALL", "Global")].notna()
         clean = ratio[mask]
 
         # for dimension of plots
         xfig = len(clean.columns)
         yfig = len(clean.index)
         fig, axs = plt.subplots(1, 1, sharey=True, tight_layout=True, figsize=(xfig + 5, yfig + 2))
-        
+
         # set title
         title = title if title is not None else self.default_title
 
@@ -241,8 +281,7 @@ class ECPlotter:
 
         # add reference if declared
         ref_str = f" against {reference} reference" if reference is not None else ""
-        cbar_label = (f"Model Bias{ref_str}\n"
-                      "(standard deviation of interannual variability from observations)")
+        cbar_label = f"Model Bias{ref_str}\n(standard deviation of interannual variability from observations)"
 
         if addnan:
             empty_data = np.where(clean.isna(), 0, np.nan)
@@ -251,36 +290,66 @@ class ECPlotter:
             empty_mean = np.where(mean_table[mask].isna(), np.nan, empty_mean)
 
         # Original plotting method preserved, but optimized
-        chart = sns.heatmap(clean, annot=data_table[mask], vmin=-thr - 0.5, vmax=thr + 0.5, center=0,
-                            annot_kws={'va': 'bottom', 'fontsize': size_model},
-                            cbar_kws={'ticks': tictoc, "shrink": .5, 'label': cbar_label},
-                            fmt='.2f', cmap=pal)
+        chart = sns.heatmap(
+            clean,
+            annot=data_table[mask],
+            vmin=-thr - 0.5,
+            vmax=thr + 0.5,
+            center=0,
+            annot_kws={"va": "bottom", "fontsize": size_model},
+            cbar_kws={"ticks": tictoc, "shrink": 0.5, "label": cbar_label},
+            fmt=".2f",
+            cmap=pal,
+        )
         if addnan:
-            chart = sns.heatmap(empty_data, annot=data_table[mask], fmt='.2f',
-                                vmin=-thr - 0.5, vmax=thr + 0.5, center=0,
-                                annot_kws={'va': 'bottom', 'fontsize': size_model, 'color': 'dimgrey'}, cbar=False,
-                                cmap=ListedColormap(['none']))
-        chart = sns.heatmap(clean, annot=mean_table[mask], vmin=-thr - 0.5, vmax=thr + 0.5, center=0,
-                            annot_kws={'va': 'top', 'fontsize': size_obs, 'fontstyle': 'italic'},
-                            fmt='.2f', cmap=pal, cbar=False)
+            chart = sns.heatmap(
+                empty_data,
+                annot=data_table[mask],
+                fmt=".2f",
+                vmin=-thr - 0.5,
+                vmax=thr + 0.5,
+                center=0,
+                annot_kws={"va": "bottom", "fontsize": size_model, "color": "dimgrey"},
+                cbar=False,
+                cmap=ListedColormap(["none"]),
+            )
+        chart = sns.heatmap(
+            clean,
+            annot=mean_table[mask],
+            vmin=-thr - 0.5,
+            vmax=thr + 0.5,
+            center=0,
+            annot_kws={"va": "top", "fontsize": size_obs, "fontstyle": "italic"},
+            fmt=".2f",
+            cmap=pal,
+            cbar=False,
+        )
         if addnan:
-            chart = sns.heatmap(empty_mean, annot=mean_table[mask], vmin=-thr - 0.5, vmax=thr + 0.5, center=0,
-                                annot_kws={'va': 'top', 'fontsize': size_obs, 'fontstyle': 'italic', 'color': 'dimgrey'},
-                                fmt='.2f', cmap=ListedColormap(['none']), cbar=False)
+            chart = sns.heatmap(
+                empty_mean,
+                annot=mean_table[mask],
+                vmin=-thr - 0.5,
+                vmax=thr + 0.5,
+                center=0,
+                annot_kws={"va": "top", "fontsize": size_obs, "fontstyle": "italic", "color": "dimgrey"},
+                fmt=".2f",
+                cmap=ListedColormap(["none"]),
+                cbar=False,
+            )
 
-        chart = chart.set_facecolor('whitesmoke')
+        chart = chart.set_facecolor("whitesmoke")
         axs.set_title(title, fontsize=25)
-        axs.vlines(list(range(sss, tot + sss, sss)), ymin=-1, ymax=len(clean.index), colors='k')
-        names = [' '.join(x) for x in clean.columns]
-        axs.set_xticks([x + .5 for x in range(len(names))], names, rotation=45, ha='right', fontsize=16)
-        axs.set_yticks([x + .5 for x in range(len(clean.index))], clean.index, rotation=0, fontsize=16)
+        axs.vlines(list(range(sss, tot + sss, sss)), ymin=-1, ymax=len(clean.index), colors="k")
+        names = [" ".join(x) for x in clean.columns]
+        axs.set_xticks([x + 0.5 for x in range(len(names))], names, rotation=45, ha="right", fontsize=16)
+        axs.set_yticks([x + 0.5 for x in range(len(clean.index))], clean.index, rotation=0, fontsize=16)
         axs.set_yticklabels(textwrap.fill(y.get_text(), 28) for y in axs.get_yticklabels())
         axs.figure.axes[-1].tick_params(labelsize=15)
         axs.figure.axes[-1].yaxis.label.set_size(15)
         axs.set(xlabel=None)
 
         if filemap is None:
-            filemap = 'Global_Mean_Heatmap.pdf'
+            filemap = "Global_Mean_Heatmap.pdf"
 
         # save and close
         if storefig:
@@ -304,15 +373,15 @@ class ECPlotter:
         # uniform dictionaries
         filt_piclim = {}
         for k in clim.keys():
-            filt_piclim[k] = clim[k]['cmip6']
-            for f in ['models', 'year1', 'year2']:
+            filt_piclim[k] = clim[k]["cmip6"]
+            for f in ["models", "year1", "year2"]:
                 if f in filt_piclim[k]:
                     del filt_piclim[k][f]
 
         # set longname, reorganize the dictionaries
-        data2plot = {clim[var]['longname']: data[var] for var in shortnames}
-        cmip6 = {clim[var]['longname']: filt_piclim[var] for var in shortnames}
-        longnames = [clim[var]['longname'] for var in shortnames]
+        data2plot = {clim[var]["longname"]: data[var] for var in shortnames}
+        cmip6 = {clim[var]["longname"]: filt_piclim[var] for var in shortnames}
+        longnames = [clim[var]["longname"] for var in shortnames]
 
         return data2plot, cmip6, longnames
 
@@ -340,28 +409,28 @@ class ECPlotter:
         obsstd = {}
         for var in shortnames:
             gamma = clim[var]
-            obs = gamma['obs']
+            obs = gamma["obs"]
 
             # extract from yaml table for obs mean and standard deviation
             mmm = init_mydict(seasons, regions)
             sss = init_mydict(seasons, regions)
             # if we have all the obs/std available
-            if isinstance(gamma['obs'], dict):
+            if isinstance(gamma["obs"], dict):
                 for season in seasons:
                     for region in regions:
-                        mmm[season][region] = obs[season][region]['mean']
-                        sss[season][region] = obs[season][region]['std']
+                        mmm[season][region] = obs[season][region]["mean"]
+                        sss[season][region] = obs[season][region]["std"]
             # if only global observation is available
             else:
-                mmm['ALL']['Global'] = gamma['obs']
+                mmm["ALL"]["Global"] = gamma["obs"]
 
             # Assign to obsmean and obsstd using longname as the key
-            obsmean[gamma['longname']] = mmm
-            obsstd[gamma['longname']] = sss
+            obsmean[gamma["longname"]] = mmm
+            obsstd[gamma["longname"]] = sss
 
         # set longname, get units
-        data2plot = {clim[var]['longname']: data[var] for var in shortnames}
-        units_list = [clim[var]['units'] for var in shortnames]
+        data2plot = {clim[var]["longname"]: data[var] for var in shortnames}
+        units_list = [clim[var]["units"] for var in shortnames]
 
         return obsmean, obsstd, data2plot, units_list
 
@@ -369,7 +438,7 @@ class ECPlotter:
     # def plot_xarray(data_dict: dict, filename: str, cmap: str = "viridis", log_scale: bool = False):
     #     """
     #     Plots multiple 2D xarray DataArrays from a dictionary and saves them as a multi-panel PDF.
-        
+
     #     Parameters:
     #         data_dict (dict[str, xr.DataArray]): Dictionary of 2D data arrays.
     #         filename (str): Output PDF filename.
@@ -380,26 +449,25 @@ class ECPlotter:
     #     rows = int(np.ceil(num_plots / cols))
     #     vmin = 10**-4
     #     vmax = 10**4
-        
+
     #     fig, axes = plt.subplots(rows, cols, figsize=(3 * cols, 3 * rows), constrained_layout=True)
-        
+
     #     if num_plots == 1:
     #         axes = [axes]
     #     else:
     #         axes = axes.flatten()
-        
+
     #     for ax, (name, data_array) in zip(axes, sorted(data_dict.items())):
     #         if data_array is not None:
     #             if data_array.ndim != 2:
     #                 raise ValueError(f"DataArray '{name}' must be 2D.")
-                
+
     #             norm = LogNorm(vmin=vmin, vmax=vmax) if log_scale else None
     #             im = ax.pcolormesh(data_array, cmap=cmap, norm=norm)
     #             ax.set_title(name)
     #             ax.set_xlabel(str(data_array.dims[1]))
     #             ax.set_ylabel(str(data_array.dims[0]))
     #             fig.colorbar(im, ax=ax)
-        
+
     #     plt.savefig(filename, format="png", bbox_inches="tight")
     #     plt.close()
-
