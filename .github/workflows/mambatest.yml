@@ -26,13 +26,13 @@ jobs:
     - name: Set up Python
       uses: actions/setup-python@v5
       with:
-        python-version: "3.12"
+        python-version: "3.14"
     - name: Install ruff
       run: pip install ruff
     - name: Lint and format check with ruff
-      run: |
-        ruff check .
-        ruff format --check .
+      run: ruff check .
+    - name: Check code formatting with ruff
+      run: ruff format --check .
 
   mamba-test:
     runs-on: ubuntu-latest
@@ -68,6 +68,7 @@ jobs:
       run: |
         coverage run --source=ecmean -m pytest
         coverage combine
+        coverage report
         coverage lcov
     - name: Upload coverage to Coveralls
       if: matrix.python-version == '3.14'
