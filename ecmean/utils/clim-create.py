@@ -22,7 +22,7 @@ from cdo import Cdo
 #from dask.distributed import Client, LocalCluster, progress
 
 #from ecmean.libs.climatology import full_histogram
-from ecmean.libs.climatology import check_histogram, \
+from ecmean.utils.utils import check_histogram, \
     mask_from_field, variance_threshold, variance_fraction, variance_iqr, \
     variance_iqr_adjusted, variance_combined,\
     select_time_period, timeframe_years, \
