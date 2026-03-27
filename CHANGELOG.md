@@ -9,6 +9,9 @@ Unreleased is the current development version, which is currently lying in `main
 
 ## [v0.2]
 
+*IMPORTANT*: New proeject name is now `ecmean` 
+
+- Ruff is now enable as formatter/checker for the entire project (#145)
 - Expand tests for new climatologies (#145)
 - New climatologies EC26 for both global mean and performance indices (#135, #143, #144)
 - Various speed up improvement for ECplotter and multiprocessing (#137)
