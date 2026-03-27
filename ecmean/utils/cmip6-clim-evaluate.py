@@ -7,7 +7,7 @@ It runs and then reads the output of the cmip6 models to provide an assessment o
 climatology for CMIP6 models to be stored
 """
 
-__author__ = "Paolo Davini (p.davini@isac.cnr.it), Sep 2022."
+__author__ = "Paolo Davini (paolo.davini@cnr.it), Sep 2022."
 
 import os
 import warnings

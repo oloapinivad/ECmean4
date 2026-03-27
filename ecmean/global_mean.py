@@ -51,6 +51,7 @@ dask.config.set(scheduler="synchronous")
 
 class GlobalMean:
     """
+    Class for computing global mean statistics from climate model output.
 
     Attributes:
         exp (str): Experiment name.
@@ -78,17 +79,6 @@ class GlobalMean:
         funcname (str): Name of the class.
         start_time (float): Start time for the timer.
         title (str): Title of the plot, overrides default title.
-    Methods:
-        toc(message):
-            Update the timer and log the elapsed time.
-        prepare():
-            Prepare the necessary components for the global mean computation.
-        run():
-            Run the global mean computation using multiprocessing.
-        store():
-            Store the computed global mean values in a table and YAML file.
-        plot(mapfile=None, figformat='pdf'):
-        gm_worker(util, ref, face, diag, varmean, vartrend, varlist):
     """
 
     def __init__(

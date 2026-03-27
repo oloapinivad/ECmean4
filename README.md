@@ -10,11 +10,11 @@
 
 *A lightweight climate model evaluation tool*
 
-ecmean is a lightweight parallelized tool for evaluation of basic properties of Global Climate Models, such as global mean and climate model performance indices.
+ECmean is a lightweight parallelized tool for evaluation of basic properties of Global Climate Models, such as global mean and climate model performance indices.
 
 It builds on the original ECmean which has been used for EC-Earth2 and EC-Earth3 evaluation, but it uses Python3 as a scripting language to perform lazy calls with ``Xarray``+``Dask`` and makes use of YML configuration files, with parallelization support with ``Multiprocess``. 
 It works both on raw EC-Earth4 output and on CMOR model output from CMIP5 and CMIP6.
 
-ecmean is under development, so please use it with caution!
+ECmean is under development, so please use it with caution!
 
 A complete [ReadTheDocs Documentation](https://ecmean.readthedocs.io/en/latest/index.html) is available, please refer to this.
