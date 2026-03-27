@@ -77,7 +77,7 @@ models = [
 # else:
 #     raise ValueError(f"Unknown climatology {refclim}.")
 
-config_file = f"config-create-clim.yml"
+config_file = "config-create-clim.yml"
 
 
 def cfg_ensemble(model):
