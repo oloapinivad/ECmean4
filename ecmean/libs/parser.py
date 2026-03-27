@@ -41,8 +41,9 @@ def parse_arguments(args, script):
     )
     parser.add_argument("-o", "--outputdir", type=str, help="force the output directory")
     # cmip specifications
-    parser.add_argument("--model", type=str, default=None, help="model name")
+    parser.add_argument("-m", "--model", type=str, default=None, help="model name")
     parser.add_argument(
+        "-e",
         "--ensemble",
         type=str,
         default=None,
