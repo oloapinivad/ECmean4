@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Shared functions for XArray ECmean4
+Shared functions for XArray ecmean
 """
 
 import logging
@@ -66,6 +66,7 @@ class AreaCalculator:
 
     @staticmethod
     def _lonlat_to_sphere(lon, lat):
+        """Convert longitude and latitude to 3D Cartesian coordinates on a unit sphere."""
         return np.array(
             [
                 np.cos(np.deg2rad(lon)) * np.cos(np.deg2rad(lat)),
@@ -76,76 +77,62 @@ class AreaCalculator:
 
     @staticmethod
     def _huilier(a, b, c):
+        """L'Huilier's formula to compute the area of a spherical triangle given its sides a, b, c."""
         s = (a + b + c) * 0.5
-        t = (
-            np.tan(s * 0.5)
-            * np.tan((s - a) * 0.5)
-            * np.tan((s - b) * 0.5)
-            * np.tan((s - c) * 0.5)
-        )
+        t = np.tan(s * 0.5) * np.tan((s - a) * 0.5) * np.tan((s - b) * 0.5) * np.tan((s - c) * 0.5)
         return abs(4.0 * np.arctan(np.sqrt(abs(t))))
 
     def _vector_spherical_triangle(self, p1, p2, p3):
+        """Compute the area of a spherical triangle defined by three points on the sphere using vector cross products."""
         a = np.arcsin(np.linalg.norm(np.cross(p1, p2), axis=1))
         b = np.arcsin(np.linalg.norm(np.cross(p1, p3), axis=1))
         c = np.arcsin(np.linalg.norm(np.cross(p3, p2), axis=1))
         return self._huilier(a, b, c)
 
     def _area_by_triangles(self, bounds_lon, bounds_lat):
+        """Calculate the area of grid cells by dividing them into two spherical triangles."""
         p1 = self._lonlat_to_sphere(bounds_lon[:, 0], bounds_lat[:, 0]).T
         p2 = self._lonlat_to_sphere(bounds_lon[:, 0], bounds_lat[:, 1]).T
         p3 = self._lonlat_to_sphere(bounds_lon[:, 1], bounds_lat[:, 1]).T
         p4 = self._lonlat_to_sphere(bounds_lon[:, 1], bounds_lat[:, 0]).T
 
-        area = self._vector_spherical_triangle(
-            p1, p2, p3
-        ) + self._vector_spherical_triangle(p1, p4, p3)
+        area = self._vector_spherical_triangle(p1, p2, p3) + self._vector_spherical_triangle(p1, p4, p3)
         return area * self.earth_radius**2
 
-    def _area_by_trapezoids(self, bounds_lat):
+    # def _area_by_trapezoids(self, bounds_lat):
+    #     arclon1 = self.earth_radius *
+    # np.abs(np.cos(np.deg2rad(bounds_lat[:, 0]))) * np.deg2rad(self.dlon)
+    #     arclon2 = self.earth_radius *
+    # np.abs(np.cos(np.deg2rad(bounds_lat[:, 1]))) * np.deg2rad(self.dlon)
+    #     arclat = self.earth_radius * np.deg2rad(self.dlat)
 
-        arclon1 = (
-            self.earth_radius
-            * np.abs(np.cos(np.deg2rad(bounds_lat[:, 0])))
-            * np.deg2rad(self.dlon)
-        )
-        arclon2 = (
-            self.earth_radius
-            * np.abs(np.cos(np.deg2rad(bounds_lat[:, 1])))
-            * np.deg2rad(self.dlon)
-        )
-        arclat = self.earth_radius * np.deg2rad(self.dlat)
+    #     return (arclon1 + arclon2) * arclat / 2
 
-        return (arclon1 + arclon2) * arclat / 2
+    # def _area_by_squares(self, full_lat):
 
-    def _area_by_squares(self, full_lat):
+    #     arclon = self.earth_radius * np.abs(np.cos(np.deg2rad(full_lat))) * np.deg2rad(self.dlon)
+    #     arclat = self.earth_radius * np.deg2rad(self.dlat)
 
-        arclon = (
-            self.earth_radius
-            * np.abs(np.cos(np.deg2rad(full_lat)))
-            * np.deg2rad(self.dlon)
-        )
-        arclat = self.earth_radius * np.deg2rad(self.dlat)
+    #     return arclon * arclat
 
-        return arclon * arclat
+    def _area_computation(self, bounds_lon, bounds_lat, formula="triangles", full_lat=None):
+        """
+        Compute the area of grid cells based on the specified formula.
+        Only triangles is activated, other older method are kept for reference but not tested.
+        """
 
-    def _area_computation(
-        self, bounds_lon, bounds_lat, formula="triangles", full_lat=None
-    ):
         if formula == "triangles":
             return self._area_by_triangles(bounds_lon, bounds_lat)
 
-        self.dlon = abs(bounds_lon[:, 0] - bounds_lon[:, 1])
-        self.dlat = abs(bounds_lat[:, 0] - bounds_lat[:, 1])
+        # self.dlon=abs(bounds_lon[:, 0] - bounds_lon[:, 1])
+        # self.dlat=abs(bounds_lat[:, 0] - bounds_lat[:, 1])
 
-        if formula == "trapezoids":
-            return self._area_by_trapezoids(bounds_lat)
-        if formula == "squares":
-            if full_lat is None:
-                raise ValueError(
-                    "full_lat is required for square-based area computation."
-                )
-            return self._area_by_squares(full_lat)
+        # if formula == 'trapezoids':
+        #     return self._area_by_trapezoids(bounds_lat)
+        # if formula == 'squares':
+        #     if full_lat is None:
+        #         raise ValueError("full_lat is required for square-based area computation.")
+        #     return self._area_by_squares(full_lat)
 
         raise ValueError(f"Unknown area formula: {formula}")
 
@@ -166,23 +153,15 @@ class AreaCalculator:
         cmor_bounds = all(x in xfield.data_vars for x in ["lon_bnds", "lat_bnds"])
 
         if gridtype in ["unstructured", "gaussian_reduced", "curvilinear"]:
-            blondim = next(
-                (t for t in xfield.data_vars if t in ["lon_bnds", "bounds_lon"]), None
-            )
-            blatdim = next(
-                (t for t in xfield.data_vars if t in ["lat_bnds", "bounds_lat"]), None
-            )
+            blondim = next((t for t in xfield.data_vars if t in ["lon_bnds", "bounds_lon"]), None)
+            blatdim = next((t for t in xfield.data_vars if t in ["lat_bnds", "bounds_lat"]), None)
 
             if blondim is None or blatdim is None:
                 raise ValueError("Cannot find lon/lat bounds for unstructured grid.")
 
-            bounds_lon = np.column_stack(
-                (xfield[blondim].isel(nvertex=1), xfield[blondim].isel(nvertex=2))
-            )
-            bounds_lat = np.column_stack(
-                (xfield[blatdim].isel(nvertex=2), xfield[blatdim].isel(nvertex=3))
-            )
-            area_dims = "cell"
+            bounds_lon = np.column_stack((xfield[blondim].isel(nvertex=1), xfield[blondim].isel(nvertex=2)))
+            bounds_lat = np.column_stack((xfield[blatdim].isel(nvertex=2), xfield[blatdim].isel(nvertex=3)))
+            area_dims = ["cell"]
             full_lat = xfield["lat"].data
 
         elif gridtype in ["gaussian", "lonlat"]:
@@ -191,27 +170,16 @@ class AreaCalculator:
                 xfield = xfield.rename_dims({bdim: "bnds"})
 
             if not cmor_bounds:
-                xfield["lat_bnds"] = (
-                    ("lat", "bnds"),
-                    guess_bounds(xfield["lat"], name="lat"),
-                )
-                xfield["lon_bnds"] = (
-                    ("lon", "bnds"),
-                    guess_bounds(xfield["lon"], name="lon"),
-                )
+                xfield["lat_bnds"] = (("lat", "bnds"), guess_bounds(xfield["lat"], name="lat"))
+                xfield["lon_bnds"] = (("lon", "bnds"), guess_bounds(xfield["lon"], name="lon"))
 
-            blon = np.column_stack(
-                (xfield["lon_bnds"].isel(bnds=0), xfield["lon_bnds"].isel(bnds=1))
-            )
-            blat = np.column_stack(
-                (xfield["lat_bnds"].isel(bnds=0), xfield["lat_bnds"].isel(bnds=1))
-            )
+            blon = np.column_stack((xfield["lon_bnds"].isel(bnds=0), xfield["lon_bnds"].isel(bnds=1)))
+            blat = np.column_stack((xfield["lat_bnds"].isel(bnds=0), xfield["lat_bnds"].isel(bnds=1)))
             full_lat = np.repeat(xfield["lat"].data, len(xfield["lon"]), axis=0)
 
             bounds_lon = np.stack([blon] * len(blat), axis=0).reshape(-1, 2)
             bounds_lat = np.stack([blat] * len(blon), axis=1).reshape(-1, 2)
-            area_dims = ("lat", "lon")
-
+            area_dims = ["lat", "lon"]
         else:
             raise ValueError("Gridtype undefined or unsupported.")
 
@@ -222,7 +190,7 @@ class AreaCalculator:
         if gridtype in ["gaussian", "lonlat"]:
             area = area.reshape([len(xfield["lat"]), len(xfield["lon"])])
 
-        outfield = xr.DataArray(area, dims=area_dims, coords=xfield.coords, name="area")
+        outfield = xr.DataArray(area, dims=area_dims, coords=xfield.squeeze(drop=True).coords, name="area")
 
         loggy.debug("Total Earth Surface: %s Km2", str(outfield.sum().values / 10**6))
 

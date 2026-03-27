@@ -4,11 +4,11 @@
 python3 version of ECmean global mean tool.
 Using a reference file from yaml and Xarray
 
-@author Paolo Davini (p.davini@isac.cnr.it), Sep 2022.
+@author Paolo Davini (paolo.davini@cnr.it), Sep 2022.
 @author Jost von Hardenberg (jost.hardenberg@polito.it), Sep 2022
 """
 
-__author__ = "Paolo Davini (p.davini@isac.cnr.it), Sep 2022."
+__author__ = "Paolo Davini (paolo.davini@cnr.it)"
 
 import os
 import sys
@@ -265,11 +265,7 @@ class GlobalMean:
 
         self.loggy.info("TXT file is: %s", tablefile)
         with open(tablefile, "w", encoding="utf-8") as out:
-            out.write(
-                tabulate(
-                    global_table, headers=head, stralign="center", tablefmt="orgtbl"
-                )
-            )
+            out.write(tabulate(global_table, headers=head, stralign="center", tablefmt="orgtbl"))
 
         # reorder
         self.varmean = {var: self.varmean[var] for var in self.diag.var_all}
@@ -280,9 +276,7 @@ class GlobalMean:
 
         self.loggy.info("YAML file is: %s", yamlfile)
         with open(yamlfile, "w", encoding="utf-8") as file:
-            yaml.safe_dump(
-                self.varmean, file, default_flow_style=False, sort_keys=False
-            )
+            yaml.safe_dump(self.varmean, file, default_flow_style=False, sort_keys=False)
         self.toc("Storing")
 
     def plot(
@@ -381,9 +375,7 @@ class GlobalMean:
                 isavail, varunit = var_is_there(infile, var, face)
 
                 if isavail:
-                    offset, factor = UnitsHandler(
-                        var, org_units=varunit, clim=ref, face=face
-                    ).units_converter()
+                    offset, factor = UnitsHandler(var, org_units=varunit, clim=ref, face=face).units_converter()
 
                     if not isinstance(infile, (xr.DataArray, xr.Dataset)):
                         xfield = xr.open_mfdataset(
@@ -441,9 +433,7 @@ class GlobalMean:
 
                             if diag.ftrend:
                                 if len(avg) == len(diag.years_joined):
-                                    trend[season][region] = np.polyfit(
-                                        diag.years_joined, avg, 1
-                                    )[0]
+                                    trend[season][region] = np.polyfit(diag.years_joined, avg, 1)[0]
                             if season == "ALL" and region == "Global":
                                 loggy.info(
                                     "Average: %s %s %s %s",

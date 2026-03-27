@@ -9,6 +9,7 @@ from matplotlib.colors import TwoSlopeNorm, ListedColormap  # , LogNorm
 import seaborn as sns
 import numpy as np
 from ecmean.libs.general import dict_to_dataframe, init_mydict
+from ecmean.libs.climatology import SUPPORTED_CLIMATOLOGY, SUPPORTED_REFERENCE
 
 # OPTIMIZATION: Use non-interactive backend (much faster)
 matplotlib.use("Agg")
@@ -22,9 +23,7 @@ class ECPlotter:
     This class is designed to handle all plotting needs for the ECMean package.
     """
 
-    def __init__(
-        self, diagnostic, modelname, expname, year1, year2, regions=None, seasons=None
-    ):
+    def __init__(self, diagnostic, modelname, expname, year1, year2, regions=None, seasons=None):
         """Initialize the ECPlotter class.
 
         Args:
@@ -48,7 +47,9 @@ class ECPlotter:
         self.year2 = year2
         self.regions = regions
         self.seasons = seasons
-        self.default_title = f"{diagnostic.replace('_', ' ').upper()} {self.modelname} {self.expname} {self.year1} {self.year2}"
+        self.default_title = (
+            f"{diagnostic.replace('_', ' ').upper()} {self.modelname} {self.expname} {self.year1} {self.year2}"
+        )
 
     def _save_and_close(self, fig, filemap):
         """Helper function to save and close the figure."""
@@ -66,7 +67,7 @@ class ECPlotter:
         climatology="EC23",
         addnan=False,
         title=None,
-        reference=None,
+        reference="EC23",
     ):
         """
         Prepare data for plotting performance indices or global mean.
@@ -77,7 +78,7 @@ class ECPlotter:
             variables (list): List of variable short names to plot.
             filename (str, optional): Path to save the plot. Defaults to None, it would be derived automatically.
             storefig (bool, optional): Whether to save the figure. Defaults to True.
-            climatology (str, optional): Type of PI climatology, either "EC23" or "EC24". Defaults to "EC23".
+            climatology (str, optional): Type of PI climatology, either any of the supported ones. Defaults to "EC23".
             addnan (bool, optional): Whether to add NaN values in the final plots. Defaults to False, only for global mean.
             title (str, optional): Title of the plot, overrides default title. Defaults to None.
             reference (str, optional): Name of the GM reference (e.g., "EC23"). Defaults to None, only for global mean.
@@ -88,10 +89,10 @@ class ECPlotter:
         title = title if title is not None else self.default_title
         climatology = climatology if climatology is not None else "EC23"
 
-        if climatology not in ["EC23", "EC24", "HM25"]:
-            raise ValueError(
-                "Invalid climatology type. Choose 'EC23', 'EC24' or 'HM25'."
-            )
+        if climatology not in SUPPORTED_CLIMATOLOGY:
+            raise ValueError(f"Invalid climatology type. Choose from {SUPPORTED_CLIMATOLOGY}.")
+        if reference is not None and reference not in SUPPORTED_REFERENCE:
+            raise ValueError(f"Invalid reference type. Choose from {SUPPORTED_REFERENCE}.")
         loggy.debug("Data is: %s", data)
         if isinstance(data, str):
             data = yaml.safe_load(data)
@@ -136,15 +137,7 @@ class ECPlotter:
         return fig
 
     def heatmap_comparison_pi(
-        self,
-        data_dict,
-        cmip6_dict,
-        longnames,
-        storefig=True,
-        filemap=None,
-        size_model=14,
-        title=None,
-        climatology=None,
+        self, data_dict, cmip6_dict, longnames, storefig=True, filemap=None, size_model=14, title=None, climatology=None
     ):
         """
         Function to produce a heatmap - seaborn based - for Performance Indices
@@ -206,10 +199,7 @@ class ECPlotter:
             myfield,
             norm=divnorm,
             cmap=pal,
-            cbar_kws={
-                "ticks": tictoc,
-                "label": f"CMIP6 RELATIVE PI for {climatology} climatology",
-            },
+            cbar_kws={"ticks": tictoc, "label": f"CMIP6 RELATIVE PI for {climatology} climatology"},
             ax=axs,
             annot=True,
             linewidth=0.5,
@@ -219,33 +209,11 @@ class ECPlotter:
 
         chart = chart.set_facecolor("whitesmoke")
         axs.set_title(title, fontsize=25)
-        axs.vlines(
-            list(range(sss, tot + sss, sss)),
-            ymin=-1,
-            ymax=len(myfield.index),
-            colors="k",
-        )
-        axs.hlines(
-            len(myfield.index) - 1,
-            xmin=-1,
-            xmax=len(myfield.columns),
-            colors="purple",
-            lw=2,
-        )
+        axs.vlines(list(range(sss, tot + sss, sss)), ymin=-1, ymax=len(myfield.index), colors="k")
+        axs.hlines(len(myfield.index) - 1, xmin=-1, xmax=len(myfield.columns), colors="purple", lw=2)
         names = [" ".join(x) for x in myfield.columns]
-        axs.set_xticks(
-            [x + 0.5 for x in range(len(names))],
-            names,
-            rotation=45,
-            ha="right",
-            fontsize=16,
-        )
-        axs.set_yticks(
-            [x + 0.5 for x in range(len(myfield.index))],
-            myfield.index,
-            rotation=0,
-            fontsize=16,
-        )
+        axs.set_xticks([x + 0.5 for x in range(len(names))], names, rotation=45, ha="right", fontsize=16)
+        axs.set_yticks([x + 0.5 for x in range(len(myfield.index))], myfield.index, rotation=0, fontsize=16)
         axs.figure.axes[-1].tick_params(labelsize=15)
         axs.figure.axes[-1].yaxis.label.set_size(15)
         axs.set(xlabel=None)
@@ -310,9 +278,7 @@ class ECPlotter:
         # for dimension of plots
         xfig = len(clean.columns)
         yfig = len(clean.index)
-        fig, axs = plt.subplots(
-            1, 1, sharey=True, tight_layout=True, figsize=(xfig + 5, yfig + 2)
-        )
+        fig, axs = plt.subplots(1, 1, sharey=True, tight_layout=True, figsize=(xfig + 5, yfig + 2))
 
         # set title
         title = title if title is not None else self.default_title
@@ -326,10 +292,7 @@ class ECPlotter:
 
         # add reference if declared
         ref_str = f" against {reference} reference" if reference is not None else ""
-        cbar_label = (
-            f"Model Bias{ref_str}\n"
-            "(standard deviation of interannual variability from observations)"
-        )
+        cbar_label = f"Model Bias{ref_str}\n(standard deviation of interannual variability from observations)"
 
         if addnan:
             empty_data = np.where(clean.isna(), 0, np.nan)
@@ -379,12 +342,7 @@ class ECPlotter:
                 vmin=-thr - 0.5,
                 vmax=thr + 0.5,
                 center=0,
-                annot_kws={
-                    "va": "top",
-                    "fontsize": size_obs,
-                    "fontstyle": "italic",
-                    "color": "dimgrey",
-                },
+                annot_kws={"va": "top", "fontsize": size_obs, "fontstyle": "italic", "color": "dimgrey"},
                 fmt=".2f",
                 cmap=ListedColormap(["none"]),
                 cbar=False,
@@ -392,26 +350,11 @@ class ECPlotter:
 
         chart = chart.set_facecolor("whitesmoke")
         axs.set_title(title, fontsize=25)
-        axs.vlines(
-            list(range(sss, tot + sss, sss)), ymin=-1, ymax=len(clean.index), colors="k"
-        )
+        axs.vlines(list(range(sss, tot + sss, sss)), ymin=-1, ymax=len(clean.index), colors="k")
         names = [" ".join(x) for x in clean.columns]
-        axs.set_xticks(
-            [x + 0.5 for x in range(len(names))],
-            names,
-            rotation=45,
-            ha="right",
-            fontsize=16,
-        )
-        axs.set_yticks(
-            [x + 0.5 for x in range(len(clean.index))],
-            clean.index,
-            rotation=0,
-            fontsize=16,
-        )
-        axs.set_yticklabels(
-            textwrap.fill(y.get_text(), 28) for y in axs.get_yticklabels()
-        )
+        axs.set_xticks([x + 0.5 for x in range(len(names))], names, rotation=45, ha="right", fontsize=16)
+        axs.set_yticks([x + 0.5 for x in range(len(clean.index))], clean.index, rotation=0, fontsize=16)
+        axs.set_yticklabels(textwrap.fill(y.get_text(), 28) for y in axs.get_yticklabels())
         axs.figure.axes[-1].tick_params(labelsize=15)
         axs.figure.axes[-1].yaxis.label.set_size(15)
         axs.set(xlabel=None)

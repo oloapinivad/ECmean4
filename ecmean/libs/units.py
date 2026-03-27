@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Shared class for ECmean4 units
+Shared class for ecmean units
 """
 
 #############################
@@ -15,7 +15,7 @@ loggy = logging.getLogger(__name__)
 
 class UnitsHandler:
     """
-    Class for dealing with units format and conversion within ECmean4
+    Class for dealing with units format and conversion within ecmean
     """
 
     def __init__(
@@ -35,15 +35,15 @@ class UnitsHandler:
         Class for handling units and their conversion
 
         Args:
-            var (string): variable name, necessary for ECmean4 calls
+            var (string): variable name, necessary for ecmean calls
             org_units (string): original units
             tgt_units (string): target units
             org_direction (string): down or up, direction for fluxes
             tgt_direction (string): down or up, direction for fluxes
             operation (string): mean or integral operation for target units
             cumulation_time (integer): expressed in seconds, cumulation time for fluxes
-            clim (dict): climatology dictionary for ECmean4 calls
-            face (dict): interface dictionary for Ecmean4 calss
+            clim (dict): climatology dictionary for ecmean calls
+            face (dict): interface dictionary for ecmean calss
             convert (bool): if you want to perform conversion immediately
 
         Returns:
@@ -149,9 +149,7 @@ class UnitsHandler:
         if units_relation.units == units("s"):
             loggy.debug("Assuming cumulated flux; adjusting for cumulation time.")
             if not self.cumulation_time:
-                raise ValueError(
-                    "Assuming heat flux detected but no cumulation time provided."
-                )
+                raise ValueError("Assuming heat flux detected but no cumulation time provided.")
             cumtime = units("s") * self.cumulation_time
             factor_standard = 1 * self.org_units
             factor = (factor_standard / cumtime).to(self.tgt_units).magnitude
@@ -163,7 +161,7 @@ class UnitsHandler:
 
 
 def units_extra_definition():
-    """Add units to the pint registry required by ECMean4"""
+    """Add units to the pint registry required by ecmean"""
 
     # special units definition
     # needed to work with metpy 1.4.0 see

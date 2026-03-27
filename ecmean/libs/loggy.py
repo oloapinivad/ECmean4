@@ -25,10 +25,7 @@ def setup_logger(level=None, name=None):
     logger.setLevel(loglev)  # Set the desired log level
 
     # Create a formatter to specify the log format
-    formatter = logging.Formatter(
-        "%(asctime)s | %(name)s | %(levelname)8s -> %(message)s",
-        datefmt="%Y-%m-%d %H:%M:%S",
-    )
+    formatter = logging.Formatter("%(asctime)s | %(name)s | %(levelname)8s -> %(message)s", datefmt="%Y-%m-%d %H:%M:%S")
 
     # Create a handler for the logger
     handler = logging.StreamHandler()
@@ -66,11 +63,7 @@ def convert_logger(loglev=None):
 
     # If loglev_int is None, the log level doesn't exist
     if loglev_int is None:
-        logging.warning(
-            "Invalid logging level '%s' specified. Setting it back to default '%s'.",
-            loglev,
-            loglev_default,
-        )
+        logging.warning("Invalid logging level '%s' specified. Setting it back to default '%s'.", loglev, loglev_default)
         loglev = loglev_default
 
     return loglev

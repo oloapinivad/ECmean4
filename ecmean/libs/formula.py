@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Shared functions for ECmean4. Set of formula based tools
+Shared functions for ecmean. Set of formula based tools
 """
 
 #####################
@@ -49,12 +49,7 @@ def _operation(token, xdataset):
 
     # define math operators: order is important, since defines
     # which operation is done at first!
-    ops = {
-        "/": operator.truediv,
-        "*": operator.mul,
-        "-": operator.sub,
-        "+": operator.add,
-    }
+    ops = {"/": operator.truediv, "*": operator.mul, "-": operator.sub, "+": operator.add}
 
     # use a dictionary to store xarray field and call them easily
     dct = {}

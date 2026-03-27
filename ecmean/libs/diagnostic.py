@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Shared diagnostic class for ECmean4
+Shared diagnostic class for ecmean
 """
 
 import os
@@ -93,9 +93,8 @@ class Diagnostic:
         self.addnan = addnan
         if self.year1 == self.year2:
             self.ftrend = False
-
         print(
-            f"Welcome to ECmean4 v{self.version}: Running {self.funcname} "
+            f"Welcome to ecmean v{self.version}: Running {self.funcname} "
             f"with {self.numproc} cores on experiment {self.expname} "
             f"for {len(self.years_joined)} years ({self.year1}-{self.year2})"
         )
@@ -139,25 +138,26 @@ class Diagnostic:
                 raise ValueError("No figure directory defined in config file")
             self.figdir = Path(os.path.expandvars(cfg["dirs"]["fig"]))
         else:
-            self.tabdir = Path(os.path.join(outputdir, "yml"))
-            self.figdir = Path(os.path.join(outputdir, "pdf"))
+            self.tabdir = Path(os.path.join(outputdir, "YAML"))
+            self.figdir = Path(os.path.join(outputdir, "PDF"))
 
         # init for global mean
         if self.funcname == "GlobalMean":
             self.cfg_global_mean(cfg)
 
         # init for performance indices
-        if self.funcname in "PerformanceIndices":
+        if self.funcname == "PerformanceIndices":
             self.cfg_performance_indices(cfg)
 
         # setting up interface file
         self.interface = interface or cfg["interface"]
 
+        # setting up model name
+        self.modelname = modelname or cfg["model"]["name"]
+
         # allow for both interface name or interface file
         if not os.path.exists(self.interface):
-            self.interface = self.indir / Path(
-                "../interfaces", f"interface_{self.interface}.yml"
-            )
+            self.interface = self.indir / Path("../interfaces", f"interface_{self.interface}.yml")
 
         # load the possible xarray dataset
         if xdataset is not None:
@@ -196,9 +196,9 @@ class Diagnostic:
         """
 
         if self.funcname == "GlobalMean":
-            head = "global_mean"
+            head = f"GM_{self.reference}"
         elif self.funcname == "PerformanceIndices":
-            head = f"PI4_{self.climatology}"
+            head = f"PI_{self.climatology}"
         else:
             raise ValueError("Unknown function name")
 
@@ -262,9 +262,6 @@ class Diagnostic:
             self.field_atm2d + self.field_atm3d + self.field_oce + self.field_ice
         )
 
-        if not self.resolution:
-            self.resolution = cfg["performance_indices"]["resolution"]
-
         if not self.climatology:
             self.climatology = cfg["performance_indices"]["climatology"]
 
@@ -288,22 +285,12 @@ class Diagnostic:
 
         # check if we can run the performance indices
         if self.funcname == "PerformanceIndices":
-            if (
-                not support_dictionary.oceareafile
-                and not support_dictionary.ocemaskfile
-            ):
-                loggy.warning(
-                    "No oceanic file available, assuming this is an AMIP run without oceanic variables."
-                )
+            if not support_dictionary.oceareafile and not support_dictionary.ocemaskfile:
+                loggy.warning("No oceanic file available, assuming this is an AMIP run without oceanic variables.")
                 oceanic_vars = self.field_oce + self.field_ice
                 self.field_all = self._remove_variables(self.field_all, oceanic_vars)
-            if (
-                not support_dictionary.atmareafile
-                and not support_dictionary.atmmaskfile
-            ):
-                loggy.warning(
-                    "No atmospheric file found, assuming this is an OMIP run without atmospheric variables."
-                )
+            if not support_dictionary.atmareafile and not support_dictionary.atmmaskfile:
+                loggy.warning("No atmospheric file found, assuming this is an OMIP run without atmospheric variables.")
                 atmospheric_vars = self.field_atm2d + self.field_atm3d
                 self.field_all = self._remove_variables(
                     self.field_all, atmospheric_vars

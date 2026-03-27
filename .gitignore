@@ -9,9 +9,11 @@ tests/table/*.yml
 tests/figures/*.pdf
 tests/data/*/*.idx
 docs/sphinx/build/
-ECmean4.egg-info/
+ecmean.egg-info/
 ecmean/utils/history_benchmark
 dist/
+pluto/
+coverage.lcov
 *.ipynb
 
 

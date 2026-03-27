@@ -4,9 +4,11 @@
 python3 version of ECmean performance indices tool
 Using a reference file from yaml and cdo bindings
 
-@author Paolo Davini (p.davini@isac.cnr.it), 2022
+@author Paolo Davini (paolo.davini@cnr.it), 2022
 @author Jost von Hardenberg (jost.hardenberg@polito.it), 2022
 """
+
+__author__ = "Paolo Davini (paolo.davin@cnr.it)"
 
 import sys
 import os
@@ -50,6 +52,28 @@ class PerformanceIndices:
     """
     Class to compute the performance indices for a given experiment and years.
 
+    Attributes:
+        exp (str): Experiment name.
+        year1 (int): Start year of the experiment.
+        year2 (int): End year of the experiment.
+        config (str): Path to the configuration file. Default is 'config.yml'.
+        loglevel (str): Logging level. Default is 'WARNING'.
+        numproc (int): Number of processes to use. Default is 1.
+        climatology (str): Climatology to use. Default is 'EC24'.
+        interface (str): Path to the interface file.
+        model (str): Model name.
+        ensemble (str): Ensemble identifier. Default is 'r1i1p1f1'.
+        silent (bool): If True, suppress output. Default is None.
+        xdataset (xarray.Dataset): Dataset to use.
+        outputdir (str): Directory to store output files.
+        loggy (logging.Logger): Logger instance.
+        diag (Diagnostic): Diagnostic instance.
+        face (dict): Interface dictionary.
+        piclim (dict): Climatology dictionary.
+        util_dictionary (Supporter): Utility dictionary for remapping and masks.
+        varstat (dict): Dictionary to store variable statistics.
+        funcname (str): Name of the class.
+        start_time (float): Start time for performance measurement.
         title (str): Title of the plot, overrides default title.
     Methods:
         toc(message):
@@ -225,9 +249,7 @@ class PerformanceIndices:
             yamlfile = self.diag.filenames("yml")
         self.loggy.info("Storing the performance indices in %s", yamlfile)
         with open(yamlfile, "w", encoding="utf-8") as file:
-            yaml.safe_dump(
-                self.varstat, file, default_flow_style=False, sort_keys=False
-            )
+            yaml.safe_dump(self.varstat, file, default_flow_style=False, sort_keys=False)
         self.toc("Storing")
 
     def plot(
@@ -323,9 +345,7 @@ class PerformanceIndices:
                 # if the variable is available
                 if isavail:
                     # perform the unit conversion extracting offset and factor
-                    offset, factor = UnitsHandler(
-                        var, org_units=varunit, clim=piclim, face=face
-                    ).units_converter()
+                    offset, factor = UnitsHandler(var, org_units=varunit, clim=piclim, face=face).units_converter()
 
                     # open file: chunking on time only, might be improved
                     if not isinstance(infile, (xr.DataArray, xr.Dataset)):
@@ -351,20 +371,25 @@ class PerformanceIndices:
                     # get the data-array field for the required var
                     outfield = formula_wrapper(var, face, xfield)
 
+                    # Load once to avoid recomputing for each season
+                    outfield = outfield.persist()
+
                     # mean over time and fixing of the units
                     for season in diag.seasons:
                         loggy.debug(season)
 
-                        # copy of the full field
-                        tmean = outfield.copy(deep=True)
-
-                        # get filenames for climatology
+                        # get filenames for climatology (season-specific files)
                         clim, vvvv = get_clim_files(piclim, var, diag, season)
+                        loggy.debug(
+                            "Climatology files for %s %s: %s, %s",
+                            var,
+                            season,
+                            clim,
+                            vvvv,
+                        )
 
                         # open climatology files, fix their metadata
-                        cfield = adjust_clim_file(
-                            xr.open_mfdataset(clim, preprocess=xr_preproc)
-                        )
+                        cfield = adjust_clim_file(xr.open_mfdataset(clim, preprocess=xr_preproc))
                         vfield = adjust_clim_file(
                             xr.open_mfdataset(vvvv, preprocess=xr_preproc),
                             remove_zero=True,
@@ -372,16 +397,18 @@ class PerformanceIndices:
 
                         # season selection
                         if season != "ALL":
-                            tmean = tmean.sel(time=tmean.time.dt.season.isin(season))
+                            tmean = outfield.sel(time=outfield.time.dt.season.isin(season))
                             cfield = cfield.sel(time=cfield.time.dt.season.isin(season))
                             vfield = vfield.sel(time=vfield.time.dt.season.isin(season))
+                        else:
+                            tmean = outfield
 
-                        # averaging, applying offset and factor and loading
-                        tmean = (tmean.mean(dim="time") * factor + offset).load()
-
-                        # averaging and loading the climatology
-                        cfield = cfield.mean(dim="time").load()
-                        vfield = vfield.mean(dim="time").load()
+                        # Single compute call for all three arrays
+                        tmean, cfield, vfield = dask.compute(
+                            tmean.mean(dim="time") * factor + offset,
+                            cfield.mean(dim="time"),
+                            vfield.mean(dim="time"),
+                        )
 
                         # apply interpolation, if fixer is available and with different grids
                         fix = getattr(util, f"{domain}fix")
@@ -402,12 +429,8 @@ class PerformanceIndices:
                             # xarray interpolation on plev, forcing to be in Pascal
                             final = final.metpy.convert_coordinate_units("plev", "Pa")
                             if set(final["plev"].data) != set(cfield["plev"].data):
-                                loggy.warning(
-                                    "%s: Need to interpolate vertical levels...", var
-                                )
-                                final = final.interp(
-                                    plev=cfield["plev"].data, method="linear"
-                                )
+                                loggy.warning("%s: Need to interpolate vertical levels...", var)
+                                final = final.interp(plev=cfield["plev"].data, method="linear")
 
                                 # safety check for missing values
                                 sample = final.isel(lon=0, lat=0)
@@ -428,9 +451,7 @@ class PerformanceIndices:
                             # compute vertical bounds as weights
                             bounds_lev = guess_bounds(complete["plev"], name="plev")
                             bounds = abs(bounds_lev[:, 0] - bounds_lev[:, 1])
-                            www = xr.DataArray(
-                                bounds, coords=[complete["plev"]], dims=["plev"]
-                            )
+                            www = xr.DataArray(bounds, coords=[complete["plev"]], dims=["plev"])
 
                             # vertical mean
                             outarray = complete.weighted(www).mean(dim="plev")
@@ -468,9 +489,7 @@ class PerformanceIndices:
                 # debug array for extrafigures
                 if not isinstance(dictarray, bool):
                     dictarray["map"][var] = complete if "complete" in locals() else None
-                    dictarray["bias"][var] = (
-                        final - cfield if "final" in locals() else None
-                    )
+                    dictarray["bias"][var] = final - cfield if "final" in locals() else None
 
             # nested dictionary, to be redefined as a dict to remove lambdas
             local_varstat[var] = result
@@ -520,6 +539,7 @@ def performance_indices(
     xdataset=None,
     outputdir=None,
     title=None,
+    plot=True,
 ):
     """
     Wrapper function to compute the performance indices for a given experiment and years.
@@ -545,5 +565,6 @@ def performance_indices(
     pi.prepare()
     pi.run()
     pi.store()
-    pi.plot()
+    if plot:
+        pi.plot()
     pi.final_toc()

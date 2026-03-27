@@ -65,10 +65,7 @@ for model in models:
                 nn = [nyears_fixed]
 
             for nyear in nn:
-                print(
-                    "Running " + script + " with nprocs =",
-                    str(nproc) + " for nyears = " + str(nyear),
-                )
+                print("Running " + script + " with nprocs =", str(nproc) + " for nyears = " + str(nyear))
                 print(model)
 
                 year1 = 1980
@@ -114,12 +111,7 @@ for model in models:
 
                 # concatenate
                 d = pd.DataFrame(
-                    {
-                        "script": [script],
-                        "time": [round(single / nrepeat, 1)],
-                        "nprocs": [nproc],
-                        "nyears": [nyear],
-                    }
+                    {"script": [script], "time": [round(single / nrepeat, 1)], "nprocs": [nproc], "nyears": [nyear]}
                 )
                 print(d)
                 howmuch = pd.concat([howmuch, d])
@@ -140,14 +132,9 @@ palette = ["teal", "gold"]
 
 # first plot: scaling on cores
 how1 = howmuch[howmuch["nyears"] == nyears_fixed]
-chart1 = sns.barplot(
-    data=how1, x="nprocs", y="time", hue="script", palette=palette, ax=axs[0]
-)
+chart1 = sns.barplot(data=how1, x="nprocs", y="time", hue="script", palette=palette, ax=axs[0])
 
-axs[0].set_title(
-    f"ECmean4 {version} execution time for CMIP6 {model} ({nyears_fixed} years)",
-    fontsize=15,
-)
+axs[0].set_title(f"ECmean {version} execution time for CMIP6 {model} ({nyears_fixed} years)", fontsize=15)
 for i in chart1.containers:
     chart1.bar_label(
         i,
@@ -160,14 +147,9 @@ axs[0].legend(hh, ll)
 
 # second plot: scaling on years
 how2 = howmuch[howmuch["nprocs"] == nprocs_fixed]
-chart2 = sns.barplot(
-    data=how2, x="nyears", y="time", hue="script", palette=palette, ax=axs[1]
-)
+chart2 = sns.barplot(data=how2, x="nyears", y="time", hue="script", palette=palette, ax=axs[1])
 
-axs[1].set_title(
-    f"ECmean4 {version} execution time for CMIP6 {model} ({nprocs_fixed} nprocs)",
-    fontsize=15,
-)
+axs[1].set_title(f"ECmean {version} execution time for CMIP6 {model} ({nprocs_fixed} nprocs)", fontsize=15)
 for i in chart2.containers:
     chart2.bar_label(
         i,
@@ -185,7 +167,4 @@ fig.savefig(figurepath)
 localdir = os.path.dirname(os.path.abspath(__file__))
 
 if do_definitive:
-    shutil.copy(
-        figurepath,
-        os.path.join(localdir, "../../docs/sphinx/source/_static/benchmark.png"),
-    )
+    shutil.copy(figurepath, os.path.join(localdir, "../../docs/sphinx/source/_static/benchmark.png"))

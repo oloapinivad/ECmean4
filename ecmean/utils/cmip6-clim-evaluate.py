@@ -13,76 +13,71 @@ import os
 import warnings
 import glob
 from collections import defaultdict
-import yaml
 import copy
+import logging
+
+import yaml
 import numpy as np
+
 from ecmean.performance_indices import performance_indices
 from ecmean.libs.files import load_yaml
+from ecmean.utils.utils import timeframe_years, parse_create_args
 
 warnings.simplefilter("ignore")
 
 # the 30-year climatological window to be used as a baseline
-
-# refclim = 'EC24'
-refclim = "HM25"
-
-nprocs = 1
-do_compute = True
-do_create_clim = False
-do_definitive = False
-
+expname = "historical"
+config_file = "config_create_clim.yml"
 climdir = "../climatology/"
 
 # models = ['EC-Earth3', 'IPSL-CM6A-LR', 'FGOALS-g3', 'TaiESM1', 'CanESM5', 'CESM2',
 #          'MIROC6', 'MPI-ESM1-2-HR', 'AWI-CM-1-1-MR', 'CMCC-CM2-SR5', 'NorESM2-MM', 'GFDL-CM4']
-if refclim == "EC24":
-    expname = "historical"
-    models = [
-        "EC-Earth3",
-        "IPSL-CM6A-LR",
-        "FGOALS-g3",
-        "CanESM5",
-        "CESM2",
-        "CNRM-CM6-1",
-        "GISS-E2-1-G",
-        "ACCESS-CM2",
-        "CNRM-CM6-1",
-        "SAM0-UNICON",
-        "UKESM1-0-LL",
-        "MIROC6",
-        "MPI-ESM1-2-HR",
-        "AWI-CM-1-1-MR",
-        "NorESM2-MM",
-        "GFDL-CM4",
-    ]
-    mip = "CMIP"
-    year1 = 1985
-    year2 = 2014
-    # models currently missing on the ESGF
+models = [
+    "EC-Earth3",
+    "IPSL-CM6A-LR",
+    "FGOALS-g3",
+    "CanESM5",
+    "CESM2",
+    "CNRM-CM6-1",
+    "GISS-E2-1-G",
+    "ACCESS-CM2",
+    "CNRM-CM6-1",
+    "SAM0-UNICON",
+    "UKESM1-0-LL",
+    "MIROC6",
+    "MPI-ESM1-2-HR",
+    "AWI-CM-1-1-MR",
+    "NorESM2-MM",
+    "GFDL-CM4",
+]
+# models = ['EC-Earth3']
+# models currently missing on the ESGF
 # models= ['CMCC-CM2-SR5', 'TaiESM1']
-elif refclim == "HM25":
-    models = [
-        "EC-Earth3P-HR",
-        "AWI-CM-1-1-HR",
-        "BCC-CSM2-HR",
-        "CMCC-CM2-VHR4",
-        "HadGEM3-GC31-HH",
-        "INM-CM5-H",
-        "CNRM-CM6-1-HR",
-        "ECMWF-IFS-HR",
-    ]
-    # models = ['CESM1-CAM5-SE-HR'] # crashes with the current code
-    # models = ['CNRM-CM6-1-HR'] # fake EC-Earth3P-HR Ofx
-    # models = ['ECMWF-IFS-HR'] # missing Ofx
-    # models = ['AWI-CM-1-1-HR']
-    expname = "hist-1950"
-    mip = "HighResMIP"
-    year1 = 1985
-    year2 = 2014
-else:
-    raise ValueError(f"Unknown climatology {refclim}.")
 
-config_file = f"config-create-clim-{refclim}.yml"
+# TODO: to be fixed
+# if refclim == "HM25":
+#     models = [
+#         "EC-Earth3P-HR",
+#         "AWI-CM-1-1-HR",
+#         "BCC-CSM2-HR",
+#         "CMCC-CM2-VHR4",
+#         "HadGEM3-GC31-HH",
+#         "INM-CM5-H",
+#         "CNRM-CM6-1-HR",
+#         "ECMWF-IFS-HR",
+#     ]
+#     # models = ['CESM1-CAM5-SE-HR'] # crashes with the current code
+#     # models = ['CNRM-CM6-1-HR'] # fake EC-Earth3P-HR Ofx
+#     # models = ['ECMWF-IFS-HR'] # missing Ofx
+#     # models = ['AWI-CM-1-1-HR']
+#     expname = "hist-1950"
+#     mip = "HighResMIP"
+#     year1 = 1985
+#     year2 = 2014
+# else:
+#     raise ValueError(f"Unknown climatology {refclim}.")
+
+config_file = f"config-create-clim.yml"
 
 
 def cfg_ensemble(model):
@@ -99,106 +94,143 @@ def cfg_consortium(model):
         return "NERC"
     return "*"
 
+def main(clim="EC26", timeframe="CMIP", nprocs=4, do_definitive=False, do_compute=True, do_create_clim=True):
+    """
+    Main function to compute the performance indices for the CMIP6 climatology
+    and then create the new climatology file.
+    Args:
+        clim (str): Climatology name, e.g., 'EC26'.
+        timeframe (str): Time period for the climatology, e.g., 'HIST',
+                            'PDAY', or 'CMIP'.
+        nprocs (int): Number of processors to use for computation.
+        do_definitive (bool): Whether to overwrite the definitive climatology file.
+        do_compute (bool): Whether to compute the performance indices.
+        do_create_clim (bool): Whether to create the climatology file after computation.
+    """
 
-# call the loop of global mean on all the models
-if do_compute:
-    defaultconfig = load_yaml(config_file)
+    climname = f"{clim}-{timeframe}"
+    year1, year2 = timeframe_years(timeframe)
 
-    for model in sorted(models):
-        print(model)
-        ensemble = cfg_ensemble(model)
-        consortium = cfg_consortium(model)
-        model_config = copy.deepcopy(defaultconfig)
+    # call the loop of global mean on all the models
+    if do_compute:
+        defaultconfig = load_yaml(config_file)
 
-        # to possibly drop biased figures
-        drop = []
-        if drop:
-            for var in drop:
-                for kind in ["atm2d", "atm3d", "oce", "ice"]:
-                    if var in model_config["performance_indices"]["variables"][kind]:
-                        model_config["performance_indices"]["variables"][kind].remove(
-                            var
-                        )
+        for model in sorted(models):
+            logging.warning("Computing model %s", model)
 
-        performance_indices(
-            expname,
-            year1,
-            year2,
-            config=model_config,
-            model=model,
-            ensemble=ensemble,
-            consortium=consortium,
-            mip=mip,
-            numproc=nprocs,
-            climatology=refclim,
-            loglevel="debug",
-        )
+            if model in ["CNRM-CM6-1", "UKESM1-0-LL"]:
+                ensemble = "r1i1p1f2"
+            else:
+                ensemble = "r1i1p1f1"
 
-if do_create_clim:
-    cfg = load_yaml(config_file)
+            model_config = copy.deepcopy(defaultconfig)
 
-    # dictionary with all elements
-    full = {}
-    for model in models:
-        ensemble = cfg_ensemble(model)
-        filename = os.path.join(
-            cfg["dirs"]["tab"],
-            f"PI4_{refclim}_{expname}_{model}_{ensemble}_{year1}_{year2}.yml",
-        )
-        if not os.path.exists(filename):
-            raise ValueError(
-                f"File {filename} does not exist, please run the performance indices first!"
+            # to possibly drop biased figures
+            drop = []
+            if drop:
+                for var in drop:
+                    for kind in ["2d_vars", "3d_vars", "oce_vars", "ice_vars"]:
+                        if var in model_config["PI"][kind]["field"]:
+                            model_config["PI"][kind]["field"].remove(var)
+
+            performance_indices(
+                expname,
+                year1,
+                year2,
+                config=model_config,
+                model=model,
+                ensemble=ensemble,
+                numproc=nprocs,
+                climatology=climname,
+                loglevel=logging.getLogger().getEffectiveLevel(),
+                plot=False,
             )
-        print(filename)
-        filein = glob.glob(filename)
-        full[model] = load_yaml(filein[0])
 
-    # idiot averaging
-    M0 = models[0]
-    out = defaultdict(lambda: defaultdict(lambda: defaultdict(float)))
-    for var in full[M0].keys():
-        for season in full[M0][var].keys():
-            for region in full[M0][var][season].keys():
-                element = []
-                for model, model_data in full.items():
-                    if var in model_data:
-                        if not np.isnan(model_data[var][season][region]):
-                            element.append(model_data[var][season][region])
-                out[var][season][region] = float(round(np.mean(element), 3))
+    if do_create_clim:
+        cfg = load_yaml(config_file)
 
-    # clumsy way to get the models for each var
-    mout = {}
-    for var in full[M0].keys():
-        melement = []
-        for model, model_data in full.items():
-            if var in model_data:
-                if not np.isnan(model_data[var]["ALL"]["Global"]):
-                    melement.append(model)
-        mout[var] = melement
+        # dictionary with all elements
+        full = {}
+        for model in models:
+            logging.warning("Climatology for model %s", model)
+            filein = glob.glob(
+                os.path.join(cfg["dirs"]["tab"], f"PI4_{climname}_{expname}_{model}_r1i1p1f*_{year1}_{year2}.yml")
+            )
+            full[model] = load_yaml(filein[0])
 
-    # clim files
-    pifile = os.path.join(climdir, refclim, f"pi_climatology_{refclim}.yml")
-    if not do_definitive:
-        update_pifile = os.path.join(
-            climdir, refclim, f"pi_climatology_{refclim}_test.yml"
-        )
-    else:
-        update_pifile = os.path.join(climdir, refclim, f"pi_climatology_{refclim}.yml")
-    piclim = load_yaml(pifile)
+        # idiot averaging
+        M0 = models[0]
+        out = defaultdict(lambda: defaultdict(lambda: defaultdict(float)))
+        for var in full[M0].keys():
+            for season in full[M0][var].keys():
+                for region in full[M0][var][season].keys():
+                    element = []
+                    for model, model_data in full.items():
+                        if var in model_data:
+                            if not np.isnan(model_data[var][season][region]):
+                                element.append(model_data[var][season][region])
+                    out[var][season][region] = float(round(np.mean(element), 3))
 
-    # Update the climatology
-    for var, season_data in out.items():
-        print(f"Updating {var} climatology for {refclim}...")
-        piclim[var]["cmip6"] = {}
-        for season, region_data in season_data.items():
-            piclim[var]["cmip6"][season] = {}
-            for region, value in region_data.items():
-                piclim[var]["cmip6"][season][region] = float(value)
-        piclim[var]["cmip6"]["models"] = mout[var]
-        piclim[var]["cmip6"]["nmodels"] = len(mout[var])
-        piclim[var]["cmip6"]["year1"] = year1
-        piclim[var]["cmip6"]["year2"] = year2
+        # clumsy way to get the models for each var
+        mout = {}
+        for var in full[M0].keys():
+            melement = []
+            for model, model_data in full.items():
+                if var in model_data:
+                    if not np.isnan(model_data[var]["ALL"]["Global"]):
+                        melement.append(model)
+            mout[var] = melement
 
-    # dump the new file
-    with open(update_pifile, "w", encoding="utf8") as file:
-        yaml.safe_dump(piclim, file, sort_keys=False)
+        # clim files
+        pifile = os.path.join(climdir, climname, f"pi_climatology_{climname}.yml")
+        if not do_definitive:
+            update_pifile = os.path.join(climdir, climname, f"pi_climatology_{climname}_test.yml")
+        else:
+            update_pifile = os.path.join(climdir, climname, f"pi_climatology_{climname}.yml")
+        piclim = load_yaml(pifile)
+
+        # Update the climatology
+        for var, season_data in out.items():
+            piclim[var]["cmip6"] = {}
+            for season, region_data in season_data.items():
+                piclim[var]["cmip6"][season] = {}
+                for region, value in region_data.items():
+                    piclim[var]["cmip6"][season][region] = np.nan if value == 0 else float(value)
+            piclim[var]["cmip6"]["models"] = mout[var]
+            piclim[var]["cmip6"]["nmodels"] = len(mout[var])
+            piclim[var]["cmip6"]["year1"] = year1
+            piclim[var]["cmip6"]["year2"] = year2
+
+        # dump the new file
+        with open(update_pifile, "w", encoding="utf8") as file:
+            yaml.safe_dump(piclim, file, sort_keys=False)
+
+
+if __name__ == "__main__":
+    parser = parse_create_args()
+    parser.add_argument(
+        "--definitive", action="store_true", help="overwrite the definitive climatology file instead of creating a test one"
+    )
+    parser.add_argument(
+        "--no-compute",
+        dest="compute",
+        action="store_false",
+        help="do not compute the performance indices, just create the climatology file",
+    )
+    parser.add_argument(
+        "--no-create-clim",
+        dest="create_clim",
+        action="store_false",
+        help="create the climatology file after computing the performance indices",
+    )
+
+    args = parser.parse_args()
+    logging.getLogger().setLevel(args.loglevel.upper())
+    main(
+        clim=args.climdata,
+        timeframe=args.timeframe,
+        nprocs=args.cores,
+        do_definitive=args.definitive,
+        do_compute=args.compute,
+        do_create_clim=args.create_clim,
+    )

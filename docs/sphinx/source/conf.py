@@ -18,7 +18,7 @@ sys.path.insert(0, os.path.abspath("../../../"))
 
 # -- Project information -----------------------------------------------------
 
-project = "ECmean4"
+project = "ecmean"
 copyright = "2022, Paolo Davini and Jost von Hardenberg"
 author = "Paolo Davini and Jost von Hardenberg"
 
@@ -32,6 +32,12 @@ napoleon_numpy_docstring = False
 templates_path = ["_templates"]
 autoclass_content = "both"
 exclude_patterns = []
+
+# -- RST substitutions -------------------------------------------------------
+
+rst_prolog = """
+.. |ecmean| replace:: ECmean
+"""
 
 
 # -- Options for HTML output -------------------------------------------------

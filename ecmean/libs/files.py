@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Shared functions for XArray ECmean4
+Shared functions for XArray ecmean
 """
 
 import os
@@ -10,6 +10,7 @@ from pathlib import Path
 from glob import glob
 import yaml
 import xarray as xr
+from ecmean.libs.climatology import SUPPORTED_CLIMATOLOGY
 
 loggy = logging.getLogger(__name__)
 
@@ -56,22 +57,14 @@ def var_is_there(flist, var, face):
         if not flist or not all(Path(f).is_file() for f in flist):
             loggy.error("No valid files found for variable %s. Ignoring it.", var)
             return False, None
-        xfield = xr.open_mfdataset(
-            flist,
-            combine="by_coords",
-            data_vars="all",
-            join="outer",
-            compat="no_conflicts",
-        )
+        xfield = xr.open_mfdataset(flist, combine="by_coords", data_vars="all", join="outer", compat="no_conflicts")
 
     # if variable is derived, extract required vars
     var_req = _get_variables_to_load(var, face)
 
     missing_vars = [v for v in var_req if v not in xfield.data_vars]
     if missing_vars:
-        loggy.warning(
-            "Variable %s requires missing variables: %s", var, ", ".join(missing_vars)
-        )
+        loggy.warning("Variable %s requires missing variables: %s", var, ", ".join(missing_vars))
         return False, None
 
     units_avail = {}
@@ -89,12 +82,7 @@ def var_is_there(flist, var, face):
         varunit = units_avail.get(var_req[0])
 
         if len(var_req) > 1:
-            loggy.debug(
-                "Variable '%s' is derived. Using unit from its first component '%s': %s",
-                var,
-                var_req[0],
-                varunit,
-            )
+            loggy.debug("Variable '%s' is derived. Using unit from its first component '%s': %s", var, var_req[0], varunit)
 
     return True, varunit
 
@@ -109,19 +97,13 @@ def get_clim_files(piclim, var, diag, season):
     datayear1 = piclim[var].get("year1", None)
     datayear2 = piclim[var].get("year2", None)
 
-    if diag.climatology not in ["EC23", "EC24", "HM25"]:
+    if diag.climatology not in SUPPORTED_CLIMATOLOGY:
         raise ValueError(f"Climatology {diag.climatology} not supported/existing!")
 
     stringname = "climate" if season == "ALL" else "seasons"
 
-    clim = str(
-        diag.resclmdir
-        / f"{stringname}_average_{var}_{dataref}_{diag.resolution}_{datayear1}-{datayear2}.nc"
-    )
-    vvvv = str(
-        diag.resclmdir
-        / f"{stringname}_variance_{var}_{dataref}_{diag.resolution}_{datayear1}-{datayear2}.nc"
-    )
+    clim = str(diag.resclmdir / f"{stringname}_average_{var}_{dataref}_{diag.resolution}_{datayear1}-{datayear2}.nc")
+    vvvv = str(diag.resclmdir / f"{stringname}_variance_{var}_{dataref}_{diag.resolution}_{datayear1}-{datayear2}.nc")
 
     return clim, vvvv
 
@@ -155,9 +137,7 @@ def get_inifiles(face, diag):
                 # Make path absolute if it's relative
                 path_obj = Path(file_path)
                 if not path_obj.is_absolute():
-                    path_obj = (
-                        Path(diag.ecedir) / Path(face["model"]["basedir"]) / path_obj
-                    )
+                    path_obj = Path(diag.ecedir) / Path(face["model"]["basedir"]) / path_obj
 
                 # Expand wildcards and resolve files
                 expanded = _expand_filename(path_obj, "", diag)
@@ -174,12 +154,7 @@ def get_inifiles(face, diag):
                     loggy.warning("Inifile %s cannot be found!", expanded)
 
             ifiles[comp_name][file_label] = resolved_path
-            loggy.info(
-                "%s for component %s is: %s",
-                file_label,
-                comp_name,
-                resolved_path or "MISSING",
-            )
+            loggy.info("%s for component %s is: %s", file_label, comp_name, resolved_path or "MISSING")
 
     return ifiles
 

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Shared functions for Support class for ECmean4
+Shared functions for Support class for ecmean
 """
 
 import os
@@ -22,7 +22,7 @@ oce_mask_names = ["lsm", "sftof", "mask_opensea"]
 
 class Supporter:
     """
-    Support class for ECmean4, including areas and masks to be used
+    Support class for ecmean, including areas and masks to be used
     in global mean and performance indices
     """
 
@@ -96,9 +96,7 @@ class Supporter:
                     self.ocemask = self.atmmask
                 # otherwise, no solution!
                 else:
-                    loggy.warning(
-                        "No mask available for oceanic vars, this might lead to inconsistent results..."
-                    )
+                    loggy.warning("No mask available for oceanic vars, this might lead to inconsistent results...")
 
     def make_atm_masks(self):
         """Create land-sea masks for atmosphere model"""
@@ -113,11 +111,7 @@ class Supporter:
             # inconsistencies in the grib structure ->
             # see here https://github.com/ecmwf/cfgrib/issues/13
             mask = xr.open_mfdataset(
-                self.atmmaskfile,
-                engine="cfgrib",
-                indexpath=None,
-                filter_by_keys={"shortName": "lsm"},
-                preprocess=xr_preproc,
+                self.atmmaskfile, engine="cfgrib", indexpath=None, filter_by_keys={"shortName": "lsm"}, preprocess=xr_preproc
             )["lsm"]
 
         elif self.atmcomponent in ["cmoratm", "globo"]:
@@ -164,8 +158,7 @@ class Supporter:
                 mask = fix_mask_values(dmask[mvar[0]])
             else:
                 loggy.warning(
-                    "No mask array found in %s for oceanic vars, this might lead to inconsistent results...",
-                    self.ocemaskfile,
+                    "No mask array found in %s for oceanic vars, this might lead to inconsistent results...", self.ocemaskfile
                 )
                 return None
 
@@ -198,9 +191,7 @@ class Supporter:
         # this might be universal, but keep this as for supported components only
         if "areacello" in xfield.data_vars:  # as oceanic CMOR case
             return xfield["areacello"]
-        elif (
-            "cell_area" in xfield.data_vars
-        ):  # as ECE4 NEMO case for nemo-initial-state.nc
+        elif "cell_area" in xfield.data_vars:  # as ECE4 NEMO case for nemo-initial-state.nc
             return xfield["cell_area"]
         elif "e1t" in xfield.data_vars:  # ECE4 NEMO case for domaing_cfg.nc
             return xfield["e1t"] * xfield["e2t"]
@@ -222,29 +213,17 @@ class Supporter:
             gaussian_regular = xr.Dataset({"lon": (["lon"], f), "lat": (["lat"], g)})
 
             # use nearest neighbour to remap to gaussian regular
-            fix = xe.Regridder(
-                xfield[xname],
-                gaussian_regular,
-                method="nearest_s2d",
-                locstream_in=True,
-                periodic=True,
-            )
+            fix = xe.Regridder(xfield[xname], gaussian_regular, method="nearest_s2d", locstream_in=True, periodic=True)
 
             # create bilinear interpolator
-            remap = xe.Regridder(
-                fix(xfield[xname]), self.targetgrid, periodic=True, method="bilinear"
-            )
+            remap = xe.Regridder(fix(xfield[xname]), self.targetgrid, periodic=True, method="bilinear")
 
         elif self.atmcomponent in ["cmoratm", "globo"]:
             fix = None
-            remap = xe.Regridder(
-                xfield, self.targetgrid, periodic=True, method="bilinear"
-            )
+            remap = xe.Regridder(xfield, self.targetgrid, periodic=True, method="bilinear")
 
         else:
-            raise KeyError(
-                "ERROR: Atm weights not defined for this component, this cannot be handled!"
-            )
+            raise KeyError("ERROR: Atm weights not defined for this component, this cannot be handled!")
 
         return fix, remap
 
@@ -270,9 +249,7 @@ class Supporter:
                 # tentative extraction
                 xname = list(xfield.data_vars)[-1]
         else:
-            raise KeyError(
-                "ERROR: Oce weights not defined for this component, this cannot be handled!"
-            )
+            raise KeyError("ERROR: Oce weights not defined for this component, this cannot be handled!")
 
         # Use the nearest neighbor method for unstructured grids
 

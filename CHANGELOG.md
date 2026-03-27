@@ -1,12 +1,16 @@
 # Changelog
 
-All notable changes to ECmean4 will be documented in this file.
+All notable changes to ecmean will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 ## [Unreleased]
 
 Unreleased is the current development version, which is currently lying in `main` branch.
 
+## [v0.2]
+
+- Expand tests for new climatologies (#145)
+- New climatologies EC26 for both global mean and performance indices (#135, #143, #144)
 - Various speed up improvement for ECplotter and multiprocessing (#137)
 - Support for python==3.14 (#136)
 - Refactored colorbar label in performance indices plots; removed kwargs direct title propagation (#133)

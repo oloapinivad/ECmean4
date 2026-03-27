@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Shared functions for XArray ECmean4
+Shared functions for XArray ecmean
 """
 
 import os
@@ -29,9 +29,7 @@ def set_multiprocessing_start_method():
         multiprocessing.set_start_method("fork", force=True)
     else:
         raise OSError(f"Unsupported operative system {plat}")
-    loggy.debug(
-        "Multiprocessing start method is %s", multiprocessing.get_start_method()
-    )
+    loggy.debug("Multiprocessing start method is %s", multiprocessing.get_start_method())
     return plat, multiprocessing.get_start_method()
 
 
@@ -137,9 +135,7 @@ def check_var_climatology(varlist, reference):
 
     missing = [element for element in varlist if element not in reference]
     if missing:
-        raise KeyError(
-            f"Variable/Variables {missing} is/are not defined in the climatology, aborting!"
-        )
+        raise KeyError(f"Variable/Variables {missing} is/are not defined in the climatology, aborting!")
 
 
 def get_domain(var, face):
@@ -201,19 +197,10 @@ def write_tuning_table(linefile, varmean, var_table, diag, ref):
 
     with open(linefile, "a", encoding="utf-8") as f:
         print(
-            f"{diag.modelname} {diag.ensemble} {diag.expname}",
-            "{:4d} {:4d} ".format(diag.year1, diag.year2),
-            end="",
-            file=f,
+            f"{diag.modelname} {diag.ensemble} {diag.expname}", "{:4d} {:4d} ".format(diag.year1, diag.year2), end="", file=f
         )
         for var in var_table:
-            print(
-                "{:12.5f}".format(
-                    varmean[var]["ALL"]["Global"] * ref[var].get("factor", 1)
-                ),
-                end=" ",
-                file=f,
-            )
+            print("{:12.5f}".format(varmean[var]["ALL"]["Global"] * ref[var].get("factor", 1)), end=" ", file=f)
         print(file=f)
 
 
