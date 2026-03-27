@@ -56,31 +56,11 @@ jobs:
         flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics --exclude=__init__.py
     - name: Run coverage
       run: |
-        coverage run -m pytest
+        coverage run --source=ecmean -m pytest
         coverage combine
         coverage lcov
-    - name: Upload coverage artifact for Python 3.14
-      if: matrix.python-version == '3.14'
-      uses: actions/upload-artifact@v4
-      with:
-        name: coverage-lcov
-        path: coverage.lcov
-        retention-days: 1
-        if-no-files-found: error
-
-  coveralls:
-    name: coveralls
-    needs: mamba-test
-    runs-on: ubuntu-latest
-    steps:
-    - uses: actions/checkout@v6
-      with:
-        fetch-depth: 0
-    - name: Download coverage artifact
-      uses: actions/download-artifact@v4
-      with:
-        name: coverage-lcov
     - name: Upload coverage to Coveralls
+      if: matrix.python-version == '3.14'
       uses: coverallsapp/github-action@v2
       with:
         github-token: ${{ secrets.GITHUB_TOKEN }}
