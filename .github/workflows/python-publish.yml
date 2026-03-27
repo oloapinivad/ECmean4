@@ -11,9 +11,15 @@ name: Upload Python Package
 on:
   release:
     types: [published]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Tag to publish"
+        required: true
 
 permissions:
   contents: read
+  id-token: write
 
 jobs:
   deploy:
@@ -22,6 +28,8 @@ jobs:
 
     steps:
     - uses: actions/checkout@v6
+      with:
+        ref: ${{ github.event.release.tag_name || github.event.inputs.tag }}
     - name: Set up Python
       uses: actions/setup-python@v6
       with:
@@ -34,5 +42,5 @@ jobs:
       run: python -m build
     - name: Publish package
       uses: pypa/gh-action-pypi-publish@release/v1
-      with:
-        password: ${{ secrets.PYPI_API_TOKEN }}
+      #with:
+      #  password: ${{ secrets.PYPI_API_TOKEN }}
