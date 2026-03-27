@@ -57,6 +57,7 @@ jobs:
     - name: Run coverage
       run: |
         coverage run -m pytest
+        coverage combine
         coverage lcov
     - name: Upload coverage artifact for Python 3.14
       if: matrix.python-version == '3.14'

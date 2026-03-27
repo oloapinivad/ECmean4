@@ -31,8 +31,7 @@ dependencies = [
     "matplotlib",
     "tabulate",
     "cfgrib",
-    "seaborn",
-    "statsmodels"
+    "seaborn"
 ]
 
 [project.optional-dependencies]
@@ -40,7 +39,8 @@ tests = [
     "flake8",
     "pytest",
     "coverage",
-    "coveralls"
+    "coveralls".
+    "statsmodels"
 ]
 
 docs = [
