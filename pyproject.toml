@@ -88,3 +88,16 @@ source = [
 testpaths = ["tests"]
 python_files = "test_*.py"
 
+[tool.ruff]
+# --- Global Settings ---
+line-length = 127
+target-version = "py314"
+exclude = ["**/__init__.py"]
+
+[tool.ruff.lint.isort]
+known-first-party = ["ecmean"]
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+docstring-code-format = true
