@@ -159,9 +159,7 @@ class GlobalMean:
     def prepare(self):
         """Prepare the necessary components for the global mean computation."""
         plat, mprocmethod = set_multiprocessing_start_method()
-        self.loggy.info(
-            'Running on %s and multiprocessing method set as "%s"', plat, mprocmethod
-        )
+        self.loggy.info('Running on %s and multiprocessing method set as "%s"', plat, mprocmethod)
 
         self.face = load_yaml(self.diag.interface)
         self.ref = load_yaml(self.diag.reffile)
@@ -174,9 +172,7 @@ class GlobalMean:
         comp = self.face["model"]["component"]
         inifiles = get_inifiles(self.face, self.diag)
 
-        self.util_dictionary = Supporter(
-            comp, inifiles["atm"], inifiles["oce"], areas=True, remap=False
-        )
+        self.util_dictionary = Supporter(comp, inifiles["atm"], inifiles["oce"], areas=True, remap=False)
 
         # verify if we can run amip, omip or coupled run
         self.diag.configure_amip_omip_cpld(self.util_dictionary)
@@ -389,9 +385,7 @@ class GlobalMean:
                     else:
                         xfield = infile
 
-                    xfield = xfield.sel(
-                        time=xfield.time.dt.year.isin(diag.years_joined)
-                    )
+                    xfield = xfield.sel(time=xfield.time.dt.year.isin(diag.years_joined))
                     check_time_axis(xfield.time, diag.years_joined)
 
                     # compute here since the operation are built on this
@@ -427,9 +421,7 @@ class GlobalMean:
                             if isinstance(avg, dask.array.core.Array):
                                 avg = avg.compute()
 
-                            result[season][region] = float(
-                                (np.nanmean(avg) + offset) * factor
-                            )
+                            result[season][region] = float((np.nanmean(avg) + offset) * factor)
 
                             if diag.ftrend:
                                 if len(avg) == len(diag.years_joined):

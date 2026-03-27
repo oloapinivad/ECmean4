@@ -145,9 +145,7 @@ def get_inifiles(face, diag):
 
                 if matching_files:
                     # Pick file matching the target year
-                    filtered_files = _filter_filename_by_year(
-                        str(path_obj), matching_files, diag.year1
-                    )
+                    filtered_files = _filter_filename_by_year(str(path_obj), matching_files, diag.year1)
                     if filtered_files:
                         resolved_path = str(filtered_files[0])
                 else:
@@ -203,9 +201,7 @@ def _filter_filename_by_year(template, filenames, year):
 
     # If template doesn't use year placeholders, return all files
     if "year1" not in template:
-        loggy.debug(
-            "Template has no year placeholders, returning all %d files", len(filenames)
-        )
+        loggy.debug("Template has no year placeholders, returning all %d files", len(filenames))
         return filenames
 
     # Extract year ranges from filenames and filter
@@ -217,9 +213,7 @@ def _filter_filename_by_year(template, filenames, year):
             date_part = filename.split("_")[-1].split(".")[0]  # Remove extension
 
             if "-" not in date_part:
-                loggy.warning(
-                    "Filename %s does not contain expected date range format", filename
-                )
+                loggy.warning("Filename %s does not contain expected date range format", filename)
                 continue
 
             start_date, end_date = date_part.split("-", 1)
@@ -344,9 +338,7 @@ def make_input_filename(cmorname, face, diag):
                 continue
 
             # Filter files by year and add to collection
-            year_filtered_files = _filter_filename_by_year(
-                str(filepath_template), matching_files, year
-            )
+            year_filtered_files = _filter_filename_by_year(str(filepath_template), matching_files, year)
 
             if year_filtered_files:
                 all_files.update(year_filtered_files)
@@ -361,13 +353,9 @@ def make_input_filename(cmorname, face, diag):
     final_filelist = sorted(list(all_files))
 
     if not final_filelist:
-        loggy.error(
-            "No input files found for variable %s across all requested years", cmorname
-        )
+        loggy.error("No input files found for variable %s across all requested years", cmorname)
     else:
-        loggy.info(
-            "Collected %d unique files for variable %s", len(final_filelist), cmorname
-        )
+        loggy.info("Collected %d unique files for variable %s", len(final_filelist), cmorname)
         loggy.debug("Final file list: %s", final_filelist)
 
     return final_filelist

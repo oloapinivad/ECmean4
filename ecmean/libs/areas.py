@@ -183,9 +183,7 @@ class AreaCalculator:
         else:
             raise ValueError("Gridtype undefined or unsupported.")
 
-        area = self._area_computation(
-            bounds_lon, bounds_lat, formula=formula, full_lat=full_lat
-        )
+        area = self._area_computation(bounds_lon, bounds_lat, formula=formula, full_lat=full_lat)
 
         if gridtype in ["gaussian", "lonlat"]:
             area = area.reshape([len(xfield["lat"]), len(xfield["lon"])])

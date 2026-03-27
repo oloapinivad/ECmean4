@@ -138,10 +138,7 @@ def test_performance_indices_amip_xdataset(clim, tmp_path):
     with open(file1, "r", encoding="utf8") as f1, open(file2, "r", encoding="utf8") as f2:
         data1 = yaml.safe_load(f1)
         data2 = yaml.safe_load(f2)
-    assert are_dicts_equal(data1, data2, TOLERANCE), (
-        f"YAML files are not identical.\nData1: {data1}\nData2: {data2}"
-    )
-
+    assert are_dicts_equal(data1, data2, TOLERANCE), f"YAML files are not identical.\nData1: {data1}\nData2: {data2}"
 
     # second part of the test: check that the plot can be created from the YML file
     outputfile = tmp_path / "PI_heatmap.png"

@@ -122,9 +122,7 @@ class Diagnostic:
         else:
             cfg = load_yaml(self.indir / "../../config.yml")
 
-        self.set_defaults(
-            cfg, modelname=modelname, ensemble=ensemble, consortium=consortium, mip=mip
-        )
+        self.set_defaults(cfg, modelname=modelname, ensemble=ensemble, consortium=consortium, mip=mip)
 
         # Various raise and input and output directories
         if not cfg["dirs"]["exp"]:
@@ -169,9 +167,7 @@ class Diagnostic:
         else:
             self.xdataset = None
 
-    def set_defaults(
-        self, cfg, modelname=None, ensemble=None, consortium=None, mip=None
-    ):
+    def set_defaults(self, cfg, modelname=None, ensemble=None, consortium=None, mip=None):
         """
         Set default values for model, ensemble, consortium, and mip.
         """
@@ -258,9 +254,7 @@ class Diagnostic:
         self.field_oce = cfg["performance_indices"]["variables"].get("oce", [])
         self.field_ice = cfg["performance_indices"]["variables"].get("ice", [])
 
-        self.field_all = (
-            self.field_atm2d + self.field_atm3d + self.field_oce + self.field_ice
-        )
+        self.field_all = self.field_atm2d + self.field_atm3d + self.field_oce + self.field_ice
 
         if not self.climatology:
             self.climatology = cfg["performance_indices"]["climatology"]
@@ -292,33 +286,17 @@ class Diagnostic:
             if not support_dictionary.atmareafile and not support_dictionary.atmmaskfile:
                 loggy.warning("No atmospheric file found, assuming this is an OMIP run without atmospheric variables.")
                 atmospheric_vars = self.field_atm2d + self.field_atm3d
-                self.field_all = self._remove_variables(
-                    self.field_all, atmospheric_vars
-                )
+                self.field_all = self._remove_variables(self.field_all, atmospheric_vars)
             if self.field_all == []:
-                raise ValueError(
-                    "No variables to process due to missing area/mask files, check your configuration file!"
-                )
+                raise ValueError("No variables to process due to missing area/mask files, check your configuration file!")
 
         if self.funcname == "GlobalMean":
-            if (
-                not support_dictionary.oceareafile
-                and not support_dictionary.ocemaskfile
-            ):
-                loggy.warning(
-                    "No oceanic file available, assuming this is an AMIP run without oceanic variables."
-                )
+            if not support_dictionary.oceareafile and not support_dictionary.ocemaskfile:
+                loggy.warning("No oceanic file available, assuming this is an AMIP run without oceanic variables.")
                 oceanic_vars = self.var_oce + self.var_ice
                 self.var_all = self._remove_variables(self.var_all, oceanic_vars)
-            if (
-                not support_dictionary.atmareafile
-                and not support_dictionary.atmmaskfile
-            ):
-                loggy.warning(
-                    "No atmospheric file found, assuming this is an OMIP run without atmospheric variables."
-                )
+            if not support_dictionary.atmareafile and not support_dictionary.atmmaskfile:
+                loggy.warning("No atmospheric file found, assuming this is an OMIP run without atmospheric variables.")
                 self.var_all = self._remove_variables(self.var_all, self.var_atm)
             if self.var_all == []:
-                raise ValueError(
-                    "No variables to process due to missing area/mask files, check your configuration file!"
-                )
+                raise ValueError("No variables to process due to missing area/mask files, check your configuration file!")

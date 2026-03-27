@@ -94,6 +94,7 @@ def cfg_consortium(model):
         return "NERC"
     return "*"
 
+
 def main(clim="EC26", timeframe="CMIP", nprocs=4, do_definitive=False, do_compute=True, do_create_clim=True):
     """
     Main function to compute the performance indices for the CMIP6 climatology

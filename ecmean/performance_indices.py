@@ -156,9 +156,7 @@ class PerformanceIndices:
         """Prepare the necessary components for performance indices calculation."""
         # set dask and multiprocessing fork
         plat, mprocmethod = set_multiprocessing_start_method()
-        self.loggy.info(
-            'Running on %s and multiprocessing method set as "%s"', plat, mprocmethod
-        )
+        self.loggy.info('Running on %s and multiprocessing method set as "%s"', plat, mprocmethod)
 
         # initialize the diag class, load the interface and the reference file
         self.face = load_yaml(self.diag.interface)
@@ -300,9 +298,7 @@ class PerformanceIndices:
             return fig
 
     @staticmethod
-    def pi_worker(
-        util, piclim, face, diag, field_3d, varstat, dictarray, varlist, loglevel
-    ):
+    def pi_worker(util, piclim, face, diag, field_3d, varstat, dictarray, varlist, loglevel):
         """
         Main parallel diagnostic worker for performance indices.
 
@@ -361,9 +357,7 @@ class PerformanceIndices:
                         xfield = infile
 
                     # in case of big files with multi year, be sure of having opened the right records
-                    xfield = xfield.sel(
-                        time=xfield.time.dt.year.isin(diag.years_joined)
-                    )
+                    xfield = xfield.sel(time=xfield.time.dt.year.isin(diag.years_joined))
 
                     # check time axis
                     check_time_axis(xfield.time, diag.years_joined)
@@ -419,9 +413,7 @@ class PerformanceIndices:
                         try:
                             final = remap(tmean, keep_attrs=True)
                         except ValueError:
-                            loggy.error(
-                                "Cannot interpolate %s with the current weights...", var
-                            )
+                            loggy.error("Cannot interpolate %s with the current weights...", var)
                             continue
 
                         # vertical interpolation

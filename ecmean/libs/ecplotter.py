@@ -37,9 +37,7 @@ class ECPlotter:
         """
 
         if diagnostic not in ["performance_indices", "global_mean"]:
-            raise ValueError(
-                "Invalid diagnostic type. Choose 'performance_indices' or 'global_mean'."
-            )
+            raise ValueError("Invalid diagnostic type. Choose 'performance_indices' or 'global_mean'.")
         self.diagnostic = diagnostic
         self.modelname = modelname
         self.expname = expname
@@ -99,9 +97,7 @@ class ECPlotter:
         if isinstance(base, str):
             base = yaml.safe_load(base)
         if self.diagnostic == "performance_indices":
-            data2plot, cmip6, longnames = self.prepare_clim_dictionaries_pi(
-                data, base, variables
-            )
+            data2plot, cmip6, longnames = self.prepare_clim_dictionaries_pi(data, base, variables)
             fig = self.heatmap_comparison_pi(
                 data_dict=data2plot,
                 cmip6_dict=cmip6,
@@ -131,9 +127,7 @@ class ECPlotter:
                 "Invalid diagnostic type %s. Choose 'performance_indices' or 'global_mean'.",
                 self.diagnostic,
             )
-            raise ValueError(
-                f"Invalid diagnostic type {self.diagnostic}. Choose 'performance_indices' or 'global_mean'."
-            )
+            raise ValueError(f"Invalid diagnostic type {self.diagnostic}. Choose 'performance_indices' or 'global_mean'.")
         return fig
 
     def heatmap_comparison_pi(
@@ -177,9 +171,7 @@ class ECPlotter:
         yfig = len(myfield.index)
 
         # real plot
-        fig, axs = plt.subplots(
-            1, 1, sharey=True, tight_layout=True, figsize=(xfig + 5, yfig + 2)
-        )
+        fig, axs = plt.subplots(1, 1, sharey=True, tight_layout=True, figsize=(xfig + 5, yfig + 2))
 
         # set title
         title = title if title is not None else self.default_title

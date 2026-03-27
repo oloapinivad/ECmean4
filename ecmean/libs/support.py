@@ -26,9 +26,7 @@ class Supporter:
     in global mean and performance indices
     """
 
-    def __init__(
-        self, component, atmdict, ocedict, areas=True, remap=False, targetgrid=None
-    ):
+    def __init__(self, component, atmdict, ocedict, areas=True, remap=False, targetgrid=None):
         """Class for masks, areas and interpolation (xESMF-based)
         for both atmospheric and oceanic component"""
 
@@ -121,14 +119,10 @@ class Supporter:
             if len(mvar) > 0:
                 mask = fix_mask_values(dmask[mvar[0]])
             else:
-                raise KeyError(
-                    f"ERROR: make_atm_masks -> Cannot find mask variable in {self.atmmaskfile}"
-                )
+                raise KeyError(f"ERROR: make_atm_masks -> Cannot find mask variable in {self.atmmaskfile}")
 
         else:
-            raise KeyError(
-                "ERROR: make_atm_masks -> Atmospheric component not supported!"
-            )
+            raise KeyError("ERROR: make_atm_masks -> Atmospheric component not supported!")
 
         # loading the mask to avoid issues with xesmf
         mask = mask.load()
@@ -241,9 +235,7 @@ class Supporter:
         if self.ocecomponent in ["nemo", "cmoroce"]:
             if "areacello" in xfield.data_vars:  # CMOR case
                 xname = "areacello"
-            elif (
-                "cell_area" in xfield.data_vars
-            ):  # ECE4 NEMO case for nemo-initial-state.nc
+            elif "cell_area" in xfield.data_vars:  # ECE4 NEMO case for nemo-initial-state.nc
                 xname = "cell_area"
             else:
                 # tentative extraction

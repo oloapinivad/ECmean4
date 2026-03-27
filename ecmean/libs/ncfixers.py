@@ -35,9 +35,7 @@ def xr_preproc(ds):
         ds = ds.set_coords(["nav_lon", "nav_lat"])
 
     # compact renaming
-    for old_name in [
-        name for name in rename_dict if name in ds.dims or name in ds.coords
-    ]:
+    for old_name in [name for name in rename_dict if name in ds.dims or name in ds.coords]:
         ds = ds.rename({old_name: rename_dict[old_name]})
 
     # fix for NEMO eORCA grid (nav_lon, nav_lat)

@@ -117,7 +117,6 @@ def test_global_mean_amip_xdataset_config_dict():
         os.remove(file1)
 
 
-
 # call on historical CMIP6
 
 

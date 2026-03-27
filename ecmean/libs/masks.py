@@ -115,9 +115,7 @@ def select_region(xfield, region):
         raise AttributeError("Input xarray object does not contain 'lat' coordinate.")
 
     if region not in region_bounds:
-        raise KeyError(
-            f"Region '{region}' is not supported. Choose from: {list(region_bounds.keys())}"
-        )
+        raise KeyError(f"Region '{region}' is not supported. Choose from: {list(region_bounds.keys())}")
 
     lat_min, lat_max = region_bounds[region]
 
