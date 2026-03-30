@@ -11,7 +11,7 @@ authors = [
 ]
 description = "A Global Climate Model lightweight evaluation tool"
 readme = "README.md"
-requires-python = ">=3.9,<=3.14"
+requires-python = ">=3.9,<3.15"
 classifiers = [
     "Programming Language :: Python :: 3",
     "Intended Audience :: Science/Research",
