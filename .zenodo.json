@@ -41,12 +41,12 @@
     ],
     "related_identifiers": [
         {
-            "identifier": "https://github.com/oloapinivad/ECmean4",
+            "identifier": "https://github.com/oloapinivad/ecmean",
             "relation": "isSupplementTo",
             "scheme": "url"
         },
         {
-            "identifier": "https://ecmean4.readthedocs.io",
+            "identifier": "https://ecmean.readthedocs.io",
             "relation": "isDocumentedBy",
             "scheme": "url"
         }

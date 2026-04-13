@@ -9,7 +9,7 @@ Unreleased is the current development version, which is currently lying in `main
 
 ## [v0.2.0]
 
-*IMPORTANT*: New proeject name is now `ecmean` 
+*IMPORTANT*: New project name is now `ecmean` 
 
 - Ruff is now enable as formatter/checker for the entire project (#145)
 - Expand tests for new climatologies (#145)

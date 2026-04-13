@@ -41,14 +41,14 @@ def xr_preproc(ds):
     # fix for NEMO eORCA grid (nav_lon, nav_lat)
     for h in ["lon", "lat"]:
         for f in ["", "grid_T"]:
-            g = "nav_" + h + "_" + f
+            g = f"nav_{h}_{f}"
             if g in ds.coords:
                 ds = ds.rename({g: h})
 
     # fix for NEMO eORCA grid (x_grid_T, etc.)
     for h in ["x", "y"]:
         for f in ["grid_T"]:
-            g = h + "_" + f
+            g = f"{h}_{f}"
             if g in ds.dims:
                 ds = ds.rename({g: h})
 
