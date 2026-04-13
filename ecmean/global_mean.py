@@ -450,7 +450,7 @@ def gm_entry_point():
         outputdir=args.outputdir,
         reference=args.reference,
     )
-    print("ECmean4 Global Mean successfully computed!")
+    print("ECmean Global Mean successfully computed!")
 
 
 def global_mean(
