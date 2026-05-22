@@ -7,6 +7,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 Unreleased is the current development version, which is currently lying in `main` branch.
 
+## [v0.2.1]
+- Improve the netcdf fixers to make it easier process multiple data (#146)
+
 ## [v0.2.0]
 
 *IMPORTANT*: New project name is now `ecmean` 
