@@ -23,6 +23,7 @@ def xr_preproc(ds):
         "time_counter": "time",
         "pressure_levels": "plev",
         "plevel": "plev",
+        "plev19": "plev",
         "longitude": "lon",
         "nav_lon": "lon",
         "latitude": "lat",
