@@ -87,12 +87,14 @@ class PerformanceIndices:
         numproc=1,
         climatology=None,
         interface=None,
-        model=None,
-        ensemble="r1i1p1f1",
         silent=None,
         xdataset=None,
         outputdir=None,
         extrafigure=False,
+        model=None,
+        ensemble=None,
+        consortium=None,
+        mip=None,
         title=None,
     ):
         """Initialize the PerformanceIndices class with the given parameters."""
@@ -108,10 +110,12 @@ class PerformanceIndices:
             numproc=numproc,
             climatology=climatology,
             interface=interface,
-            modelname=model,
-            ensemble=ensemble,
             outputdir=outputdir,
             xdataset=xdataset,
+            modelname=model,
+            ensemble=ensemble,
+            consortium=consortium,
+            mip=mip,
         )
         self.silent = silent
         self.face = None
@@ -491,6 +495,8 @@ def pi_entry_point():
         config=args.config,
         model=args.model,
         ensemble=args.ensemble,
+        consortium=args.consortium,
+        mip=args.mip,
         outputdir=args.outputdir,
     )
 
@@ -505,7 +511,9 @@ def performance_indices(
     climatology=None,
     interface=None,
     model=None,
-    ensemble="r1i1p1f1",
+    ensemble=None,
+    consortium=None,
+    mip=None,
     silent=None,
     xdataset=None,
     outputdir=None,
@@ -526,6 +534,8 @@ def performance_indices(
         interface=interface,
         model=model,
         ensemble=ensemble,
+        consortium=consortium,
+        mip=mip,
         silent=silent,
         xdataset=xdataset,
         outputdir=outputdir,

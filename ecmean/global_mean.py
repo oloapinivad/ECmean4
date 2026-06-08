@@ -90,8 +90,6 @@ class GlobalMean:
         loglevel="WARNING",
         numproc=1,
         interface=None,
-        model=None,
-        ensemble="r1i1p1f1",
         addnan=False,
         silent=None,
         trend=None,
@@ -99,6 +97,10 @@ class GlobalMean:
         outputdir=None,
         xdataset=None,
         reference="EC23",
+        model=None,
+        ensemble=None,
+        consortium=None,
+        mip=None,
         title=None,
     ):
 
@@ -111,9 +113,7 @@ class GlobalMean:
             config,
             funcname=self.__class__.__name__,
             numproc=numproc,
-            ensemble=ensemble,
             interface=interface,
-            modelname=model,
             addnan=addnan,
             silent=silent,
             trend=trend,
@@ -121,6 +121,10 @@ class GlobalMean:
             outputdir=outputdir,
             xdataset=xdataset,
             reference=reference,
+            modelname=model,
+            ensemble=ensemble,
+            consortium=consortium,
+            mip=mip,
         )
         self.face = None
         self.ref = None
@@ -446,6 +450,8 @@ def gm_entry_point():
         config=args.config,
         model=args.model,
         ensemble=args.ensemble,
+        consortium=args.consortium,
+        mip=args.mip,
         addnan=args.addnan,
         outputdir=args.outputdir,
         reference=args.reference,
@@ -461,8 +467,6 @@ def global_mean(
     loglevel="WARNING",
     numproc=1,
     interface=None,
-    model=None,
-    ensemble="r1i1p1f1",
     addnan=False,
     silent=None,
     trend=None,
@@ -470,9 +474,13 @@ def global_mean(
     outputdir=None,
     xdataset=None,
     reference=None,
+    model=None,
+    ensemble=None,
+    consortium=None,
+    mip=None,
     title=None,
 ):
-    """Wrapecmeanction to compute the global mean."""
+    """Wrapper function to compute the global mean."""
     gm = GlobalMean(
         exp,
         year1,
@@ -481,8 +489,6 @@ def global_mean(
         loglevel=loglevel,
         numproc=numproc,
         interface=interface,
-        model=model,
-        ensemble=ensemble,
         addnan=addnan,
         silent=silent,
         trend=trend,
@@ -490,6 +496,10 @@ def global_mean(
         outputdir=outputdir,
         xdataset=xdataset,
         reference=reference,
+        model=model,
+        ensemble=ensemble,
+        consortium=consortium,
+        mip=mip,
         title=title,
     )
     gm.prepare()

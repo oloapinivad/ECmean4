@@ -123,7 +123,10 @@ class ECPlotter:
                 reference=reference,
             )
         else:
-            loggy.error("Invalid diagnostic type %s. Choose 'performance_indices' or 'global_mean'.", self.diagnostic)
+            loggy.error(
+                "Invalid diagnostic type %s. Choose 'performance_indices' or 'global_mean'.",
+                self.diagnostic,
+            )
             raise ValueError(f"Invalid diagnostic type {self.diagnostic}. Choose 'performance_indices' or 'global_mean'.")
         return fig
 

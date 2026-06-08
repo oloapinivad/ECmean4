@@ -51,9 +51,48 @@ models = [
     "GFDL-CM4",
 ]
 # models = ['EC-Earth3']
-
 # models currently missing on the ESGF
 # models= ['CMCC-CM2-SR5', 'TaiESM1']
+
+# TODO: to be fixed
+# if refclim == "HM25":
+#     models = [
+#         "EC-Earth3P-HR",
+#         "AWI-CM-1-1-HR",
+#         "BCC-CSM2-HR",
+#         "CMCC-CM2-VHR4",
+#         "HadGEM3-GC31-HH",
+#         "INM-CM5-H",
+#         "CNRM-CM6-1-HR",
+#         "ECMWF-IFS-HR",
+#     ]
+#     # models = ['CESM1-CAM5-SE-HR'] # crashes with the current code
+#     # models = ['CNRM-CM6-1-HR'] # fake EC-Earth3P-HR Ofx
+#     # models = ['ECMWF-IFS-HR'] # missing Ofx
+#     # models = ['AWI-CM-1-1-HR']
+#     expname = "hist-1950"
+#     mip = "HighResMIP"
+#     year1 = 1985
+#     year2 = 2014
+# else:
+#     raise ValueError(f"Unknown climatology {refclim}.")
+
+config_file = "config-create-clim.yml"
+
+
+def cfg_ensemble(model):
+
+    if model in ["CNRM-CM6-1", "UKESM1-0-LL", "AWI-CM-1-1-HR", "CNRM-CM6-1-HR"]:
+        return "r1i1p1f2"
+    if model in ["EC-Earth3P-HR"]:
+        return "r1i1p2f1"
+    return "r1i1p1f1"
+
+
+def cfg_consortium(model):
+    if model == "HadGEM3-GC31-HM":
+        return "NERC"
+    return "*"
 
 
 def main(clim="EC26", timeframe="CMIP", nprocs=4, do_definitive=False, do_compute=True, do_create_clim=True):

@@ -72,7 +72,19 @@ Optional Arguments
 
 .. option:: -e ENSEMBLE, --ensemble ENSEMBLE
 
-   Specify the variant label (ripf number for cmor).
+   Specify the model name, overriding the configuration specified in ``config.yml``.
+
+.. option:: --ensemble ENSEMBLE
+
+   Specify the cmor ensemble variant label (ripf number for cmor).
+
+.. option:: --consortium CONSORTIUM
+
+   Specify the cmor consortium name (e.g. EC-Earth-Consortium, CNRM, etc.).
+
+.. option:: --mip MIP   
+
+   Specify the cmor MIP name (e.g. CMIP, HighRESMIP, etc.).
 
 .. option:: -o DIR, --outputdir DIR
 

@@ -91,6 +91,22 @@ Optional Arguments
 
    Specify the path of the output directory. This will create YAML and PDF folders for tables and figures.
 
+.. option:: --model MODEL
+
+   Specify the model name, overriding the configuration specified in ``config.yml``.
+
+.. option:: --ensemble ENSEMBLE
+
+   Specify the cmor ensemble variant label (ripf number for cmor).
+
+.. option:: --consortium CONSORTIUM
+
+   Specify the cmor consortium name (e.g. EC-Earth-Consortium, CNRM, etc.).
+
+.. option:: --mip MIP   
+
+   Specify the cmor MIP name (e.g. CMIP, HighRESMIP, etc.).
+
 .. option:: --climatology CLIMATOLOGY
 
    Specify the climatology you want to use. The default is EC24. Alternatives are EC26-HIST, EC26-CMIP and EC23.
@@ -100,7 +116,7 @@ Examples
 
 Usage example for CMIP6 (running on 12 cores for EC-Earth3 historical)::
 
-   performance_indices historical 1990 1999 -j 12 -m EC-Earth3 -e r1i1p1f1 -i CMIP6
+  > .performance_indices historical 1990 1999 -j 12 --model EC-Earth3 --ensemble r1i1p1f1 -i CMIP6 
 
 Usage example for EC-Earth4 (running on 4 cores for EC-Earth4 experiment ABC1)::
 
