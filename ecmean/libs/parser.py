@@ -19,32 +19,26 @@ def parse_arguments(args, script):
     """
 
     # common configuration to be parsed
-    parser = argparse.ArgumentParser(
-        description='ECmean global mean diagnostics for Global Climate models')
-    parser.add_argument('exp', metavar='EXP', type=str, help='experiment ID')
-    parser.add_argument('year1', metavar='Y1', type=int, help='starting year')
-    parser.add_argument('year2', metavar='Y2', type=int, help='final year')
-    parser.add_argument('-i', '--interface', type=str, default='',
-                        help='interface (overrides config.yml)')
-    parser.add_argument('-c', '--config', type=str, default='',
-                        help='config file')
-    parser.add_argument('-j', dest="numproc", type=int, default=1,
-                        help='number of processors to use')
-    parser.add_argument('-m', '--model', type=str, default='',
-                        help='model name')
-    parser.add_argument('-e', '--ensemble', type=str, default='r1i1p1f1',
-                        help='variant label (ripf number for cmor)')
-    parser.add_argument('-s', '--silent', action='store_true',
-                        help='do not print anything to std output')
-    parser.add_argument('-l', '--loglevel', type=str, default='WARNING',
-                        help='define the level of logging.')
-    parser.add_argument('-o', '--outputdir', type=str,
-                        help='force the output directory')
-    parser.add_argument('--version', action='version',
-                        version='%(prog)s ' + __version__)
-    parser.add_argument('--tool', type=str, default='ESMF',
-                        help='tool to use for remapping. Default: ESMF. Options: [ESMF, CDO]',
-                        choices=['ESMF', 'CDO'])
+    parser = argparse.ArgumentParser(description="ECmean global mean diagnostics for Global Climate models")
+    parser.add_argument("exp", metavar="EXP", type=str, help="experiment ID")
+    parser.add_argument("year1", metavar="Y1", type=int, help="starting year")
+    parser.add_argument("year2", metavar="Y2", type=int, help="final year")
+    parser.add_argument("-i", "--interface", type=str, default="", help="interface (overrides config.yml)")
+    parser.add_argument("-c", "--config", type=str, default="", help="config file")
+    parser.add_argument("-j", dest="numproc", type=int, default=1, help="number of processors to use")
+    parser.add_argument("-m", "--model", type=str, default="", help="model name")
+    parser.add_argument("-e", "--ensemble", type=str, default="r1i1p1f1", help="variant label (ripf number for cmor)")
+    parser.add_argument("-s", "--silent", action="store_true", help="do not print anything to std output")
+    parser.add_argument("-l", "--loglevel", type=str, default="WARNING", help="define the level of logging.")
+    parser.add_argument("-o", "--outputdir", type=str, help="force the output directory")
+    parser.add_argument("--version", action="version", version="%(prog)s " + __version__)
+    parser.add_argument(
+        "--tool",
+        type=str,
+        default="ESMF",
+        help="tool to use for remapping. Default: ESMF. Options: [ESMF, CDO]",
+        choices=["ESMF", "CDO"],
+    )
 
     # specific to global mean
     if script == "gm":

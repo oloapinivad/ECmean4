@@ -26,7 +26,7 @@ class Supporter:
     in global mean and performance indices
     """
 
-    def __init__(self, component, atmdict, ocedict, tool='ESMF', areas=True, remap=False, targetgrid=None):
+    def __init__(self, component, atmdict, ocedict, tool="ESMF", areas=True, remap=False, targetgrid=None):
         """Class for masks, areas and interpolation (xESMF-based)
         for both atmospheric and oceanic component"""
 
@@ -63,11 +63,11 @@ class Supporter:
             # initialize the interpolation for atmosphere
             if self.targetgrid and remap:
                 self.atminterpolator = InterpolatorFactory.create_interpolator(
-                    'atmospheric', self.atmcomponent, self.atmgridtype, self.targetgrid, self.tool
+                    "atmospheric", self.atmcomponent, self.atmgridtype, self.targetgrid, self.tool
                 )
-                if self.tool == 'ESMF':
+                if self.tool == "ESMF":
                     self.atminterpolator.create_weights(self.atmfield)
-                elif self.tool == 'CDO':
+                elif self.tool == "CDO":
                     self.atminterpolator.create_weights(self.atmareafile)
 
             # init the land-sea mask for atm (mandatory)
@@ -86,11 +86,11 @@ class Supporter:
             # init the ocean interpolation
             if self.targetgrid and remap:
                 self.oceinterpolator = InterpolatorFactory.create_interpolator(
-                    'oceanic', self.ocecomponent, self.ocegridtype, self.targetgrid, self.tool
+                    "oceanic", self.ocecomponent, self.ocegridtype, self.targetgrid, self.tool
                 )
-                if self.tool == 'ESMF':
+                if self.tool == "ESMF":
                     self.oceinterpolator.create_weights(self.ocefield)
-                elif self.tool == 'CDO':
+                elif self.tool == "CDO":
                     self.oceinterpolator.create_weights(self.oceareafile)
 
             # ocean mask
@@ -195,6 +195,7 @@ class Supporter:
             return xfield["e1t"] * xfield["e2t"]
         else:  # automatic solution, wish you luck!
             return AreaCalculator().calculate_area(xfield, gridtype)
+
 
 def fix_mask_values(mask):
     """

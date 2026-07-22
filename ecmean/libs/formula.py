@@ -20,8 +20,8 @@ def formula_wrapper(var, face, xfield):
     and to apply the mathematical operation required if it is a derived variable
     """
 
-    if 'derived' in face['variables'][var].keys():
-        cmd = face['variables'][var]['derived']
+    if "derived" in face["variables"][var].keys():
+        cmd = face["variables"][var]["derived"]
         field = _eval_formula(cmd, xfield)
         field.name = var
         return field
