@@ -32,6 +32,7 @@ dependencies = [
     "tabulate",
     "cfgrib",
     "seaborn",
+    "smmregrid",
     "ruff"
 ]
 
