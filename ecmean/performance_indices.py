@@ -207,7 +207,6 @@ class PerformanceIndices:
                     self.varstat,
                     self.outarray,
                     varlist,
-                    self.tool,
                     self.loglevel,
                 ),
             )
