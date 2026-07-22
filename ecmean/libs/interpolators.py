@@ -8,7 +8,7 @@ from glob import glob
 import numpy as np
 import xarray as xr
 import xesmf as xe
-from smmregrid import cdo_generate_weights, Regridder
+from smmregrid import CdoGenerate, Regridder
 
 loggy = logging.getLogger(__name__)
 
@@ -132,8 +132,8 @@ class CDOInterpolator(BaseInterpolator):
         """Create CDO atmospheric interpolation weights"""
 
         self.fix = None
-        weights = cdo_generate_weights(glob(areafile)[0], self.targetgrid, method=remap)
-        self.remap = Regridder(weights=weights).regrid
+        weights = CdoGenerate(glob(areafile)[0], self.targetgrid, skipna=True).weights(method=remap)
+        self.remap = Regridder(weights=weights, skipna=True).regrid
 
     def _create_oceanic_weights(self, areafile):
         """Create CDO oceanic interpolation weights"""
@@ -142,8 +142,8 @@ class CDOInterpolator(BaseInterpolator):
         cdomethod = "bil" if self.gridtype == "bilinear" else "nn"
 
         self.fix = None
-        weights = cdo_generate_weights(glob(areafile)[0], self.targetgrid, method=cdomethod)
-        self.remap = Regridder(weights=weights).regrid
+        weights = CdoGenerate(glob(areafile)[0], self.targetgrid, skipna=True).weights(method=cdomethod)
+        self.remap = Regridder(weights=weights, skipna=True).regrid
 
 
 class InterpolatorFactory:

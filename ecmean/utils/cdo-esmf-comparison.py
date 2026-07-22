@@ -186,11 +186,11 @@ comparison_dir = "./comparison_results"
 os.makedirs(comparison_dir, exist_ok=True)
 
 # Models to test (subset for faster testing, can be expanded)
-test_models = ["EC-Earth3", "IPSL-CM6A-LR", "FGOALS-g3", "CanESM5", "CESM2"]
+#test_models = ["EC-Earth3", "IPSL-CM6A-LR", "FGOALS-g3", "CanESM5", "CESM2"]
 # Full model list (uncomment for complete test)
-# test_models = ['EC-Earth3', 'IPSL-CM6A-LR', 'FGOALS-g3', 'CanESM5', 'CESM2', 'CNRM-CM6-1',
-#               'GISS-E2-1-G', 'ACCESS-CM2', 'SAM0-UNICON', 'UKESM1-0-LL',
-#               'MIROC6', 'MPI-ESM1-2-HR', 'AWI-CM-1-1-MR', 'NorESM2-MM', 'GFDL-CM4']
+test_models = ['EC-Earth3', 'IPSL-CM6A-LR', 'FGOALS-g3', 'CanESM5', 'CESM2', 'CNRM-CM6-1',
+               'GISS-E2-1-G', 'ACCESS-CM2', 'SAM0-UNICON', 'UKESM1-0-LL',
+               'MIROC6', 'MPI-ESM1-2-HR', 'AWI-CM-1-1-MR', 'NorESM2-MM', 'GFDL-CM4']
 
 
 def modify_config_for_tool(config_dict, tool):
@@ -241,7 +241,7 @@ def run_performance_indices_with_tool(model, ensemble, config_dict, tool, log_le
 
         # Look for the results file
         result_pattern = os.path.join(
-            tool_config["dirs"]["tab"], f"PI4_{refclim}_{expname}_{model}_{ensemble}_{year1}_{year2}.yml"
+            tool_config["dirs"]["tab"], f"PI_{refclim}_{expname}_{model}_{ensemble}_{year1}_{year2}.yml"
         )
         result_files = glob.glob(result_pattern)
 
@@ -380,6 +380,7 @@ def compare_results(esmf_results, cdo_results, model, esmf_perf=None, cdo_perf=N
                     if region in cdo_results[var][season]:
                         esmf_val = esmf_results[var][season][region]
                         cdo_val = cdo_results[var][season][region]
+                        #print(f"  Comparing {var} - {season} - {region}: ESMF={esmf_val}, CDO={cdo_val}")
 
                         if isinstance(esmf_val, (int, float)) and isinstance(cdo_val, (int, float)):
                             # Skip NaN values
@@ -527,6 +528,7 @@ def main():
         # Run with ESMF first (more stable)
         print("  → Running ESMF interpolation...")
         esmf_result = run_performance_indices_with_tool(model, ensemble, base_config, "ESMF", log_level)
+        #print(f"  → ESMF result status: {esmf_result['results']}")
 
         # Add delay between methods to avoid resource conflicts
         print("  → Waiting 5 seconds before CDO test to avoid resource conflicts...")
@@ -535,6 +537,7 @@ def main():
         # Run with CDO (more prone to resource issues)
         print("  → Running CDO interpolation...")
         cdo_result = run_performance_indices_with_tool(model, ensemble, base_config, "CDO", log_level)
+        #print(f"  → CDO result status: {cdo_result['results']}")
 
         # Compare results
         if esmf_result["status"] == "success" and cdo_result["status"] == "success":
