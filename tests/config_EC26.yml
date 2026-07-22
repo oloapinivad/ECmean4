@@ -1,0 +1,23 @@
+# Choice of model name, determines the chosen interface and is printed in the output table
+interface: EC-Earth4
+model:
+   name: EC-Earth4
+
+dirs:
+   exp: tests/data
+   tab: tests/table
+   clm: ecmean/climatology
+   fig: tests/figures
+
+global_mean:
+  variables:
+    atm: [tas, psl, pr, evspsbl, pme, clt, cll, clm, clh,
+             pr_oce, pme_oce, pr_land, pme_land,
+             net_toa, rsnt, rlnt, rsntcs, rlntcs, swcf, lwcf,
+             rsns, rlns, hfss, hfls, net_sfc_nosn, net_sfc,
+             toamsfc_nosn, toamsfc]
+    oce: [tos, sos, zos, wfo]
+    ice: [siconc]
+    tab: [rsnt, rlnt, net_toa, rsns, rlns, hfss, hfls, swcf, lwcf, net_sfc, toamsfc, tas, clt, cll, clm, clh, pr, pme, psl]
+  regions: ['Global', 'North Midlat', 'Tropical', 'South Midlat']
+  seasons: ['ALL', 'JJA']

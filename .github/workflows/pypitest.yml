@@ -23,8 +23,8 @@ jobs:
         shell: bash -el {0}
 
     steps:
-    - uses: actions/checkout@v5
-    - uses: mamba-org/setup-micromamba@v2
+    - uses: actions/checkout@v6
+    - uses: mamba-org/setup-micromamba@v3
       with:
         environment-name: ecmean
         cache-downloads: true
@@ -35,10 +35,10 @@ jobs:
           esmpy
           eccodes
           pytest
-    - name: Install ECmean4
+    - name: Install ecmean
       run: |
         # install package
-        python -m pip install ECmean4
+        python -m pip install ecmean
     - name: Test with pytest
       run: |
         python -m pytest

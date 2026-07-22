@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
-'''
-Shared functions for XArray ECmean4
-'''
+"""
+Shared functions for XArray ecmean
+"""
 
 import os
 import logging
@@ -23,34 +23,34 @@ loggy = logging.getLogger(__name__)
 def set_multiprocessing_start_method():
     """Function to set the multiprocessing spawn method to fork"""
     plat = platform.system()
-    if plat == 'Windows':
+    if plat == "Windows":
         raise OSError("Windows does not support 'fork' start method.")
-    if plat in ['Darwin', 'Linux']:
-        multiprocessing.set_start_method('fork', force=True)
+    if plat in ["Darwin", "Linux"]:
+        multiprocessing.set_start_method("fork", force=True)
     else:
         raise OSError(f"Unsupported operative system {plat}")
-    loggy.debug('Multiprocessing start method is %s', multiprocessing.get_start_method())
+    loggy.debug("Multiprocessing start method is %s", multiprocessing.get_start_method())
     return plat, multiprocessing.get_start_method()
 
 
 def check_time_axis(xtime, years):
     """Check if we have 12 months per year and if the required years
-    have been found in the NetCDF files. """
+    have been found in the NetCDF files."""
 
     # unique, counts = np.unique(xtime.dt.month, return_counts=True)
     # unique, counts = np.unique(xtime.time.resample(time='1M').mean(), return_counts=True)
     unique, counts = np.unique(xtime.time.dt.month, return_counts=True)
     if len(unique) != 12 or not all(counts == counts[0]):
-        loggy.warning('Check your data: some months might be missing...')
-        loggy.warning('Month counts: %s', counts)
+        loggy.warning("Check your data: some months might be missing...")
+        loggy.warning("Month counts: %s", counts)
 
     # apparently this is also satisfied by the file browsing
     set1 = set(years)
     set2 = set(xtime.dt.year.values)
     missing = list(set1.difference(set2))
     if missing:
-        loggy.warning('Check your data: some years are missing')
-        loggy.warning('Year missing: %s', missing)
+        loggy.warning("Check your data: some years are missing")
+        loggy.warning("Year missing: %s", missing)
 
 
 # def chunks(iterable, num):
@@ -65,6 +65,7 @@ def check_time_axis(xtime, years):
 #     k, m = divmod(len(iterable), num)
 #     return (iterable[i*k+min(i, m):(i+1)*k+min(i+1, m)] for i in range(num))
 
+
 def runtime_weights(varlist):
     """
     Define the weights to estimate the best repartition of the cores
@@ -75,10 +76,20 @@ def runtime_weights(varlist):
 
     w = {}
     for k in varlist:
-        if k in ['ua', 'ta', 'va', 'hus']:
+        if k in ["ua", "ta", "va", "hus"]:
             t = 8
-        elif k in ['pme', 'net_sfc_nosn', 'net_sfc', 'toamsfc_nosn', 'toamsfc',
-                   'pr_oce', 'pme_oce', 'pr_land', 'pme_land', 'net_toa']:
+        elif k in [
+            "pme",
+            "net_sfc_nosn",
+            "net_sfc",
+            "toamsfc_nosn",
+            "toamsfc",
+            "pr_oce",
+            "pme_oce",
+            "pr_land",
+            "pme_land",
+            "net_toa",
+        ]:
             t = 3
         else:
             t = 1
@@ -112,10 +123,10 @@ def weight_split(a, n):
 def check_var_interface(var, face):
     """Check if a var is defined in the interface file"""
 
-    if var in face['variables']:
+    if var in face["variables"]:
         return True
 
-    loggy.warning('%s is not defined in the interface file, skipping it!', var)
+    loggy.warning("%s is not defined in the interface file, skipping it!", var)
     return False
 
 
@@ -124,7 +135,7 @@ def check_var_climatology(varlist, reference):
 
     missing = [element for element in varlist if element not in reference]
     if missing:
-        raise KeyError(f'Variable/Variables {missing} is/are not defined in the climatology, aborting!')
+        raise KeyError(f"Variable/Variables {missing} is/are not defined in the climatology, aborting!")
 
 
 def get_domain(var, face):
@@ -132,10 +143,9 @@ def get_domain(var, face):
     To do so it creates a dictionary providing the domain associated with a component.
     (the interface file specifies the component for each domain instead)"""
 
-    comp = face['filetype'][face['variables'][var]['filetype']]['component']
-    d = face['model']['component']
-    domain = dict(zip([list(d.values())[x]
-                  for x in range(len(d.values()))], d.keys()))
+    comp = face["filetype"][face["variables"][var]["filetype"]]["component"]
+    d = face["model"]["component"]
+    domain = dict(zip([list(d.values())[x] for x in range(len(d.values()))], d.keys()))
     return domain[comp]
 
 
@@ -143,7 +153,8 @@ def get_domain(var, face):
 # OUTPUT FUNCTIONS #
 ####################
 
-def dict_to_dataframe(varstat, allowed = ['ALL', 'DJF', 'JJA', 'MAM', 'SON']):
+
+def dict_to_dataframe(varstat, allowed=["ALL", "DJF", "JJA", "MAM", "SON"]):
     """
     Converts a nested 3-level dictionary to a pandas DataFrame.
 
@@ -172,30 +183,24 @@ def dict_to_dataframe(varstat, allowed = ['ALL', 'DJF', 'JJA', 'MAM', 'SON']):
 
 def write_tuning_table(linefile, varmean, var_table, diag, ref):
     """Write results appending one line to a text file.
-       Write a tuning table: need to fix reference to face/ref"""
+    Write a tuning table: need to fix reference to face/ref"""
 
     if not os.path.isfile(linefile):
-        with open(linefile, 'w', encoding='utf-8') as f:
-            print('%model  ens  exp from   to ', end='', file=f)
+        with open(linefile, "w", encoding="utf-8") as f:
+            print("%model  ens  exp from   to ", end="", file=f)
             for var in var_table:
-                print('{:>12s}'.format(var), end=' ', file=f)
-            print('\n%                         ', end=' ', file=f)
+                print("{:>12s}".format(var), end=" ", file=f)
+            print("\n%                         ", end=" ", file=f)
             for var in var_table:
-                print('{:>12s}'.format(ref[var]['units']), end=' ', file=f)
+                print("{:>12s}".format(ref[var]["units"]), end=" ", file=f)
             print(file=f)
 
-    with open(linefile, 'a', encoding='utf-8') as f:
-        print(f'{diag.modelname} {diag.ensemble} {diag.expname}',
-              '{:4d} {:4d} '.format(diag.year1, diag.year2), end='', file=f)
+    with open(linefile, "a", encoding="utf-8") as f:
+        print(
+            f"{diag.modelname} {diag.ensemble} {diag.expname}", "{:4d} {:4d} ".format(diag.year1, diag.year2), end="", file=f
+        )
         for var in var_table:
-            print(
-                '{:12.5f}'.format(
-                    varmean[var]['ALL']['Global'] *
-                    ref[var].get(
-                        'factor',
-                        1)),
-                end=' ',
-                file=f)
+            print("{:12.5f}".format(varmean[var]["ALL"]["Global"] * ref[var].get("factor", 1)), end=" ", file=f)
         print(file=f)
 
 
@@ -205,7 +210,7 @@ def init_mydict(one, two):
     for o in one:
         dd[o] = {}
         for t in two:
-            dd[o][t] = float('NaN')
+            dd[o][t] = float("NaN")
 
     return dd
 

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
-'''
+"""
 Shared functions for Xarray
-'''
+"""
 
 #########################
 # FILE FORMAT FUNCTIONS #
@@ -19,38 +19,44 @@ def xr_preproc(ds):
     xarray.Dataset: The preprocessed dataset with adjusted coordinate and dimension names.
     """
 
-    rename_dict = {
+    # exact renames
+    exact_dict = {
         "time_counter": "time",
-        "pressure_levels": "plev",
-        "plevel": "plev",
         "longitude": "lon",
-        "nav_lon": "lon",
         "latitude": "lat",
-        "nav_lat": "lat",
+        "pressure_levels": "plev",
         "values": "cell",
+        "x_grid_T": "x",
+        "y_grid_T": "y",
+    }
+
+    # prefix-based renames: any dim/coord whose name starts with
+    # the key gets renamed to the corresponding value
+    prefix_dict = {
+        "plev": "plev",
+        "nav_lon": "lon",
+        "nav_lat": "lat",
     }
 
     # safe check for NEMO output in domain_cfg.nc
-    if 'nav_lon' in ds.data_vars and 'nav_lat' in ds.data_vars:
-        ds = ds.set_coords(['nav_lon', 'nav_lat'])
+    if "nav_lon" in ds.data_vars and "nav_lat" in ds.data_vars:
+        ds = ds.set_coords(["nav_lon", "nav_lat"])
 
-    # compact renaming
-    for old_name in [name for name in rename_dict if name in ds.dims or name in ds.coords]:
-        ds = ds.rename({old_name: rename_dict[old_name]})
+    all_dims_and_coords = set(ds.dims) | set(ds.coords)
 
-    # fix for NEMO eORCA grid (nav_lon, nav_lat)
-    for h in ['lon', 'lat']:
-        for f in ['', 'grid_T']:
-            g = 'nav_' + h + '_' + f
-            if g in ds.coords:
-                ds = ds.rename({g: h})
+    # exact matches first
+    to_rename = {k: v for k, v in exact_dict.items() if k in all_dims_and_coords}
 
-    # fix for NEMO eORCA grid (x_grid_T, etc.)
-    for h in ['x', 'y']:
-        for f in ['grid_T']:
-            g = h + '_' + f
-            if g in ds.dims:
-                ds = ds.rename({g: h})
+    # prefix matches (skip names already handled or already correct)
+    for name in all_dims_and_coords:
+        if name not in to_rename:
+            for prefix, target in prefix_dict.items():
+                if name.startswith(prefix) and name != target:
+                    to_rename[name] = target
+                    break
+
+    if to_rename:
+        ds = ds.rename(to_rename)
 
     return ds
 
@@ -59,9 +65,9 @@ def adjust_clim_file(cfield, remove_zero=False):
     """Routine to fix file format of climatology"""
 
     # fix coordinates
-    #org = ['LONGITUDE', 'LATITUDE', 'lev']
-    #new = ['lon', 'lat', 'plev']
-    #for o, n in zip(org, new):
+    # org = ['LONGITUDE', 'LATITUDE', 'lev']
+    # new = ['lon', 'lat', 'plev']
+    # for o, n in zip(org, new):
     #    if o in cfield.coords:
     #        cfield = cfield.rename({o: n})
 
@@ -73,7 +79,7 @@ def adjust_clim_file(cfield, remove_zero=False):
         field = field.where(field != 0)
 
     # convert vertical levels
-    if 'plev' in cfield.coords:
-        field = field.metpy.convert_coordinate_units('plev', 'Pa')
+    if "plev" in cfield.coords:
+        field = field.metpy.convert_coordinate_units("plev", "Pa")
 
     return field

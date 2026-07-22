@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
-'''
-Shared functions for XArray ECmean4
-'''
+"""
+Shared functions for XArray ecmean
+"""
 
 import os
 import re
@@ -10,6 +10,7 @@ from pathlib import Path
 from glob import glob
 import yaml
 import xarray as xr
+from ecmean.libs.climatology import SUPPORTED_CLIMATOLOGY
 
 loggy = logging.getLogger(__name__)
 
@@ -25,7 +26,7 @@ def inifiles_priority(inidict):
     Areas files comes first, then gridfile and finally land-sea mask.
     Provides flexibility for multiple models with different data access
     """
-    priority_keys = ['areafile', 'gridfile', 'maskfile']
+    priority_keys = ["areafile", "gridfile", "maskfile"]
     for key in priority_keys:
         filepath = inidict.get(key)
         if filepath:
@@ -43,7 +44,7 @@ def var_is_there(flist, var, face):
             check for the variable, or an xarray object already loaded.
         var (str): the variable name to check for.
         face (dict): the interface file containing variable definitions.
-    
+
     Returns:
         isavail (bool): if the variable is found or not
         varunit (string):  if the variable is there, its unit (None otherwise)
@@ -56,37 +57,32 @@ def var_is_there(flist, var, face):
         if not flist or not all(Path(f).is_file() for f in flist):
             loggy.error("No valid files found for variable %s. Ignoring it.", var)
             return False, None
-        xfield = xr.open_mfdataset(
-            flist, combine='by_coords', data_vars='all', 
-            join='outer', compat='no_conflicts')
+        xfield = xr.open_mfdataset(flist, combine="by_coords", data_vars="all", join="outer", compat="no_conflicts")
 
     # if variable is derived, extract required vars
     var_req = _get_variables_to_load(var, face)
 
     missing_vars = [v for v in var_req if v not in xfield.data_vars]
     if missing_vars:
-        loggy.warning("Variable %s requires missing variables: %s", var, ', '.join(missing_vars))
+        loggy.warning("Variable %s requires missing variables: %s", var, ", ".join(missing_vars))
         return False, None
 
     units_avail = {}
     for vname in xfield.data_vars:
         # Try to get the 'units' attribute, or assume it's a fraction
-        unit = getattr(xfield[vname], 'units', 'frac')
-        if unit == '(0 - 1)':
-            unit = 'frac'
+        unit = getattr(xfield[vname], "units", "frac")
+        if unit == "(0 - 1)":
+            unit = "frac"
         units_avail[vname] = unit
 
     # get units
-    varunit = face['variables'][var].get('units', None)
+    varunit = face["variables"][var].get("units", None)
     if not varunit:
         # If not defined, fall back to the unit of the first required variable
         varunit = units_avail.get(var_req[0])
 
         if len(var_req) > 1:
-            loggy.debug(
-                "Variable '%s' is derived. Using unit from its first component '%s': %s",
-                var, var_req[0], varunit
-            )
+            loggy.debug("Variable '%s' is derived. Using unit from its first component '%s': %s", var, var_req[0], varunit)
 
     return True, varunit
 
@@ -97,21 +93,17 @@ def get_clim_files(piclim, var, diag, season):
     # extract info from pi_climatology.yml
     # reference dataset and reference varname
     # as well as years when available
-    dataref = piclim[var]['dataset']
-    datayear1 = piclim[var].get('year1', None)
-    datayear2 = piclim[var].get('year2', None)
+    dataref = piclim[var]["dataset"]
+    datayear1 = piclim[var].get("year1", None)
+    datayear2 = piclim[var].get("year2", None)
 
-    if diag.climatology not in ['EC23', 'EC24']:
-        raise ValueError(f'Climatology {diag.climatology} not supported/existing!')
-    
-    stringname='climate' if season == 'ALL' else 'seasons'
+    if diag.climatology not in SUPPORTED_CLIMATOLOGY:
+        raise ValueError(f"Climatology {diag.climatology} not supported/existing!")
 
-    clim = str(
-        diag.resclmdir /
-        f'{stringname}_average_{var}_{dataref}_{diag.resolution}_{datayear1}-{datayear2}.nc')
-    vvvv = str(
-        diag.resclmdir /
-        f'{stringname}_variance_{var}_{dataref}_{diag.resolution}_{datayear1}-{datayear2}.nc')
+    stringname = "climate" if season == "ALL" else "seasons"
+
+    clim = str(diag.resclmdir / f"{stringname}_average_{var}_{dataref}_{diag.resolution}_{datayear1}-{datayear2}.nc")
+    vvvv = str(diag.resclmdir / f"{stringname}_variance_{var}_{dataref}_{diag.resolution}_{datayear1}-{datayear2}.nc")
 
     return clim, vvvv
 
@@ -119,7 +111,7 @@ def get_clim_files(piclim, var, diag, season):
 def get_inifiles(face, diag):
     """
     Resolves initialization files for each model component.
-    
+
     For each component defined in face['model']['component'], this function attempts to:
     - Look up related input file names in face['component']
     - Build the absolute path (if relative)
@@ -130,29 +122,25 @@ def get_inifiles(face, diag):
         dict: A nested dictionary of the form ifiles[component][name] = resolved_file_path or ''
     """
 
-    component_map = face['model']['component']
+    component_map = face["model"]["component"]
     ifiles = {}
 
     for comp_name, component_key in component_map.items():
         ifiles[comp_name] = {}
 
-        file_definitions = face['component'][component_key]
+        file_definitions = face["component"][component_key]
 
         for file_label, file_path in file_definitions.items():
-            resolved_path = ''
+            resolved_path = ""
 
             if file_path:
                 # Make path absolute if it's relative
                 path_obj = Path(file_path)
                 if not path_obj.is_absolute():
-                    path_obj = (
-                        Path(diag.ecedir) /
-                        Path(face['model']['basedir']) /
-                        path_obj
-                    )
+                    path_obj = Path(diag.ecedir) / Path(face["model"]["basedir"]) / path_obj
 
                 # Expand wildcards and resolve files
-                expanded = _expand_filename(path_obj, '', diag)
+                expanded = _expand_filename(path_obj, "", diag)
                 matching_files = glob(str(expanded))
 
                 if matching_files:
@@ -161,54 +149,56 @@ def get_inifiles(face, diag):
                     if filtered_files:
                         resolved_path = str(filtered_files[0])
                 else:
-                    loggy.warning('Inifile %s cannot be found!', expanded)
+                    loggy.warning("Inifile %s cannot be found!", expanded)
 
             ifiles[comp_name][file_label] = resolved_path
-            loggy.info('%s for component %s is: %s', file_label, comp_name, resolved_path or 'MISSING')
+            loggy.info("%s for component %s is: %s", file_label, comp_name, resolved_path or "MISSING")
 
     return ifiles
+
 
 def _expand_filename(filenames, var, diag):
     """Expands a path (filename or dir) for var, expname, frequency, ensemble etc.
     and environment variables. Years are set as a wildcard and filtered by _filter_by_year"""
 
-    return Path(str(os.path.expandvars(filenames)).format(
-        expname=diag.expname,
-        year1='*',
-        year2='*',
-        var=var,
-        frequency=diag.frequency,
-        ensemble=diag.ensemble,
-        grid=diag.grid,
-        model=diag.modelname,
-        version=diag.version
-    ))
+    return Path(
+        str(os.path.expandvars(filenames)).format(
+            expname=diag.expname,
+            year1="*",
+            year2="*",
+            var=var,
+            frequency=diag.frequency,
+            ensemble=diag.ensemble,
+            grid=diag.grid,
+            model=diag.modelname,
+            version=diag.version,
+        )
+    )
 
 
 def _filter_filename_by_year(template, filenames, year):
     """Find filename containing a given year in a list of filenames"""
 
     # if year1 is used in the file template
-    if 'year1' in template:
+    if "year1" in template:
         # Assumes that the file name ends with 199001-199012.nc or 1990-1991.nc
-        year1 = [int(x.split('_')[-1].split('-')[0][0:4]) for x in filenames]
+        year1 = [int(x.split("_")[-1].split("-")[0][0:4]) for x in filenames]
         # if year2 is used in the file template
-        if 'year2' in template:
-            year2 = [int(x.split('_')[-1].split('-')[1][0:4]) for x in filenames]
+        if "year2" in template:
+            year2 = [int(x.split("_")[-1].split("-")[1][0:4]) for x in filenames]
         else:
             year2 = year1
         # filter names
-        filternames = [fname for y1, y2, fname in zip(year1, year2, filenames)
-                       if year >= y1 and year <= y2]
+        filternames = [fname for y1, y2, fname in zip(year1, year2, filenames) if year >= y1 and year <= y2]
     else:
         # this is introduced for file that does not have year in their filename
         filternames = filenames
 
     # safety warning if something is missing
     if not filternames and len(filenames) > 0:
-        loggy.warning('Data for year %s has not been found!', str(year))
+        loggy.warning("Data for year %s has not been found!", str(year))
 
-    loggy.debug('Filtered filenames: %s', filternames)
+    loggy.debug("Filtered filenames: %s", filternames)
     return filternames
 
 
@@ -243,15 +233,18 @@ def load_yaml(infile):
 
     return data
 
+
 def _create_filepath(cmorname, face, diag):
     """Create filepath with wildcards"""
 
-    filetype = face['variables'][cmorname]['filetype']
-    filepath = Path(diag.ecedir) / \
-        Path(face['model']['basedir']) / \
-        Path(face['filetype'][filetype]['dir']) / \
-        Path(face['filetype'][filetype]['filename'])
-    loggy.debug('Filepath: %s', filepath)
+    filetype = face["variables"][cmorname]["filetype"]
+    filepath = (
+        Path(diag.ecedir)
+        / Path(face["model"]["basedir"])
+        / Path(face["filetype"][filetype]["dir"])
+        / Path(face["filetype"][filetype]["filename"])
+    )
+    loggy.debug("Filepath: %s", filepath)
 
     return filepath
 
@@ -298,19 +291,18 @@ def _get_variables_to_load(var, face):
         face: the interface file
     """
 
-    if 'derived' in face['variables'][var].keys():
-        cmd = face['variables'][var]['derived']
-        return [x for x in re.split('[*+-/]', cmd) if not x.isdigit()]
+    if "derived" in face["variables"][var].keys():
+        cmd = face["variables"][var]["derived"]
+        return [x for x in re.split("[*+-/]", cmd) if not x.isdigit()]
 
     return [var]
 
-def load_output_yaml(yamlfile):
 
+def load_output_yaml(yamlfile):
     """Load the variable statistics from the yaml file."""
-    loggy.info('Loading the stored data from the yaml file %s', yamlfile)
+    loggy.info("Loading the stored data from the yaml file %s", yamlfile)
     if os.path.isfile(yamlfile):
-        with open(yamlfile, 'r', encoding='utf-8') as file:
+        with open(yamlfile, "r", encoding="utf-8") as file:
             return yaml.safe_load(file)
-    
-    raise FileNotFoundError(f'File {yamlfile} not found.')
-    
+
+    raise FileNotFoundError(f"File {yamlfile} not found.")
