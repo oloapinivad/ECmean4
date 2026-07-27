@@ -1,9 +1,9 @@
-#!/usr/bin/env python3
 """
 Shared functions for XArray ecmean
 """
 
 import logging
+
 import numpy as np
 import xarray as xr
 
@@ -166,7 +166,7 @@ class AreaCalculator:
 
         elif gridtype in ["gaussian", "lonlat"]:
             if cmor_bounds and "bnds" not in xfield.dims:
-                bdim = [g for g in xfield.dims if g not in ["lon", "lat", "time"]][0]
+                bdim = next(g for g in xfield.dims if g not in ["lon", "lat", "time"])
                 xfield = xfield.rename_dims({bdim: "bnds"})
 
             if not cmor_bounds:

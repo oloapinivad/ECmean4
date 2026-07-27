@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 """
 python3 version of ECmean performance indices tool
 Using a reference file from yaml and cdo bindings
@@ -10,40 +9,42 @@ Using a reference file from yaml and cdo bindings
 
 __author__ = "Paolo Davini (paolo.davin@cnr.it)"
 
-import sys
 import os
+import sys
+from multiprocessing import Manager, Process
 from time import time
-from multiprocessing import Process, Manager
+
+import dask
 import numpy as np
 import xarray as xr
 import yaml
-import dask
+
 from ecmean import Diagnostic, Supporter, UnitsHandler
-from ecmean.libs.general import (
-    weight_split,
-    get_domain,
-    check_time_axis,
-    init_mydict,
-    check_var_interface,
-    check_var_climatology,
-    set_multiprocessing_start_method,
-)
+from ecmean.libs.areas import guess_bounds
+from ecmean.libs.ecplotter import ECPlotter
 from ecmean.libs.files import (
-    var_is_there,
+    get_clim_files,
     get_inifiles,
+    load_output_yaml,
     load_yaml,
     make_input_filename,
-    get_clim_files,
-    load_output_yaml,
+    var_is_there,
 )
 from ecmean.libs.formula import formula_wrapper
-from ecmean.libs.masks import mask_field, select_region
-from ecmean.libs.areas import guess_bounds
-from ecmean.libs.units import units_extra_definition
-from ecmean.libs.ncfixers import xr_preproc, adjust_clim_file
-from ecmean.libs.ecplotter import ECPlotter
-from ecmean.libs.parser import parse_arguments
+from ecmean.libs.general import (
+    check_time_axis,
+    check_var_climatology,
+    check_var_interface,
+    get_domain,
+    init_mydict,
+    set_multiprocessing_start_method,
+    weight_split,
+)
 from ecmean.libs.loggy import setup_logger
+from ecmean.libs.masks import mask_field, select_region
+from ecmean.libs.ncfixers import adjust_clim_file, xr_preproc
+from ecmean.libs.parser import parse_arguments
+from ecmean.libs.units import units_extra_definition
 
 dask.config.set(scheduler="synchronous")
 

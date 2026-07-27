@@ -1,17 +1,18 @@
-#!/usr/bin/env python3
 """
 Shared functions for Support class for ecmean
 """
 
+import logging
 import os
 from glob import glob
-import logging
+
+import numpy as np
 import xarray as xr
 import xesmf as xe
-import numpy as np
-from ecmean.libs.ncfixers import xr_preproc
-from ecmean.libs.files import inifiles_priority
+
 from ecmean.libs.areas import AreaCalculator
+from ecmean.libs.files import inifiles_priority
+from ecmean.libs.ncfixers import xr_preproc
 
 loggy = logging.getLogger(__name__)
 

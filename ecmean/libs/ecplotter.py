@@ -1,15 +1,17 @@
 """Class to provide a complete plotting solution for the ECMean package."""
 
-import textwrap
 import logging
-import yaml
+import textwrap
+
 import matplotlib
 import matplotlib.pyplot as plt
-from matplotlib.colors import TwoSlopeNorm, ListedColormap  # , LogNorm
-import seaborn as sns
 import numpy as np
-from ecmean.libs.general import dict_to_dataframe, init_mydict
+import seaborn as sns
+import yaml
+from matplotlib.colors import ListedColormap, TwoSlopeNorm  # , LogNorm
+
 from ecmean.libs.climatology import SUPPORTED_CLIMATOLOGY, SUPPORTED_REFERENCE
+from ecmean.libs.general import dict_to_dataframe, init_mydict
 
 # OPTIMIZATION: Use non-interactive backend (much faster)
 matplotlib.use("Agg")
@@ -372,7 +374,7 @@ class ECPlotter:
 
         # uniform dictionaries
         filt_piclim = {}
-        for k in clim.keys():
+        for k in clim:
             filt_piclim[k] = clim[k]["cmip6"]
             for f in ["models", "year1", "year2"]:
                 if f in filt_piclim[k]:

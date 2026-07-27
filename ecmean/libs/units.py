@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 """
 Shared class for ecmean units
 """
@@ -8,6 +7,7 @@ Shared class for ecmean units
 #############################
 
 import logging
+
 from metpy.units import units
 
 loggy = logging.getLogger(__name__)

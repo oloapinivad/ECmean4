@@ -1,16 +1,15 @@
-#!/usr/bin/env python3
 """
 Shared functions for XArray ecmean
 """
 
-import os
 import logging
-import platform
 import math
 import multiprocessing
-import pandas as pd
-import numpy as np
+import os
+import platform
 
+import numpy as np
+import pandas as pd
 
 ##################
 # HELP FUNCTIONS #
@@ -154,7 +153,7 @@ def get_domain(var, face):
 ####################
 
 
-def dict_to_dataframe(varstat, allowed=["ALL", "DJF", "JJA", "MAM", "SON"]):
+def dict_to_dataframe(varstat, allowed=None):
     """
     Converts a nested 3-level dictionary to a pandas DataFrame.
 
@@ -166,6 +165,8 @@ def dict_to_dataframe(varstat, allowed=["ALL", "DJF", "JJA", "MAM", "SON"]):
     pd.DataFrame: Transformed DataFrame with hierarchical keys.
     """
     # Use set for O(1) lookup instead of O(n) list lookup
+    if allowed is None:
+        allowed = ["ALL", "DJF", "JJA", "MAM", "SON"]
     allowed_seasons = set(allowed)
 
     data_table = {}
@@ -189,16 +190,14 @@ def write_tuning_table(linefile, varmean, var_table, diag, ref):
         with open(linefile, "w", encoding="utf-8") as f:
             print("%model  ens  exp from   to ", end="", file=f)
             for var in var_table:
-                print("{:>12s}".format(var), end=" ", file=f)
+                print(f"{var:>12s}", end=" ", file=f)
             print("\n%                         ", end=" ", file=f)
             for var in var_table:
                 print("{:>12s}".format(ref[var]["units"]), end=" ", file=f)
             print(file=f)
 
     with open(linefile, "a", encoding="utf-8") as f:
-        print(
-            f"{diag.modelname} {diag.ensemble} {diag.expname}", "{:4d} {:4d} ".format(diag.year1, diag.year2), end="", file=f
-        )
+        print(f"{diag.modelname} {diag.ensemble} {diag.expname}", f"{diag.year1:4d} {diag.year2:4d} ", end="", file=f)
         for var in var_table:
             print("{:12.5f}".format(varmean[var]["ALL"]["Global"] * ref[var].get("factor", 1)), end=" ", file=f)
         print(file=f)

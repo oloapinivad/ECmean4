@@ -1,9 +1,9 @@
-#!/usr/bin/env python3
 """
 Shared functions for ecmean: parsers arguments from command line
 """
 
 import argparse
+
 from ecmean import __version__
 from ecmean.libs.climatology import SUPPORTED_CLIMATOLOGY, SUPPORTED_REFERENCE
 

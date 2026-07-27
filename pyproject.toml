@@ -92,7 +92,7 @@ python_files = "test_*.py"
 # --- Global Settings ---
 line-length = 127
 target-version = "py314"
-exclude = ["**/__init__.py"]
+exclude = ["**/__init__.py", "ecmean/utils/**"]
 
 [tool.ruff.lint.isort]
 known-first-party = ["ecmean"]

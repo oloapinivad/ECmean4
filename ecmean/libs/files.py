@@ -1,15 +1,16 @@
-#!/usr/bin/env python3
 """
 Shared functions for XArray ecmean
 """
 
+import logging
 import os
 import re
-import logging
-from pathlib import Path
 from glob import glob
-import yaml
+from pathlib import Path
+
 import xarray as xr
+import yaml
+
 from ecmean.libs.climatology import SUPPORTED_CLIMATOLOGY
 
 loggy = logging.getLogger(__name__)
@@ -291,7 +292,7 @@ def _get_variables_to_load(var, face):
         face: the interface file
     """
 
-    if "derived" in face["variables"][var].keys():
+    if "derived" in face["variables"][var]:
         cmd = face["variables"][var]["derived"]
         return [x for x in re.split("[*+-/]", cmd) if not x.isdigit()]
 

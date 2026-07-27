@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 """
 Shared functions for ecmean. Set of formula based tools
 """
@@ -7,9 +6,9 @@ Shared functions for ecmean. Set of formula based tools
 # FORMULA FUNCTIONS #
 #####################
 
+import logging
 import operator
 import re
-import logging
 
 loggy = logging.getLogger(__name__)
 
@@ -20,7 +19,7 @@ def formula_wrapper(var, face, xfield):
     and to apply the mathematical operation required if it is a derived variable
     """
 
-    if "derived" in face["variables"][var].keys():
+    if "derived" in face["variables"][var]:
         cmd = face["variables"][var]["derived"]
         return _eval_formula(cmd, xfield)
     return xfield[var]

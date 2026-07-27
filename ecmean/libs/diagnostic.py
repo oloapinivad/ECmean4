@@ -1,14 +1,15 @@
-#!/usr/bin/env python3
 """
 Shared diagnostic class for ecmean
 """
 
-import os
 import logging
+import os
 from pathlib import Path
+
 import xarray as xr
-from ecmean.libs.files import load_yaml
+
 from ecmean import __version__ as version
+from ecmean.libs.files import load_yaml
 
 ####################
 # DIAGNOSTIC CLASS #

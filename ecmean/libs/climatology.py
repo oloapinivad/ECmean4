@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 """
 Common functions for reference and climatology creation.
 """

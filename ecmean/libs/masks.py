@@ -1,9 +1,9 @@
-#!/usr/bin/env python3
 """
 Shared functions for masking in ecmean
 """
 
 import logging
+
 import xarray as xr
 
 ##########################

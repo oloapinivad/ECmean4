@@ -2,12 +2,14 @@
 
 import os
 import subprocess
-import xarray as xr
+
 import pytest
-from ecmean.global_mean import global_mean, GlobalMean
-from ecmean.libs.ncfixers import xr_preproc
-from ecmean.libs.general import are_dicts_equal
+import xarray as xr
+
+from ecmean.global_mean import GlobalMean, global_mean
 from ecmean.libs.files import load_yaml
+from ecmean.libs.general import are_dicts_equal
+from ecmean.libs.ncfixers import xr_preproc
 
 # set TOLERANCE
 TOLERANCE = 1e-3

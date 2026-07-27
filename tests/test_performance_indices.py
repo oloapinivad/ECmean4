@@ -3,14 +3,17 @@
 # test for PIs: run on ECE4 test data, both amip and coupled, and on CMIP6 EC-Earth3 data.
 # all run for EC23 climatologies
 import os
+import shutil
 import subprocess
+
 import pytest
 import xarray as xr
 import yaml
-import shutil
-from ecmean import performance_indices, PerformanceIndices
-from ecmean.libs.ncfixers import xr_preproc
+
+from ecmean import PerformanceIndices, performance_indices
 from ecmean.libs.general import are_dicts_equal
+from ecmean.libs.ncfixers import xr_preproc
+
 # from ecmean.libs.plotting import heatmap_comparison_pi, prepare_clim_dictionaries_pi
 
 # set TOLERANCE
