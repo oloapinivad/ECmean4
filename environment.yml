@@ -1,6 +1,6 @@
 # Create the ecmean environment:
-# mamba env create -f environment.yml 
-# or 
+# mamba env create -f environment.yml
+# or
 # conda env create -f environment.yml
 
 name : ecmean
@@ -13,4 +13,3 @@ dependencies:
   - pip
   - pip:
     - -e .
-

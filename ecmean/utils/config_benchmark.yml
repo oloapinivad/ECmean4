@@ -1,5 +1,5 @@
 # Choice of model name, determines the chosen interface and is printed in the output table
-# Configuration file for benchmarking, please not change. To be run on Wilma. 
+# Configuration file for benchmarking, please not change. To be run on Wilma.
 interface: CMIP6_PD
 model:
    name: EC-Earth3

@@ -2,12 +2,12 @@ Installation
 ============
 
 
-|ecmean| is a lightweight python package, but it depends on some binaries for interpolation and netcdf/grib data access, thus both installation options require conda/mamba. 
+|ecmean| is a lightweight python package, but it depends on some binaries for interpolation and netcdf/grib data access, thus both installation options require conda/mamba.
 We recommend to use `mamba <https://mamba.readthedocs.io/en/latest/user_guide/mamba.html>`_ since it provides a lighter solution and deals better with dependencies.
 
 .. warning::
-    
-     Since |ecmean| v0.2, the package is called ecmean instead of ECmean4. 
+
+     Since |ecmean| v0.2, the package is called ecmean instead of ECmean4.
      The old name is still available on PyPi but it will not be updated anymore, thus we recommend to use the new name for installation and usage.
 
 Using PyPi
@@ -36,11 +36,11 @@ This method will allow you to have access to the most recent ecmean version but 
 As before, should clone from the Github Repository ::
 
     > git clone https://github.com/oloapinivad/ecmean.git
-    
+
 .. note ::
 
     Please note that if you clone with HTTPS you will not be able to contribute to the code, even if you are listed as a collaborator.
-    If you want to be a developer you should clone with SSH and you should add your own SSH key on the GitHub portal: 
+    If you want to be a developer you should clone with SSH and you should add your own SSH key on the GitHub portal:
     please check the `procedure on the Github website <https://docs.github.com/en/authentication/connecting-to-github-with-ssh/adding-a-new-ssh-key-to-your-github-account>`_ .
 
 Then you can go through the ecmean folder ::
@@ -59,11 +59,11 @@ Then you should activate the environment ::
 Checking everything is ok
 -------------------------
 
-From now on the two command line functions of |ecmean| (``global_mean`` and ``performance_indices``) should be available in your environment. 
+From now on the two command line functions of |ecmean| (``global_mean`` and ``performance_indices``) should be available in your environment.
 You can test by running in the shell command line and you should see an output like::
 
     > global_mean
-    > usage: global_mean [-h] [-s] [-t] [-l] [-o FILE] [-m MODEL] [-c CONFIG] [-v LOGLEVEL] [-j NUMPROC] [-e ENSEMBLE] [-i INTERFACE] EXP Y1 Y2 
+    > usage: global_mean [-h] [-s] [-t] [-l] [-o FILE] [-m MODEL] [-c CONFIG] [-v LOGLEVEL] [-j NUMPROC] [-e ENSEMBLE] [-i INTERFACE] EXP Y1 Y2
     > global_mean: error: the following arguments are required: EXP, Y1, Y2
 
 You can also run tests by simply calling ``pytest`` - as long as you have the corresponding Python package installed - from the ecmean folder ::
@@ -74,11 +74,7 @@ Requirements
 ------------
 
 The required packages are listed in ``environment.yml`` and in ``pyproject.toml``.
-A secondary environment is available in ``environment-dev.yml`` and can be used for development, including testing capabilities and jupyter notebooks. 
+A secondary environment is available in ``environment-dev.yml`` and can be used for development, including testing capabilities and jupyter notebooks.
 
 .. note::
 	Both Unix and MacOS are supported. Python >=3.9 is requested.
-
-
-
-

@@ -19,7 +19,7 @@ global_mean:
   seasons: ['ALL', 'JJA']
 
 
-performance_indices: 
+performance_indices:
   variables:
     atm2d: [pr]
     atm3d: [ta]
@@ -28,4 +28,3 @@ performance_indices:
   regions: ['Global', 'North Midlat', 'Tropical', 'South Midlat']
   seasons: ['ALL', 'JJA']
   resolution: r360x180
-

@@ -9,7 +9,7 @@ It compares the output against a set of pre-computed climatological values defin
 This includes the most important dynamical and physical fields for both the atmosphere and the ocean (e.g. land temperature, salinity, etc.).
 Different datasets are taken in consideration, providing an estimate of the interannual variability in the form of standard deviation.
 
-Most importantly, it provides estimates for the radiative budget (including clouds radiative forcing) and for the hydrological cycle (including integrals over land and ocean) 
+Most importantly, it provides estimates for the radiative budget (including clouds radiative forcing) and for the hydrological cycle (including integrals over land and ocean)
 and other quantities useful for fast model assessment and for model tuning.
 
 Usage
@@ -120,17 +120,17 @@ This is available only for the datasets for which we have access to a gridded da
 
 Finally, a txt table including the comparison with some predefined dataset, for the global mean yearly averages.
 
-References available 
+References available
 ^^^^^^^^^^^^^^^^^^^^
 
 Currently, two main different references for climatological values are available, EC26 and EC23, covering different observation periods.
 
 EC26
 ----
-EC26 is the updated reference framework for global mean observational datasets, which provide a flexible framework for evaluating climate models. 
-It provides temporally consistent baselines tailored to different model forcing configurations, declined in three configurations (CMIP, HIST, PDAY) to match the intended timeframes. 
+EC26 is the updated reference framework for global mean observational datasets, which provide a flexible framework for evaluating climate models.
+It provides temporally consistent baselines tailored to different model forcing configurations, declined in three configurations (CMIP, HIST, PDAY) to match the intended timeframes.
 It also includes a global near-surface air temperature target, which was not available in the older reference.
-The variables are derived from a combination of observational and reanalysis products (e.g. CRU v4.09, Berkeley Earth, ERA5, MSWEP v2.80, CERES EBAF v4.2.1, ESA-CCI), depending on the physical quantity considered. 
+The variables are derived from a combination of observational and reanalysis products (e.g. CRU v4.09, Berkeley Earth, ERA5, MSWEP v2.80, CERES EBAF v4.2.1, ESA-CCI), depending on the physical quantity considered.
 
 All configurations share the same variable definitions and masking strategy (global, land, ocean), but differ in their temporal averaging window to ensure consistency with the intended model experiments.
 All metadata (datasets, masks, periods and other properties) are defined in the corresponding YAML configuration file.
@@ -138,7 +138,7 @@ All metadata (datasets, masks, periods and other properties) are defined in the 
 EC26-CMIP (1985–2014)
 ~~~~~~~~~~~~~~~~~~~~~
 This reference dataset is designed for the evaluation of CMIP6 historical simulations against a consistent observational baseline.
-It is aligned with the CMIP6 historical period (1985–2014), ensuring temporal consistency between model climatologies and observational targets. 
+It is aligned with the CMIP6 historical period (1985–2014), ensuring temporal consistency between model climatologies and observational targets.
 Radiative fluxes are restricted to the satellite era (2000–2014), while ocean salinity follows its specific observational availability window.
 
 
@@ -162,9 +162,9 @@ By using a more recent averaging window, EC26-PDAY reflects contemporary radiati
 
 EC23
 ----
-This is from the old version of |ecmean| and does not include values for global tas. 
+This is from the old version of |ecmean| and does not include values for global tas.
 This reference dataset collects global mean observational targets used by the global_mean.py script to compute global averages.
-The variables are derived from a combination of observational and reanalysis products (e.g. CRU, ERA5, MSWEP, CERES-EBAF, ESA-CCI, Wild 2020), depending on the physical quantity considered. 
+The variables are derived from a combination of observational and reanalysis products (e.g. CRU, ERA5, MSWEP, CERES-EBAF, ESA-CCI, Wild 2020), depending on the physical quantity considered.
 Most fields are defined over the 1991–2020 period, while other variables use shorter observational windows due to data availability.
 All metadata (datasets, masks, periods and other properties) are defined in the corresponding YAML configuration file.
 
@@ -178,5 +178,5 @@ Reference climatology are computed by the ``ecmean/utils/reference-create.py`` s
 It is based on a YML file which is tells the script where to retrieve the data, identifying all the required data folder and names.
 Of course, in the remote case you would like to develop a new climatology, you can create your own YML file and run the script to produce the reference climatology
 Examples are the `create-reference-wilma-EC26.yml` and `create-reference-wilma-EC23.yml` files, which are used to produce the EC26 and EC23 reference climatology, respectively.
-The results are produced into a YML file for in ``ecmean/reference/gm_reference_EC**.yml`` which includes the global and regional mean 
-over different seasons as well the interannual standard deviation. Full details on the datasets used are found there. 
+The results are produced into a YML file for in ``ecmean/reference/gm_reference_EC**.yml`` which includes the global and regional mean
+over different seasons as well the interannual standard deviation. Full details on the datasets used are found there.

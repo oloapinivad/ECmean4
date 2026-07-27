@@ -7,4 +7,3 @@ This section provides a detailed reference for |ecmean|'s Application Programmin
     :members:
     :undoc-members:
     :show-inheritance:
-

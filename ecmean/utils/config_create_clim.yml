@@ -2,7 +2,7 @@
 interface: CMIP6_esgpull
 model:
    name: EC-Earth3
-  
+
 dirs:
    exp: /archive/paolo/esgpull
    tab: /work/scratch/users/paolo/ecmean_cmip6
@@ -11,7 +11,7 @@ dirs:
 global:
 # global mean configuration options
 global_mean:
-  variables: 
+  variables:
     atm: [tas, psl, pr, evspsbl, pme, clt, cll, clm, clh,
           pr_oce, pme_oce, pr_land, pme_land,
           net_toa, rsnt, rlnt, rsntcs, rlntcs, swcf, lwcf,
@@ -19,7 +19,7 @@ global_mean:
           toamsfc_nosn, toamsfc]
     oce: [tos, sos, zos, wfo]
     ice: [siconc]
-    tab: [rsnt, rlnt, net_toa, rsns, rlns, hfss, hfls, swcf, lwcf, net_sfc, toamsfc, 
+    tab: [rsnt, rlnt, net_toa, rsns, rlns, hfss, hfls, swcf, lwcf, net_sfc, toamsfc,
             tas, clt, cll, clm, clh, pr, pme, psl]
   regions: ['Global', 'North Midlat', 'Tropical', 'South Midlat', 'NH', 'SH', 'Equatorial', 'North Pole', 'South Pole'] # for available regions, please check documentation
   seasons: ['ALL', 'MAM', 'DJF', 'SON', 'JJA'] # also `MAM` and `SON` are available

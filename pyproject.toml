@@ -7,7 +7,7 @@ name = "ecmean"
 dynamic = ["version"]
 authors = [
   { name="Paolo Davini", email="paolo.davini@cnr.it" },
-  { name="Jost von Hardenberg", email="jost.hardenberg@polito.it" } 
+  { name="Jost von Hardenberg", email="jost.hardenberg@polito.it" }
 ]
 description = "A Global Climate Model lightweight evaluation tool"
 readme = "README.md"
@@ -32,7 +32,6 @@ dependencies = [
     "tabulate",
     "cfgrib",
     "seaborn",
-    "ruff"
 ]
 
 [project.optional-dependencies]
@@ -42,14 +41,17 @@ tests = [
     "coveralls",
     "statsmodels"
 ]
-
+style = [
+    "pre-commit",
+    "ruff==0.15.21"
+]
 docs = [
     "sphinx<7.0",
     "sphinx-rtd-theme"
 ]
 
 all = [
-    "ecmean[tests,docs]"
+    "ecmean[tests,docs,style]"
 ]
 
 [project.urls]

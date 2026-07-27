@@ -22,7 +22,7 @@ global_mean:
   seasons: ['ALL', 'JJA']
 
 
-performance_indices: 
+performance_indices:
   variables:
     atm2d: [net_sfc, tas, psl, pr, tauu, tauv]
     atm3d: [ta, ua, va, hus]

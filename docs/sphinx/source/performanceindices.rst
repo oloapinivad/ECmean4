@@ -4,10 +4,10 @@ Performance Indices
 Main concepts
 ^^^^^^^^^^^^^
 
-The ``performance_indices`` command is based on the ``performance_indices.py`` script which computes the `Reichler and Kim Performance Indices <https://journals.ametsoc.org/view/journals/bams/89/3/bams-89-3-303.xml>`_, usually known as PIs. 
+The ``performance_indices`` command is based on the ``performance_indices.py`` script which computes the `Reichler and Kim Performance Indices <https://journals.ametsoc.org/view/journals/bams/89/3/bams-89-3-303.xml>`_, usually known as PIs.
 Some minor differences from the original definition have been introduced, so that the PIs are computed on a common grid (user defined, 1deg by default) rather than on the original observational grid.
 
-From the original definition a few improvements have been introduced, producing the PIs also for a set of selected regions and seasons. 
+From the original definition a few improvements have been introduced, producing the PIs also for a set of selected regions and seasons.
 
 PIs are computed as the root mean square error of a 2D field normalized by the interannual variance estimated from the observations, as follows:
 
@@ -16,12 +16,12 @@ PIs are computed as the root mean square error of a 2D field normalized by the i
    \text{PI} = \frac{\sum \left( \text{Model climatology} - \text{Observation climatology} \right)^2}{\text{Observation variance}}
 
 Larger values imply worse performance of the climate models.
-For sake of simplicity, they can be normalized by the CMIP6 ensemble average, 
+For sake of simplicity, they can be normalized by the CMIP6 ensemble average,
 so that values smaller than one imply better results than CMIP6 ensemble average.
 
-.. note:: 
+.. note::
 
-   3D fields (e.g. zonal wind, temperature, etc.) are treated as 2D fields by performing the zonal average. 
+   3D fields (e.g. zonal wind, temperature, etc.) are treated as 2D fields by performing the zonal average.
    All vertical levels are considered, and if a mismatch is found between the model and the observations, the model data are linearly interpolated to the observation grid.
 
 Usage
@@ -110,10 +110,10 @@ Usage example for EC-Earth4 (running on 4 cores for EC-Earth4 experiment ABC1)::
 Output
 ^^^^^^
 
-The result is produced in the form of a YAML file, indicating PIs for each variable, region and season, that is stored for later evaluation. 
+The result is produced in the form of a YAML file, indicating PIs for each variable, region and season, that is stored for later evaluation.
 Most importantly, a figure is produced showing a "score card" for the different regions, variables and seasons.
 
-For the sake of simplicity, the PIs figure is shown as the ratio between the model PI and the average value estimated over the (precomputed) ensemble of CMIP6 models. 
+For the sake of simplicity, the PIs figure is shown as the ratio between the model PI and the average value estimated over the (precomputed) ensemble of CMIP6 models.
 An example of the output for a single year of the EC-Earth3 historical simulation is shown here below.
 
 .. figure:: _static/pitestfigure.png
@@ -146,7 +146,7 @@ EC26-CMIP (1985–2014)
 ~~~~~~~~~~~~~~~~~~~~~
 
 This reference dataset is designed for the evaluation of CMIP6 historical simulations against a consistent observational baseline.
-It is aligned with the CMIP6 historical period (1985–2014), ensuring temporal consistency between model climatologies and observational targets. 
+It is aligned with the CMIP6 historical period (1985–2014), ensuring temporal consistency between model climatologies and observational targets.
 
 .. include:: tables/climatology_EC26-CMIP.rst
 
@@ -226,38 +226,35 @@ Climatology computation
 ^^^^^^^^^^^^^^^^^^^^^^^
 
 Climatology is computed by the ``ecmean/utils/clim-create.py`` script, which is included in the repository for documentation.
-It is based on a YML file which is tells the script where to retrieve the data, identifying all the required data folder, names and description. 
-The tool loops over the variable and produces the yearly and seasonal average of the climate, as well as the interannual variance required for PIs. 
+It is based on a YML file which is tells the script where to retrieve the data, identifying all the required data folder, names and description.
+The tool loops over the variable and produces the yearly and seasonal average of the climate, as well as the interannual variance required for PIs.
 In the remote case you would like to develop a new climatology, you can create your own YML file and run the script to produce the reference climatology.
 An example YML as `create-clim-wilma-EC26.yml` is provided in the repository.
 
 Variance normalization
 ^^^^^^^^^^^^^^^^^^^^^^^
 
-PIs strongly depend on the interannual variance of the reference datasets. Some datasets have extremely low values which lead to unrealistically large PIs. 
-To avoid that grid points with unrealistic low variance affect the computation of the PIs, a filter to exclude outlier is introduced. 
+PIs strongly depend on the interannual variance of the reference datasets. Some datasets have extremely low values which lead to unrealistically large PIs.
+To avoid that grid points with unrealistic low variance affect the computation of the PIs, a filter to exclude outlier is introduced.
 
-For EC26 climatology, the filter is based on a combination of two constraints. The minimum accepted variance is defined by the maximum value between 
-- The 3-sigma from the mean the log10 distribution 
+For EC26 climatology, the filter is based on a combination of two constraints. The minimum accepted variance is defined by the maximum value between
+- The 3-sigma from the mean the log10 distribution
 - The 0.1% of the median variance of the log10 distribution.
 If a grid point is below the minimum accepted variance, a clipping strategy is applied and the variance is set to the minimum accepted variance.
 
 For EC24 and EC23 climatology, the filter is based on a single constraint, which is the 5-sigma from the mean of the log10 distribution.
-This is based on the 5-sigma of the log10 distribution of each variable and each season. 
+This is based on the 5-sigma of the log10 distribution of each variable and each season.
 If the variance of a grid point is above or below the 5-sigma, the grid point is excluded from the computation of the PIs.
 
 
 CMIP6 comparison
 ^^^^^^^^^^^^^^^^
 
-Once the climatology is created, the script ``ecmean/utils/cmip6-clim-evaluate.py`` is used to run iteratively on a set 
+Once the climatology is created, the script ``ecmean/utils/cmip6-clim-evaluate.py`` is used to run iteratively on a set
 of CMIP6 models and to compute the multi model mean of the PIs (for each region and season).
-A single ensemble member is used for each CMIP6 model, which is regridded toward the climatology grid. 
+A single ensemble member is used for each CMIP6 model, which is regridded toward the climatology grid.
 For CMIP6 models, a 30-year time window is used.
-This is then stored in the ``ecmean/climatology/{clim}/pi_climatology_{clim}.yml`` and then used to provide a ratio between the original PI and the CMIP6 ensemble. 
+This is then stored in the ``ecmean/climatology/{clim}/pi_climatology_{clim}.yml`` and then used to provide a ratio between the original PI and the CMIP6 ensemble.
 
 Following the same script, it would be possible to create a new comparison set to be used to scale the results of the PI, but at this stage
-this is not yet possible. 
-
-
-
+this is not yet possible.
