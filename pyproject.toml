@@ -25,7 +25,6 @@ dependencies = [
     "netcdf4",
     "numba",
     "dask",
-    "esmpy",
     "xesmf",
     "metpy",
     "matplotlib",
