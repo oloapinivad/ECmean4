@@ -10,6 +10,14 @@ We recommend to use `mamba <https://mamba.readthedocs.io/en/latest/user_guide/ma
      Since |ecmean| v0.2, the package is called ecmean instead of ECmean4.
      The old name is still available on PyPi but it will not be updated anymore, thus we recommend to use the new name for installation and usage.
 
+Using Conda/Mamba
+-----------------
+
+This is the recommended installation method, since it will install all the dependencies and binaries needed for |ecmean| to work properly.
+You can create a conda/mamba environment which includes python with
+
+    > mamba create -n ecmean ecmean
+
 Using PyPi
 ----------
 
