@@ -16,9 +16,6 @@ TOLERANCE = 1e-3
 # set CLEANUP flag to control removal of generated TXT files after tests
 CLEANUP = True
 
-# set up coverage env var
-env = {**os.environ, "COVERAGE_PROCESS_START": ".coveragerc"}
-
 
 # Open the text file for reading
 def load_gm_txt_files(textfile):
@@ -54,7 +51,6 @@ def test_cmd_global_mean_coupled(clim, config):
         os.remove(file1)
     subprocess.run(
         ["global_mean", "cpld", "1990", "1990", "-j", "2", "-c", config, "--trend", "-l", "debug", "--reference", clim],
-        env=env,
         check=True,
     )
 

@@ -22,9 +22,6 @@ TOLERANCE = 1e-1
 CLEANUP = False
 OUTPUTDIR = "tests/pluto"
 
-# set up coverage env var
-env = {**os.environ, "COVERAGE_PROCESS_START": ".coveragerc"}
-
 
 # test on coupled
 @pytest.mark.parametrize("clim", ["EC23", "EC24", "EC26-HIST"])
@@ -92,7 +89,6 @@ def test_cmd_performance_indices_CMIP6(clim):
             "-l",
             "debug",
         ],
-        env=env,
         check=True,
     )
     file1 = "tests/table/PI_" + clim + "_historical_EC-Earth3_r1i1p1f1_1990_1990.yml"

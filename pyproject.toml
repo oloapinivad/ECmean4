@@ -36,7 +36,7 @@ dependencies = [
 [project.optional-dependencies]
 tests = [
     "pytest",
-    "coverage",
+    "coverage>=7.10",
     "coveralls",
     "statsmodels"
 ]
@@ -70,6 +70,7 @@ version = {attr = "ecmean.__version__"}
 [tool.coverage.run]
 concurrency = ["multiprocessing"]
 parallel = true
+patch = ["subprocess"]
 source = ["ecmean"]
 omit = [
     "*/tests/*",
