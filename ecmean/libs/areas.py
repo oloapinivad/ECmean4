@@ -40,12 +40,26 @@ def guess_bounds(axis, name="lon"):
     max_bounds = axis + diffs[1:] * (1 - bound_position)
 
     # safety check, to be generalized
-    if name in "lat":
-        max_bounds[-1] = 90
-        min_bounds[0] = -90
-    if name in "plev":
-        min_bounds[0] = 0
-        max_bounds[-1] = 100000
+    # orientation-aware clamping: for a descending axis (the usual CMIP/EC-Earth
+    # convention for plev: 100000 -> 1000 Pa, and for lat: 90 -> -90) the edge
+    # stored in min_bounds[0] is the surface-side edge of the first level and
+    # max_bounds[-1] the top-side edge of the last one, so the clamped VALUES
+    # must be swapped, otherwise the 1000 hPa and 10 hPa levels each get a ~96 kPa
+    # weight in the vertical average of the 3D PIs (issue #150)
+    if name == "lat":
+        if axis[0] <= axis[-1]:  # ascending
+            min_bounds[0] = -90
+            max_bounds[-1] = 90
+        else:  # descending
+            min_bounds[0] = 90
+            max_bounds[-1] = -90
+    if name == "plev":
+        if axis[0] <= axis[-1]:  # ascending
+            min_bounds[0] = 0
+            max_bounds[-1] = 100000
+        else:  # descending
+            min_bounds[0] = 100000
+            max_bounds[-1] = 0
 
     # should we use a xarray object instead of a numpy?
     bounds = np.array([min_bounds, max_bounds]).transpose()
