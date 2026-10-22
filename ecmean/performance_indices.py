@@ -412,13 +412,16 @@ class PerformanceIndices:
                                     sample = final.isel(lon=0, lat=0)
                                     nanlev = cfield["plev"].data[np.isnan(sample).data]
                                     if nanlev.size > 0:
+                                        # number of missing points on the horizontal grid, for each affected level
+                                        nanpts = np.isnan(final.sel(plev=nanlev)).sum(dim=["lon", "lat"]).data
+                                        npts = final.sizes["lon"] * final.sizes["lat"]
                                         loggy.warning(
-                                            "%s: NaN after vertical interpolation on %d of %d levels (Pa): %s. "
+                                            "%s: NaN after vertical interpolation on %d of %d levels (Pa, missing points): %s. "
                                             "This will affect your PIs...",
                                             var,
                                             nanlev.size,
                                             cfield["plev"].size,
-                                            ", ".join(f"{lev:g}" for lev in nanlev),
+                                            ", ".join(f"{lev:g} ({n}/{npts})" for lev, n in zip(nanlev, nanpts)),
                                         )
 
                                 # zonal mean
