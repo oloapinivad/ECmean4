@@ -209,7 +209,9 @@ def dict_to_dataframe(varstat, allowed=None):
 
 def write_tuning_table(linefile, varmean, var_table, diag, ref):
     """Write results appending one line to a text file.
-    Write a tuning table: need to fix reference to face/ref"""
+    Write a tuning table: need to fix reference to face/ref.
+    Variables missing from varmean (e.g. removed in OMIP/AMIP runs) are written as NaN,
+    so that the columns stay aligned with the header across runs."""
 
     if not os.path.isfile(linefile):
         with open(linefile, "w", encoding="utf-8") as f:
@@ -218,13 +220,14 @@ def write_tuning_table(linefile, varmean, var_table, diag, ref):
                 print(f"{var:>12s}", end=" ", file=f)
             print("\n%                         ", end=" ", file=f)
             for var in var_table:
-                print("{:>12s}".format(ref[var]["units"]), end=" ", file=f)
+                print("{:>12s}".format(ref.get(var, {}).get("units", "")), end=" ", file=f)
             print(file=f)
 
     with open(linefile, "a", encoding="utf-8") as f:
         print(f"{diag.modelname} {diag.ensemble} {diag.expname}", f"{diag.year1:4d} {diag.year2:4d} ", end="", file=f)
         for var in var_table:
-            print("{:12.5f}".format(varmean[var]["ALL"]["Global"] * ref[var].get("factor", 1)), end=" ", file=f)
+            value = varmean.get(var, {}).get("ALL", {}).get("Global", float("nan"))
+            print("{:12.5f}".format(value * ref.get(var, {}).get("factor", 1)), end=" ", file=f)
         print(file=f)
 
 

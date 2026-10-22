@@ -266,7 +266,7 @@ class GlobalMean:
         figformat="pdf",
         storefig=True,
         returnfig=False,
-        addnan=True,
+        addnan=None,
     ):
         """
         Generate the heatmap for global mean.
@@ -277,8 +277,11 @@ class GlobalMean:
             figformat (str): Format of the output file. Default is 'pdf'.
             storefig (bool): If True, store the figure in the specified file. Default is True.
             returnfig (bool): If True, return the figure object. Default is False.
-            addnan (bool): If True, add NaN values to the plot. Default is True.
+            addnan (bool): If True, add variables without reference values to the plot.
+                If None, use the value set at initialization. Default is None.
         """
+        if addnan is None:
+            addnan = self.diag.addnan
         plotter = ECPlotter(
             diagnostic=diagname,
             modelname=self.diag.modelname,

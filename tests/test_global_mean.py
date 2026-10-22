@@ -9,6 +9,7 @@ import pytest
 import xarray as xr
 
 from ecmean.global_mean import GlobalMean, global_mean
+from ecmean.libs.ecplotter import ECPlotter
 from ecmean.libs.files import load_yaml
 from ecmean.libs.general import are_dicts_equal
 from ecmean.libs.ncfixers import xr_preproc
@@ -172,3 +173,39 @@ def test_gm_plot(tmp_path):
     gm.prepare()
     gm.plot(mapfile=outputfile)
     assert os.path.isfile(outputfile), "Plot not created."
+
+
+@pytest.mark.parametrize("addnan", [True, False])
+def test_global_mean_plot_addnan(monkeypatch, addnan):
+    """The addnan option set at initialization is forwarded to the plotter, unless plot() overrides it (#152)"""
+    received = []
+
+    def spy(self, *args, **kwargs):
+        received.append(kwargs["addnan"])
+
+    monkeypatch.setattr(ECPlotter, "heatmap_plot", spy)
+    gm = GlobalMean("cpld", 1990, 1990, config="tests/config.yml", numproc=1, addnan=addnan)
+    gm.varmean = {}
+    gm.plot(storefig=False)
+    gm.plot(storefig=False, addnan=not addnan)
+    assert received == [addnan, not addnan]
+
+
+def test_global_mean_omip_line():
+    """The tuning line of an OMIP run has NaN for the removed variables and as many columns as the header (#153)"""
+    gm = GlobalMean("omip", 1990, 1990, config="tests/config.yml", numproc=1, reference="EC26-HIST", line=True)
+    if os.path.isfile(gm.diag.linefile):
+        os.remove(gm.diag.linefile)
+    gm.prepare()
+    gm.run()
+    gm.store()
+    gm.plot(storefig=False)
+
+    with open(gm.diag.linefile, encoding="utf-8") as f:
+        lines = f.read().splitlines()
+    header = lines[0].split()[5:]
+    values = lines[-1].split()[5:]
+    assert len(values) == len(header)
+    assert "nan" in values
+    if CLEANUP:
+        os.remove(gm.diag.linefile)
