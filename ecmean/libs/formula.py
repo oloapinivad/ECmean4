@@ -34,6 +34,14 @@ _OPERATIONS = {ast.Add: operator.add, ast.Sub: operator.sub, ast.Mult: operator.
 _ALLOWED = (ast.Expression, ast.BinOp, ast.UnaryOp, ast.USub, ast.Name, ast.Load, ast.Constant, *_OPERATIONS)
 
 
+def _allowed(node):
+    """Tell if a syntax tree node is accepted in a formula: numbers are the only constants allowed."""
+
+    if isinstance(node, ast.Constant):
+        return isinstance(node.value, (int, float))
+    return isinstance(node, _ALLOWED)
+
+
 def _parse_formula(mystring):
     """Parse a formula into a syntax tree, raising ValueError for unsupported syntax."""
 
@@ -41,9 +49,8 @@ def _parse_formula(mystring):
         tree = ast.parse(mystring.strip(), mode="eval")
     except SyntaxError as err:
         raise ValueError(f"Unsupported syntax in formula '{mystring}'") from err
-    for node in ast.walk(tree):
-        if not isinstance(node, _ALLOWED) or (isinstance(node, ast.Constant) and not isinstance(node.value, (int, float))):
-            raise ValueError(f"Unsupported syntax in formula '{mystring}'")
+    if not all(_allowed(node) for node in ast.walk(tree)):
+        raise ValueError(f"Unsupported syntax in formula '{mystring}'")
     return tree.body
 
 

@@ -21,6 +21,7 @@ Unreleased is the current development version, which is currently lying in `main
 - Workers split into per-variable functions, with variable loading shared between GM and PI in `load_variable()` (#151)
 - Formulas of derived variables are parsed with Python's `ast` module instead of a hand-written tokenizer, with the same supported syntax (#157)
 - Performance: input files are opened once per variable, globbed once per variable instead of once per year, and variables are split across workers by total load (#155)
+- Development: ruff pinned to 0.17.1 (pyproject, pre-commit and AGENTS.md)
 
 ## [v0.2.2]
 - Remove a wrong dependency with esmpy

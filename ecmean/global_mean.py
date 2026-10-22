@@ -24,9 +24,9 @@ from ecmean import Diagnostic, Supporter, UnitsHandler
 from ecmean.libs.ecplotter import ECPlotter
 from ecmean.libs.files import get_inifiles, load_output_yaml, load_variable, load_yaml
 from ecmean.libs.general import (
-    check_workers,
     Timer,
     check_var_climatology,
+    check_workers,
     get_domain,
     init_mydict,
     set_multiprocessing_start_method,

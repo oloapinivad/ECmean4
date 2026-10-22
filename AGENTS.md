@@ -53,7 +53,7 @@ write the outputs.
 ruff is mandatory. CI runs `ruff check .` and `ruff format --check .` as a gate before the tests, so a change
 that does not pass them cannot be merged.
 
-- Install the pinned version: `pip install "ruff==0.15.21"` (or `pip install -e .[style]`), and optionally enable
+- Install the pinned version: `pip install "ruff==0.17.1"` (or `pip install -e .[style]`), and optionally enable
   the hooks with `pre-commit install` (`.pre-commit-config.yaml` runs the same ruff version).
 - **Before starting**, run `ruff check . && ruff format --check .` to confirm a clean baseline.
 - **Before every commit**, run `ruff check . && ruff format .` and commit the result. Never commit code that

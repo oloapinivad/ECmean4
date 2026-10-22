@@ -30,9 +30,9 @@ from ecmean.libs.files import (
     load_yaml,
 )
 from ecmean.libs.general import (
-    check_workers,
     Timer,
     check_var_climatology,
+    check_workers,
     get_domain,
     init_mydict,
     set_multiprocessing_start_method,
