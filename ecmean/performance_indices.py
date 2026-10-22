@@ -410,13 +410,16 @@ class PerformanceIndices:
 
                                     # safety check for missing values
                                     sample = final.isel(lon=0, lat=0)
-                                    if np.sum(np.isnan(sample)) != 0:
+                                    nanlev = cfield["plev"].data[np.isnan(sample).data]
+                                    if nanlev.size > 0:
                                         loggy.warning(
-                                            "%s: You have NaN after the interpolation, this will affect your PIs...",
+                                            "%s: NaN after vertical interpolation on %d of %d levels (Pa): %s. "
+                                            "This will affect your PIs...",
                                             var,
+                                            nanlev.size,
+                                            cfield["plev"].size,
+                                            ", ".join(f"{lev:g}" for lev in nanlev),
                                         )
-                                        levnan = cfield["plev"].where(np.isnan(sample))
-                                        loggy.warning(levnan[~np.isnan(levnan)].data)
 
                                 # zonal mean
                                 final = final.mean(dim="lon")
