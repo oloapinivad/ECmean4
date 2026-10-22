@@ -126,6 +126,24 @@ def weight_split(a, n):
     return olists
 
 
+def check_workers(processes):
+    """
+    Check that all the worker processes ended successfully, after they have been joined.
+    Workers catch the errors of each variable, so a non-zero exit code means that the
+    process died anyway (e.g. killed by the OS) and its results are missing.
+
+    Args:
+        processes (list): List of (Process, list of variables) tuples.
+
+    Raises:
+        RuntimeError: If any worker exited with a non-zero exit code.
+    """
+
+    failed = [varlist for proc, varlist in processes if proc.exitcode != 0]
+    if failed:
+        raise RuntimeError(f"Worker processes failed while computing variables {failed}")
+
+
 def check_var_interface(var, face):
     """Check if a var is defined in the interface file"""
 

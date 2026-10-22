@@ -32,6 +32,7 @@ from ecmean.libs.files import (
 )
 from ecmean.libs.formula import formula_wrapper
 from ecmean.libs.general import (
+    check_workers,
     Timer,
     check_time_axis,
     check_var_climatology,
@@ -176,7 +177,13 @@ class PerformanceIndices:
         self.toc("Preparation")
 
     def run(self):
-        """Run the performance indices calculation."""
+        """Run the performance indices calculation.
+
+        A variable that fails is logged and stored as NaN, without affecting the others.
+
+        Raises:
+            RuntimeError: If a worker process dies without completing its variables.
+        """
         # main loop: manager is required for shared variables
         mgr = Manager()
 
@@ -210,11 +217,12 @@ class PerformanceIndices:
                 ),
             )
             core.start()
-            processes.append(core)
+            processes.append((core, varlist))
 
         # wait for the processes to finish
-        for proc in processes:
+        for proc, _ in processes:
             proc.join()
+        check_workers(processes)
         self.toc("Computation")
 
     def store(self, yamlfile=None):
@@ -282,6 +290,7 @@ class PerformanceIndices:
     def pi_worker(util, piclim, face, diag, field_3d, varstat, dictarray, varlist, loglevel):
         """
         Main parallel diagnostic worker for performance indices.
+        Errors are caught per variable: a failing variable is logged and stored as NaN.
 
         Args:
             util (Supporter): Utility dictionary for remapping and masks.
@@ -305,157 +314,165 @@ class PerformanceIndices:
             # store NaN in dict (can't use defaultdict due to multiprocessing)
             result = init_mydict(diag.seasons, diag.regions)
 
-            if check_var_interface(var, face):
-                # get domain
-                domain = get_domain(var, face)
+            try:
+                if check_var_interface(var, face):
+                    # get domain
+                    domain = get_domain(var, face)
 
-                # get masks
-                domain_mask = getattr(util, domain + "mask")
+                    # get masks
+                    domain_mask = getattr(util, domain + "mask")
 
-                # check if required variables are there: use interface file
-                # check into first file, and load also model variable units
-                infile = make_input_filename(var, face, diag)
+                    # check if required variables are there: use interface file
+                    # check into first file, and load also model variable units
+                    infile = make_input_filename(var, face, diag)
 
-                # check if var is available
-                isavail, varunit = var_is_there(infile, var, face)
+                    # check if var is available
+                    isavail, varunit = var_is_there(infile, var, face)
 
-                # if the variable is available
-                if isavail:
-                    # perform the unit conversion extracting offset and factor
-                    offset, factor = UnitsHandler(var, org_units=varunit, clim=piclim, face=face).units_converter()
+                    # if the variable is available
+                    if isavail:
+                        # perform the unit conversion extracting offset and factor
+                        offset, factor = UnitsHandler(var, org_units=varunit, clim=piclim, face=face).units_converter()
 
-                    # open file: chunking on time only, might be improved
-                    if not isinstance(infile, (xr.DataArray, xr.Dataset)):
-                        xfield = open_input_files(infile, preprocess=xr_preproc, chunks={"time": 12})
-                    else:
-                        xfield = infile
-
-                    # in case of big files with multi year, be sure of having opened the right records
-                    xfield = xfield.sel(time=xfield.time.dt.year.isin(diag.years_joined))
-
-                    # check time axis
-                    check_time_axis(xfield.time, diag.years_joined)
-
-                    # get the data-array field for the required var
-                    outfield = formula_wrapper(var, face, xfield)
-
-                    # Load once to avoid recomputing for each season
-                    outfield = outfield.persist()
-
-                    # mean over time and fixing of the units
-                    for season in diag.seasons:
-                        loggy.debug(season)
-
-                        # get filenames for climatology (season-specific files)
-                        clim, vvvv = get_clim_files(piclim, var, diag, season)
-                        loggy.debug(
-                            "Climatology files for %s %s: %s, %s",
-                            var,
-                            season,
-                            clim,
-                            vvvv,
-                        )
-
-                        # open climatology files, fix their metadata
-                        cfield = adjust_clim_file(xr.open_mfdataset(clim, preprocess=xr_preproc))
-                        vfield = adjust_clim_file(
-                            xr.open_mfdataset(vvvv, preprocess=xr_preproc),
-                            remove_zero=True,
-                        )
-
-                        # season selection
-                        if season != "ALL":
-                            tmean = outfield.sel(time=outfield.time.dt.season.isin(season))
-                            cfield = cfield.sel(time=cfield.time.dt.season.isin(season))
-                            vfield = vfield.sel(time=vfield.time.dt.season.isin(season))
+                        # open file: chunking on time only, might be improved
+                        if not isinstance(infile, (xr.DataArray, xr.Dataset)):
+                            xfield = open_input_files(infile, preprocess=xr_preproc, chunks={"time": 12})
                         else:
-                            tmean = outfield
+                            xfield = infile
 
-                        # Single compute call for all three arrays
-                        tmean, cfield, vfield = dask.compute(
-                            apply_units_conversion(tmean.mean(dim="time"), offset, factor),
-                            cfield.mean(dim="time"),
-                            vfield.mean(dim="time"),
-                        )
+                        # in case of big files with multi year, be sure of having opened the right records
+                        xfield = xfield.sel(time=xfield.time.dt.year.isin(diag.years_joined))
 
-                        # apply interpolation, if fixer is available and with different grids
-                        fix = getattr(util, f"{domain}fix")
-                        remap = getattr(util, f"{domain}remap")
+                        # check time axis
+                        check_time_axis(xfield.time, diag.years_joined)
 
-                        if fix:
-                            tmean = fix(tmean, keep_attrs=True)
-                        try:
-                            final = remap(tmean, keep_attrs=True)
-                        except ValueError:
-                            loggy.error("Cannot interpolate %s with the current weights...", var)
-                            continue
+                        # get the data-array field for the required var
+                        outfield = formula_wrapper(var, face, xfield)
 
-                        # vertical interpolation
-                        if var in field_3d:
-                            # xarray interpolation on plev, forcing to be in Pascal
-                            final = final.metpy.convert_coordinate_units("plev", "Pa")
-                            if set(final["plev"].data) != set(cfield["plev"].data):
-                                loggy.warning("%s: Need to interpolate vertical levels...", var)
-                                final = final.interp(plev=cfield["plev"].data, method="linear")
+                        # Load once to avoid recomputing for each season
+                        outfield = outfield.persist()
 
-                                # safety check for missing values
-                                sample = final.isel(lon=0, lat=0)
-                                if np.sum(np.isnan(sample)) != 0:
-                                    loggy.warning(
-                                        "%s: You have NaN after the interpolation, this will affect your PIs...",
-                                        var,
-                                    )
-                                    levnan = cfield["plev"].where(np.isnan(sample))
-                                    loggy.warning(levnan[~np.isnan(levnan)].data)
+                        # mean over time and fixing of the units
+                        for season in diag.seasons:
+                            loggy.debug(season)
 
-                            # zonal mean
-                            final = final.mean(dim="lon")
-
-                            # compute PI
-                            complete = (final - cfield) ** 2 / vfield
-
-                            # compute vertical bounds as weights
-                            bounds_lev = guess_bounds(complete["plev"], name="plev")
-                            bounds = abs(bounds_lev[:, 0] - bounds_lev[:, 1])
-                            www = xr.DataArray(bounds, coords=[complete["plev"]], dims=["plev"])
-
-                            # vertical mean
-                            outarray = complete.weighted(www).mean(dim="plev")
-
-                        # horizontal averaging with land-sea mask
-                        else:
-                            complete = (final - cfield) ** 2 / vfield
-                            outarray = mask_field(
-                                xfield=complete,
-                                mask_type=piclim[var]["mask"],
-                                dom=domain,
-                                mask=domain_mask,
+                            # get filenames for climatology (season-specific files)
+                            clim, vvvv = get_clim_files(piclim, var, diag, season)
+                            loggy.debug(
+                                "Climatology files for %s %s: %s, %s",
+                                var,
+                                season,
+                                clim,
+                                vvvv,
                             )
 
-                        # loop on different regions
-                        for region in diag.regions:
-                            slicearray = select_region(outarray, region)
+                            # open climatology files, fix their metadata
+                            cfield = adjust_clim_file(xr.open_mfdataset(clim, preprocess=xr_preproc))
+                            vfield = adjust_clim_file(
+                                xr.open_mfdataset(vvvv, preprocess=xr_preproc),
+                                remove_zero=True,
+                            )
 
-                            # latitude-based averaging
-                            weights = np.cos(np.deg2rad(slicearray.lat))
-                            out = slicearray.weighted(weights).mean().data
-                            # store the PI
-                            result[season][region] = round(float(out), 3)
+                            # season selection
+                            if season != "ALL":
+                                tmean = outfield.sel(time=outfield.time.dt.season.isin(season))
+                                cfield = cfield.sel(time=cfield.time.dt.season.isin(season))
+                                vfield = vfield.sel(time=vfield.time.dt.season.isin(season))
+                            else:
+                                tmean = outfield
 
-                            # diagnostic
-                            if region == "Global":
-                                loggy.info(
-                                    "PI for %s %s %s %s",
-                                    region,
-                                    season,
-                                    var,
-                                    result[season][region],
+                            # Single compute call for all three arrays
+                            tmean, cfield, vfield = dask.compute(
+                                apply_units_conversion(tmean.mean(dim="time"), offset, factor),
+                                cfield.mean(dim="time"),
+                                vfield.mean(dim="time"),
+                            )
+
+                            # apply interpolation, if fixer is available and with different grids
+                            fix = getattr(util, f"{domain}fix")
+                            remap = getattr(util, f"{domain}remap")
+
+                            if fix:
+                                tmean = fix(tmean, keep_attrs=True)
+                            try:
+                                final = remap(tmean, keep_attrs=True)
+                            except ValueError:
+                                loggy.error("Cannot interpolate %s with the current weights...", var)
+                                continue
+
+                            # vertical interpolation
+                            if var in field_3d:
+                                # xarray interpolation on plev, forcing to be in Pascal
+                                final = final.metpy.convert_coordinate_units("plev", "Pa")
+                                if set(final["plev"].data) != set(cfield["plev"].data):
+                                    loggy.warning("%s: Need to interpolate vertical levels...", var)
+                                    final = final.interp(plev=cfield["plev"].data, method="linear")
+
+                                    # safety check for missing values
+                                    sample = final.isel(lon=0, lat=0)
+                                    if np.sum(np.isnan(sample)) != 0:
+                                        loggy.warning(
+                                            "%s: You have NaN after the interpolation, this will affect your PIs...",
+                                            var,
+                                        )
+                                        levnan = cfield["plev"].where(np.isnan(sample))
+                                        loggy.warning(levnan[~np.isnan(levnan)].data)
+
+                                # zonal mean
+                                final = final.mean(dim="lon")
+
+                                # compute PI
+                                complete = (final - cfield) ** 2 / vfield
+
+                                # compute vertical bounds as weights
+                                bounds_lev = guess_bounds(complete["plev"], name="plev")
+                                bounds = abs(bounds_lev[:, 0] - bounds_lev[:, 1])
+                                www = xr.DataArray(bounds, coords=[complete["plev"]], dims=["plev"])
+
+                                # vertical mean
+                                outarray = complete.weighted(www).mean(dim="plev")
+
+                            # horizontal averaging with land-sea mask
+                            else:
+                                complete = (final - cfield) ** 2 / vfield
+                                outarray = mask_field(
+                                    xfield=complete,
+                                    mask_type=piclim[var]["mask"],
+                                    dom=domain,
+                                    mask=domain_mask,
                                 )
 
-                # debug array for extrafigures
+                            # loop on different regions
+                            for region in diag.regions:
+                                slicearray = select_region(outarray, region)
+
+                                # latitude-based averaging
+                                weights = np.cos(np.deg2rad(slicearray.lat))
+                                out = slicearray.weighted(weights).mean().data
+                                # store the PI
+                                result[season][region] = round(float(out), 3)
+
+                                # diagnostic
+                                if region == "Global":
+                                    loggy.info(
+                                        "PI for %s %s %s %s",
+                                        region,
+                                        season,
+                                        var,
+                                        result[season][region],
+                                    )
+
+                    # debug array for extrafigures
+                    if not isinstance(dictarray, bool):
+                        dictarray["map"][var] = complete if "complete" in locals() else None
+                        dictarray["bias"][var] = final - cfield if "final" in locals() else None
+            except Exception:
+                # keep the other variables of this worker alive, store NaN for the failing one
+                loggy.exception("Failed to compute performance indices for %s, results will be NaN", var)
+                result = init_mydict(diag.seasons, diag.regions)
                 if not isinstance(dictarray, bool):
-                    dictarray["map"][var] = complete if "complete" in locals() else None
-                    dictarray["bias"][var] = final - cfield if "final" in locals() else None
+                    dictarray["map"][var] = None
+                    dictarray["bias"][var] = None
 
             # nested dictionary, to be redefined as a dict to remove lambdas
             local_varstat[var] = result

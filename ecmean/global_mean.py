@@ -31,6 +31,7 @@ from ecmean.libs.files import (
 )
 from ecmean.libs.formula import formula_wrapper
 from ecmean.libs.general import (
+    check_workers,
     Timer,
     check_time_axis,
     check_var_climatology,
@@ -163,7 +164,13 @@ class GlobalMean:
         self.toc("Preparation")
 
     def run(self):
-        """Run the global mean computaacross all variables on using multiprocessing."""
+        """Run the global mean computaacross all variables on using multiprocessing.
+
+        A variable that fails is logged and stored as NaN, without affecting the others.
+
+        Raises:
+            RuntimeError: If a worker process dies without completing its variables.
+        """
         mgr = Manager()
         self.varmean = mgr.dict()
         self.vartrend = mgr.dict()
@@ -184,10 +191,11 @@ class GlobalMean:
                 ),
             )
             core.start()
-            processes.append(core)
+            processes.append((core, varlist))
 
-        for proc in processes:
+        for proc, _ in processes:
             proc.join()
+        check_workers(processes)
         self.toc("Computation")
 
     def store(self, yamlfile=None, tablefile=None):
@@ -322,6 +330,7 @@ class GlobalMean:
     def gm_worker(util, ref, face, diag, varmean, vartrend, varlist, loglevel):
         """ "
         Workhorse for the global mean computation.
+        Errors are caught per variable: a failing variable is logged and stored as NaN.
 
         Args:
             util (Supporter): Utility dictionary for remapping and masks.
@@ -346,69 +355,75 @@ class GlobalMean:
             result = init_mydict(diag.seasons, diag.regions)
             trend = init_mydict(diag.seasons, diag.regions)
 
-            if check_var_interface(var, face):
-                domain = get_domain(var, face)
-                weights = getattr(util, domain + "area")
-                domain_mask = getattr(util, domain + "mask")
-                infile = make_input_filename(var, face, diag)
-                isavail, varunit = var_is_there(infile, var, face)
+            try:
+                if check_var_interface(var, face):
+                    domain = get_domain(var, face)
+                    weights = getattr(util, domain + "area")
+                    domain_mask = getattr(util, domain + "mask")
+                    infile = make_input_filename(var, face, diag)
+                    isavail, varunit = var_is_there(infile, var, face)
 
-                if isavail:
-                    offset, factor = UnitsHandler(var, org_units=varunit, clim=ref, face=face).units_converter()
+                    if isavail:
+                        offset, factor = UnitsHandler(var, org_units=varunit, clim=ref, face=face).units_converter()
 
-                    if not isinstance(infile, (xr.DataArray, xr.Dataset)):
-                        xfield = open_input_files(infile, preprocess=xr_preproc, chunks={"time": 12})
-                    else:
-                        xfield = infile
-
-                    xfield = xfield.sel(time=xfield.time.dt.year.isin(diag.years_joined))
-                    check_time_axis(xfield.time, diag.years_joined)
-
-                    # compute here since the operation are built on this
-                    cfield = formula_wrapper(var, face, xfield).compute()
-
-                    for season in diag.seasons:
-                        tfield = cfield.copy(deep=True)
-                        if season != "ALL":
-                            tfield = tfield.sel(time=cfield.time.dt.season.isin(season))
-
-                        if diag.ftrend:
-                            tfield = tfield.groupby("time.year").mean("time")
+                        if not isinstance(infile, (xr.DataArray, xr.Dataset)):
+                            xfield = open_input_files(infile, preprocess=xr_preproc, chunks={"time": 12})
                         else:
-                            tfield = tfield.mean(dim="time")
+                            xfield = infile
 
-                        for region in diag.regions:
-                            slicefield = select_region(tfield, region)
-                            sliceweights = select_region(weights, region)
-                            if isinstance(domain_mask, xr.DataArray):
-                                slicemask = select_region(domain_mask, region)
+                        xfield = xfield.sel(time=xfield.time.dt.year.isin(diag.years_joined))
+                        check_time_axis(xfield.time, diag.years_joined)
+
+                        # compute here since the operation are built on this
+                        cfield = formula_wrapper(var, face, xfield).compute()
+
+                        for season in diag.seasons:
+                            tfield = cfield.copy(deep=True)
+                            if season != "ALL":
+                                tfield = tfield.sel(time=cfield.time.dt.season.isin(season))
+
+                            if diag.ftrend:
+                                tfield = tfield.groupby("time.year").mean("time")
                             else:
-                                slicemask = 0.0
+                                tfield = tfield.mean(dim="time")
 
-                            avg = masked_meansum(
-                                xfield=slicefield,
-                                weights=sliceweights,
-                                mask=slicemask,
-                                operation=ref[var].get("operation", "mean"),
-                                mask_type=ref[var].get("mask", "global"),
-                                domain=domain,
-                            )
+                            for region in diag.regions:
+                                slicefield = select_region(tfield, region)
+                                sliceweights = select_region(weights, region)
+                                if isinstance(domain_mask, xr.DataArray):
+                                    slicemask = select_region(domain_mask, region)
+                                else:
+                                    slicemask = 0.0
 
-                            if isinstance(avg, dask.array.core.Array):
-                                avg = avg.compute()
-
-                            result[season][region] = float(apply_units_conversion(np.nanmean(avg), offset, factor))
-
-                            if diag.ftrend and len(avg) == len(diag.years_joined):
-                                trend[season][region] = np.polyfit(diag.years_joined, avg, 1)[0]
-                            if season == "ALL" and region == "Global":
-                                loggy.info(
-                                    "Average: %s %s %s %s",
-                                    var,
-                                    season,
-                                    region,
-                                    result[season][region],
+                                avg = masked_meansum(
+                                    xfield=slicefield,
+                                    weights=sliceweights,
+                                    mask=slicemask,
+                                    operation=ref[var].get("operation", "mean"),
+                                    mask_type=ref[var].get("mask", "global"),
+                                    domain=domain,
                                 )
+
+                                if isinstance(avg, dask.array.core.Array):
+                                    avg = avg.compute()
+
+                                result[season][region] = float(apply_units_conversion(np.nanmean(avg), offset, factor))
+
+                                if diag.ftrend and len(avg) == len(diag.years_joined):
+                                    trend[season][region] = np.polyfit(diag.years_joined, avg, 1)[0]
+                                if season == "ALL" and region == "Global":
+                                    loggy.info(
+                                        "Average: %s %s %s %s",
+                                        var,
+                                        season,
+                                        region,
+                                        result[season][region],
+                                    )
+            except Exception:
+                # keep the other variables of this worker alive, store NaN for the failing one
+                loggy.exception("Failed to compute global mean for %s, results will be NaN", var)
+                result = init_mydict(diag.seasons, diag.regions)
+                trend = init_mydict(diag.seasons, diag.regions)
 
             local_varmean[var] = result
             local_vartrend[var] = trend
