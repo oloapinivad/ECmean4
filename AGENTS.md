@@ -4,6 +4,9 @@ Guidance for AI coding agents (and humans) working on ecmean. Principles: **reus
 build on the `Diagnostic` class, deduplicate instead of copying, change as little as possible, and document
 every change.**
 
+**Never push to `main` and never merge a pull request.** Work on a branch, open a PR, and leave
+reviewing and merging to the maintainers.
+
 ## What ecmean is
 
 A lightweight evaluation tool for climate model output with two diagnostics, both exposed as a class, a
@@ -132,5 +135,6 @@ check the other and `libs/`:
   `tests/test_units.py`) next to the end-to-end ones. Keep PI/GM comparisons tight: do not loosen
   `TOLERANCE` to make a test pass.
 - Ruff must pass (see the prerequisite above) before tests and commits.
+- Never push to `main` and never merge a PR (yours or anyone's); push a branch and open a PR.
 - Branch from `main` (or the branch your change depends on), keep PRs focused on one concern, and reference
   the issue number in commits and the changelog.
