@@ -470,55 +470,55 @@ ua:
   year2: 2010
   cmip6:
     ALL:
-      Global: 13.424
-      North Midlat: 7.221
-      Tropical: 18.059
-      South Midlat: 10.355
-      NH: 7.832
-      SH: 9.389
-      Equatorial: 22.684
-      North Pole: 1.985
-      South Pole: 25.172
+      Global: 5.849
+      North Midlat: 4.229
+      Tropical: 6.531
+      South Midlat: 6.106
+      NH: 4.267
+      SH: 5.694
+      Equatorial: 7.521
+      North Pole: 1.641
+      South Pole: 9.035
     DJF:
-      Global: 6.321
-      North Midlat: 2.333
-      Tropical: 8.759
-      South Midlat: 5.433
-      NH: 2.062
-      SH: 5.558
-      Equatorial: 11.15
-      North Pole: 0.644
-      South Pole: 9.619
+      Global: 2.503
+      North Midlat: 1.193
+      Tropical: 3.382
+      South Midlat: 2.053
+      NH: 1.134
+      SH: 2.18
+      Equatorial: 4.129
+      North Pole: 0.515
+      South Pole: 2.332
     JJA:
-      Global: 8.786
-      North Midlat: 7.059
-      Tropical: 12.282
-      South Midlat: 3.521
-      NH: 11.761
-      SH: 3.301
-      Equatorial: 11.201
-      North Pole: 3.432
-      South Pole: 7.029
+      Global: 4.928
+      North Midlat: 3.924
+      Tropical: 6.591
+      South Midlat: 2.605
+      NH: 5.012
+      SH: 3.055
+      Equatorial: 6.649
+      North Pole: 1.509
+      South Pole: 2.616
     MAM:
-      Global: 6.858
-      North Midlat: 3.139
-      Tropical: 9.475
-      South Midlat: 5.341
-      NH: 3.264
-      SH: 5.216
-      Equatorial: 11.894
-      North Pole: 1.177
-      South Pole: 10.135
+      Global: 3.202
+      North Midlat: 2.148
+      Tropical: 3.789
+      South Midlat: 3.082
+      NH: 2.257
+      SH: 3.058
+      Equatorial: 4.249
+      North Pole: 0.997
+      South Pole: 3.482
     SON:
-      Global: 7.275
-      North Midlat: 4.557
-      Tropical: 10.392
-      South Midlat: 3.76
-      NH: 7.689
-      SH: 3.5
-      Equatorial: 10.508
-      North Pole: 2.245
-      South Pole: 6.496
+      Global: 3.55
+      North Midlat: 2.461
+      Tropical: 4.471
+      South Midlat: 2.798
+      NH: 3.222
+      SH: 2.548
+      Equatorial: 4.83
+      North Pole: 0.815
+      South Pole: 2.959
     models:
     - EC-Earth3
     - IPSL-CM6A-LR
@@ -546,55 +546,55 @@ va:
   year2: 2010
   cmip6:
     ALL:
-      Global: 36.047
-      North Midlat: 47.832
-      Tropical: 10.316
-      South Midlat: 75.723
-      NH: 38.822
-      SH: 59.621
-      Equatorial: 10.7
-      North Pole: 141.223
-      South Pole: 255.647
+      Global: 17.048
+      North Midlat: 17.28
+      Tropical: 6.26
+      South Midlat: 38.391
+      NH: 14.863
+      SH: 30.828
+      Equatorial: 5.894
+      North Pole: 42.632
+      South Pole: 104.862
     DJF:
-      Global: 13.531
-      North Midlat: 27.681
-      Tropical: 4.148
-      South Midlat: 18.149
-      NH: 21.364
-      SH: 15.276
-      Equatorial: 4.319
-      North Pole: 89.179
-      South Pole: 52.255
+      Global: 7.554
+      North Midlat: 8.505
+      Tropical: 3.93
+      South Midlat: 13.85
+      NH: 6.936
+      SH: 11.499
+      Equatorial: 4.353
+      North Pole: 21.923
+      South Pole: 32.735
     JJA:
-      Global: 16.907
-      North Midlat: 11.209
-      Tropical: 8.416
-      South Midlat: 39.588
-      NH: 10.903
-      SH: 30.802
-      Equatorial: 9.318
-      North Pole: 3.69
-      South Pole: 136.171
+      Global: 7.625
+      North Midlat: 5.14
+      Tropical: 6.719
+      South Midlat: 11.923
+      NH: 5.278
+      SH: 9.93
+      Equatorial: 7.665
+      North Pole: 3.387
+      South Pole: 28.178
     MAM:
-      Global: 22.739
-      North Midlat: 9.035
-      Tropical: 6.125
-      South Midlat: 69.672
-      NH: 7.847
-      SH: 54.327
-      Equatorial: 6.681
-      North Pole: 20.569
-      South Pole: 246.825
+      Global: 9.101
+      North Midlat: 5.558
+      Tropical: 4.026
+      South Midlat: 22.795
+      NH: 5.01
+      SH: 18.169
+      Equatorial: 4.312
+      North Pole: 12.031
+      South Pole: 66.775
     SON:
-      Global: 10.984
-      North Midlat: 18.668
-      Tropical: 6.722
-      South Midlat: 11.824
-      NH: 16.396
-      SH: 10.008
-      Equatorial: 6.717
-      North Pole: 47.602
-      South Pole: 32.417
+      Global: 6.449
+      North Midlat: 7.235
+      Tropical: 3.746
+      South Midlat: 11.069
+      NH: 6.351
+      SH: 9.187
+      Equatorial: 3.91
+      North Pole: 14.803
+      South Pole: 26.54
     models:
     - EC-Earth3
     - IPSL-CM6A-LR
@@ -623,55 +623,55 @@ ta:
   year2: 2010
   cmip6:
     ALL:
-      Global: 34.494
-      North Midlat: 31.103
-      Tropical: 27.306
-      South Midlat: 52.262
-      NH: 34.377
-      SH: 49.212
-      Equatorial: 20.45
-      North Pole: 21.93
-      South Pole: 93.24
+      Global: 32.439
+      North Midlat: 33.496
+      Tropical: 25.259
+      South Midlat: 45.743
+      NH: 33.642
+      SH: 42.983
+      Equatorial: 21.139
+      North Pole: 18.76
+      South Pole: 47.844
     DJF:
-      Global: 16.434
-      North Midlat: 8.994
-      Tropical: 14.49
-      South Midlat: 27.763
-      NH: 9.111
-      SH: 30.45
-      Equatorial: 9.996
-      North Pole: 8.443
-      South Pole: 33.518
+      Global: 13.902
+      North Midlat: 12.729
+      Tropical: 12.718
+      South Midlat: 17.443
+      NH: 13.542
+      SH: 17.682
+      Equatorial: 10.612
+      North Pole: 6.292
+      South Pole: 19.477
     JJA:
-      Global: 33.537
-      North Midlat: 52.101
-      Tropical: 29.366
-      South Midlat: 23.317
-      NH: 62.802
-      SH: 22.451
-      Equatorial: 16.051
-      North Pole: 37.075
-      South Pole: 33.381
+      Global: 24.689
+      North Midlat: 28.572
+      Tropical: 23.985
+      South Midlat: 22.212
+      NH: 31.363
+      SH: 23.455
+      Equatorial: 19.455
+      North Pole: 21.684
+      South Pole: 17.161
     MAM:
-      Global: 22.881
-      North Midlat: 21.24
-      Tropical: 21.252
-      South Midlat: 27.781
-      NH: 27.338
-      SH: 24.302
-      Equatorial: 17.228
-      North Pole: 7.851
-      South Pole: 35.707
+      Global: 19.072
+      North Midlat: 20.552
+      Tropical: 14.952
+      South Midlat: 25.831
+      NH: 21.567
+      SH: 23.31
+      Equatorial: 12.595
+      North Pole: 10.045
+      South Pole: 29.207
     SON:
-      Global: 20.858
-      North Midlat: 14.452
-      Tropical: 22.132
-      South Midlat: 24.716
-      NH: 15.872
-      SH: 28.598
-      Equatorial: 18.209
-      North Pole: 16.357
-      South Pole: 34.112
+      Global: 21.058
+      North Midlat: 17.557
+      Tropical: 22.444
+      South Midlat: 21.786
+      NH: 18.624
+      SH: 22.58
+      Equatorial: 21.935
+      North Pole: 18.726
+      South Pole: 20.783
     models:
     - EC-Earth3
     - IPSL-CM6A-LR
@@ -702,55 +702,55 @@ hus:
   year2: 2010
   cmip6:
     ALL:
-      Global: 71.457
-      North Midlat: 83.33
-      Tropical: 37.4
-      South Midlat: 127.699
-      NH: 79.287
-      SH: 107.467
-      Equatorial: 29.288
-      North Pole: 102.684
-      South Pole: 266.898
+      Global: 32.823
+      North Midlat: 31.2
+      Tropical: 18.121
+      South Midlat: 63.849
+      NH: 29.911
+      SH: 54.238
+      Equatorial: 15.024
+      North Pole: 30.815
+      South Pole: 116.739
     DJF:
-      Global: 53.958
-      North Midlat: 92.768
-      Tropical: 28.093
-      South Midlat: 66.877
-      NH: 82.469
-      SH: 57.77
-      Equatorial: 22.866
-      North Pole: 87.412
-      South Pole: 114.427
+      Global: 19.935
+      North Midlat: 25.378
+      Tropical: 10.526
+      South Midlat: 33.309
+      NH: 22.336
+      SH: 29.048
+      Equatorial: 8.86
+      North Pole: 22.513
+      South Pole: 55.965
     JJA:
-      Global: 53.598
-      North Midlat: 58.823
-      Tropical: 30.457
-      South Midlat: 94.653
-      NH: 55.193
-      SH: 80.521
-      Equatorial: 26.166
-      North Pole: 71.733
-      South Pole: 210.775
+      Global: 20.462
+      North Midlat: 22.472
+      Tropical: 15.104
+      South Midlat: 29.169
+      NH: 22.053
+      SH: 25.984
+      Equatorial: 13.621
+      North Pole: 22.566
+      South Pole: 35.998
     MAM:
-      Global: 51.051
-      North Midlat: 77.738
-      Tropical: 28.47
-      South Midlat: 69.527
-      NH: 70.698
-      SH: 60.888
-      Equatorial: 22.692
-      North Pole: 81.233
-      South Pole: 103.451
+      Global: 21.275
+      North Midlat: 23.854
+      Tropical: 13.431
+      South Midlat: 34.384
+      NH: 23.689
+      SH: 29.679
+      Equatorial: 10.869
+      North Pole: 25.47
+      South Pole: 46.481
     SON:
-      Global: 48.476
-      North Midlat: 61.93
-      Tropical: 30.617
-      South Midlat: 70.74
-      NH: 58.929
-      SH: 62.144
-      Equatorial: 25.273
-      North Pole: 79.917
-      South Pole: 114.593
+      Global: 19.666
+      North Midlat: 20.803
+      Tropical: 14.1
+      South Midlat: 29.661
+      NH: 19.783
+      SH: 26.064
+      Equatorial: 13.4
+      North Pole: 22.39
+      South Pole: 40.158
     models:
     - EC-Earth3
     - IPSL-CM6A-LR

@@ -10,6 +10,7 @@ Unreleased is the current development version, which is currently lying in `main
 *IMPORTANT*: 3D performance indices (ta, ua, va, hus) change values
 
 - Fix vertical weights for 3D performance indices with descending pressure levels (#150)
+- CMIP6 reference PIs for 3D fields regenerated for EC26-CMIP and EC26-HIST; 2D references unchanged (#150)
 - Default PI climatology is now EC26-CMIP; EC23 and EC24 are deprecated (#150)
 - Default global mean reference is now EC26-CMIP; EC23 is deprecated (#150)
 - A variable failing in a worker no longer drops the other variables of the same worker: it is logged and stored as NaN, and dead workers raise an explicit error (#151)
