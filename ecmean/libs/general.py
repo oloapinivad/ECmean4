@@ -114,14 +114,14 @@ def weight_split(a, n):
     ws = sorted(runtime_weights(a).items(), key=lambda x: x[1], reverse=True)
     ordered = dict(ws)
 
-    elists = [[0] for _ in range(n)]
+    loads = [0] * n
     olists = [[] for _ in range(n)]
 
-    count = 0
+    # greedy longest-processing-time: assign each item to the least loaded bin
     for fff, value in ordered.items():
-        elists[count].append(value)
+        count = loads.index(min(loads))
+        loads[count] += value
         olists[count].append(fff)
-        count = elists.index(min(elists))
 
     return olists
 

@@ -47,6 +47,15 @@ def open_input_files(flist, **kwargs):
     return xr.open_mfdataset(flist, combine="by_coords", data_vars="all", join="outer", compat="no_conflicts", **kwargs)
 
 
+def files_exist(flist, var):
+    """Check that a list of input files is non-empty and all files exist"""
+
+    if not flist or not all(Path(f).is_file() for f in flist):
+        loggy.error("No valid files found for variable %s. Ignoring it.", var)
+        return False
+    return True
+
+
 def var_is_there(flist, var, face):
     """
     Check if a variable is available in the input file and provide its units.
@@ -65,8 +74,7 @@ def var_is_there(flist, var, face):
     if isinstance(flist, (xr.DataArray, xr.Dataset)):
         xfield = flist
     else:
-        if not flist or not all(Path(f).is_file() for f in flist):
-            loggy.error("No valid files found for variable %s. Ignoring it.", var)
+        if not files_exist(flist, var):
             return False, None
         xfield = open_input_files(flist)
 
@@ -116,15 +124,18 @@ def load_variable(var, face, diag):
         return None
 
     infile = make_input_filename(var, face, diag)
-    isavail, varunit = var_is_there(infile, var, face)
-    if not isavail:
-        return None
 
-    # open file: chunking on time only, might be improved
+    # open the files only once (chunking on time only, might be improved) and check the variable on the dataset
     if isinstance(infile, (xr.DataArray, xr.Dataset)):
         xfield = infile
-    else:
+    elif files_exist(infile, var):
         xfield = open_input_files(infile, preprocess=xr_preproc, chunks={"time": 12})
+    else:
+        return None
+
+    isavail, varunit = var_is_there(xfield, var, face)
+    if not isavail:
+        return None
 
     # in case of big files with multi year, be sure of having opened the right records
     xfield = xfield.sel(time=xfield.time.dt.year.isin(diag.years_joined))
@@ -313,13 +324,14 @@ def make_input_filename(cmorname, face, diag):
     filepath = _create_filepath(cmorname, face, diag)
 
     # create the file structure according to the interface file
+    # the pattern does not depend on the year (years are wildcards): glob once per variable
+    globbed = {var: glob(str(_expand_filename(filepath, var, diag))) for var in varname}
+
     filename = []
     for year in diag.years_joined:
         filename1 = []
         for var in varname:
-            expandfile = _expand_filename(filepath, var, diag)
-            filenames = glob(str(expandfile))
-            fname = _filter_filename_by_year(str(filepath), filenames, year)
+            fname = _filter_filename_by_year(str(filepath), globbed[var], year)
             filename1 = filename1 + fname
         filename = filename + filename1
     filename = list(dict.fromkeys(filename))  # Filter unique ones
