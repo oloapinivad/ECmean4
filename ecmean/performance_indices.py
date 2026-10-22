@@ -28,6 +28,7 @@ from ecmean.libs.files import (
     load_output_yaml,
     load_yaml,
     make_input_filename,
+    open_input_files,
     var_is_there,
 )
 from ecmean.libs.formula import formula_wrapper
@@ -329,14 +330,7 @@ class PerformanceIndices:
 
                     # open file: chunking on time only, might be improved
                     if not isinstance(infile, (xr.DataArray, xr.Dataset)):
-                        xfield = xr.open_mfdataset(
-                            infile,
-                            preprocess=xr_preproc,
-                            chunks={"time": 12},
-                            data_vars="all",
-                            join="outer",
-                            compat="no_conflicts",
-                        )
+                        xfield = open_input_files(infile, preprocess=xr_preproc, chunks={"time": 12})
                     else:
                         xfield = infile
 

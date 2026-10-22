@@ -52,19 +52,6 @@ def check_time_axis(xtime, years):
         loggy.warning("Year missing: %s", missing)
 
 
-# def chunks(iterable, num):
-#     """Generate num adjacent chunks of data from a list iterable
-#     Split lists in a convenient way for a parallel process"""
-
-#     size = int(np.ceil(len(iterable) / num))
-#     it = iter(iterable)
-#     return iter(lambda: tuple(itertools.islice(it, size)), ())
-
-# def split(iterable, num):
-#     k, m = divmod(len(iterable), num)
-#     return (iterable[i*k+min(i, m):(i+1)*k+min(i+1, m)] for i in range(num))
-
-
 def runtime_weights(varlist):
     """
     Define the weights to estimate the best repartition of the cores
