@@ -9,6 +9,7 @@ Using a reference file from yaml and Xarray
 
 __author__ = "Paolo Davini (paolo.davini@cnr.it)"
 
+import logging
 import os
 import sys
 from multiprocessing import Manager, Process
@@ -21,21 +22,11 @@ from tabulate import tabulate
 
 from ecmean import Diagnostic, Supporter, UnitsHandler
 from ecmean.libs.ecplotter import ECPlotter
-from ecmean.libs.files import (
-    get_inifiles,
-    load_output_yaml,
-    load_yaml,
-    make_input_filename,
-    open_input_files,
-    var_is_there,
-)
-from ecmean.libs.formula import formula_wrapper
+from ecmean.libs.files import get_inifiles, load_output_yaml, load_variable, load_yaml
 from ecmean.libs.general import (
     check_workers,
     Timer,
-    check_time_axis,
     check_var_climatology,
-    check_var_interface,
     get_domain,
     init_mydict,
     set_multiprocessing_start_method,
@@ -44,11 +35,13 @@ from ecmean.libs.general import (
 )
 from ecmean.libs.loggy import setup_logger
 from ecmean.libs.masks import masked_meansum, select_region
-from ecmean.libs.ncfixers import xr_preproc
 from ecmean.libs.parser import parse_arguments
 from ecmean.libs.units import apply_units_conversion, units_extra_definition
 
 dask.config.set(scheduler="synchronous")
+
+# same logger configured by setup_logger() in the workers
+loggy = logging.getLogger("ecmean")
 
 
 class GlobalMean:
@@ -339,8 +332,8 @@ class GlobalMean:
             diag (Diagnostic): Diagnostic instance.
             varmean (dict): Shared dictionary to store variable means.
             vartrend (dict): Shared dictionary to store variable trends.
-            varlist (dict): List of variables to process.
             varlist (list): List of variables to process.
+            loglevel (str): Logging level for the worker.
         """
         loggy = setup_logger(level=loglevel)
 
@@ -352,85 +345,90 @@ class GlobalMean:
         local_vartrend = {}
 
         for var in varlist:
-            result = init_mydict(diag.seasons, diag.regions)
-            trend = init_mydict(diag.seasons, diag.regions)
-
             try:
-                if check_var_interface(var, face):
-                    domain = get_domain(var, face)
-                    weights = getattr(util, domain + "area")
-                    domain_mask = getattr(util, domain + "mask")
-                    infile = make_input_filename(var, face, diag)
-                    isavail, varunit = var_is_there(infile, var, face)
-
-                    if isavail:
-                        offset, factor = UnitsHandler(var, org_units=varunit, clim=ref, face=face).units_converter()
-
-                        if not isinstance(infile, (xr.DataArray, xr.Dataset)):
-                            xfield = open_input_files(infile, preprocess=xr_preproc, chunks={"time": 12})
-                        else:
-                            xfield = infile
-
-                        xfield = xfield.sel(time=xfield.time.dt.year.isin(diag.years_joined))
-                        check_time_axis(xfield.time, diag.years_joined)
-
-                        # compute here since the operation are built on this
-                        cfield = formula_wrapper(var, face, xfield).compute()
-
-                        for season in diag.seasons:
-                            tfield = cfield.copy(deep=True)
-                            if season != "ALL":
-                                tfield = tfield.sel(time=cfield.time.dt.season.isin(season))
-
-                            if diag.ftrend:
-                                tfield = tfield.groupby("time.year").mean("time")
-                            else:
-                                tfield = tfield.mean(dim="time")
-
-                            for region in diag.regions:
-                                slicefield = select_region(tfield, region)
-                                sliceweights = select_region(weights, region)
-                                if isinstance(domain_mask, xr.DataArray):
-                                    slicemask = select_region(domain_mask, region)
-                                else:
-                                    slicemask = 0.0
-
-                                avg = masked_meansum(
-                                    xfield=slicefield,
-                                    weights=sliceweights,
-                                    mask=slicemask,
-                                    operation=ref[var].get("operation", "mean"),
-                                    mask_type=ref[var].get("mask", "global"),
-                                    domain=domain,
-                                )
-
-                                if isinstance(avg, dask.array.core.Array):
-                                    avg = avg.compute()
-
-                                result[season][region] = float(apply_units_conversion(np.nanmean(avg), offset, factor))
-
-                                if diag.ftrend and len(avg) == len(diag.years_joined):
-                                    trend[season][region] = np.polyfit(diag.years_joined, avg, 1)[0]
-                                if season == "ALL" and region == "Global":
-                                    loggy.info(
-                                        "Average: %s %s %s %s",
-                                        var,
-                                        season,
-                                        region,
-                                        result[season][region],
-                                    )
+                local_varmean[var], local_vartrend[var] = _gm_variable(var, util, ref, face, diag)
             except Exception:
                 # keep the other variables of this worker alive, store NaN for the failing one
                 loggy.exception("Failed to compute global mean for %s, results will be NaN", var)
-                result = init_mydict(diag.seasons, diag.regions)
-                trend = init_mydict(diag.seasons, diag.regions)
-
-            local_varmean[var] = result
-            local_vartrend[var] = trend
+                local_varmean[var] = init_mydict(diag.seasons, diag.regions)
+                local_vartrend[var] = init_mydict(diag.seasons, diag.regions)
 
         # OPTIMIZATION: Single bulk write to Manager.dict() at the end
         varmean.update(local_varmean)
         vartrend.update(local_vartrend)
+
+
+def _gm_variable(var, util, ref, face, diag):
+    """
+    Compute the global mean (and trend) of a single variable for all seasons and regions.
+
+    Args:
+        var (str): Variable name.
+        util (Supporter): Utility dictionary for areas and masks.
+        ref (dict): Reference climatology dictionary.
+        face (dict): Interface dictionary.
+        diag (Diagnostic): Diagnostic instance.
+
+    Returns:
+        tuple: (result, trend) nested dictionaries by season and region, NaN where not available.
+    """
+    result = init_mydict(diag.seasons, diag.regions)
+    trend = init_mydict(diag.seasons, diag.regions)
+
+    loaded = load_variable(var, face, diag)
+    if loaded is None:
+        return result, trend
+    field, varunit = loaded
+    domain = get_domain(var, face)
+    offset, factor = UnitsHandler(var, org_units=varunit, clim=ref, face=face).units_converter()
+
+    # compute here since the operation are built on this
+    cfield = field.compute()
+
+    for season in diag.seasons:
+        tfield = cfield if season == "ALL" else cfield.sel(time=cfield.time.dt.season.isin(season))
+        tfield = tfield.groupby("time.year").mean("time") if diag.ftrend else tfield.mean(dim="time")
+
+        for region in diag.regions:
+            avg = _gm_region_mean(tfield, util, ref[var], domain, region)
+            result[season][region] = float(apply_units_conversion(np.nanmean(avg), offset, factor))
+
+            if diag.ftrend and len(avg) == len(diag.years_joined):
+                trend[season][region] = np.polyfit(diag.years_joined, avg, 1)[0]
+            if season == "ALL" and region == "Global":
+                loggy.info("Average: %s %s %s %s", var, season, region, result[season][region])
+
+    return result, trend
+
+
+def _gm_region_mean(tfield, util, varref, domain, region):
+    """
+    Weighted (and masked) mean or sum of a field over a region, as defined in the reference.
+
+    Args:
+        tfield (xarray.DataArray): Time-averaged field (or yearly averages if trends are requested).
+        util (Supporter): Utility dictionary for areas and masks.
+        varref (dict): Reference entry of the variable, with operation and mask type.
+        domain (str): Domain of the variable (atm or oce).
+        region (str): Region name.
+
+    Returns:
+        numpy.ndarray: Regional average, one value per year if trends are requested.
+    """
+    domain_mask = getattr(util, domain + "mask")
+    slicemask = select_region(domain_mask, region) if isinstance(domain_mask, xr.DataArray) else 0.0
+
+    avg = masked_meansum(
+        xfield=select_region(tfield, region),
+        weights=select_region(getattr(util, domain + "area"), region),
+        mask=slicemask,
+        operation=varref.get("operation", "mean"),
+        mask_type=varref.get("mask", "global"),
+        domain=domain,
+    )
+    if isinstance(avg, dask.array.core.Array):
+        avg = avg.compute()
+    return avg
 
 
 def gm_entry_point():

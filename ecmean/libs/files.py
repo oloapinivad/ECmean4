@@ -11,7 +11,9 @@ import xarray as xr
 import yaml
 
 from ecmean.libs.climatology import SUPPORTED_CLIMATOLOGY
-from ecmean.libs.formula import formula_variables
+from ecmean.libs.formula import formula_variables, formula_wrapper
+from ecmean.libs.general import check_time_axis, check_var_interface
+from ecmean.libs.ncfixers import xr_preproc
 
 loggy = logging.getLogger(__name__)
 
@@ -94,6 +96,41 @@ def var_is_there(flist, var, face):
             loggy.debug("Variable '%s' is derived. Using unit from its first component '%s': %s", var, var_req[0], varunit)
 
     return True, varunit
+
+
+def load_variable(var, face, diag):
+    """
+    Load the field of a variable for the years of the diagnostic, shared by global mean and PI workers.
+
+    Args:
+        var (str): the variable name.
+        face (dict): the interface file containing variable definitions.
+        diag (Diagnostic): the diagnostic instance.
+
+    Returns:
+        tuple: (field, units), with field as a lazy xarray.DataArray and units the original model units,
+            or None if the variable is not defined in the interface or not available.
+    """
+
+    if not check_var_interface(var, face):
+        return None
+
+    infile = make_input_filename(var, face, diag)
+    isavail, varunit = var_is_there(infile, var, face)
+    if not isavail:
+        return None
+
+    # open file: chunking on time only, might be improved
+    if isinstance(infile, (xr.DataArray, xr.Dataset)):
+        xfield = infile
+    else:
+        xfield = open_input_files(infile, preprocess=xr_preproc, chunks={"time": 12})
+
+    # in case of big files with multi year, be sure of having opened the right records
+    xfield = xfield.sel(time=xfield.time.dt.year.isin(diag.years_joined))
+    check_time_axis(xfield.time, diag.years_joined)
+
+    return formula_wrapper(var, face, xfield), varunit
 
 
 def get_clim_files(piclim, var, diag, season):
