@@ -11,14 +11,6 @@ import xarray as xr
 # AREA-WEIGHT FUNCTIONS #
 ##################################
 
-# def cdo_identify_grid(file):
-#     cdogrid = cdo.sinfo(input=os.path.join(dir, file))
-#     for gg in ['unstructured', 'lonlat', 'curvilinear', 'gaussian_reduced', 'gaussian']:
-#         grid_type = [gg for i in cdogrid if gg in i]
-#         if grid_type :
-#             break
-#     return grid_type[0]
-
 loggy = logging.getLogger(__name__)
 
 
@@ -104,40 +96,14 @@ class AreaCalculator:
         area = self._vector_spherical_triangle(p1, p2, p3) + self._vector_spherical_triangle(p1, p4, p3)
         return area * self.earth_radius**2
 
-    # def _area_by_trapezoids(self, bounds_lat):
-    #     arclon1 = self.earth_radius *
-    # np.abs(np.cos(np.deg2rad(bounds_lat[:, 0]))) * np.deg2rad(self.dlon)
-    #     arclon2 = self.earth_radius *
-    # np.abs(np.cos(np.deg2rad(bounds_lat[:, 1]))) * np.deg2rad(self.dlon)
-    #     arclat = self.earth_radius * np.deg2rad(self.dlat)
-
-    #     return (arclon1 + arclon2) * arclat / 2
-
-    # def _area_by_squares(self, full_lat):
-
-    #     arclon = self.earth_radius * np.abs(np.cos(np.deg2rad(full_lat))) * np.deg2rad(self.dlon)
-    #     arclat = self.earth_radius * np.deg2rad(self.dlat)
-
-    #     return arclon * arclat
-
     def _area_computation(self, bounds_lon, bounds_lat, formula="triangles", full_lat=None):
         """
         Compute the area of grid cells based on the specified formula.
-        Only triangles is activated, other older method are kept for reference but not tested.
+        Only the triangles formula is available.
         """
 
         if formula == "triangles":
             return self._area_by_triangles(bounds_lon, bounds_lat)
-
-        # self.dlon=abs(bounds_lon[:, 0] - bounds_lon[:, 1])
-        # self.dlat=abs(bounds_lat[:, 0] - bounds_lat[:, 1])
-
-        # if formula == 'trapezoids':
-        #     return self._area_by_trapezoids(bounds_lat)
-        # if formula == 'squares':
-        #     if full_lat is None:
-        #         raise ValueError("full_lat is required for square-based area computation.")
-        #     return self._area_by_squares(full_lat)
 
         raise ValueError(f"Unknown area formula: {formula}")
 

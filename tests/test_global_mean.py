@@ -2,6 +2,8 @@
 
 import os
 import subprocess
+import sys
+from pathlib import Path
 
 import pytest
 import xarray as xr
@@ -54,7 +56,7 @@ def test_cmd_global_mean_coupled(clim):
         os.remove(file1)
     subprocess.run(
         [
-            "global_mean",
+            str(Path(sys.executable).parent / "global_mean"),
             "cpld",
             "1990",
             "1990",

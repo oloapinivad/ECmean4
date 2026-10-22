@@ -6,6 +6,8 @@ import contextlib
 import os
 import shutil
 import subprocess
+import sys
+from pathlib import Path
 
 import pytest
 import xarray as xr
@@ -21,7 +23,7 @@ from ecmean.libs.ncfixers import xr_preproc
 # set TOLERANCE
 TOLERANCE = 1e-1
 # set CLEANUP flag to control removal of generated YML files after tests
-CLEANUP = False
+CLEANUP = True
 OUTPUTDIR = "tests/pluto"
 
 # set up coverage env var
@@ -88,7 +90,7 @@ def test_cmd_performance_indices_CMIP6(clim):
     """Test performance indices command line interface on CMIP6 historical data."""
     subprocess.run(
         [
-            "performance_indices",
+            str(Path(sys.executable).parent / "performance_indices"),
             "historical",
             "1990",
             "1990",

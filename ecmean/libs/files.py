@@ -4,7 +4,6 @@ Shared functions for XArray ecmean
 
 import logging
 import os
-import re
 from glob import glob
 from pathlib import Path
 
@@ -12,6 +11,7 @@ import xarray as xr
 import yaml
 
 from ecmean.libs.climatology import SUPPORTED_CLIMATOLOGY
+from ecmean.libs.formula import formula_variables
 
 loggy = logging.getLogger(__name__)
 
@@ -37,6 +37,14 @@ def inifiles_priority(inidict):
     return None
 
 
+def open_input_files(flist, **kwargs):
+    """Open a list of files as a single dataset, with the same combine/join
+    options for all the diagnostics. Extra keyword arguments (e.g. preprocess,
+    chunks) are passed to xarray.open_mfdataset."""
+
+    return xr.open_mfdataset(flist, combine="by_coords", data_vars="all", join="outer", compat="no_conflicts", **kwargs)
+
+
 def var_is_there(flist, var, face):
     """
     Check if a variable is available in the input file and provide its units.
@@ -58,7 +66,7 @@ def var_is_there(flist, var, face):
         if not flist or not all(Path(f).is_file() for f in flist):
             loggy.error("No valid files found for variable %s. Ignoring it.", var)
             return False, None
-        xfield = xr.open_mfdataset(flist, combine="by_coords", data_vars="all", join="outer", compat="no_conflicts")
+        xfield = open_input_files(flist)
 
     # if variable is derived, extract required vars
     var_req = _get_variables_to_load(var, face)
@@ -294,7 +302,7 @@ def _get_variables_to_load(var, face):
 
     if "derived" in face["variables"][var]:
         cmd = face["variables"][var]["derived"]
-        return [x for x in re.split("[*+-/]", cmd) if not x.isdigit()]
+        return formula_variables(cmd)
 
     return [var]
 

@@ -12,7 +12,6 @@ __author__ = "Paolo Davini (paolo.davin@cnr.it)"
 import os
 import sys
 from multiprocessing import Manager, Process
-from time import time
 
 import dask
 import numpy as np
@@ -28,10 +27,12 @@ from ecmean.libs.files import (
     load_output_yaml,
     load_yaml,
     make_input_filename,
+    open_input_files,
     var_is_there,
 )
 from ecmean.libs.formula import formula_wrapper
 from ecmean.libs.general import (
+    Timer,
     check_time_axis,
     check_var_climatology,
     check_var_interface,
@@ -44,7 +45,7 @@ from ecmean.libs.loggy import setup_logger
 from ecmean.libs.masks import mask_field, select_region
 from ecmean.libs.ncfixers import adjust_clim_file, xr_preproc
 from ecmean.libs.parser import parse_arguments
-from ecmean.libs.units import units_extra_definition
+from ecmean.libs.units import apply_units_conversion, units_extra_definition
 
 dask.config.set(scheduler="synchronous")
 
@@ -74,7 +75,7 @@ class PerformanceIndices:
         util_dictionary (Supporter): Utility dictionary for remapping and masks.
         varstat (dict): Dictionary to store variable statistics.
         funcname (str): Name of the class.
-        start_time (float): Start time for performance measurement.
+        timer (Timer): Timer logging the elapsed time.
         title (str): Title of the plot, overrides default title.
     """
 
@@ -121,20 +122,16 @@ class PerformanceIndices:
         self.varstat = None
         self.extrafigure = extrafigure  # special key to be set for manual debugging, producing extra figures: DO NOT USE
         self.outarray = None
-        self.start_time = time()
-        self.current_time = time()
+        self.timer = Timer(self.loggy)
         self.title = title
 
     def toc(self, message):
         """Update the timer and log the elapsed time."""
-        elapsed_time = time() - self.current_time
-        self.current_time = time()
-        self.loggy.info("%s time: %.2f seconds", message, elapsed_time)
+        self.timer.toc(message)
 
     def final_toc(self):
         """Log the total elapsed time since the start."""
-        total_elapsed_time = time() - self.start_time
-        self.loggy.info("Total execution time: %.2f seconds", total_elapsed_time)
+        self.timer.final_toc()
 
     def prepare(self):
         """Prepare the necessary components for performance indices calculation."""
@@ -329,14 +326,7 @@ class PerformanceIndices:
 
                     # open file: chunking on time only, might be improved
                     if not isinstance(infile, (xr.DataArray, xr.Dataset)):
-                        xfield = xr.open_mfdataset(
-                            infile,
-                            preprocess=xr_preproc,
-                            chunks={"time": 12},
-                            data_vars="all",
-                            join="outer",
-                            compat="no_conflicts",
-                        )
+                        xfield = open_input_files(infile, preprocess=xr_preproc, chunks={"time": 12})
                     else:
                         xfield = infile
 
@@ -383,7 +373,7 @@ class PerformanceIndices:
 
                         # Single compute call for all three arrays
                         tmean, cfield, vfield = dask.compute(
-                            tmean.mean(dim="time") * factor + offset,
+                            apply_units_conversion(tmean.mean(dim="time"), offset, factor),
                             cfield.mean(dim="time"),
                             vfield.mean(dim="time"),
                         )

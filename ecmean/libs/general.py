@@ -7,6 +7,7 @@ import math
 import multiprocessing
 import os
 import platform
+from time import time
 
 import numpy as np
 import pandas as pd
@@ -17,6 +18,25 @@ import pandas as pd
 
 
 loggy = logging.getLogger(__name__)
+
+
+class Timer:
+    """Timer logging the time elapsed since the previous call and since the start."""
+
+    def __init__(self, logger=None):
+        self.logger = logger or loggy
+        self.start_time = time()
+        self.current_time = self.start_time
+
+    def toc(self, message):
+        """Update the timer and log the elapsed time."""
+        elapsed_time = time() - self.current_time
+        self.current_time = time()
+        self.logger.info("%s time: %.2f seconds", message, elapsed_time)
+
+    def final_toc(self):
+        """Log the total elapsed time since the start."""
+        self.logger.info("Total execution time: %.2f seconds", time() - self.start_time)
 
 
 def set_multiprocessing_start_method():
@@ -50,19 +70,6 @@ def check_time_axis(xtime, years):
     if missing:
         loggy.warning("Check your data: some years are missing")
         loggy.warning("Year missing: %s", missing)
-
-
-# def chunks(iterable, num):
-#     """Generate num adjacent chunks of data from a list iterable
-#     Split lists in a convenient way for a parallel process"""
-
-#     size = int(np.ceil(len(iterable) / num))
-#     it = iter(iterable)
-#     return iter(lambda: tuple(itertools.islice(it, size)), ())
-
-# def split(iterable, num):
-#     k, m = divmod(len(iterable), num)
-#     return (iterable[i*k+min(i, m):(i+1)*k+min(i+1, m)] for i in range(num))
 
 
 def runtime_weights(varlist):

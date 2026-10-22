@@ -12,7 +12,6 @@ __author__ = "Paolo Davini (paolo.davini@cnr.it)"
 import os
 import sys
 from multiprocessing import Manager, Process
-from time import time
 
 import dask
 import numpy as np
@@ -27,10 +26,12 @@ from ecmean.libs.files import (
     load_output_yaml,
     load_yaml,
     make_input_filename,
+    open_input_files,
     var_is_there,
 )
 from ecmean.libs.formula import formula_wrapper
 from ecmean.libs.general import (
+    Timer,
     check_time_axis,
     check_var_climatology,
     check_var_interface,
@@ -44,7 +45,7 @@ from ecmean.libs.loggy import setup_logger
 from ecmean.libs.masks import masked_meansum, select_region
 from ecmean.libs.ncfixers import xr_preproc
 from ecmean.libs.parser import parse_arguments
-from ecmean.libs.units import units_extra_definition
+from ecmean.libs.units import apply_units_conversion, units_extra_definition
 
 dask.config.set(scheduler="synchronous")
 
@@ -77,7 +78,7 @@ class GlobalMean:
         varmean (dict): Dictionary to store variable means.
         vartrend (dict): Dictionary to store variable trends.
         funcname (str): Name of the class.
-        start_time (float): Start time for the timer.
+        timer (Timer): Timer logging the elapsed time.
         title (str): Title of the plot, overrides default title.
     """
 
@@ -127,20 +128,16 @@ class GlobalMean:
         self.util_dictionary = None
         self.varmean = None
         self.vartrend = None
-        self.start_time = time()
-        self.current_time = time()
+        self.timer = Timer(self.loggy)
         self.title = title
 
     def toc(self, message):
         """Update the timer and log the elapsed time."""
-        elapsed_time = time() - self.current_time
-        self.current_time = time()
-        self.loggy.info("%s time: %.2f seconds", message, elapsed_time)
+        self.timer.toc(message)
 
     def final_toc(self):
         """Log the total elapsed time since the start."""
-        total_elapsed_time = time() - self.start_time
-        self.loggy.info("Total execution time: %.2f seconds", total_elapsed_time)
+        self.timer.final_toc()
 
     def prepare(self):
         """Prepare the necessary components for the global mean computation."""
@@ -360,14 +357,7 @@ class GlobalMean:
                     offset, factor = UnitsHandler(var, org_units=varunit, clim=ref, face=face).units_converter()
 
                     if not isinstance(infile, (xr.DataArray, xr.Dataset)):
-                        xfield = xr.open_mfdataset(
-                            infile,
-                            preprocess=xr_preproc,
-                            chunks={"time": 12},
-                            data_vars="all",
-                            combine="by_coords",
-                            compat="no_conflicts",
-                        )
+                        xfield = open_input_files(infile, preprocess=xr_preproc, chunks={"time": 12})
                     else:
                         xfield = infile
 
@@ -407,7 +397,7 @@ class GlobalMean:
                             if isinstance(avg, dask.array.core.Array):
                                 avg = avg.compute()
 
-                            result[season][region] = float((np.nanmean(avg) + offset) * factor)
+                            result[season][region] = float(apply_units_conversion(np.nanmean(avg), offset, factor))
 
                             if diag.ftrend and len(avg) == len(diag.years_joined):
                                 trend[season][region] = np.polyfit(diag.years_joined, avg, 1)[0]
