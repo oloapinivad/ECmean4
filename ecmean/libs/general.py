@@ -7,6 +7,7 @@ import math
 import multiprocessing
 import os
 import platform
+from time import time
 
 import numpy as np
 import pandas as pd
@@ -17,6 +18,25 @@ import pandas as pd
 
 
 loggy = logging.getLogger(__name__)
+
+
+class Timer:
+    """Timer logging the time elapsed since the previous call and since the start."""
+
+    def __init__(self, logger=None):
+        self.logger = logger or loggy
+        self.start_time = time()
+        self.current_time = self.start_time
+
+    def toc(self, message):
+        """Update the timer and log the elapsed time."""
+        elapsed_time = time() - self.current_time
+        self.current_time = time()
+        self.logger.info("%s time: %.2f seconds", message, elapsed_time)
+
+    def final_toc(self):
+        """Log the total elapsed time since the start."""
+        self.logger.info("Total execution time: %.2f seconds", time() - self.start_time)
 
 
 def set_multiprocessing_start_method():
