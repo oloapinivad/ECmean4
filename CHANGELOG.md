@@ -17,6 +17,7 @@ Unreleased is the current development version, which is currently lying in `main
 - `addnan` option and `--addnan` flag of global mean are now forwarded to the plot, so variables without reference are hidden by default (#152)
 - `global_mean --line` no longer crashes when variables of the tuning table are missing, as in OMIP/AMIP runs: they are written as NaN (#153)
 - Workers split into per-variable functions, with variable loading shared between GM and PI in `load_variable()` (#151)
+- Formulas of derived variables are parsed with Python's `ast` module instead of a hand-written tokenizer, with the same supported syntax (#157)
 
 ## [v0.2.2]
 - Remove a wrong dependency with esmpy

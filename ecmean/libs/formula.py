@@ -6,9 +6,9 @@ Shared functions for ecmean. Set of formula based tools
 # FORMULA FUNCTIONS #
 #####################
 
+import ast
 import logging
 import operator
-import re
 
 loggy = logging.getLogger(__name__)
 
@@ -25,96 +25,46 @@ def formula_wrapper(var, face, xfield):
     return xfield[var]
 
 
-# Tokenizer and evaluator for the CDO-like formulas of the interface files.
-# Supported syntax: variable names, numbers (decimals, scientific notation),
-# the four basic operations, unary minus, parentheses and whitespace.
+# Parser and evaluator for the CDO-like formulas of the interface files.
+# Formulas are parsed with the Python parser, which provides precedence, parentheses,
+# numbers (decimals, scientific notation) and whitespace. Only variable names, numbers,
+# the four basic operations, unary minus and parentheses are accepted: nothing is executed.
 
-_TOKEN_REGEX = re.compile(
-    r"""\s*(?:
-        (?P<number>(?:\d+\.?\d*|\.\d+)(?:[eE][+-]?\d+)?)
-        |(?P<name>[A-Za-z_][A-Za-z0-9_]*)
-        |(?P<op>[-+*/()])
-    )""",
-    re.VERBOSE,
-)
+_OPERATIONS = {ast.Add: operator.add, ast.Sub: operator.sub, ast.Mult: operator.mul, ast.Div: operator.truediv}
+_ALLOWED = (ast.Expression, ast.BinOp, ast.UnaryOp, ast.USub, ast.Name, ast.Load, ast.Constant, *_OPERATIONS)
 
 
-def tokenize_formula(mystring):
-    """Split a formula into a list of (kind, text) tokens, kind being
-    'number', 'name' or 'op'. Raises ValueError for unsupported syntax."""
+def _parse_formula(mystring):
+    """Parse a formula into a syntax tree, raising ValueError for unsupported syntax."""
 
-    tokens = []
-    pos = 0
-    mystring = mystring.rstrip()
-    while pos < len(mystring):
-        match = _TOKEN_REGEX.match(mystring, pos)
-        if not match:
-            raise ValueError(f"Unsupported syntax in formula '{mystring}' at position {pos}: '{mystring[pos:]}'")
-        kind = match.lastgroup
-        tokens.append((kind, match.group(kind)))
-        pos = match.end()
-    if not tokens:
-        raise ValueError("Empty formula")
-    return tokens
+    try:
+        tree = ast.parse(mystring.strip(), mode="eval")
+    except SyntaxError as err:
+        raise ValueError(f"Unsupported syntax in formula '{mystring}'") from err
+    for node in ast.walk(tree):
+        if not isinstance(node, _ALLOWED) or (isinstance(node, ast.Constant) and not isinstance(node.value, (int, float))):
+            raise ValueError(f"Unsupported syntax in formula '{mystring}'")
+    return tree.body
 
 
 def formula_variables(mystring):
-    """Return the unique variable names required by a formula, in order of appearance."""
+    """Return the unique variable names required by a formula, in order of appearance
+    (the units of a derived variable are taken from the first one)."""
 
-    return list(dict.fromkeys(text for kind, text in tokenize_formula(mystring) if kind == "name"))
-
-
-_OPERATIONS = {"/": operator.truediv, "*": operator.mul, "-": operator.sub, "+": operator.add}
+    names = sorted((n for n in ast.walk(_parse_formula(mystring)) if isinstance(n, ast.Name)), key=lambda n: n.col_offset)
+    return list(dict.fromkeys(n.id for n in names))
 
 
 def _eval_formula(mystring, xdataset):
-    """Evaluate the cmd string provided by the yaml file
-    producing a parsing for the derived variables.
-    Grammar: expr = term {(+|-) term}; term = factor {(*|/) factor};
-    factor = number | name | (expr) | -factor"""
+    """Evaluate a formula of the interface files on the variables of a dataset."""
 
-    tokens = tokenize_formula(mystring)
-    pos = 0
+    def evaluate(node):
+        if isinstance(node, ast.BinOp):
+            return _OPERATIONS[type(node.op)](evaluate(node.left), evaluate(node.right))
+        if isinstance(node, ast.UnaryOp):
+            return -evaluate(node.operand)
+        if isinstance(node, ast.Name):
+            return xdataset[node.id]
+        return float(node.value)
 
-    def peek():
-        return tokens[pos][1] if pos < len(tokens) and tokens[pos][0] == "op" else None
-
-    def advance():
-        nonlocal pos
-        pos += 1
-        return tokens[pos - 1]
-
-    def expr():
-        value = term()
-        while peek() in ("+", "-"):
-            value = _OPERATIONS[advance()[1]](value, term())
-        return value
-
-    def term():
-        value = factor()
-        while peek() in ("*", "/"):
-            value = _OPERATIONS[advance()[1]](value, factor())
-        return value
-
-    def factor():
-        if pos >= len(tokens):
-            raise ValueError(f"Unexpected end of formula '{mystring}'")
-        kind, text = advance()
-        if kind == "number":
-            return float(text)
-        if kind == "name":
-            return xdataset[text]
-        if text == "-":
-            return -factor()
-        if text == "(":
-            value = expr()
-            if peek() != ")":
-                raise ValueError(f"Missing closing parenthesis in formula '{mystring}'")
-            advance()
-            return value
-        raise ValueError(f"Unexpected '{text}' in formula '{mystring}'")
-
-    result = expr()
-    if pos != len(tokens):
-        raise ValueError(f"Unexpected '{tokens[pos][1]}' in formula '{mystring}'")
-    return result
+    return evaluate(_parse_formula(mystring))

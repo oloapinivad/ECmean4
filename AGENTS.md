@@ -26,7 +26,7 @@ ecmean/
     diagnostic.py   # Diagnostic: configuration container shared by both diagnostics
     support.py      # Supporter: areas, masks, interpolation weights
     files.py        # interface/config YAML loading, filename building, open_input_files(), var_is_there()
-    formula.py      # tokenizer + evaluator for "derived" variables of the interface files
+    formula.py      # parser + evaluator for "derived" variables of the interface files
     units.py        # UnitsHandler, apply_units_conversion()
     general.py      # Timer, weight_split, check_* helpers, dict utilities
     masks.py, areas.py, ncfixers.py, climatology.py, ecplotter.py, loggy.py, parser.py
@@ -115,7 +115,8 @@ check the other and `libs/`:
   is handled through the sign of the factor. Do not hand-roll conversions in a diagnostic.
 - **Derived variables:** the `derived:` strings in interface files support names, numbers (decimals,
   scientific notation), `+ - * /`, unary minus, parentheses and spaces. Unsupported syntax raises
-  `ValueError`; extend the shared tokenizer rather than adding another parser.
+  `ValueError`. Formulas are parsed with Python's `ast` module restricted to these node types (nothing is
+  executed); extend that whitelist in `formula.py` rather than adding another parser.
 - **Opening data:** use `open_input_files()` so both diagnostics share `combine`/`join` behaviour and react
   identically to xarray default changes.
 - **3D PIs:** pressure-level weights depend on level ordering and bounds (see #150); take care when touching

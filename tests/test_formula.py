@@ -5,7 +5,7 @@ import pytest
 import xarray as xr
 
 from ecmean.libs.files import _get_variables_to_load
-from ecmean.libs.formula import _eval_formula, formula_variables, tokenize_formula
+from ecmean.libs.formula import _eval_formula, formula_variables
 
 DATASET = xr.Dataset({"a": ("x", np.array([4.0, 8.0])), "b": ("x", np.array([1.0, 2.0])), "c": ("x", np.array([2.0, 2.0]))})
 
@@ -44,8 +44,3 @@ def test_unsupported_formula(formula):
     """Unsupported or malformed syntax gives a clear ValueError"""
     with pytest.raises(ValueError):
         _eval_formula(formula, DATASET)
-
-
-def test_tokenize_kinds():
-    """Token kinds are classified properly"""
-    assert tokenize_formula("a*1.5") == [("name", "a"), ("op", "*"), ("number", "1.5")]
