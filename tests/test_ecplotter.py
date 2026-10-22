@@ -76,7 +76,7 @@ def test_ecplotter_global_mean_title():
         units_list=mock_units,
         storefig=False,
         title="Custom Global Mean Title",
-        reference="EC23",
+        reference="EC26-CMIP",
     )
 
     ax2 = fig2.axes[0]
@@ -85,4 +85,4 @@ def test_ecplotter_global_mean_title():
     # Check colorbar label includes reference
     cbar = fig2.axes[-1]  # Colorbar is typically the last axis
     cbar_label = cbar.get_ylabel()
-    assert "EC23" in cbar_label, f"Expected 'EC23' in colorbar label, got: {cbar_label}"
+    assert "EC26-CMIP" in cbar_label, f"Expected 'EC26-CMIP' in colorbar label, got: {cbar_label}"

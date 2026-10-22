@@ -98,7 +98,7 @@ class GlobalMean:
         line=None,
         outputdir=None,
         xdataset=None,
-        reference="EC23",
+        reference=None,
         title=None,
     ):
 

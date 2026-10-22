@@ -16,4 +16,4 @@ performance_indices:
     ice: []
   regions: ['NH', 'SH', 'Equatorial', 'North Pole', 'South Pole']
   seasons: ['ALL']
-  climatology: EC24
+  climatology: EC26-CMIP

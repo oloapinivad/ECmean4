@@ -7,6 +7,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 Unreleased is the current development version, which is currently lying in `main` branch.
 
+*IMPORTANT*: 3D performance indices (ta, ua, va, hus) change values
+
+- Fix vertical weights for 3D performance indices with descending pressure levels (#150)
+- Default PI climatology is now EC26-CMIP; EC23 and EC24 are deprecated (#150)
+- Default global mean reference is now EC26-CMIP; EC23 is deprecated (#150)
+
 ## [v0.2.2]
 - Remove a wrong dependency with esmpy
 

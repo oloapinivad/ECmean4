@@ -1,0 +1,33 @@
+tos:
+  ALL:
+    Global: 46.773
+    North Midlat: 11.96
+    Tropical: 11.193
+    South Midlat: 126.71
+  JJA:
+    Global: 276.982
+    North Midlat: 24.496
+    Tropical: 19.661
+    South Midlat: 855.48
+sos:
+  ALL:
+    Global: 57.711
+    North Midlat: 236.402
+    Tropical: 16.256
+    South Midlat: 30.536
+  JJA:
+    Global: 40.928
+    North Midlat: 160.826
+    Tropical: 12.123
+    South Midlat: 24.381
+siconc:
+  ALL:
+    Global: 4.326
+    North Midlat: 11.675
+    Tropical: 0.0
+    South Midlat: 7.673
+  JJA:
+    Global: 100.012
+    North Midlat: 473.241
+    Tropical: 0.0
+    South Midlat: 65.462

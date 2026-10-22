@@ -13,3 +13,11 @@ CLIMATOLOGY_PREFIXES = ["climate_variance_", "climate_average_", "seasons_varian
 # supported climatology
 SUPPORTED_REFERENCE = ["EC23", "EC26-PDAY", "EC26-CMIP", "EC26-HIST"]
 SUPPORTED_CLIMATOLOGY = ["EC23", "EC24", "EC26-HIST", "EC26-CMIP"]
+
+# deprecated climatology: their CMIP6 reference PIs for 3D fields are biased (#150)
+DEPRECATED_CLIMATOLOGY = ["EC23", "EC24"]
+DEPRECATED_REFERENCE = ["EC23"]
+
+# defaults, used when not specified by the user or in the configuration file
+DEFAULT_CLIMATOLOGY = "EC26-CMIP"
+DEFAULT_REFERENCE = "EC26-CMIP"

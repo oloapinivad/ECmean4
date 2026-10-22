@@ -60,7 +60,7 @@ class PerformanceIndices:
         config (str): Path to the configuration file. Default is 'config.yml'.
         loglevel (str): Logging level. Default is 'WARNING'.
         numproc (int): Number of processes to use. Default is 1.
-        climatology (str): Climatology to use. Default is 'EC24'.
+        climatology (str): Climatology to use. Default is 'EC26-CMIP'.
         interface (str): Path to the interface file.
         model (str): Model name.
         ensemble (str): Ensemble identifier. Default is 'r1i1p1f1'.

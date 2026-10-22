@@ -25,7 +25,8 @@ loggy = logging.getLogger(__name__)
 def guess_bounds(axis, name="lon"):
     """Basic function that estimates the boundaries for lon and lat if they are not
     available. Works only with regular grids.
-    It also avoid having values larger than 90N/90S as well as 0 and 10^5 Pa"""
+    It also avoid having values larger than 90N/90S as well as 0 and 10^5 Pa.
+    Works for both ascending and descending axes."""
     # inspired by
     # https://gist.github.com/dennissergeev/60bf7b03443f1b2c8eb96ce0b1880150
 
@@ -39,13 +40,17 @@ def guess_bounds(axis, name="lon"):
     min_bounds = axis - diffs[:-1] * bound_position
     max_bounds = axis + diffs[1:] * (1 - bound_position)
 
-    # safety check, to be generalized
-    if name in "lat":
-        max_bounds[-1] = 90
-        min_bounds[0] = -90
-    if name in "plev":
-        min_bounds[0] = 0
-        max_bounds[-1] = 100000
+    # clamp the outer edges to the physical limits, taking into account the axis orientation:
+    # for a descending axis min_bounds[0] is the upper edge and max_bounds[-1] the lower one
+    limits = {"lat": (-90, 90), "plev": (0, 100000)}
+    if name in limits:
+        lower, upper = limits[name]
+        if axis[0] > axis[-1]:
+            min_bounds[0] = upper
+            max_bounds[-1] = lower
+        else:
+            min_bounds[0] = lower
+            max_bounds[-1] = upper
 
     # should we use a xarray object instead of a numpy?
     bounds = np.array([min_bounds, max_bounds]).transpose()

@@ -4,11 +4,18 @@ Shared diagnostic class for ecmean
 
 import logging
 import os
+import warnings
 from pathlib import Path
 
 import xarray as xr
 
 from ecmean import __version__ as version
+from ecmean.libs.climatology import (
+    DEFAULT_CLIMATOLOGY,
+    DEFAULT_REFERENCE,
+    DEPRECATED_CLIMATOLOGY,
+    DEPRECATED_REFERENCE,
+)
 from ecmean.libs.files import load_yaml
 
 ####################
@@ -182,7 +189,15 @@ class Diagnostic:
         self.var_all = self.var_atm + self.var_oce + self.var_ice
 
         if not self.reference:
-            self.reference = cfg["global_mean"]["reference"]
+            self.reference = cfg["global_mean"].get("reference", DEFAULT_REFERENCE)
+
+        if self.reference in DEPRECATED_REFERENCE:
+            msg = (
+                f"Reference {self.reference} is deprecated and will be removed in a future release. "
+                "Please use EC26-CMIP, EC26-HIST or EC26-PDAY."
+            )
+            loggy.warning(msg)
+            warnings.warn(msg, DeprecationWarning, stacklevel=2)
 
         self.reffile = self.indir / f"../reference/gm_reference_{self.reference}.yml"
 
@@ -211,7 +226,16 @@ class Diagnostic:
         self.field_all = self.field_atm2d + self.field_atm3d + self.field_oce + self.field_ice
 
         if not self.climatology:
-            self.climatology = cfg["performance_indices"]["climatology"]
+            self.climatology = cfg["performance_indices"].get("climatology", DEFAULT_CLIMATOLOGY)
+
+        if self.climatology in DEPRECATED_CLIMATOLOGY:
+            msg = (
+                f"Climatology {self.climatology} is deprecated and will be removed in a future release: "
+                "its CMIP6 reference PIs for 3D fields (ta, ua, va, hus) are biased (see issue #150), "
+                "so relative 3D PIs are unreliable. Please use EC26-CMIP or EC26-HIST."
+            )
+            loggy.warning(msg)
+            warnings.warn(msg, DeprecationWarning, stacklevel=2)
 
         self.clmdir = Path(self.indir, "../climatology", self.climatology)
         self.resclmdir = Path(self.clmdir, self.resolution)

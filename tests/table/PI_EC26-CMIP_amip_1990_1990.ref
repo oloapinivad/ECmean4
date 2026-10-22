@@ -1,0 +1,110 @@
+net_sfc:
+  ALL:
+    Global: 4.193
+    North Midlat: 12.135
+    Tropical: 2.932
+    South Midlat: 2.265
+  JJA:
+    Global: 40.48
+    North Midlat: 180.4
+    Tropical: 9.051
+    South Midlat: 17.891
+tas:
+  ALL:
+    Global: 24.566
+    North Midlat: 17.168
+    Tropical: 32.236
+    South Midlat: 17.964
+  JJA:
+    Global: 312.082
+    North Midlat: 445.029
+    Tropical: 197.155
+    South Midlat: 143.859
+psl:
+  ALL:
+    Global: 5.025
+    North Midlat: 2.5
+    Tropical: 7.075
+    South Midlat: 3.449
+  JJA:
+    Global: 23.726
+    North Midlat: 39.208
+    Tropical: 26.929
+    South Midlat: 1.839
+pr:
+  ALL:
+    Global: 5.348
+    North Midlat: 3.45
+    Tropical: 6.541
+    South Midlat: 4.861
+  JJA:
+    Global: 117.105
+    North Midlat: 36.249
+    Tropical: 215.071
+    South Midlat: 2.029
+tauu:
+  ALL:
+    Global: 6.867
+    North Midlat: 6.672
+    Tropical: 9.042
+    South Midlat: 3.234
+  JJA:
+    Global: 11.45
+    North Midlat: 24.603
+    Tropical: 13.093
+    South Midlat: 1.253
+tauv:
+  ALL:
+    Global: 6.091
+    North Midlat: 6.34
+    Tropical: 7.257
+    South Midlat: 3.945
+  JJA:
+    Global: 11.398
+    North Midlat: 16.809
+    Tropical: 15.661
+    South Midlat: 1.028
+ta:
+  ALL:
+    Global: 21.133
+    North Midlat: 24.368
+    Tropical: 7.116
+    South Midlat: 45.931
+  JJA:
+    Global: 188.232
+    North Midlat: 464.506
+    Tropical: 82.681
+    South Midlat: 123.061
+ua:
+  ALL:
+    Global: 6.455
+    North Midlat: 5.742
+    Tropical: 7.648
+    South Midlat: 4.784
+  JJA:
+    Global: 67.312
+    North Midlat: 84.741
+    Tropical: 89.63
+    South Midlat: 5.245
+va:
+  ALL:
+    Global: 3.521
+    North Midlat: 2.948
+    Tropical: 3.131
+    South Midlat: 4.876
+  JJA:
+    Global: 28.673
+    North Midlat: 26.391
+    Tropical: 41.44
+    South Midlat: 5.418
+hus:
+  ALL:
+    Global: 20.179
+    North Midlat: 8.61
+    Tropical: 9.723
+    South Midlat: 52.659
+  JJA:
+    Global: 141.14
+    North Midlat: 172.366
+    Tropical: 112.597
+    South Midlat: 167.001
