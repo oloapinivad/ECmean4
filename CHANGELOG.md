@@ -5,7 +5,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 ## [Unreleased]
 
-Unreleased is the current development version, which is currently lying in `main` branch.
+Unreleased is the current development version (target v0.3.0), which is currently lying in `main` branch.
 
 *IMPORTANT*: 3D performance indices (ta, ua, va, hus) change values
 
