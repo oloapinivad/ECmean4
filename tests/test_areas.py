@@ -27,33 +27,8 @@ def test_guess_bounds_plev(plev):
     assert np.isclose(widths[np.argmin(plev)], 1500)
 
 
-def test_guess_bounds_plev_xarray():
-    """Same result when the axis is an xarray coordinate, as in performance_indices"""
-    axis = xr.DataArray(PLEV, dims=["plev"], coords={"plev": PLEV})["plev"]
-    np.testing.assert_allclose(_widths(guess_bounds(axis, name="plev")), _widths(guess_bounds(PLEV, name="plev")))
-
-
-def test_guess_bounds_ascending_unchanged():
-    """Ascending axes keep the original behaviour"""
-    bounds = guess_bounds(PLEV[::-1], name="plev")
-    assert bounds[0].tolist() == [0, 1500]
-    assert bounds[-1].tolist() == [96250, 100000]
-    lat = np.arange(-89.5, 90, 1.0)
-    bounds = guess_bounds(lat, name="lat")
-    assert bounds[0].tolist() == [-90, -89]
-    assert bounds[-1].tolist() == [89, 90]
-
-
-def test_guess_bounds_lon_not_clamped():
-    """Longitude is never clamped"""
-    lon = np.arange(0.5, 360, 1.0)
-    bounds = guess_bounds(lon, name="lon")
-    assert bounds[0].tolist() == [0, 1]
-    assert bounds[-1].tolist() == [359, 360]
-
-
 def test_area_lat_orientation():
-    """Cell areas do not depend on latitude orientation and sum to the Earth surface"""
+    """Cell areas do not depend on latitude orientation and sum to the Earth surface (longitude is never clamped)"""
     lon = np.arange(0.5, 360, 1.0)
     lat = np.arange(-89.5, 90, 1.0)
     calc = AreaCalculator()

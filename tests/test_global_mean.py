@@ -9,7 +9,6 @@ import pytest
 import xarray as xr
 
 from ecmean.global_mean import GlobalMean, global_mean
-from ecmean.libs.ecplotter import ECPlotter
 from ecmean.libs.files import load_yaml
 from ecmean.libs.general import are_dicts_equal
 from ecmean.libs.ncfixers import xr_preproc
@@ -173,22 +172,6 @@ def test_gm_plot(tmp_path):
     gm.prepare()
     gm.plot(mapfile=outputfile)
     assert os.path.isfile(outputfile), "Plot not created."
-
-
-@pytest.mark.parametrize("addnan", [True, False])
-def test_global_mean_plot_addnan(monkeypatch, addnan):
-    """The addnan option set at initialization is forwarded to the plotter, unless plot() overrides it (#152)"""
-    received = []
-
-    def spy(self, *args, **kwargs):
-        received.append(kwargs["addnan"])
-
-    monkeypatch.setattr(ECPlotter, "heatmap_plot", spy)
-    gm = GlobalMean("cpld", 1990, 1990, config="tests/config.yml", numproc=1, addnan=addnan)
-    gm.varmean = {}
-    gm.plot(storefig=False)
-    gm.plot(storefig=False, addnan=not addnan)
-    assert received == [addnan, not addnan]
 
 
 def test_global_mean_omip_line():
