@@ -45,6 +45,20 @@ resolves directories, interface file and model name, and dispatches on `funcname
 worker (`gm_worker` / `pi_worker`) and collects results in `Manager` dictionaries. `store()` and `plot()`
 write the outputs.
 
+## Prerequisite: ruff
+
+ruff is mandatory. CI runs `ruff check .` and `ruff format --check .` as a gate before the tests, so a change
+that does not pass them cannot be merged.
+
+- Install the pinned version: `pip install "ruff==0.15.21"` (or `pip install -e .[style]`), and optionally enable
+  the hooks with `pre-commit install` (`.pre-commit-config.yaml` runs the same ruff version).
+- **Before starting**, run `ruff check . && ruff format --check .` to confirm a clean baseline.
+- **Before every commit**, run `ruff check . && ruff format .` and commit the result. Never commit code that
+  fails them, and never silence a rule with `# noqa` or by editing `[tool.ruff]` in `pyproject.toml` to get a
+  change through; fix the code. Format only the files you touched, so the diff stays minimal.
+- Configuration lives in `pyproject.toml` (line length 127, double quotes, isort with `ecmean` as first party;
+  `ecmean/utils/**` and `__init__.py` files are excluded).
+
 ## Rules for changes
 
 ### 1. Build on `Diagnostic`, do not parallel it
@@ -117,7 +131,6 @@ check the other and `libs/`:
 - Add or extend a test for each behaviour change; prefer small unit tests (see `tests/test_formula.py`,
   `tests/test_units.py`) next to the end-to-end ones. Keep PI/GM comparisons tight: do not loosen
   `TOLERANCE` to make a test pass.
-- Style is enforced with ruff (`pyproject.toml`: line length 127, double quotes, isort with `ecmean` as
-  first party; `ecmean/utils` and `__init__.py` are excluded): `ruff check . && ruff format .`.
+- Ruff must pass (see the prerequisite above) before tests and commits.
 - Branch from `main` (or the branch your change depends on), keep PRs focused on one concern, and reference
   the issue number in commits and the changelog.
