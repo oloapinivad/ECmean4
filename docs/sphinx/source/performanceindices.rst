@@ -31,9 +31,6 @@ Running the performance indices evaluation is rather simple::
 
    performance_indices EXP Y1 Y2
 
-You can also run it from the specific python script in ``ecmean`` library::
-
-   ./performance_indices.py EXP Y1 Y2
 
 Positional Arguments
 --------------------
@@ -54,10 +51,6 @@ Optional Arguments
 .. option:: -h, --help
 
    Show this help message and exit.
-
-.. option:: -s, --silent
-
-   Do not print anything to standard output.
 
 .. option:: --version
 
@@ -126,7 +119,7 @@ An example of the output for a single year of the EC-Earth3 historical simulatio
 Climatologies available
 ^^^^^^^^^^^^^^^^^^^^^^^
 
-Currently, three different climatologies are available, EC26, EC24 and EC23, covering different observation periods and based on different datasets.
+Currently, EC26 (EC26-CMIP and EC26-HIST) is the supported climatology. The older EC24 and EC23 are still available but deprecated, and they cover different observation periods and are based on different datasets.
 
 .. warning::
    EC24 and EC23 are deprecated and will be removed in a future release.

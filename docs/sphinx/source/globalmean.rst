@@ -19,9 +19,6 @@ Running the global mean evaluation is rather simple::
 
    global_mean EXP Y1 Y2
 
-Alternatively, you can also run the python script in ``ecmean`` library::
-
-   ./global_mean.py EXP Y1 Y2
 
 Positional Arguments
 --------------------
@@ -41,10 +38,6 @@ Optional Arguments
 .. option:: -h, --help
 
    Show this help message and exit.
-
-.. option:: -s, --silent
-
-   Do not print anything to standard output.
 
 .. option:: --version
 

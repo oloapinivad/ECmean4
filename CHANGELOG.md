@@ -16,6 +16,8 @@ Unreleased is the current development version, which is currently lying in `main
 - A variable failing in a worker no longer drops the other variables of the same worker: it is logged and stored as NaN, and dead workers raise an explicit error (#151)
 - `addnan` option and `--addnan` flag of global mean are now forwarded to the plot, so variables without reference are hidden by default (#152)
 - `global_mean --line` no longer crashes when variables of the tuning table are missing, as in OMIP/AMIP runs: they are written as NaN (#153)
+- Remove the unused `silent` argument of `GlobalMean`, `PerformanceIndices`, `Diagnostic` and of the wrapper functions, and the `-s/--silent` command line flag: it never had any effect (breaking for calls passing `silent`)
+- Documentation: document the variable keys and the derived variables of the interface files; complete docstrings of `global_mean()`, `performance_indices()` and `Diagnostic`, add Python API usage to the Sphinx docs and remove the non-working `./script.py` instructions
 - Workers split into per-variable functions, with variable loading shared between GM and PI in `load_variable()` (#151)
 - Formulas of derived variables are parsed with Python's `ast` module instead of a hand-written tokenizer, with the same supported syntax (#157)
 
