@@ -44,7 +44,6 @@ class Diagnostic:
         modelname=None,
         outputdir=None,
         xdataset=None,
-        silent=None,
         numproc=1,
         climatology=None,
         reference=None,
@@ -53,7 +52,23 @@ class Diagnostic:
         Initialize the Diagnostic instance.
 
         Args:
-            args: Arguments from command line/function.
+            exp (str): Experiment name.
+            year1 (int): Start year.
+            year2 (int): End year.
+            config (str or dict): Path to the configuration file, or configuration dictionary.
+            funcname (str): Diagnostic name, 'GlobalMean' or 'PerformanceIndices'.
+            line (bool): Write the single-line tuning table (global mean only).
+            trend (bool): Compute trends (global mean only).
+            resolution (str): Target grid for the interpolation. Default is 'r360x180'.
+            ensemble (str): Ensemble identifier. Default is 'r1i1p1f1'.
+            addnan (bool): Plot also variables without reference (global mean only).
+            interface (str): Interface name or file, overriding the configuration.
+            modelname (str): Model name, overriding the configuration.
+            outputdir (str): Output directory, overriding the folders of the configuration.
+            xdataset (xarray.Dataset or xarray.DataArray): Data to use instead of reading the files.
+            numproc (int): Number of processes.
+            climatology (str): Performance indices climatology, overriding the configuration.
+            reference (str): Global mean reference, overriding the configuration.
         """
 
         # arguments from command line/function
@@ -65,7 +80,6 @@ class Diagnostic:
         self.ftrend = trend
         self.numproc = numproc
         self.climatology = climatology
-        self.silent = silent
         self.resolution = resolution
         self.reference = reference
         self.ensemble = ensemble

@@ -65,9 +65,9 @@ class PerformanceIndices:
         interface (str): Path to the interface file.
         model (str): Model name.
         ensemble (str): Ensemble identifier. Default is 'r1i1p1f1'.
-        silent (bool): If True, suppress output. Default is None.
         xdataset (xarray.Dataset): Dataset to use.
         outputdir (str): Directory to store output files.
+        extrafigure (bool): Special key for manual debugging, producing extra figures. Do not use.
         loggy (logging.Logger): Logger instance.
         diag (Diagnostic): Diagnostic instance.
         face (dict): Interface dictionary.
@@ -91,7 +91,6 @@ class PerformanceIndices:
         interface=None,
         model=None,
         ensemble="r1i1p1f1",
-        silent=None,
         xdataset=None,
         outputdir=None,
         extrafigure=False,
@@ -115,7 +114,6 @@ class PerformanceIndices:
             outputdir=outputdir,
             xdataset=xdataset,
         )
-        self.silent = silent
         self.face = None
         self.piclim = None
         self.util_dictionary = None
@@ -252,6 +250,7 @@ class PerformanceIndices:
         Args:
             diagname (str): Name of the diagnostic. Default is 'performance_indices'.
             mapfile (str): Path to the output file. If None, it will be defined automatically following ECmean syntax.
+            figformat (str): Format of the output file. Default is 'pdf'.
             storefig (bool): If True, store the figure in the specified file. Default is True.
             returnfig (bool): If True, return the figure object. Default is False.
         """
@@ -522,14 +521,31 @@ def performance_indices(
     interface=None,
     model=None,
     ensemble="r1i1p1f1",
-    silent=None,
     xdataset=None,
     outputdir=None,
     title=None,
     plot=True,
 ):
     """
-    Wrapper function to compute the performance indices for a given experiment and years.
+    Compute the performance indices, store the YAML file and produce the figure.
+
+    Wrapper around :class:`PerformanceIndices`: it runs ``prepare()``, ``run()``, ``store()`` and, if requested, ``plot()``.
+
+    Args:
+        exp (str): Experiment name.
+        year1 (int): Start year of the experiment.
+        year2 (int): End year of the experiment.
+        config (str or dict): Path to the configuration file or configuration dictionary. Default is 'config.yml'.
+        loglevel (str): Logging level. Default is 'WARNING'.
+        numproc (int): Number of processes to use. Default is 1.
+        climatology (str): Climatology to use. Default is None (from configuration, then EC26-CMIP).
+        interface (str): Interface name or path to the interface file. Default is None (from configuration).
+        model (str): Model name. Default is None (from configuration).
+        ensemble (str): Ensemble identifier. Default is 'r1i1p1f1'.
+        xdataset (xarray.Dataset): Dataset to use instead of reading the files. Default is None.
+        outputdir (str): Output directory. Default is None (from configuration).
+        title (str): Title of the plot, overrides default title. Default is None.
+        plot (bool): Whether to produce the figure after storing the YAML file. Default is True.
     """
     pi = PerformanceIndices(
         exp=exp,
@@ -542,7 +558,6 @@ def performance_indices(
         interface=interface,
         model=model,
         ensemble=ensemble,
-        silent=silent,
         xdataset=xdataset,
         outputdir=outputdir,
         title=title,

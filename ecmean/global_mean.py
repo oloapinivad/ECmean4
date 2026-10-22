@@ -59,11 +59,12 @@ class GlobalMean:
         model (str): Model name. Default is None.
         ensemble (str): Ensemble identifier. Default is 'r1i1p1f1'.
         addnan (bool): Whether to add NaNs. Default is False.
-        silent (bool): Whether to suppress output. Default is None.
         trend (bool): Whether to compute trends. Default is None.
         line (str): Line identifier. Default is None.
         outputdir (str): Output directory. Default is None.
-        xdataset (str): Path to the xdataset. Default is None.
+        xdataset (xarray.Dataset): Dataset to use instead of reading the files. Default is None.
+        reference (str): Reference for the comparison (e.g. 'EC26-CMIP', 'EC26-HIST', 'EC26-PDAY').
+            If None, the value in the configuration file or the default (EC26-CMIP) is used.
         loggy (logging.Logger): Logger instance.
         diag (Diagnostic): Diagnostic instance.
         face (dict): Interface dictionary.
@@ -88,7 +89,6 @@ class GlobalMean:
         model=None,
         ensemble="r1i1p1f1",
         addnan=False,
-        silent=None,
         trend=None,
         line=None,
         outputdir=None,
@@ -110,7 +110,6 @@ class GlobalMean:
             interface=interface,
             modelname=model,
             addnan=addnan,
-            silent=silent,
             trend=trend,
             line=line,
             outputdir=outputdir,
@@ -469,7 +468,6 @@ def global_mean(
     model=None,
     ensemble="r1i1p1f1",
     addnan=False,
-    silent=None,
     trend=None,
     line=None,
     outputdir=None,
@@ -477,7 +475,30 @@ def global_mean(
     reference=None,
     title=None,
 ):
-    """Wrapecmeanction to compute the global mean."""
+    """
+    Compute the global mean, store the YAML table and produce the figure.
+
+    Wrapper around :class:`GlobalMean`: it runs ``prepare()``, ``run()``, ``store()`` and ``plot()``.
+
+    Args:
+        exp (str): Experiment name.
+        year1 (int): Start year of the experiment.
+        year2 (int): End year of the experiment.
+        config (str or dict): Path to the configuration file or configuration dictionary. Default is 'config.yml'.
+        loglevel (str): Logging level. Default is 'WARNING'.
+        numproc (int): Number of processes to use. Default is 1.
+        interface (str): Interface name or path to the interface file. Default is None (from configuration).
+        model (str): Model name. Default is None (from configuration).
+        ensemble (str): Ensemble identifier. Default is 'r1i1p1f1'.
+        addnan (bool): Whether to plot also variables without reference. Default is False.
+        trend (bool): Whether to compute trends. Default is None.
+        line (bool): Whether to write the single-line tuning table. Default is None.
+        outputdir (str): Output directory. Default is None (from configuration).
+        xdataset (xarray.Dataset): Dataset to use instead of reading the files. Default is None.
+        reference (str): Reference for the comparison, one of the supported global mean references.
+            Default is None (from configuration, then EC26-CMIP).
+        title (str): Title of the plot, overrides default title. Default is None.
+    """
     gm = GlobalMean(
         exp,
         year1,
@@ -489,7 +510,6 @@ def global_mean(
         model=model,
         ensemble=ensemble,
         addnan=addnan,
-        silent=silent,
         trend=trend,
         line=line,
         outputdir=outputdir,
