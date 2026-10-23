@@ -2,6 +2,8 @@
 
 import logging
 
+loggy = logging.getLogger(__name__)
+
 
 def setup_logger(level=None, name=None):
     """Define a logger to be used extensively within smmregrid"""
@@ -40,7 +42,7 @@ def convert_logger(loglev=None):
     """Convert a string or integer to a valid logging level"""
 
     # Default log level for the AQUA framework
-    loglev_default = "WARNING"
+    LOGLEV_DEFAULT = "WARNING"
 
     # If loglev is a string, convert it to uppercase
     if isinstance(loglev, str):
@@ -52,7 +54,7 @@ def convert_logger(loglev=None):
 
     # If loglev is None, set it to the default log level
     elif loglev is None:
-        loglev = loglev_default
+        loglev = LOGLEV_DEFAULT
 
     # If loglev is of an unsupported type, raise a ValueError
     else:
@@ -63,7 +65,7 @@ def convert_logger(loglev=None):
 
     # If loglev_int is None, the log level doesn't exist
     if loglev_int is None:
-        logging.warning("Invalid logging level '%s' specified. Setting it back to default '%s'.", loglev, loglev_default)
-        loglev = loglev_default
+        loggy.warning("Invalid logging level '%s' specified. Setting it back to default '%s'.", loglev, LOGLEV_DEFAULT)
+        loglev = LOGLEV_DEFAULT
 
     return loglev

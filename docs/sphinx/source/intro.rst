@@ -6,32 +6,32 @@ About
 
 |ecmean| is a lightweight parallelized tool for the evaluation of basic properties of Global Climate Models: to this date, it includes the evaluation of global mean quantities
 and a series of climate model performance indices.
- 
-It builds on the original `ECmean <https://github.com/plesager/ece3-postproc/tree/master/ECmean>`_ which has been used for EC-Earth2 and EC-Earth3 evaluation, but it uses Python3 and YML configuration files. 
+
+It builds on the original `ECmean <https://github.com/plesager/ece3-postproc/tree/master/ECmean>`_ which has been used for EC-Earth2 and EC-Earth3 evaluation, but it uses Python3 and YML configuration files.
 While the original ecmean version has been developed via CDO lazy calls, the current version is based on `Xarray <https://docs.xarray.dev/en/stable/>`_ and `Dask <https://examples.dask.org/xarray.html>`_.
 
 
 Under the hood
 --------------
 
-|ecmean| is built on Xarray and Dask lazy calls which are executed in a single instance at the end of the script, 
-exploiting parallelization on multiple variables with `Multiprocessing <https://docs.python.org/3/library/multiprocessing.html>`_. 
-This allows to have a fast data analysis without writing unnecessary files on disk. Interpolation is carried out with `xESMF <https://xesmf.readthedocs.io/en/latest/>`_. 
+|ecmean| is built on Xarray and Dask lazy calls which are executed in a single instance at the end of the script,
+exploiting parallelization on multiple variables with `Multiprocessing <https://docs.python.org/3/library/multiprocessing.html>`_.
+This allows to have a fast data analysis without writing unnecessary files on disk. Interpolation is carried out with `xESMF <https://xesmf.readthedocs.io/en/latest/>`_.
 Area weighting is internally assessed based on spherical triangles computation (i.e. L'Huilier theorem), and it uses coordinates boundaries as far as possible.
-Working with YML files in each configuration aspect allows for a more flexible usage, making it possible to expand the support to new climate models or to include new reference climatologies. 
+Working with YML files in each configuration aspect allows for a more flexible usage, making it possible to expand the support to new climate models or to include new reference climatologies.
 Scripts are thought to be run from command line so that they can be easily integrated within an Earth System Model workflow.
 
-|ecmean| also takes into account possible unit mismatches between the original dataset and the observational datasets, making use of the `MetPY <https://unidata.github.io/MetPy/latest/index.html>`_ 
+|ecmean| also takes into account possible unit mismatches between the original dataset and the observational datasets, making use of the `MetPY <https://unidata.github.io/MetPy/latest/index.html>`_
 extension of the Pint python package. Heat and moisture flux sign conventions are also assessed.
 
-For the performance indices, since interpolation is required, weights are pre-computed only once to increase efficiency. 
-Although conservative interpolation would be the better option, so far bilinear interpolation is preferred since it ensures more consistent results. 
+For the performance indices, since interpolation is required, weights are pre-computed only once to increase efficiency.
+Although conservative interpolation would be the better option, so far bilinear interpolation is preferred since it ensures more consistent results.
 
-	
+
 Computational performances
 --------------------------
 
-|ecmean| can process many years and multiple variables in less than 5 minutes (assuming that output is provided as monthly means). 
+|ecmean| can process many years and multiple variables in less than 5 minutes (assuming that output is provided as monthly means).
 Performance indices are inherently slower than global mean, but with a few cores available both can be completed in a couple of minutes.
 Since parallelization is done along variables, it does not make sense (especially for performance indices) to use more than 6 cores due to the limited number of variables.
 
@@ -71,4 +71,3 @@ Or alternatively, in bibtex format:
       howpublished = {\url{https://doi.org/10.5281/zenodo.13834627}},
       note         = {Open-source software}
    }
-

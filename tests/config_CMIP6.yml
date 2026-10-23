@@ -13,13 +13,13 @@ global_mean:
   variables:
     atm: [pr, pr_land, pr_oce]
     oce: [tos]
-    ice: [siconc_north, siconc_south]
+    ice: [siconc]
     tab: [pr, tos]
   regions: ['Global', 'North Midlat', 'Tropical', 'South Midlat']
   seasons: ['ALL', 'JJA']
 
 
-performance_indices: 
+performance_indices:
   variables:
     atm2d: [pr]
     atm3d: [ta]
@@ -28,4 +28,3 @@ performance_indices:
   regions: ['Global', 'North Midlat', 'Tropical', 'South Midlat']
   seasons: ['ALL', 'JJA']
   resolution: r360x180
-

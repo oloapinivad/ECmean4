@@ -5,53 +5,53 @@ net_sfc:
     Tropical: 3.746
     South Midlat: 2.449
   JJA:
-    Global: 45.823
-    North Midlat: 208.749
+    Global: 45.83
+    North Midlat: 208.701
     Tropical: 10.365
     South Midlat: 17.604
 tas:
   ALL:
-    Global: 21.819
-    North Midlat: 14.657
-    Tropical: 28.944
-    South Midlat: 19.216
+    Global: 21.805
+    North Midlat: 14.636
+    Tropical: 28.938
+    South Midlat: 19.173
   JJA:
-    Global: 301.788
-    North Midlat: 434.432
-    Tropical: 185.981
-    South Midlat: 147.423
+    Global: 301.774
+    North Midlat: 434.414
+    Tropical: 186.055
+    South Midlat: 147.176
 psl:
   ALL:
     Global: 4.604
-    North Midlat: 2.477
+    North Midlat: 2.475
     Tropical: 6.33
     South Midlat: 3.279
   JJA:
     Global: 23.561
-    North Midlat: 40.559
-    Tropical: 25.911
+    North Midlat: 40.553
+    Tropical: 25.913
     South Midlat: 1.865
 pr:
   ALL:
     Global: 4.959
     North Midlat: 3.323
     Tropical: 5.808
-    South Midlat: 4.897
+    South Midlat: 4.895
   JJA:
-    Global: 102.94
-    North Midlat: 36.237
-    Tropical: 186.722
+    Global: 102.873
+    North Midlat: 35.93
+    Tropical: 186.742
     South Midlat: 2.077
 tauu:
   ALL:
-    Global: 6.738
-    North Midlat: 6.507
-    Tropical: 8.843
+    Global: 6.737
+    North Midlat: 6.506
+    Tropical: 8.842
     South Midlat: 3.245
   JJA:
     Global: 11.252
-    North Midlat: 24.294
-    Tropical: 12.829
+    North Midlat: 24.295
+    Tropical: 12.828
     South Midlat: 1.23
 tauv:
   ALL:
@@ -60,54 +60,54 @@ tauv:
     Tropical: 7.097
     South Midlat: 3.912
   JJA:
-    Global: 11.259
-    North Midlat: 16.744
+    Global: 11.258
+    North Midlat: 16.743
     Tropical: 15.397
     South Midlat: 1.06
 ta:
   ALL:
-    Global: 28.567
-    North Midlat: 11.079
-    Tropical: 6.527
-    South Midlat: 90.134
+    Global: 19.54
+    North Midlat: 20.699
+    Tropical: 6.434
+    South Midlat: 44.592
   JJA:
-    Global: 218.027
-    North Midlat: 510.383
-    Tropical: 81.24
-    South Midlat: 199.243
+    Global: 175.676
+    North Midlat: 442.142
+    Tropical: 66.729
+    South Midlat: 127.104
 ua:
   ALL:
-    Global: 4.217
-    North Midlat: 4.069
-    Tropical: 4.718
-    South Midlat: 3.363
+    Global: 5.556
+    North Midlat: 5.512
+    Tropical: 6.088
+    South Midlat: 4.535
   JJA:
-    Global: 82.966
-    North Midlat: 220.07
-    Tropical: 46.217
-    South Midlat: 19.358
+    Global: 61.215
+    North Midlat: 82.588
+    Tropical: 78.569
+    South Midlat: 5.134
 va:
   ALL:
-    Global: 2.403
-    North Midlat: 1.992
-    Tropical: 2.483
-    South Midlat: 2.654
+    Global: 3.447
+    North Midlat: 3.088
+    Tropical: 2.883
+    South Midlat: 4.935
   JJA:
-    Global: 52.235
-    North Midlat: 126.153
-    Tropical: 39.269
-    South Midlat: 4.248
+    Global: 25.721
+    North Midlat: 24.059
+    Tropical: 36.848
+    South Midlat: 5.129
 hus:
   ALL:
-    Global: 27.469
-    North Midlat: 7.517
-    Tropical: 9.964
-    South Midlat: 82.432
+    Global: 19.441
+    North Midlat: 8.204
+    Tropical: 9.582
+    South Midlat: 50.394
   JJA:
-    Global: 168.174
-    North Midlat: 186.415
-    Tropical: 127.669
-    South Midlat: 230.942
+    Global: 144.701
+    North Midlat: 176.177
+    Tropical: 110.85
+    South Midlat: 180.928
 tos:
   ALL:
     Global: 46.773

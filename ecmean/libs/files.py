@@ -1,16 +1,19 @@
-#!/usr/bin/env python3
 """
 Shared functions for XArray ecmean
 """
 
-import os
-import re
 import logging
-from pathlib import Path
+import os
 from glob import glob
-import yaml
+from pathlib import Path
+
 import xarray as xr
+import yaml
+
 from ecmean.libs.climatology import SUPPORTED_CLIMATOLOGY
+from ecmean.libs.formula import formula_variables, formula_wrapper
+from ecmean.libs.general import check_time_axis, check_var_interface
+from ecmean.libs.ncfixers import xr_preproc
 
 loggy = logging.getLogger(__name__)
 
@@ -36,6 +39,23 @@ def inifiles_priority(inidict):
     return None
 
 
+def open_input_files(flist, **kwargs):
+    """Open a list of files as a single dataset, with the same combine/join
+    options for all the diagnostics. Extra keyword arguments (e.g. preprocess,
+    chunks) are passed to xarray.open_mfdataset."""
+
+    return xr.open_mfdataset(flist, combine="by_coords", data_vars="all", join="outer", compat="no_conflicts", **kwargs)
+
+
+def files_exist(flist, var):
+    """Check that a list of input files is non-empty and all files exist"""
+
+    if not flist or not all(Path(f).is_file() for f in flist):
+        loggy.error("No valid files found for variable %s. Ignoring it.", var)
+        return False
+    return True
+
+
 def var_is_there(flist, var, face):
     """
     Check if a variable is available in the input file and provide its units.
@@ -54,10 +74,9 @@ def var_is_there(flist, var, face):
     if isinstance(flist, (xr.DataArray, xr.Dataset)):
         xfield = flist
     else:
-        if not flist or not all(Path(f).is_file() for f in flist):
-            loggy.error("No valid files found for variable %s. Ignoring it.", var)
+        if not files_exist(flist, var):
             return False, None
-        xfield = xr.open_mfdataset(flist, combine="by_coords", data_vars="all", join="outer", compat="no_conflicts")
+        xfield = open_input_files(flist)
 
     # if variable is derived, extract required vars
     var_req = _get_variables_to_load(var, face)
@@ -85,6 +104,44 @@ def var_is_there(flist, var, face):
             loggy.debug("Variable '%s' is derived. Using unit from its first component '%s': %s", var, var_req[0], varunit)
 
     return True, varunit
+
+
+def load_variable(var, face, diag):
+    """
+    Load the field of a variable for the years of the diagnostic, shared by global mean and PI workers.
+
+    Args:
+        var (str): the variable name.
+        face (dict): the interface file containing variable definitions.
+        diag (Diagnostic): the diagnostic instance.
+
+    Returns:
+        tuple: (field, units), with field as a lazy xarray.DataArray and units the original model units,
+            or None if the variable is not defined in the interface or not available.
+    """
+
+    if not check_var_interface(var, face):
+        return None
+
+    infile = make_input_filename(var, face, diag)
+
+    # open the files only once (chunking on time only, might be improved) and check the variable on the dataset
+    if isinstance(infile, (xr.DataArray, xr.Dataset)):
+        xfield = infile
+    elif files_exist(infile, var):
+        xfield = open_input_files(infile, preprocess=xr_preproc, chunks={"time": 12})
+    else:
+        return None
+
+    isavail, varunit = var_is_there(xfield, var, face)
+    if not isavail:
+        return None
+
+    # in case of big files with multi year, be sure of having opened the right records
+    xfield = xfield.sel(time=xfield.time.dt.year.isin(diag.years_joined))
+    check_time_axis(xfield.time, diag.years_joined)
+
+    return formula_wrapper(var, face, xfield), varunit
 
 
 def get_clim_files(piclim, var, diag, season):
@@ -267,13 +324,14 @@ def make_input_filename(cmorname, face, diag):
     filepath = _create_filepath(cmorname, face, diag)
 
     # create the file structure according to the interface file
+    # the pattern does not depend on the year (years are wildcards): glob once per variable
+    globbed = {var: glob(str(_expand_filename(filepath, var, diag))) for var in varname}
+
     filename = []
     for year in diag.years_joined:
         filename1 = []
         for var in varname:
-            expandfile = _expand_filename(filepath, var, diag)
-            filenames = glob(str(expandfile))
-            fname = _filter_filename_by_year(str(filepath), filenames, year)
+            fname = _filter_filename_by_year(str(filepath), globbed[var], year)
             filename1 = filename1 + fname
         filename = filename + filename1
     filename = list(dict.fromkeys(filename))  # Filter unique ones
@@ -291,9 +349,9 @@ def _get_variables_to_load(var, face):
         face: the interface file
     """
 
-    if "derived" in face["variables"][var].keys():
+    if "derived" in face["variables"][var]:
         cmd = face["variables"][var]["derived"]
-        return [x for x in re.split("[*+-/]", cmd) if not x.isdigit()]
+        return formula_variables(cmd)
 
     return [var]
 

@@ -1,16 +1,15 @@
 # Create the ecmean environment:
-# mamba env create -f environment.yml 
-# or 
+# mamba env create -f environment.yml
+# or
 # conda env create -f environment.yml
 
 name : ecmean
 channels:
   - conda-forge
 dependencies:
-  - python>=3.9,<3.15
+  - python>=3.10,<3.16
   - xesmf
   - eccodes
   - pip
   - pip:
     - -e .
-

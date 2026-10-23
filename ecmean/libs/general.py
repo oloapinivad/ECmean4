@@ -1,16 +1,16 @@
-#!/usr/bin/env python3
 """
 Shared functions for XArray ecmean
 """
 
-import os
 import logging
-import platform
 import math
 import multiprocessing
-import pandas as pd
-import numpy as np
+import os
+import platform
+from time import time
 
+import numpy as np
+import pandas as pd
 
 ##################
 # HELP FUNCTIONS #
@@ -18,6 +18,25 @@ import numpy as np
 
 
 loggy = logging.getLogger(__name__)
+
+
+class Timer:
+    """Timer logging the time elapsed since the previous call and since the start."""
+
+    def __init__(self, logger=None):
+        self.logger = logger or loggy
+        self.start_time = time()
+        self.current_time = self.start_time
+
+    def toc(self, message):
+        """Update the timer and log the elapsed time."""
+        elapsed_time = time() - self.current_time
+        self.current_time = time()
+        self.logger.info("%s time: %.2f seconds", message, elapsed_time)
+
+    def final_toc(self):
+        """Log the total elapsed time since the start."""
+        self.logger.info("Total execution time: %.2f seconds", time() - self.start_time)
 
 
 def set_multiprocessing_start_method():
@@ -51,19 +70,6 @@ def check_time_axis(xtime, years):
     if missing:
         loggy.warning("Check your data: some years are missing")
         loggy.warning("Year missing: %s", missing)
-
-
-# def chunks(iterable, num):
-#     """Generate num adjacent chunks of data from a list iterable
-#     Split lists in a convenient way for a parallel process"""
-
-#     size = int(np.ceil(len(iterable) / num))
-#     it = iter(iterable)
-#     return iter(lambda: tuple(itertools.islice(it, size)), ())
-
-# def split(iterable, num):
-#     k, m = divmod(len(iterable), num)
-#     return (iterable[i*k+min(i, m):(i+1)*k+min(i+1, m)] for i in range(num))
 
 
 def runtime_weights(varlist):
@@ -108,16 +114,34 @@ def weight_split(a, n):
     ws = sorted(runtime_weights(a).items(), key=lambda x: x[1], reverse=True)
     ordered = dict(ws)
 
-    elists = [[0] for _ in range(n)]
+    loads = [0] * n
     olists = [[] for _ in range(n)]
 
-    count = 0
+    # greedy longest-processing-time: assign each item to the least loaded bin
     for fff, value in ordered.items():
-        elists[count].append(value)
+        count = loads.index(min(loads))
+        loads[count] += value
         olists[count].append(fff)
-        count = elists.index(min(elists))
 
     return olists
+
+
+def check_workers(processes):
+    """
+    Check that all the worker processes ended successfully, after they have been joined.
+    Workers catch the errors of each variable, so a non-zero exit code means that the
+    process died anyway (e.g. killed by the OS) and its results are missing.
+
+    Args:
+        processes (list): List of (Process, list of variables) tuples.
+
+    Raises:
+        RuntimeError: If any worker exited with a non-zero exit code.
+    """
+
+    failed = [varlist for proc, varlist in processes if proc.exitcode != 0]
+    if failed:
+        raise RuntimeError(f"Worker processes failed while computing variables {failed}")
 
 
 def check_var_interface(var, face):
@@ -154,7 +178,7 @@ def get_domain(var, face):
 ####################
 
 
-def dict_to_dataframe(varstat, allowed=["ALL", "DJF", "JJA", "MAM", "SON"]):
+def dict_to_dataframe(varstat, allowed=None):
     """
     Converts a nested 3-level dictionary to a pandas DataFrame.
 
@@ -166,6 +190,8 @@ def dict_to_dataframe(varstat, allowed=["ALL", "DJF", "JJA", "MAM", "SON"]):
     pd.DataFrame: Transformed DataFrame with hierarchical keys.
     """
     # Use set for O(1) lookup instead of O(n) list lookup
+    if allowed is None:
+        allowed = ["ALL", "DJF", "JJA", "MAM", "SON"]
     allowed_seasons = set(allowed)
 
     data_table = {}
@@ -183,24 +209,25 @@ def dict_to_dataframe(varstat, allowed=["ALL", "DJF", "JJA", "MAM", "SON"]):
 
 def write_tuning_table(linefile, varmean, var_table, diag, ref):
     """Write results appending one line to a text file.
-    Write a tuning table: need to fix reference to face/ref"""
+    Write a tuning table: need to fix reference to face/ref.
+    Variables missing from varmean (e.g. removed in OMIP/AMIP runs) are written as NaN,
+    so that the columns stay aligned with the header across runs."""
 
     if not os.path.isfile(linefile):
         with open(linefile, "w", encoding="utf-8") as f:
             print("%model  ens  exp from   to ", end="", file=f)
             for var in var_table:
-                print("{:>12s}".format(var), end=" ", file=f)
+                print(f"{var:>12s}", end=" ", file=f)
             print("\n%                         ", end=" ", file=f)
             for var in var_table:
-                print("{:>12s}".format(ref[var]["units"]), end=" ", file=f)
+                print("{:>12s}".format(ref.get(var, {}).get("units", "")), end=" ", file=f)
             print(file=f)
 
     with open(linefile, "a", encoding="utf-8") as f:
-        print(
-            f"{diag.modelname} {diag.ensemble} {diag.expname}", "{:4d} {:4d} ".format(diag.year1, diag.year2), end="", file=f
-        )
+        print(f"{diag.modelname} {diag.ensemble} {diag.expname}", f"{diag.year1:4d} {diag.year2:4d} ", end="", file=f)
         for var in var_table:
-            print("{:12.5f}".format(varmean[var]["ALL"]["Global"] * ref[var].get("factor", 1)), end=" ", file=f)
+            value = varmean.get(var, {}).get("ALL", {}).get("Global", float("nan"))
+            print("{:12.5f}".format(value * ref.get(var, {}).get("factor", 1)), end=" ", file=f)
         print(file=f)
 
 

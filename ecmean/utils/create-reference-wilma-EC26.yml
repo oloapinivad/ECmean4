@@ -1,5 +1,5 @@
 # directories to be specified, machine dependent, simplify path serach
-dirs: 
+dirs:
   datadir: "/work/scratch/users/paolo/ecmean_datasets"
   eradir: "/work/datasets/obs/ERA5"
   esadir: "/work/datasets/obs/ESA-CCI-L4/mon"
@@ -18,9 +18,9 @@ mask: "/work/datasets/obs/ERA5/land_sea_mask/landsea_mask.nc"
 #  direction: for fluxes, can be 'up' or 'down' (default)
 #  org_units: original file units
 #  tgt_units: target file units: conversion done with metpy, integrals have a m^2 factor
-#  dir: where to find 
+#  dir: where to find
 
-tas_land: 
+tas_land:
   dataset: CRU
   longname: '2m Temperature (land-only)'
   varname: tmp
@@ -30,7 +30,7 @@ tas_land:
   dir: "{datadir}/{dataset}/data/v4.09/*.nc"
   description: 'CRU TS4.09 Mean Temperature'
   version: '4.09'
-tas: 
+tas:
   dataset: BERKELEY-EARTH
   longname: '2m Temperature'
   varname: 2t
@@ -38,7 +38,7 @@ tas:
   tgt_units: celsius
   dir: "{datadir}/{dataset}/Berkeley-Earth_aqua-filled_1x1_1979-2024.nc"
   description: "Berkeley Earth Surface Temperature, version without missing points used in AQUA"
-psl: 
+psl:
   dataset: ERA5
   longname: 'Mean Sea Level Pressure'
   varname: MSL
@@ -55,7 +55,7 @@ pr:
   dir: "{mswepdir}/*.nc"
   description: 'v2.80; PAST+NRT'
   version: '2.80'
-evspsbl: 
+evspsbl:
   dataset: ERA5
   longname: 'Evaporation'
   varname: E
@@ -63,7 +63,7 @@ evspsbl:
   tgt_units: mm/day
   dir: "{eradir}/evaporation/mon/*.nc"
   description: 'ECMWF ERA5 reanalysis'
-pme: 
+pme:
   dataset: ERA5
   longname: 'Precip. minus Evap.'
   varname: TP+E
@@ -71,7 +71,7 @@ pme:
   tgt_units: mm/day
   dir: ['{eradir}/total_precipitation/mon/ERA5_total_precipitation_mon_full_sfc_1940-2024.nc', '{eradir}/evaporation/mon/*.nc']
   description: 'ECMWF ERA5 reanalysis'
-clt: 
+clt:
   dataset: EBAF_v4.2.1
   longname: 'Total Cloud Cover'
   varname: cldarea_total_daynight_mon
@@ -80,7 +80,7 @@ clt:
   dir: "{datadir}/{dataset}/CERES_EBAF_Edition4.2.1_MONTHLY_200003-202506.nc"
   description: 'Edition 4.2.1; Revised data Release Date March 14, 2025'
   version: '4.2.1'
-cll: 
+cll:
   dataset: ERA5
   longname: 'Low Cloud Cover'
   varname: LCC
@@ -88,7 +88,7 @@ cll:
   tgt_units: frac
   dir: '{eradir}/low_cloud_cover/*.nc'
   description: 'ECMWF ERA5 reanalysis'
-clm: 
+clm:
   dataset: ERA5
   longname: 'Medium Cloud Cover'
   varname: MCC
@@ -96,7 +96,7 @@ clm:
   tgt_units: frac
   dir: '{eradir}/medium_cloud_cover/mon/*.nc'
   description: 'ECMWF ERA5 reanalysis'
-clh: 
+clh:
   dataset: ERA5
   longname: 'High Cloud Cover'
   varname: HCC
@@ -115,7 +115,7 @@ pr_oce:
   dir: "{mswepdir}/*.nc"
   description: 'v2.80; PAST+NRT'
   version: '2.80'
-pme_oce: 
+pme_oce:
   dataset: ERA5
   longname: 'Precip. minus Evap. (ocean)'
   mask: ocean
@@ -124,12 +124,11 @@ pme_oce:
   org_units: m/day
   tgt_units: Sv
   dir: ['{eradir}/total_precipitation/mon/ERA5_total_precipitation_mon_full_sfc_1940-2024.nc', '{eradir}/evaporation/mon/*.nc']
-  description: 'ECMWF ERA5 reanalysis'  
+  description: 'ECMWF ERA5 reanalysis'
 pr_land:
   dataset: MSWEP
   longname: 'Precipitation (land)'
   varname: precipitation
-  operation: integral
   mask: land
   operation: integral
   org_units: mm/month
@@ -137,7 +136,7 @@ pr_land:
   dir: "{mswepdir}/*.nc"
   description: 'v2.80; PAST+NRT'
   version: '2.80'
-pme_land: 
+pme_land:
   dataset: ERA5
   longname: 'Precip. minus Evap. (land)'
   mask: land
@@ -146,8 +145,8 @@ pme_land:
   org_units: m/day
   tgt_units: Sv
   dir: ['{eradir}/total_precipitation/mon/ERA5_total_precipitation_mon_full_sfc_1940-2024.nc', '{eradir}/evaporation/mon/*.nc']
-  description: 'ECMWF ERA5 reanalysis'  
-tos: 
+  description: 'ECMWF ERA5 reanalysis'
+tos:
   dataset: ESA-CCI-L4
   longname: 'Sea Surface Temperature'
   varname: 'analysed_sst'
@@ -155,10 +154,10 @@ tos:
   domain: oce
   org_units: K
   tgt_units: celsius
-  dir: '{esadir}/analysed_sst/*.nc'  
+  dir: '{esadir}/analysed_sst/*.nc'
   description: 'ESA SST CCI OSTIA L4 v3.0.1'
   version: '3.0.1'
-sos: 
+sos:
   dataset: Copernicus Global Analysed Sea Surface Salinity
   longname: 'Sea Surface Salinity'
   varname: 'sos'
@@ -168,7 +167,7 @@ sos:
   tgt_units: PSU
   dir: '{datadir}/COPERNICUS/processed/*.nc'
   description: L4 Analysis product
-siconc: 
+siconc:
   dataset: ESA-CCI-L4
   longname: 'Sea Ice Area'
   varname: 'sea_ice_fraction'
@@ -177,10 +176,10 @@ siconc:
   domain: oce
   org_units: frac
   tgt_units: Mm^2
-  dir: '{esadir}/sea_ice_fraction/*.nc'  
+  dir: '{esadir}/sea_ice_fraction/*.nc'
   description: 'ESA SST CCI OSTIA L4 v3.0.1'
   version: '3.0.1'
-rsnt: 
+rsnt:
   dataset: CERES EBAF
   longname: 'TOA SW Net'
   varname: solar_mon-toa_sw_all_mon
@@ -189,7 +188,7 @@ rsnt:
   dir: "{datadir}/EBAF_v4.2.1/CERES_EBAF_Edition4.2.1_MONTHLY_200003-202506.nc"
   description: 'Edition 4.2.1; Revised data Release Date March 14, 2025'
   version: '4.2.1'
-rlnt: 
+rlnt:
   dataset: CERES EBAF
   longname: 'TOA LW Net'
   varname: toa_lw_all_mon
@@ -208,7 +207,7 @@ net_toa:
   dir: "{datadir}/EBAF_v4.2.1/CERES_EBAF_Edition4.2.1_MONTHLY_200003-202506.nc"
   description: 'Edition 4.2.1; Revised data Release Date March 14, 2025'
   version: '4.2.1'
-rsntcs: 
+rsntcs:
   dataset: CERES EBAF
   longname: 'TOA SW Net (clear sky)'
   varname: solar_mon-toa_sw_clr_c_mon
@@ -217,7 +216,7 @@ rsntcs:
   dir: "{datadir}/EBAF_v4.2.1/CERES_EBAF_Edition4.2.1_MONTHLY_200003-202506.nc"
   description: 'Edition 4.2.1; Revised data Release Date March 14, 2025'
   version: '4.2.1'
-rlntcs: 
+rlntcs:
   dataset: CERES EBAF
   longname: 'TOA LW Net (clear sky)'
   varname: toa_lw_clr_c_mon
@@ -227,7 +226,7 @@ rlntcs:
   dir: "{datadir}/EBAF_v4.2.1/CERES_EBAF_Edition4.2.1_MONTHLY_200003-202506.nc"
   description: 'Edition 4.2.1; Revised data Release Date March 14, 2025'
   version: '4.2.1'
-swcf: 
+swcf:
   dataset: CERES EBAF
   longname: 'SW Cloud Forcing'
   varname: toa_sw_clr_c_mon-toa_sw_all_mon
@@ -236,7 +235,7 @@ swcf:
   dir: "{datadir}/EBAF_v4.2.1/CERES_EBAF_Edition4.2.1_MONTHLY_200003-202506.nc"
   description: 'Edition 4.2.1; Revised data Release Date March 14, 2025'
   version: '4.2.1'
-lwcf: 
+lwcf:
   dataset: CERES EBAF
   longname: 'LW Cloud Forcing'
   varname: toa_lw_clr_c_mon-toa_lw_all_mon
@@ -247,12 +246,12 @@ lwcf:
   version: '4.2.1'
 
 # from here on dataset which are hard coded and does not require NetCDF files
-toamsfc: 
+toamsfc:
   dataset: None
   longname: 'TOA - Sfc Net Radiation'
   tgt_units: W/m2
   outvalue: 0
-toamsfc_nosn: 
+toamsfc_nosn:
   dataset: None
   longname: 'TOA - Sfc Net Radiation (no snow)'
   tgt_units: W/m2
@@ -277,7 +276,7 @@ hfls:
   longname: 'Surface Latent Heat Flux'
   outvalue: -82
   dataset: 'Wild 2020'
-net_sfc: 
+net_sfc:
   tgt_units: W/m2
   longname: 'Net Surface'
   outvalue: 0.6
@@ -315,4 +314,3 @@ siconc_south:
   domain: ocean
   outvalue: 0
   description: 'ESA SST CCI OSTIA L4 v3.0.1'
-  

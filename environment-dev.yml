@@ -1,13 +1,13 @@
 # Create the ecmean development environment:
-# mamba env create -f dev-environment.yml 
-# or 
+# mamba env create -f dev-environment.yml
+# or
 # conda env create -f dev-environment.yml
 
 name : ecmean-dev
 channels:
   - conda-forge
 dependencies:
-  - python>=3.9,<3.15
+  - python>=3.10,<3.16
   - libnetcdf
   - xesmf
   - cdo
@@ -16,4 +16,3 @@ dependencies:
   - pip
   - pip:
     - -e .[all]
-

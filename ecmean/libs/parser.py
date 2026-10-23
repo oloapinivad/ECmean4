@@ -1,11 +1,11 @@
-#!/usr/bin/env python3
 """
 Shared functions for ecmean: parsers arguments from command line
 """
 
 import argparse
+
 from ecmean import __version__
-from ecmean.libs.climatology import SUPPORTED_CLIMATOLOGY, SUPPORTED_REFERENCE
+from ecmean.libs.climatology import DEFAULT_CLIMATOLOGY, DEFAULT_REFERENCE, SUPPORTED_CLIMATOLOGY, SUPPORTED_REFERENCE
 
 
 def parse_arguments(args, script):
@@ -24,11 +24,10 @@ def parse_arguments(args, script):
     parser.add_argument("year1", metavar="Y1", type=int, help="starting year")
     parser.add_argument("year2", metavar="Y2", type=int, help="final year")
     parser.add_argument("-i", "--interface", type=str, default="", help="interface (overrides config.yml)")
-    parser.add_argument("-c", "--config", type=str, default="", help="config file")
+    parser.add_argument("-c", "--config", type=str, default="", help="config file (default: ./config.yml)")
     parser.add_argument("-j", dest="numproc", type=int, default=1, help="number of processors to use")
     parser.add_argument("-m", "--model", type=str, default="", help="model name")
     parser.add_argument("-e", "--ensemble", type=str, default="r1i1p1f1", help="variant label (ripf number for cmor)")
-    parser.add_argument("-s", "--silent", action="store_true", help="do not print anything to std output")
     parser.add_argument("-l", "--loglevel", type=str, default="WARNING", help="define the level of logging.")
     parser.add_argument("-o", "--outputdir", type=str, help="force the output directory")
     parser.add_argument("--version", action="version", version="%(prog)s " + __version__)
@@ -47,8 +46,8 @@ def parse_arguments(args, script):
         parser.add_argument(
             "--reference",
             type=str,
-            default="EC23",
-            help=f"reference climatology to be compared. default: EC23. Options: {SUPPORTED_REFERENCE}",
+            default=DEFAULT_REFERENCE,
+            help=f"reference climatology to be compared. default: {DEFAULT_REFERENCE}. Options: {SUPPORTED_REFERENCE}",
             choices=SUPPORTED_REFERENCE,
         )
         parser.add_argument("--addnan", action="store_true", help="provide figures also where observations are missing")
@@ -58,8 +57,8 @@ def parse_arguments(args, script):
         parser.add_argument(
             "--climatology",
             type=str,
-            default="EC24",
-            help=f"climatology to be compared. default: EC24. Options: {SUPPORTED_CLIMATOLOGY}",
+            default=DEFAULT_CLIMATOLOGY,
+            help=f"climatology to be compared. default: {DEFAULT_CLIMATOLOGY}. Options: {SUPPORTED_CLIMATOLOGY}",
             choices=SUPPORTED_CLIMATOLOGY,
         )
 

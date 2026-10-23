@@ -7,11 +7,11 @@ name = "ecmean"
 dynamic = ["version"]
 authors = [
   { name="Paolo Davini", email="paolo.davini@cnr.it" },
-  { name="Jost von Hardenberg", email="jost.hardenberg@polito.it" } 
+  { name="Jost von Hardenberg", email="jost.hardenberg@polito.it" }
 ]
 description = "A Global Climate Model lightweight evaluation tool"
 readme = "README.md"
-requires-python = ">=3.9,<3.15"
+requires-python = ">=3.10,<3.16"
 classifiers = [
     "Programming Language :: Python :: 3",
     "Intended Audience :: Science/Research",
@@ -25,7 +25,6 @@ dependencies = [
     "netcdf4",
     "numba",
     "dask",
-    "esmpy",
     "xesmf",
     "metpy",
     "matplotlib",
@@ -33,7 +32,6 @@ dependencies = [
     "cfgrib",
     "seaborn",
     "smmregrid",
-    "ruff"
 ]
 
 [project.optional-dependencies]
@@ -43,14 +41,17 @@ tests = [
     "coveralls",
     "statsmodels"
 ]
-
+style = [
+    "pre-commit",
+    "ruff==0.17.1"
+]
 docs = [
     "sphinx<7.0",
     "sphinx-rtd-theme"
 ]
 
 all = [
-    "ecmean[tests,docs]"
+    "ecmean[tests,docs,style]"
 ]
 
 [project.urls]
@@ -93,7 +94,7 @@ python_files = "test_*.py"
 # --- Global Settings ---
 line-length = 127
 target-version = "py314"
-exclude = ["**/__init__.py"]
+exclude = ["**/__init__.py", "ecmean/utils/**"]
 
 [tool.ruff.lint.isort]
 known-first-party = ["ecmean"]

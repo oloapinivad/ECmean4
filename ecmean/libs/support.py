@@ -1,17 +1,19 @@
-#!/usr/bin/env python3
 """
 Shared functions for Support class for ecmean
 """
 
+import logging
 import os
 from glob import glob
-import logging
+
+import numpy as np
 import xarray as xr
 import xesmf as xe
-from ecmean.libs.ncfixers import xr_preproc
-from ecmean.libs.files import inifiles_priority
+
 from ecmean.libs.areas import AreaCalculator
+from ecmean.libs.files import inifiles_priority
 from ecmean.libs.interpolators import InterpolatorFactory
+from ecmean.libs.ncfixers import xr_preproc
 
 loggy = logging.getLogger(__name__)
 
@@ -46,7 +48,9 @@ class Supporter:
         self.atminterpolator = None
         self.oceinterpolator = None
 
-        # areas and mask for amip case
+        # areas and masks, left undefined when the component is missing (amip/omip cases)
+        self.atmmask = None
+        self.atmarea = None
         self.ocemask = None
         self.ocearea = None
 
@@ -97,8 +101,8 @@ class Supporter:
             if self.ocemaskfile:
                 self.ocemask = self.make_oce_masks()
             else:
-                # if it is missing, when remapping I can use the atmospheric one
-                if self.targetgrid and remap:
+                # if it is missing, when remapping I can use the atmospheric one, if available
+                if self.targetgrid and remap and self.atmmask is not None:
                     self.ocemask = self.atmmask
                 # otherwise, no solution!
                 else:
@@ -197,6 +201,27 @@ class Supporter:
             return AreaCalculator().calculate_area(xfield, gridtype)
 
 
+def check_file_exist(file):
+    """Simple check to verify that a file to be loaded is defined and found on disk
+
+    Args:
+        file: path or glob pattern of the file, None or empty string if not defined
+
+    Returns:
+        the first file matching the path/pattern
+
+    Raises:
+        KeyError: if the file is not defined or no existing file matches
+    """
+
+    if not file:
+        raise KeyError("ERROR: file not defined!")
+    matches = glob(file)
+    if not matches or not os.path.isfile(matches[0]):
+        raise KeyError(f"ERROR: {file} cannot be found")
+    return matches[0]
+
+
 def fix_mask_values(mask):
     """
     Function to normalize the mask whatever format. By convention in ECmean
@@ -223,17 +248,6 @@ def fix_mask_values(mask):
     return mask
 
 
-def check_file_exist(file):
-    """Simple check to verify that a file to be loaded is defined and found on disk"""
-
-    if file is None:
-        raise KeyError("ERROR: file not defined!")
-    file = glob(file)[0]
-    if not os.path.isfile(file):
-        raise KeyError(f"ERROR: {file} cannot be found")
-    return file
-
-
 def identify_grid(xfield):
     """Receiveng an xarray object (DataArray or Dataset) investigates its coordinates
     and dimensions and provide the grid type (regular, gaussian, curvilinear,
@@ -255,12 +269,12 @@ def identify_grid(xfield):
             lat = xfield.coords["lat"]
 
             # if lat grid spacing is equal, is regular lonlat, otherwise gaussian
-            if (lat[3] - lat[2]) == (lat[1] - lat[0]):
+            if np.isclose((lat[3] - lat[2]).values, (lat[1] - lat[0]).values):
                 return "lonlat"
             return "gaussian"
 
         # if the coords are 2D, we are curvilinear
-        if xfield.coords["lon"].ndim == 2 and xfield.coords["lon"].ndim == 2:
+        if xfield.coords["lon"].ndim == 2 and xfield.coords["lat"].ndim == 2:
             return "curvilinear"
 
         # check the first four elements of the grid (arbitrary)

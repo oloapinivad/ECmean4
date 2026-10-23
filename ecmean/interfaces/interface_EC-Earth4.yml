@@ -1,17 +1,17 @@
 # Configuration yaml file for EC-Earth4 model and variables
-# 
+#
 # Possible filetype attributes for variables are defined in the model section
 # The full path is $ECEDIR/$basedir/$dir/$filename
-# 
+#
 # ECEDIR (defined in config) contains all experiments
-# basedir contains inifiles 
+# basedir contains inifiles
 # dir is where the output files can be found
 # filename is the filanamee maskc
 # All of these can be formatted with: expname, year1, year2, var, star (*) and others
 #
 # The key 'component' is used to determine the specific type of grid fixes to apply
 # (defined in cdopipe for now)
-# 
+#
 # We also have the concept of 'domain' (atm or oce) later used to choose which fix to apply
 # Each component belongs to one and only one domain
 
@@ -24,7 +24,7 @@ model:
 
 # Definition of filetypes (specific for each component)
 # Each variable belongs to a filetype
-filetype: 
+filetype:
   atm2d:
     filename: '{expname}_atm_cmip6_1m_{year1}-{year2}.nc'
     dir: output/oifs
@@ -43,11 +43,11 @@ filetype:
     component: nemo
 
 # Specify additional inifiles  of each component
-# maskfile: where the land-sea mask is, fundamental for atmospheric component 
+# maskfile: where the land-sea mask is, fundamental for atmospheric component
 # gridfile: where the properties of the grid can be extracted, can be a standard file
 # areafile: where the grid cell area is
 # please not that for both grid area computation and itnerpolation weight computation
-# the code will look in priority from areafile to gridfile to maskfile. 
+# the code will look in priority from areafile to gridfile to maskfile.
 # inifile can be formatted with all the possible keywords listed above
 # If a relative path is used this is attached to $ECEDIR/$basedir
 component:
@@ -64,7 +64,7 @@ component:
 variables:
   tas:
     varname: '2m Air Temperature'
-    filetype: atm2d 
+    filetype: atm2d
   cll:
     varname: 'Low cloud cover'
     filetype: atm2d
@@ -77,7 +77,7 @@ variables:
   clt:
     varname: 'Total cloud cover'
     filetype: atm2d
-  ta: 
+  ta:
     varname: 'Air Temperature'
     filetype: atm3d
   ua:
@@ -89,17 +89,17 @@ variables:
   hus:
     varname: 'Specific Humidity'
     filetype: atm3d
-  psl: 
+  psl:
     varname: MSLP
     filetype: atm2d
-  pr: 
+  pr:
     varname: Precipitation
     filetype: atm2d
   evspsbl:
     varname: Evaporation
     filetype: atm2d
     direction: up
-  tauu: 
+  tauu:
     varname: 'Zonal Wind Stress'
     filetype: atm2d
   tauv:
@@ -191,7 +191,7 @@ variables:
   tas_land:
     varname: '2m Air Temperature (land)'
     derived: tas
-    filetype: atm2d 
+    filetype: atm2d
   pr_land:
     varname: 'Precipitation (land)'
     derived: pr
@@ -219,5 +219,3 @@ variables:
     varname: 'Sea Ice Area (South Hemisphere)'
     derived: siconc
     filetype: ice
-
-    

@@ -94,35 +94,35 @@
    * - Surface Net SW
      - Wild 2020
      - global
-     - 
+     -
    * - Surface Net LW
      - Wild 2020
      - global
-     - 
+     -
    * - Surface Sensible Heat Flux
      - Wild 2020
      - global
-     - 
+     -
    * - Surface Latent Heat Flux
      - Wild 2020
      - global
-     - 
+     -
    * - Net Surface (no snowfall)
      - Wild 2020
      - global
-     - 
+     -
    * - Net Surface
      - Wild 2020
      - global
-     - 
+     -
    * - TOA - Sfc Net Radiation (no snow)
      - None
      - global
-     - 
+     -
    * - TOA - Sfc Net Radiation
      - None
      - global
-     - 
+     -
    * - Sea Surface Temperature
      - ESA-CCI-L4 (v3.0.1)
      - ocean
@@ -134,11 +134,11 @@
    * - SSH
      - None
      - global
-     - 
+     -
    * - Net Water Flux into ocean
      - None
      - global
-     - 
+     -
    * - Sea Ice Area
      - ESA-CCI-L4 (v3.0.1)
      - ocean
