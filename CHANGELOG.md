@@ -7,7 +7,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 Unreleased is the current development version (target v0.3.0), which is currently lying in `main` branch.
 
-*IMPORTANT*: 3D performance indices (ta, ua, va, hus) change values
+*IMPORTANT*: 
+1. 3D performance indices (ta, ua, va, hus) change values
+2. The new default PI climatology is EC26-CMIP6, and the new GM climatology is now EC26-CMIP. Results cannot be compared against previous ecmean version
 
 - Fix vertical weights for 3D performance indices with descending pressure levels (#150)
 - CMIP6 reference PIs for 3D fields regenerated for EC26-CMIP and EC26-HIST; 2D references unchanged (#150)
@@ -28,6 +30,7 @@ Unreleased is the current development version (target v0.3.0), which is currentl
 - The ecmean version printed in the welcome message is now stored in `Diagnostic.ecmean_version`, so `Diagnostic.version` only holds the `*` CMOR filename wildcard (#156)
 - `performance_indices.resolution` is now read from the config file (argument > config > default `r360x180`) and a `ValueError` is raised if it is not in `SUPPORTED_RESOLUTION` (defined in `libs/climatology.py`) (only `r360x180` for now). `Diagnostic.resolution` is now `None` for `GlobalMean`, where it was never used (#156)
 - Without `-c`/`--config`, `config.yml` is now searched in the current directory instead of next to the source tree (`libs/../../config.yml`), with a clear `FileNotFoundError` if it is missing (#156)
+- `ECPlotter.heatmap_plot()` loads `data` and `base` from YAML files when given as paths (`str` or `Path`), as documented, instead of parsing the path string itself (#154)
 
 ## [v0.2.2]
 - Remove a wrong dependency with esmpy

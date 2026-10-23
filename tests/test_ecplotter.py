@@ -1,6 +1,9 @@
 """Tests for ECPlotter class"""
 
+from pathlib import Path
+
 from ecmean.libs.ecplotter import ECPlotter
+from ecmean.libs.files import load_yaml
 
 
 def test_ecplotter_title_override():
@@ -86,3 +89,27 @@ def test_ecplotter_global_mean_title():
     cbar = fig2.axes[-1]  # Colorbar is typically the last axis
     cbar_label = cbar.get_ylabel()
     assert "EC26-CMIP" in cbar_label, f"Expected 'EC26-CMIP' in colorbar label, got: {cbar_label}"
+
+
+def test_heatmap_plot_yaml_paths():
+    """data and base can be given as paths to YAML files (str or Path), with the same result as dictionaries (#154)"""
+    datafile = "tests/table/PI_EC26-CMIP_cpld_1990_1990.ref"
+    basefile = Path("ecmean/climatology/EC26-CMIP/pi_climatology_EC26-CMIP.yml")
+    variables = list(load_yaml(datafile))
+    plotter = ECPlotter(
+        diagnostic="performance_indices",
+        modelname="EC-Earth4",
+        expname="cpld",
+        year1=1990,
+        year2=1990,
+        regions=["Global", "North Midlat", "Tropical", "South Midlat"],
+        seasons=["ALL", "JJA"],
+    )
+
+    fig_paths = plotter.heatmap_plot(data=datafile, base=basefile, variables=variables, storefig=False)
+    fig_dicts = plotter.heatmap_plot(data=load_yaml(datafile), base=load_yaml(basefile), variables=variables, storefig=False)
+
+    labels = [[t.get_text() for t in fig.axes[0].get_yticklabels()] for fig in (fig_paths, fig_dicts)]
+    # one row per variable, plus the Total PI row
+    assert labels[0] == labels[1]
+    assert len(labels[0]) == len(variables) + 1

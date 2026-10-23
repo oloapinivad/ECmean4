@@ -2,15 +2,16 @@
 
 import logging
 import textwrap
+from pathlib import Path
 
 import matplotlib
 import matplotlib.pyplot as plt
 import numpy as np
 import seaborn as sns
-import yaml
 from matplotlib.colors import ListedColormap, TwoSlopeNorm  # , LogNorm
 
 from ecmean.libs.climatology import DEFAULT_CLIMATOLOGY, DEFAULT_REFERENCE, SUPPORTED_CLIMATOLOGY, SUPPORTED_REFERENCE
+from ecmean.libs.files import load_yaml
 from ecmean.libs.general import dict_to_dataframe, init_mydict
 
 # OPTIMIZATION: Use non-interactive backend (much faster)
@@ -73,8 +74,8 @@ class ECPlotter:
         Prepare data for plotting performance indices or global mean.
 
         Args:
-            data (dict or str): Dictionary with data to plot or path to a YAML file.
-            base (dict or str): Dictionary with base benchmark data or path to a YAML file.
+            data (dict, str or Path): Dictionary with data to plot or path to a YAML file.
+            base (dict, str or Path): Dictionary with base benchmark data or path to a YAML file.
             variables (list): List of variable short names to plot.
             filename (str, optional): Path to save the plot. Defaults to None, it would be derived automatically.
             storefig (bool, optional): Whether to save the figure. Defaults to True.
@@ -94,10 +95,11 @@ class ECPlotter:
         if reference is not None and reference not in SUPPORTED_REFERENCE:
             raise ValueError(f"Invalid reference type. Choose from {SUPPORTED_REFERENCE}.")
         loggy.debug("Data is: %s", data)
-        if isinstance(data, str):
-            data = yaml.safe_load(data)
-        if isinstance(base, str):
-            base = yaml.safe_load(base)
+        # a string or a Path is the path of a YAML file, not YAML content
+        if isinstance(data, (str, Path)):
+            data = load_yaml(data)
+        if isinstance(base, (str, Path)):
+            base = load_yaml(base)
         if self.diagnostic == "performance_indices":
             data2plot, cmip6, longnames = self.prepare_clim_dictionaries_pi(data, base, variables)
             fig = self.heatmap_comparison_pi(
