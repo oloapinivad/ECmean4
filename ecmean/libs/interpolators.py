@@ -1,10 +1,10 @@
-#!/usr/bin/env python3
 """
 Interpolation classes for ECmean4 - simple inheritance design
 """
 
 import logging
 from glob import glob
+
 import numpy as np
 import xarray as xr
 import xesmf as xe
