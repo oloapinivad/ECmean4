@@ -68,4 +68,4 @@ def test_supporter_omip_without_masks():
     assert support.atmmask is None
     assert support.atmarea is None
     assert support.ocemask is None
-    assert support.oceremap is not None
+    assert support.oceinterpolator is not None

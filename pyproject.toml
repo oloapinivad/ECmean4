@@ -31,6 +31,7 @@ dependencies = [
     "tabulate",
     "cfgrib",
     "seaborn",
+    "smmregrid",
 ]
 
 [project.optional-dependencies]
