@@ -13,8 +13,10 @@ from ecmean import __version__ as version
 from ecmean.libs.climatology import (
     DEFAULT_CLIMATOLOGY,
     DEFAULT_REFERENCE,
+    DEFAULT_RESOLUTION,
     DEPRECATED_CLIMATOLOGY,
     DEPRECATED_REFERENCE,
+    SUPPORTED_RESOLUTION,
 )
 from ecmean.libs.files import load_yaml
 
@@ -37,7 +39,7 @@ class Diagnostic:
         funcname,
         line=False,
         trend=False,
-        resolution="r360x180",
+        resolution=None,
         ensemble="r1i1p1f1",
         addnan=False,
         interface=None,
@@ -80,22 +82,22 @@ class Diagnostic:
         self.ftrend = trend
         self.numproc = numproc
         self.climatology = climatology
-        self.resolution = resolution
+        self.resolution = resolution  # for performance indices only: set in cfg_performance_indices
         self.reference = reference
         self.ensemble = ensemble
         self.interface = interface
         self.funcname = funcname
-        self.version = version
+        self.ecmean_version = version
         self.addnan = addnan
         if self.year1 == self.year2:
             self.ftrend = False
         print(
-            f"Welcome to ecmean v{self.version}: Running {self.funcname} "
+            f"Welcome to ecmean v{self.ecmean_version}: Running {self.funcname} "
             f"with {self.numproc} cores on experiment {self.expname} "
             f"for {len(self.years_joined)} years ({self.year1}-{self.year2})"
         )
 
-        #  These are here in prevision of future expansion to CMOR
+        #  These are here in prevision of future expansion to CMOR: wildcards for the filename template
         self.grid = "*"
         self.version = "*"
         self.frequency = "*mon"
@@ -116,7 +118,13 @@ class Diagnostic:
             else:
                 raise ValueError("Cannot load the config file")
         else:
-            cfg = load_yaml(self.indir / "../../config.yml")
+            default_config = Path.cwd() / "config.yml"
+            if not default_config.is_file():
+                raise FileNotFoundError(
+                    f"No config file provided and no config.yml found in the current directory ({Path.cwd()}): "
+                    "use -c/--config or copy config.tmpl to config.yml"
+                )
+            cfg = load_yaml(default_config)
 
         # Various raise and input and output directories
         if not cfg["dirs"]["exp"]:
@@ -181,6 +189,20 @@ class Diagnostic:
             return self.figdir / figurename
         raise ValueError("Unknown file type")
 
+    def check_global_all(self):
+        """
+        Check that the regions include "Global" and the seasons include "ALL".
+        Global mean tables and plots rely on the ["ALL"]["Global"] entry, performance indices do not.
+
+        Raises:
+            ValueError: if "Global" is not in the regions or "ALL" is not in the seasons.
+        """
+
+        if "Global" not in self.regions:
+            raise ValueError(f"The 'Global' region is mandatory in the config file, found regions: {self.regions}")
+        if "ALL" not in self.seasons:
+            raise ValueError(f"The 'ALL' season is mandatory in the config file, found seasons: {self.seasons}")
+
     def cfg_global_mean(self, cfg):
         """
         Set up configuration details for global mean.
@@ -194,6 +216,7 @@ class Diagnostic:
 
         self.regions = cfg["global_mean"]["regions"]
         self.seasons = cfg["global_mean"]["seasons"]
+        self.check_global_all()
 
         self.var_atm = cfg["global_mean"]["variables"].get("atm", [])
         self.var_oce = cfg["global_mean"]["variables"].get("oce", [])
@@ -250,6 +273,12 @@ class Diagnostic:
             )
             loggy.warning(msg)
             warnings.warn(msg, DeprecationWarning, stacklevel=2)
+
+        # the argument has priority over the config, which has priority over the default
+        if not self.resolution:
+            self.resolution = cfg["performance_indices"].get("resolution", DEFAULT_RESOLUTION)
+        if self.resolution not in SUPPORTED_RESOLUTION:
+            raise ValueError(f"Resolution {self.resolution} is not supported, available resolutions: {SUPPORTED_RESOLUTION}")
 
         self.clmdir = Path(self.indir, "../climatology", self.climatology)
         self.resclmdir = Path(self.clmdir, self.resolution)

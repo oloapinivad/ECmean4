@@ -46,6 +46,7 @@ Modifications to this are not necessary, but please be aware that the variable c
 
 **seasons**:
 	the list of seasons on which to compute the PI. Four standard seasons are supported, expressed as 3-character strings (e.g. ``DJF``). ``ALL`` defines the yearly average. Default includes yearly, winter and summer.
+	``ALL`` and the ``Global`` region are mandatory for the global mean, since its tables and plots rely on them: an error is raised if they are missing.
 
 **reference**:
 	the global mean reference climatology. EC26-CMIP (default, for the period 1985-2014), EC26-HIST (for the period 1981-2010) and EC26-PDAY (for the period 2000-2024) are available. EC23 (without the tas global variable and for the period 1990-2020) is deprecated.
@@ -69,6 +70,9 @@ Modifications to this are not necessary, but please be aware that the variable c
 
 **climatology**:
 	the climatology to be used. EC26-CMIP (default, for the period 1985-2014) and EC26-HIST (for the period 1981-2010) are available. EC24 and EC23 are deprecated.
+
+**resolution**:
+	the horizontal resolution of the climatology. Only ``r360x180`` (default) is currently available, an error is raised otherwise.
 
 
 Interface files

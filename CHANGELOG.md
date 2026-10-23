@@ -22,6 +22,12 @@ Unreleased is the current development version (target v0.3.0), which is currentl
 - Formulas of derived variables are parsed with Python's `ast` module instead of a hand-written tokenizer, with the same supported syntax (#157)
 - Performance: input files are opened once per variable, globbed once per variable instead of once per year, and variables are split across workers by total load (#155)
 - Development: ruff pinned to 0.17.1 (pyproject, pre-commit and AGENTS.md)
+- Robustness fixes in `libs/support.py` (#156): `identify_grid` checks `lat.ndim` for curvilinear grids and compares latitude spacings with `np.isclose`; `check_file_exist` raises a clear error for empty strings and for patterns matching no file instead of `IndexError`
+- `Supporter` initialises `atmmask`/`atmarea` to `None`, so an OMIP run with remapping and no ocean mask no longer fails with `AttributeError` (#156)
+- `Diagnostic` raises a clear `ValueError` if the global mean regions do not include `Global` or the seasons do not include `ALL`, which its tables and plots require (#156)
+- The ecmean version printed in the welcome message is now stored in `Diagnostic.ecmean_version`, so `Diagnostic.version` only holds the `*` CMOR filename wildcard (#156)
+- `performance_indices.resolution` is now read from the config file (argument > config > default `r360x180`) and a `ValueError` is raised if it is not in `SUPPORTED_RESOLUTION` (defined in `libs/climatology.py`) (only `r360x180` for now). `Diagnostic.resolution` is now `None` for `GlobalMean`, where it was never used (#156)
+- Without `-c`/`--config`, `config.yml` is now searched in the current directory instead of next to the source tree (`libs/../../config.yml`), with a clear `FileNotFoundError` if it is missing (#156)
 
 ## [v0.2.2]
 - Remove a wrong dependency with esmpy

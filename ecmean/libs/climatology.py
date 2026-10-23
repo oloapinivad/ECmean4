@@ -18,6 +18,10 @@ SUPPORTED_CLIMATOLOGY = ["EC23", "EC24", "EC26-HIST", "EC26-CMIP"]
 DEPRECATED_CLIMATOLOGY = ["EC23", "EC24"]
 DEPRECATED_REFERENCE = ["EC23"]
 
+# horizontal resolutions on which the climatologies are available
+SUPPORTED_RESOLUTION = ["r360x180"]
+
 # defaults, used when not specified by the user or in the configuration file
 DEFAULT_CLIMATOLOGY = "EC26-CMIP"
 DEFAULT_REFERENCE = "EC26-CMIP"
+DEFAULT_RESOLUTION = "r360x180"

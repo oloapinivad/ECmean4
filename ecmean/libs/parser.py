@@ -24,7 +24,7 @@ def parse_arguments(args, script):
     parser.add_argument("year1", metavar="Y1", type=int, help="starting year")
     parser.add_argument("year2", metavar="Y2", type=int, help="final year")
     parser.add_argument("-i", "--interface", type=str, default="", help="interface (overrides config.yml)")
-    parser.add_argument("-c", "--config", type=str, default="", help="config file")
+    parser.add_argument("-c", "--config", type=str, default="", help="config file (default: ./config.yml)")
     parser.add_argument("-j", dest="numproc", type=int, default=1, help="number of processors to use")
     parser.add_argument("-m", "--model", type=str, default="", help="model name")
     parser.add_argument("-e", "--ensemble", type=str, default="r1i1p1f1", help="variant label (ripf number for cmor)")

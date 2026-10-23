@@ -66,7 +66,7 @@ Optional Arguments
 
 .. option:: -c CONFIG, --config CONFIG
 
-   Set up a specific configuration file. The default is ``config.yml``.
+   Set up a specific configuration file. The default is ``config.yml`` in the current directory.
 
 .. option:: -i INTERFACE, --interface INTERFACE
 
