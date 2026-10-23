@@ -2,15 +2,16 @@
 
 import logging
 import textwrap
+from pathlib import Path
 
 import matplotlib
 import matplotlib.pyplot as plt
 import numpy as np
 import seaborn as sns
-import yaml
 from matplotlib.colors import ListedColormap, TwoSlopeNorm  # , LogNorm
 
-from ecmean.libs.climatology import SUPPORTED_CLIMATOLOGY, SUPPORTED_REFERENCE
+from ecmean.libs.climatology import DEFAULT_CLIMATOLOGY, DEFAULT_REFERENCE, SUPPORTED_CLIMATOLOGY, SUPPORTED_REFERENCE
+from ecmean.libs.files import load_yaml
 from ecmean.libs.general import dict_to_dataframe, init_mydict
 
 # OPTIMIZATION: Use non-interactive backend (much faster)
@@ -64,40 +65,41 @@ class ECPlotter:
         variables,
         filename=None,
         storefig=True,
-        climatology="EC23",
+        climatology=DEFAULT_CLIMATOLOGY,
         addnan=False,
         title=None,
-        reference="EC23",
+        reference=DEFAULT_REFERENCE,
     ):
         """
         Prepare data for plotting performance indices or global mean.
 
         Args:
-            data (dict or str): Dictionary with data to plot or path to a YAML file.
-            base (dict or str): Dictionary with base benchmark data or path to a YAML file.
+            data (dict, str or Path): Dictionary with data to plot or path to a YAML file.
+            base (dict, str or Path): Dictionary with base benchmark data or path to a YAML file.
             variables (list): List of variable short names to plot.
             filename (str, optional): Path to save the plot. Defaults to None, it would be derived automatically.
             storefig (bool, optional): Whether to save the figure. Defaults to True.
-            climatology (str, optional): Type of PI climatology, either any of the supported ones. Defaults to "EC23".
+            climatology (str, optional): Type of PI climatology, either any of the supported ones. Defaults to "EC26-CMIP".
             addnan (bool, optional): Whether to add NaN values in the final plots. Defaults to False, only for global mean.
             title (str, optional): Title of the plot, overrides default title. Defaults to None.
-            reference (str, optional): Name of the GM reference (e.g., "EC23"). Defaults to None, only for global mean.
+            reference (str, optional): Name of the GM reference (e.g., "EC26-CMIP"). Defaults to "EC26-CMIP", only for global mean.
 
         Returns:
             fig: The generated matplotlib figure object, if requested.
         """
         title = title if title is not None else self.default_title
-        climatology = climatology if climatology is not None else "EC23"
+        climatology = climatology if climatology is not None else DEFAULT_CLIMATOLOGY
 
         if climatology not in SUPPORTED_CLIMATOLOGY:
             raise ValueError(f"Invalid climatology type. Choose from {SUPPORTED_CLIMATOLOGY}.")
         if reference is not None and reference not in SUPPORTED_REFERENCE:
             raise ValueError(f"Invalid reference type. Choose from {SUPPORTED_REFERENCE}.")
         loggy.debug("Data is: %s", data)
-        if isinstance(data, str):
-            data = yaml.safe_load(data)
-        if isinstance(base, str):
-            base = yaml.safe_load(base)
+        # a string or a Path is the path of a YAML file, not YAML content
+        if isinstance(data, (str, Path)):
+            data = load_yaml(data)
+        if isinstance(base, (str, Path)):
+            base = load_yaml(base)
         if self.diagnostic == "performance_indices":
             data2plot, cmip6, longnames = self.prepare_clim_dictionaries_pi(data, base, variables)
             fig = self.heatmap_comparison_pi(
@@ -144,7 +146,7 @@ class ECPlotter:
             storefig (bool, optional): Whether to save the figure. Defaults to True.
             size_model (int, optional): size of the PIs in the plot. Defaults to 14.
             title (str, optional): title of the plot, overrides default title. Defaults to None.
-            climatology (str, optional): climatology used, either "EC23" or "EC24". Defaults to None.
+            climatology (str, optional): climatology used, e.g. "EC26-CMIP". Defaults to None.
         """
         # convert output dictionary to pandas dataframe
         data_table = dict_to_dataframe(data_dict)
@@ -176,7 +178,7 @@ class ECPlotter:
         title = title if title is not None else self.default_title
 
         # set climatology for cbar_label
-        climatology = climatology if climatology is not None else "EC23"
+        climatology = climatology if climatology is not None else DEFAULT_CLIMATOLOGY
 
         thr = [0, 1, 5]
         tictoc = [0, 0.25, 0.5, 0.75, 1, 2, 3, 4, 5]
@@ -246,7 +248,7 @@ class ECPlotter:
             size_model (int, optional): size of the model values in the plot. Defaults to 14.
             size_obs (int, optional): size of the observation values in the plot. Defaults to 8.
             title (str, optional): title of the plot, overrides default title. Defaults to None.
-            reference (str, optional): name of the GM reference climatology (e.g., "EC23"). Defaults to None.
+            reference (str, optional): name of the GM reference climatology (e.g., "EC26-CMIP"). Defaults to None.
         """
         # convert the three dictionary to pandas and then add units
         data_table = dict_to_dataframe(data_dict)
@@ -435,41 +437,3 @@ class ECPlotter:
         units_list = [clim[var]["units"] for var in shortnames]
 
         return obsmean, obsstd, data2plot, units_list
-
-    # @staticmethod
-    # def plot_xarray(data_dict: dict, filename: str, cmap: str = "viridis", log_scale: bool = False):
-    #     """
-    #     Plots multiple 2D xarray DataArrays from a dictionary and saves them as a multi-panel PDF.
-
-    #     Parameters:
-    #         data_dict (dict[str, xr.DataArray]): Dictionary of 2D data arrays.
-    #         filename (str): Output PDF filename.
-    #         cmap (str, optional): Colormap for the plots. Defaults to 'viridis'.
-    #     """
-    #     num_plots = len(data_dict)
-    #     cols = int(np.ceil(np.sqrt(num_plots)))
-    #     rows = int(np.ceil(num_plots / cols))
-    #     vmin = 10**-4
-    #     vmax = 10**4
-
-    #     fig, axes = plt.subplots(rows, cols, figsize=(3 * cols, 3 * rows), constrained_layout=True)
-
-    #     if num_plots == 1:
-    #         axes = [axes]
-    #     else:
-    #         axes = axes.flatten()
-
-    #     for ax, (name, data_array) in zip(axes, sorted(data_dict.items())):
-    #         if data_array is not None:
-    #             if data_array.ndim != 2:
-    #                 raise ValueError(f"DataArray '{name}' must be 2D.")
-
-    #             norm = LogNorm(vmin=vmin, vmax=vmax) if log_scale else None
-    #             im = ax.pcolormesh(data_array, cmap=cmap, norm=norm)
-    #             ax.set_title(name)
-    #             ax.set_xlabel(str(data_array.dims[1]))
-    #             ax.set_ylabel(str(data_array.dims[0]))
-    #             fig.colorbar(im, ax=ax)
-
-    #     plt.savefig(filename, format="png", bbox_inches="tight")
-    #     plt.close()

@@ -9,10 +9,10 @@ Using a reference file from yaml and Xarray
 
 __author__ = "Paolo Davini (paolo.davini@cnr.it)"
 
+import logging
 import os
 import sys
 from multiprocessing import Manager, Process
-from time import time
 
 import dask
 import numpy as np
@@ -22,18 +22,11 @@ from tabulate import tabulate
 
 from ecmean import Diagnostic, Supporter, UnitsHandler
 from ecmean.libs.ecplotter import ECPlotter
-from ecmean.libs.files import (
-    get_inifiles,
-    load_output_yaml,
-    load_yaml,
-    make_input_filename,
-    var_is_there,
-)
-from ecmean.libs.formula import formula_wrapper
+from ecmean.libs.files import get_inifiles, load_output_yaml, load_variable, load_yaml
 from ecmean.libs.general import (
-    check_time_axis,
+    Timer,
     check_var_climatology,
-    check_var_interface,
+    check_workers,
     get_domain,
     init_mydict,
     set_multiprocessing_start_method,
@@ -42,11 +35,13 @@ from ecmean.libs.general import (
 )
 from ecmean.libs.loggy import setup_logger
 from ecmean.libs.masks import masked_meansum, select_region
-from ecmean.libs.ncfixers import xr_preproc
 from ecmean.libs.parser import parse_arguments
-from ecmean.libs.units import units_extra_definition
+from ecmean.libs.units import apply_units_conversion, units_extra_definition
 
 dask.config.set(scheduler="synchronous")
+
+# same logger configured by setup_logger() in the workers
+loggy = logging.getLogger("ecmean")
 
 
 class GlobalMean:
@@ -64,11 +59,12 @@ class GlobalMean:
         model (str): Model name. Default is None.
         ensemble (str): Ensemble identifier. Default is 'r1i1p1f1'.
         addnan (bool): Whether to add NaNs. Default is False.
-        silent (bool): Whether to suppress output. Default is None.
         trend (bool): Whether to compute trends. Default is None.
         line (str): Line identifier. Default is None.
         outputdir (str): Output directory. Default is None.
-        xdataset (str): Path to the xdataset. Default is None.
+        xdataset (xarray.Dataset): Dataset to use instead of reading the files. Default is None.
+        reference (str): Reference for the comparison (e.g. 'EC26-CMIP', 'EC26-HIST', 'EC26-PDAY').
+            If None, the value in the configuration file or the default (EC26-CMIP) is used.
         loggy (logging.Logger): Logger instance.
         diag (Diagnostic): Diagnostic instance.
         face (dict): Interface dictionary.
@@ -77,7 +73,7 @@ class GlobalMean:
         varmean (dict): Dictionary to store variable means.
         vartrend (dict): Dictionary to store variable trends.
         funcname (str): Name of the class.
-        start_time (float): Start time for the timer.
+        timer (Timer): Timer logging the elapsed time.
         title (str): Title of the plot, overrides default title.
     """
 
@@ -93,12 +89,11 @@ class GlobalMean:
         model=None,
         ensemble="r1i1p1f1",
         addnan=False,
-        silent=None,
         trend=None,
         line=None,
         outputdir=None,
         xdataset=None,
-        reference="EC23",
+        reference=None,
         title=None,
     ):
 
@@ -115,7 +110,6 @@ class GlobalMean:
             interface=interface,
             modelname=model,
             addnan=addnan,
-            silent=silent,
             trend=trend,
             line=line,
             outputdir=outputdir,
@@ -127,20 +121,16 @@ class GlobalMean:
         self.util_dictionary = None
         self.varmean = None
         self.vartrend = None
-        self.start_time = time()
-        self.current_time = time()
+        self.timer = Timer(self.loggy)
         self.title = title
 
     def toc(self, message):
         """Update the timer and log the elapsed time."""
-        elapsed_time = time() - self.current_time
-        self.current_time = time()
-        self.loggy.info("%s time: %.2f seconds", message, elapsed_time)
+        self.timer.toc(message)
 
     def final_toc(self):
         """Log the total elapsed time since the start."""
-        total_elapsed_time = time() - self.start_time
-        self.loggy.info("Total execution time: %.2f seconds", total_elapsed_time)
+        self.timer.final_toc()
 
     def prepare(self):
         """Prepare the necessary components for the global mean computation."""
@@ -166,7 +156,13 @@ class GlobalMean:
         self.toc("Preparation")
 
     def run(self):
-        """Run the global mean computaacross all variables on using multiprocessing."""
+        """Run the global mean computaacross all variables on using multiprocessing.
+
+        A variable that fails is logged and stored as NaN, without affecting the others.
+
+        Raises:
+            RuntimeError: If a worker process dies without completing its variables.
+        """
         mgr = Manager()
         self.varmean = mgr.dict()
         self.vartrend = mgr.dict()
@@ -187,10 +183,11 @@ class GlobalMean:
                 ),
             )
             core.start()
-            processes.append(core)
+            processes.append((core, varlist))
 
-        for proc in processes:
+        for proc, _ in processes:
             proc.join()
+        check_workers(processes)
         self.toc("Computation")
 
     def store(self, yamlfile=None, tablefile=None):
@@ -268,7 +265,7 @@ class GlobalMean:
         figformat="pdf",
         storefig=True,
         returnfig=False,
-        addnan=True,
+        addnan=None,
     ):
         """
         Generate the heatmap for global mean.
@@ -279,8 +276,11 @@ class GlobalMean:
             figformat (str): Format of the output file. Default is 'pdf'.
             storefig (bool): If True, store the figure in the specified file. Default is True.
             returnfig (bool): If True, return the figure object. Default is False.
-            addnan (bool): If True, add NaN values to the plot. Default is True.
+            addnan (bool): If True, add variables without reference values to the plot.
+                If None, use the value set at initialization. Default is None.
         """
+        if addnan is None:
+            addnan = self.diag.addnan
         plotter = ECPlotter(
             diagnostic=diagname,
             modelname=self.diag.modelname,
@@ -325,6 +325,7 @@ class GlobalMean:
     def gm_worker(util, ref, face, diag, varmean, vartrend, varlist, loglevel):
         """ "
         Workhorse for the global mean computation.
+        Errors are caught per variable: a failing variable is logged and stored as NaN.
 
         Args:
             util (Supporter): Utility dictionary for remapping and masks.
@@ -333,8 +334,8 @@ class GlobalMean:
             diag (Diagnostic): Diagnostic instance.
             varmean (dict): Shared dictionary to store variable means.
             vartrend (dict): Shared dictionary to store variable trends.
-            varlist (dict): List of variables to process.
             varlist (list): List of variables to process.
+            loglevel (str): Logging level for the worker.
         """
         loggy = setup_logger(level=loglevel)
 
@@ -346,86 +347,90 @@ class GlobalMean:
         local_vartrend = {}
 
         for var in varlist:
-            result = init_mydict(diag.seasons, diag.regions)
-            trend = init_mydict(diag.seasons, diag.regions)
-
-            if check_var_interface(var, face):
-                domain = get_domain(var, face)
-                weights = getattr(util, domain + "area")
-                domain_mask = getattr(util, domain + "mask")
-                infile = make_input_filename(var, face, diag)
-                isavail, varunit = var_is_there(infile, var, face)
-
-                if isavail:
-                    offset, factor = UnitsHandler(var, org_units=varunit, clim=ref, face=face).units_converter()
-
-                    if not isinstance(infile, (xr.DataArray, xr.Dataset)):
-                        xfield = xr.open_mfdataset(
-                            infile,
-                            preprocess=xr_preproc,
-                            chunks={"time": 12},
-                            data_vars="all",
-                            combine="by_coords",
-                            compat="no_conflicts",
-                        )
-                    else:
-                        xfield = infile
-
-                    xfield = xfield.sel(time=xfield.time.dt.year.isin(diag.years_joined))
-                    check_time_axis(xfield.time, diag.years_joined)
-
-                    # compute here since the operation are built on this
-                    cfield = formula_wrapper(var, face, xfield).compute()
-
-                    for season in diag.seasons:
-                        tfield = cfield.copy(deep=True)
-                        if season != "ALL":
-                            tfield = tfield.sel(time=cfield.time.dt.season.isin(season))
-
-                        if diag.ftrend:
-                            tfield = tfield.groupby("time.year").mean("time")
-                        else:
-                            tfield = tfield.mean(dim="time")
-
-                        for region in diag.regions:
-                            slicefield = select_region(tfield, region)
-                            sliceweights = select_region(weights, region)
-                            if isinstance(domain_mask, xr.DataArray):
-                                slicemask = select_region(domain_mask, region)
-                            else:
-                                slicemask = 0.0
-
-                            avg = masked_meansum(
-                                xfield=slicefield,
-                                weights=sliceweights,
-                                mask=slicemask,
-                                operation=ref[var].get("operation", "mean"),
-                                mask_type=ref[var].get("mask", "global"),
-                                domain=domain,
-                            )
-
-                            if isinstance(avg, dask.array.core.Array):
-                                avg = avg.compute()
-
-                            result[season][region] = float((np.nanmean(avg) + offset) * factor)
-
-                            if diag.ftrend and len(avg) == len(diag.years_joined):
-                                trend[season][region] = np.polyfit(diag.years_joined, avg, 1)[0]
-                            if season == "ALL" and region == "Global":
-                                loggy.info(
-                                    "Average: %s %s %s %s",
-                                    var,
-                                    season,
-                                    region,
-                                    result[season][region],
-                                )
-
-            local_varmean[var] = result
-            local_vartrend[var] = trend
+            try:
+                local_varmean[var], local_vartrend[var] = _gm_variable(var, util, ref, face, diag)
+            except Exception:
+                # keep the other variables of this worker alive, store NaN for the failing one
+                loggy.exception("Failed to compute global mean for %s, results will be NaN", var)
+                local_varmean[var] = init_mydict(diag.seasons, diag.regions)
+                local_vartrend[var] = init_mydict(diag.seasons, diag.regions)
 
         # OPTIMIZATION: Single bulk write to Manager.dict() at the end
         varmean.update(local_varmean)
         vartrend.update(local_vartrend)
+
+
+def _gm_variable(var, util, ref, face, diag):
+    """
+    Compute the global mean (and trend) of a single variable for all seasons and regions.
+
+    Args:
+        var (str): Variable name.
+        util (Supporter): Utility dictionary for areas and masks.
+        ref (dict): Reference climatology dictionary.
+        face (dict): Interface dictionary.
+        diag (Diagnostic): Diagnostic instance.
+
+    Returns:
+        tuple: (result, trend) nested dictionaries by season and region, NaN where not available.
+    """
+    result = init_mydict(diag.seasons, diag.regions)
+    trend = init_mydict(diag.seasons, diag.regions)
+
+    loaded = load_variable(var, face, diag)
+    if loaded is None:
+        return result, trend
+    field, varunit = loaded
+    domain = get_domain(var, face)
+    offset, factor = UnitsHandler(var, org_units=varunit, clim=ref, face=face).units_converter()
+
+    # compute here since the operation are built on this
+    cfield = field.compute()
+
+    for season in diag.seasons:
+        tfield = cfield if season == "ALL" else cfield.sel(time=cfield.time.dt.season.isin(season))
+        tfield = tfield.groupby("time.year").mean("time") if diag.ftrend else tfield.mean(dim="time")
+
+        for region in diag.regions:
+            avg = _gm_region_mean(tfield, util, ref[var], domain, region)
+            result[season][region] = float(apply_units_conversion(np.nanmean(avg), offset, factor))
+
+            if diag.ftrend and len(avg) == len(diag.years_joined):
+                trend[season][region] = np.polyfit(diag.years_joined, avg, 1)[0]
+            if season == "ALL" and region == "Global":
+                loggy.info("Average: %s %s %s %s", var, season, region, result[season][region])
+
+    return result, trend
+
+
+def _gm_region_mean(tfield, util, varref, domain, region):
+    """
+    Weighted (and masked) mean or sum of a field over a region, as defined in the reference.
+
+    Args:
+        tfield (xarray.DataArray): Time-averaged field (or yearly averages if trends are requested).
+        util (Supporter): Utility dictionary for areas and masks.
+        varref (dict): Reference entry of the variable, with operation and mask type.
+        domain (str): Domain of the variable (atm or oce).
+        region (str): Region name.
+
+    Returns:
+        numpy.ndarray: Regional average, one value per year if trends are requested.
+    """
+    domain_mask = getattr(util, domain + "mask")
+    slicemask = select_region(domain_mask, region) if isinstance(domain_mask, xr.DataArray) else 0.0
+
+    avg = masked_meansum(
+        xfield=select_region(tfield, region),
+        weights=select_region(getattr(util, domain + "area"), region),
+        mask=slicemask,
+        operation=varref.get("operation", "mean"),
+        mask_type=varref.get("mask", "global"),
+        domain=domain,
+    )
+    if isinstance(avg, dask.array.core.Array):
+        avg = avg.compute()
+    return avg
 
 
 def gm_entry_point():
@@ -463,7 +468,6 @@ def global_mean(
     model=None,
     ensemble="r1i1p1f1",
     addnan=False,
-    silent=None,
     trend=None,
     line=None,
     outputdir=None,
@@ -471,7 +475,30 @@ def global_mean(
     reference=None,
     title=None,
 ):
-    """Wrapecmeanction to compute the global mean."""
+    """
+    Compute the global mean, store the YAML table and produce the figure.
+
+    Wrapper around :class:`GlobalMean`: it runs ``prepare()``, ``run()``, ``store()`` and ``plot()``.
+
+    Args:
+        exp (str): Experiment name.
+        year1 (int): Start year of the experiment.
+        year2 (int): End year of the experiment.
+        config (str or dict): Path to the configuration file or configuration dictionary. Default is 'config.yml'.
+        loglevel (str): Logging level. Default is 'WARNING'.
+        numproc (int): Number of processes to use. Default is 1.
+        interface (str): Interface name or path to the interface file. Default is None (from configuration).
+        model (str): Model name. Default is None (from configuration).
+        ensemble (str): Ensemble identifier. Default is 'r1i1p1f1'.
+        addnan (bool): Whether to plot also variables without reference. Default is False.
+        trend (bool): Whether to compute trends. Default is None.
+        line (bool): Whether to write the single-line tuning table. Default is None.
+        outputdir (str): Output directory. Default is None (from configuration).
+        xdataset (xarray.Dataset): Dataset to use instead of reading the files. Default is None.
+        reference (str): Reference for the comparison, one of the supported global mean references.
+            Default is None (from configuration, then EC26-CMIP).
+        title (str): Title of the plot, overrides default title. Default is None.
+    """
     gm = GlobalMean(
         exp,
         year1,
@@ -483,7 +510,6 @@ def global_mean(
         model=model,
         ensemble=ensemble,
         addnan=addnan,
-        silent=silent,
         trend=trend,
         line=line,
         outputdir=outputdir,

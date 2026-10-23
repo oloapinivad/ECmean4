@@ -46,7 +46,9 @@ class Supporter:
         self.ocefix, self.oceremap = None, None
         self.atmfix, self.atmremap = None, None
 
-        # areas and mask for amip case
+        # areas and masks, left undefined when the component is missing (amip/omip cases)
+        self.atmmask = None
+        self.atmarea = None
         self.ocemask = None
         self.ocearea = None
 
@@ -85,8 +87,8 @@ class Supporter:
             if self.ocemaskfile:
                 self.ocemask = self.make_oce_masks()
             else:
-                # if it is missing, when remapping I can use the atmospheric one
-                if self.targetgrid and remap:
+                # if it is missing, when remapping I can use the atmospheric one, if available
+                if self.targetgrid and remap and self.atmmask is not None:
                     self.ocemask = self.atmmask
                 # otherwise, no solution!
                 else:
@@ -263,14 +265,24 @@ class Supporter:
 
 
 def check_file_exist(file):
-    """Simple check to verify that a file to be loaded is defined and found on disk"""
+    """Simple check to verify that a file to be loaded is defined and found on disk
 
-    if file is None:
+    Args:
+        file: path or glob pattern of the file, None or empty string if not defined
+
+    Returns:
+        the first file matching the path/pattern
+
+    Raises:
+        KeyError: if the file is not defined or no existing file matches
+    """
+
+    if not file:
         raise KeyError("ERROR: file not defined!")
-    file = glob(file)[0]
-    if not os.path.isfile(file):
+    matches = glob(file)
+    if not matches or not os.path.isfile(matches[0]):
         raise KeyError(f"ERROR: {file} cannot be found")
-    return file
+    return matches[0]
 
 
 def fix_mask_values(mask):
@@ -320,12 +332,12 @@ def identify_grid(xfield):
             lat = xfield.coords["lat"]
 
             # if lat grid spacing is equal, is regular lonlat, otherwise gaussian
-            if (lat[3] - lat[2]) == (lat[1] - lat[0]):
+            if np.isclose((lat[3] - lat[2]).values, (lat[1] - lat[0]).values):
                 return "lonlat"
             return "gaussian"
 
         # if the coords are 2D, we are curvilinear
-        if xfield.coords["lon"].ndim == 2 and xfield.coords["lon"].ndim == 2:
+        if xfield.coords["lon"].ndim == 2 and xfield.coords["lat"].ndim == 2:
             return "curvilinear"
 
         # check the first four elements of the grid (arbitrary)

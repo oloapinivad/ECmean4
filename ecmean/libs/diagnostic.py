@@ -4,11 +4,20 @@ Shared diagnostic class for ecmean
 
 import logging
 import os
+import warnings
 from pathlib import Path
 
 import xarray as xr
 
 from ecmean import __version__ as version
+from ecmean.libs.climatology import (
+    DEFAULT_CLIMATOLOGY,
+    DEFAULT_REFERENCE,
+    DEFAULT_RESOLUTION,
+    DEPRECATED_CLIMATOLOGY,
+    DEPRECATED_REFERENCE,
+    SUPPORTED_RESOLUTION,
+)
 from ecmean.libs.files import load_yaml
 
 ####################
@@ -30,14 +39,13 @@ class Diagnostic:
         funcname,
         line=False,
         trend=False,
-        resolution="r360x180",
+        resolution=None,
         ensemble="r1i1p1f1",
         addnan=False,
         interface=None,
         modelname=None,
         outputdir=None,
         xdataset=None,
-        silent=None,
         numproc=1,
         climatology=None,
         reference=None,
@@ -46,7 +54,23 @@ class Diagnostic:
         Initialize the Diagnostic instance.
 
         Args:
-            args: Arguments from command line/function.
+            exp (str): Experiment name.
+            year1 (int): Start year.
+            year2 (int): End year.
+            config (str or dict): Path to the configuration file, or configuration dictionary.
+            funcname (str): Diagnostic name, 'GlobalMean' or 'PerformanceIndices'.
+            line (bool): Write the single-line tuning table (global mean only).
+            trend (bool): Compute trends (global mean only).
+            resolution (str): Target grid for the interpolation. Default is 'r360x180'.
+            ensemble (str): Ensemble identifier. Default is 'r1i1p1f1'.
+            addnan (bool): Plot also variables without reference (global mean only).
+            interface (str): Interface name or file, overriding the configuration.
+            modelname (str): Model name, overriding the configuration.
+            outputdir (str): Output directory, overriding the folders of the configuration.
+            xdataset (xarray.Dataset or xarray.DataArray): Data to use instead of reading the files.
+            numproc (int): Number of processes.
+            climatology (str): Performance indices climatology, overriding the configuration.
+            reference (str): Global mean reference, overriding the configuration.
         """
 
         # arguments from command line/function
@@ -58,23 +82,22 @@ class Diagnostic:
         self.ftrend = trend
         self.numproc = numproc
         self.climatology = climatology
-        self.silent = silent
-        self.resolution = resolution
+        self.resolution = resolution  # for performance indices only: set in cfg_performance_indices
         self.reference = reference
         self.ensemble = ensemble
         self.interface = interface
         self.funcname = funcname
-        self.version = version
+        self.ecmean_version = version
         self.addnan = addnan
         if self.year1 == self.year2:
             self.ftrend = False
         print(
-            f"Welcome to ecmean v{self.version}: Running {self.funcname} "
+            f"Welcome to ecmean v{self.ecmean_version}: Running {self.funcname} "
             f"with {self.numproc} cores on experiment {self.expname} "
             f"for {len(self.years_joined)} years ({self.year1}-{self.year2})"
         )
 
-        #  These are here in prevision of future expansion to CMOR
+        #  These are here in prevision of future expansion to CMOR: wildcards for the filename template
         self.grid = "*"
         self.version = "*"
         self.frequency = "*mon"
@@ -95,7 +118,13 @@ class Diagnostic:
             else:
                 raise ValueError("Cannot load the config file")
         else:
-            cfg = load_yaml(self.indir / "../../config.yml")
+            default_config = Path.cwd() / "config.yml"
+            if not default_config.is_file():
+                raise FileNotFoundError(
+                    f"No config file provided and no config.yml found in the current directory ({Path.cwd()}): "
+                    "use -c/--config or copy config.tmpl to config.yml"
+                )
+            cfg = load_yaml(default_config)
 
         # Various raise and input and output directories
         if not cfg["dirs"]["exp"]:
@@ -160,6 +189,20 @@ class Diagnostic:
             return self.figdir / figurename
         raise ValueError("Unknown file type")
 
+    def check_global_all(self):
+        """
+        Check that the regions include "Global" and the seasons include "ALL".
+        Global mean tables and plots rely on the ["ALL"]["Global"] entry, performance indices do not.
+
+        Raises:
+            ValueError: if "Global" is not in the regions or "ALL" is not in the seasons.
+        """
+
+        if "Global" not in self.regions:
+            raise ValueError(f"The 'Global' region is mandatory in the config file, found regions: {self.regions}")
+        if "ALL" not in self.seasons:
+            raise ValueError(f"The 'ALL' season is mandatory in the config file, found seasons: {self.seasons}")
+
     def cfg_global_mean(self, cfg):
         """
         Set up configuration details for global mean.
@@ -173,6 +216,7 @@ class Diagnostic:
 
         self.regions = cfg["global_mean"]["regions"]
         self.seasons = cfg["global_mean"]["seasons"]
+        self.check_global_all()
 
         self.var_atm = cfg["global_mean"]["variables"].get("atm", [])
         self.var_oce = cfg["global_mean"]["variables"].get("oce", [])
@@ -182,7 +226,15 @@ class Diagnostic:
         self.var_all = self.var_atm + self.var_oce + self.var_ice
 
         if not self.reference:
-            self.reference = cfg["global_mean"]["reference"]
+            self.reference = cfg["global_mean"].get("reference", DEFAULT_REFERENCE)
+
+        if self.reference in DEPRECATED_REFERENCE:
+            msg = (
+                f"Reference {self.reference} is deprecated and will be removed in a future release. "
+                "Please use EC26-CMIP, EC26-HIST or EC26-PDAY."
+            )
+            loggy.warning(msg)
+            warnings.warn(msg, DeprecationWarning, stacklevel=2)
 
         self.reffile = self.indir / f"../reference/gm_reference_{self.reference}.yml"
 
@@ -211,7 +263,22 @@ class Diagnostic:
         self.field_all = self.field_atm2d + self.field_atm3d + self.field_oce + self.field_ice
 
         if not self.climatology:
-            self.climatology = cfg["performance_indices"]["climatology"]
+            self.climatology = cfg["performance_indices"].get("climatology", DEFAULT_CLIMATOLOGY)
+
+        if self.climatology in DEPRECATED_CLIMATOLOGY:
+            msg = (
+                f"Climatology {self.climatology} is deprecated and will be removed in a future release: "
+                "its CMIP6 reference PIs for 3D fields (ta, ua, va, hus) are biased (see issue #150), "
+                "so relative 3D PIs are unreliable. Please use EC26-CMIP or EC26-HIST."
+            )
+            loggy.warning(msg)
+            warnings.warn(msg, DeprecationWarning, stacklevel=2)
+
+        # the argument has priority over the config, which has priority over the default
+        if not self.resolution:
+            self.resolution = cfg["performance_indices"].get("resolution", DEFAULT_RESOLUTION)
+        if self.resolution not in SUPPORTED_RESOLUTION:
+            raise ValueError(f"Resolution {self.resolution} is not supported, available resolutions: {SUPPORTED_RESOLUTION}")
 
         self.clmdir = Path(self.indir, "../climatology", self.climatology)
         self.resclmdir = Path(self.clmdir, self.resolution)

@@ -11,15 +11,15 @@ pr:
     South Midlat: 1.927
 ta:
   ALL:
-    Global: 66.814
-    North Midlat: 37.674
-    Tropical: 41.68
-    South Midlat: 146.223
+    Global: 29.898
+    North Midlat: 26.254
+    Tropical: 8.771
+    South Midlat: 75.796
   JJA:
-    Global: 257.067
-    North Midlat: 502.801
-    Tropical: 122.643
-    South Midlat: 280.181
+    Global: 205.55
+    North Midlat: 453.162
+    Tropical: 93.593
+    South Midlat: 181.851
 tos:
   ALL:
     Global: 47.708

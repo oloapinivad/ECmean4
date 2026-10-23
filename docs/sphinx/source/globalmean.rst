@@ -19,9 +19,6 @@ Running the global mean evaluation is rather simple::
 
    global_mean EXP Y1 Y2
 
-Alternatively, you can also run the python script in ``ecmean`` library::
-
-   ./global_mean.py EXP Y1 Y2
 
 Positional Arguments
 --------------------
@@ -42,10 +39,6 @@ Optional Arguments
 
    Show this help message and exit.
 
-.. option:: -s, --silent
-
-   Do not print anything to standard output.
-
 .. option:: --version
 
    Show |ecmean|'s version number and exit.
@@ -60,7 +53,7 @@ Optional Arguments
 
 .. option:: -c CONFIG, --config CONFIG
 
-   Set up a specific configuration file. The default is ``config.yml``.
+   Set up a specific configuration file. The default is ``config.yml`` in the current directory.
 
 .. option:: -i INTERFACE, --interface INTERFACE
 
@@ -80,7 +73,7 @@ Optional Arguments
 
 .. option:: --reference REFERENCE
 
-   Specify the reference dataset to use for comparison. The default is EC23. Other options include EC26-HIST, EC26-PDAY, and EC26-CMIP.
+   Specify the reference dataset to use for comparison. The default is EC26-CMIP. Other options include EC26-HIST, EC26-PDAY and the deprecated EC23.
 
 .. option:: --trend
 
@@ -125,6 +118,9 @@ References available
 
 Currently, two main different references for climatological values are available, EC26 and EC23, covering different observation periods.
 
+.. warning::
+   EC23 is deprecated and will be removed in a future release. Please use EC26-CMIP, EC26-HIST or EC26-PDAY.
+
 EC26
 ----
 EC26 is the updated reference framework for global mean observational datasets, which provide a flexible framework for evaluating climate models.
@@ -160,8 +156,8 @@ By using a more recent averaging window, EC26-PDAY reflects contemporary radiati
 
 .. include:: tables/reference_EC26-PDAY.rst
 
-EC23
-----
+EC23 (deprecated)
+-----------------
 This is from the old version of |ecmean| and does not include values for global tas.
 This reference dataset collects global mean observational targets used by the global_mean.py script to compute global averages.
 The variables are derived from a combination of observational and reanalysis products (e.g. CRU, ERA5, MSWEP, CERES-EBAF, ESA-CCI, Wild 2020), depending on the physical quantity considered.

@@ -6,9 +6,9 @@ Shared functions for ecmean. Set of formula based tools
 # FORMULA FUNCTIONS #
 #####################
 
+import ast
 import logging
 import operator
-import re
 
 loggy = logging.getLogger(__name__)
 
@@ -25,51 +25,53 @@ def formula_wrapper(var, face, xfield):
     return xfield[var]
 
 
-# this is a tool to parse a CDO-based formula into mathematical operatos
-# there might exists something more intelligent such as the pyparsing package
+# Parser and evaluator for the CDO-like formulas of the interface files.
+# Formulas are parsed with the Python parser, which provides precedence, parentheses,
+# numbers (decimals, scientific notation) and whitespace. Only variable names, numbers,
+# the four basic operations, unary minus and parentheses are accepted: nothing is executed.
+
+_OPERATIONS = {ast.Add: operator.add, ast.Sub: operator.sub, ast.Mult: operator.mul, ast.Div: operator.truediv}
+_ALLOWED = (ast.Expression, ast.BinOp, ast.UnaryOp, ast.USub, ast.Name, ast.Load, ast.Constant, *_OPERATIONS)
+
+
+def _allowed(node):
+    """Tell if a syntax tree node is accepted in a formula: numbers are the only constants allowed."""
+
+    if isinstance(node, ast.Constant):
+        return isinstance(node.value, (int, float))
+    return isinstance(node, _ALLOWED)
+
+
+def _parse_formula(mystring):
+    """Parse a formula into a syntax tree, raising ValueError for unsupported syntax."""
+
+    try:
+        tree = ast.parse(mystring.strip(), mode="eval")
+    except SyntaxError as err:
+        raise ValueError(f"Unsupported syntax in formula '{mystring}'") from err
+    if not all(_allowed(node) for node in ast.walk(tree)):
+        raise ValueError(f"Unsupported syntax in formula '{mystring}'")
+    return tree.body
+
+
+def formula_variables(mystring):
+    """Return the unique variable names required by a formula, in order of appearance
+    (the units of a derived variable are taken from the first one)."""
+
+    names = sorted((n for n in ast.walk(_parse_formula(mystring)) if isinstance(n, ast.Name)), key=lambda n: n.col_offset)
+    return list(dict.fromkeys(n.id for n in names))
 
 
 def _eval_formula(mystring, xdataset):
-    """Evaluate the cmd string provided by the yaml file
-    producing a parsing for the derived variables"""
+    """Evaluate a formula of the interface files on the variables of a dataset."""
 
-    # Tokenize the original string
-    token = [i for i in re.split("(\\W+)", mystring) if i]
-    if len(token) > 1:
-        # Use order of operations
-        return _operation(token, xdataset)
-    return xdataset[token[0]]
+    def evaluate(node):
+        if isinstance(node, ast.BinOp):
+            return _OPERATIONS[type(node.op)](evaluate(node.left), evaluate(node.right))
+        if isinstance(node, ast.UnaryOp):
+            return -evaluate(node.operand)
+        if isinstance(node, ast.Name):
+            return xdataset[node.id]
+        return float(node.value)
 
-
-def _operation(token, xdataset):
-    """Parsing of the CDO-based commands using operator package
-    and an ad-hoc dictionary. Could be improved, working with four basic
-    operations only."""
-
-    # define math operators: order is important, since defines
-    # which operation is done at first!
-    ops = {"/": operator.truediv, "*": operator.mul, "-": operator.sub, "+": operator.add}
-
-    # use a dictionary to store xarray field and call them easily
-    dct = {}
-    for k in token:
-        if k not in ops:
-            if k.isdigit():
-                dct[k] = float(k)
-            else:
-                dct[k] = xdataset[k]
-
-    # apply operators to all occurrences, from top priority
-    # so far this is not parsing parenthesis
-    code = 0
-    for p in ops:
-        while p in token:
-            code += 1
-            # print(token)
-            x = token.index(p)
-            name = "op" + str(code)
-            replacer = ops.get(p)(dct[token[x - 1]], dct[token[x + 1]])
-            dct[name] = replacer
-            token[x - 1] = name
-            del token[x : x + 2]
-    return replacer
+    return evaluate(_parse_formula(mystring))

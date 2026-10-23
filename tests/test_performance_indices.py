@@ -1,16 +1,20 @@
 """Tests for performance indices functions"""
 
 # test for PIs: run on ECE4 test data, both amip and coupled, and on CMIP6 EC-Earth3 data.
-# all run for EC23 climatologies
+# mostly run on EC26 climatologies, with a couple of checks on the deprecated EC24
+import contextlib
 import os
 import shutil
 import subprocess
+import sys
+from pathlib import Path
 
 import pytest
 import xarray as xr
 import yaml
 
 from ecmean import PerformanceIndices, performance_indices
+from ecmean.libs.climatology import DEPRECATED_CLIMATOLOGY
 from ecmean.libs.general import are_dicts_equal
 from ecmean.libs.ncfixers import xr_preproc
 
@@ -19,18 +23,26 @@ from ecmean.libs.ncfixers import xr_preproc
 # set TOLERANCE
 TOLERANCE = 1e-1
 # set CLEANUP flag to control removal of generated YML files after tests
-CLEANUP = False
+CLEANUP = True
 OUTPUTDIR = "tests/pluto"
 
 # set up coverage env var
 env = {**os.environ, "COVERAGE_PROCESS_START": ".coveragerc"}
 
 
+def deprecation_check(clim):
+    """Expect a DeprecationWarning for deprecated climatologies"""
+    if clim in DEPRECATED_CLIMATOLOGY:
+        return pytest.warns(DeprecationWarning, match="deprecated")
+    return contextlib.nullcontext()
+
+
 # test on coupled
-@pytest.mark.parametrize("clim", ["EC23", "EC24", "EC26-HIST"])
+@pytest.mark.parametrize("clim", ["EC24", "EC26-HIST", "EC26-CMIP"])
 def test_performance_indices_cpld(clim):
     """Test performance indices on coupled EC-Earth4 data."""
-    performance_indices("cpld", 1990, 1990, numproc=4, climatology=clim, config="tests/config.yml")
+    with deprecation_check(clim):
+        performance_indices("cpld", 1990, 1990, numproc=4, climatology=clim, config="tests/config.yml")
     file1 = "tests/table/PI_" + clim + "_cpld_EC-Earth4_r1i1p1f1_1990_1990.yml"
     file2 = "tests/table/PI_" + clim + "_cpld_1990_1990.ref"
     with open(file1, "r", encoding="utf8") as f1, open(file2, "r", encoding="utf8") as f2:
@@ -42,7 +54,7 @@ def test_performance_indices_cpld(clim):
 
 
 # test on amip
-@pytest.mark.parametrize("clim", ["EC24"])
+@pytest.mark.parametrize("clim", ["EC26-CMIP"])
 def test_performance_indices_amip(clim):
     """Test performance indices on AMIP EC-Earth4 data with custom output directory."""
     performance_indices("amip", 1990, 1990, numproc=1, climatology=clim, config="tests/config.yml", outputdir=OUTPUTDIR)
@@ -57,11 +69,12 @@ def test_performance_indices_amip(clim):
         shutil.rmtree(OUTPUTDIR)
 
 
-def test_performance_indices_omip():
+@pytest.mark.parametrize("clim", ["EC26-HIST"])
+def test_performance_indices_omip(clim):
     """Test performance indices on OMIP EC-Earth4 data."""
-    performance_indices("omip", 1990, 1990, numproc=1, climatology="EC23", config="tests/config.yml", outputdir=OUTPUTDIR)
-    file1 = "tests/pluto/YAML/PI_" + "EC23" + "_omip_EC-Earth4_r1i1p1f1_1990_1990.yml"
-    file2 = "tests/table/PI_" + "EC23" + "_omip_1990_1990.ref"
+    performance_indices("omip", 1990, 1990, numproc=1, climatology=clim, config="tests/config.yml", outputdir=OUTPUTDIR)
+    file1 = "tests/pluto/YAML/PI_" + clim + "_omip_EC-Earth4_r1i1p1f1_1990_1990.yml"
+    file2 = "tests/table/PI_" + clim + "_omip_1990_1990.ref"
     with open(file1, "r", encoding="utf8") as f1, open(file2, "r", encoding="utf8") as f2:
         data1 = yaml.safe_load(f1)
         data2 = yaml.safe_load(f2)
@@ -72,12 +85,12 @@ def test_performance_indices_omip():
 
 
 # test performance_indices from commnand line + debug
-@pytest.mark.parametrize("clim", ["EC24", "EC26-CMIP"])
+@pytest.mark.parametrize("clim", ["EC24", "EC26-CMIP", "EC26-HIST"])
 def test_cmd_performance_indices_CMIP6(clim):
     """Test performance indices command line interface on CMIP6 historical data."""
     subprocess.run(
         [
-            "performance_indices",
+            str(Path(sys.executable).parent / "performance_indices"),
             "historical",
             "1990",
             "1990",
@@ -106,10 +119,10 @@ def test_cmd_performance_indices_CMIP6(clim):
 
 
 # test performance_indices from commnand line + debug
-@pytest.mark.parametrize("clim", ["EC24"])
+@pytest.mark.parametrize("clim", ["EC26-CMIP"])
 def test_cmd_performance_indices_CMIP6_special(clim):
     """Test PerformanceIndices class interface with extrafigure option on CMIP6 data."""
-    with open("tests/config_EC24.yml", "r", encoding="utf8") as configfile:
+    with open("tests/config_CMIP6_short.yml", "r", encoding="utf8") as configfile:
         configdict = yaml.safe_load(configfile)
     pi = PerformanceIndices(
         "historical", 1990, 1990, config=configdict, climatology=clim, loglevel="debug", ensemble="r1i1p1f1", extrafigure=True
@@ -129,7 +142,7 @@ def test_cmd_performance_indices_CMIP6_special(clim):
 
 
 # test on amip but with access from xarray dataset
-@pytest.mark.parametrize("clim", ["EC24"])
+@pytest.mark.parametrize("clim", ["EC26-HIST"])
 def test_performance_indices_amip_xdataset(clim, tmp_path):
     """Test performance indices using xarray dataset input and plot generation."""
     file1 = "tests/table/PI_" + clim + "_amip_EC-Earth4_r1i1p1f1_1990_1990.yml"

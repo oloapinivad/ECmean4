@@ -31,9 +31,6 @@ Running the performance indices evaluation is rather simple::
 
    performance_indices EXP Y1 Y2
 
-You can also run it from the specific python script in ``ecmean`` library::
-
-   ./performance_indices.py EXP Y1 Y2
 
 Positional Arguments
 --------------------
@@ -55,10 +52,6 @@ Optional Arguments
 
    Show this help message and exit.
 
-.. option:: -s, --silent
-
-   Do not print anything to standard output.
-
 .. option:: --version
 
    Show |ecmean|'s version number and exit.
@@ -73,7 +66,7 @@ Optional Arguments
 
 .. option:: -c CONFIG, --config CONFIG
 
-   Set up a specific configuration file. The default is ``config.yml``.
+   Set up a specific configuration file. The default is ``config.yml`` in the current directory.
 
 .. option:: -i INTERFACE, --interface INTERFACE
 
@@ -93,7 +86,7 @@ Optional Arguments
 
 .. option:: --climatology CLIMATOLOGY
 
-   Specify the climatology you want to use. The default is EC24. Alternatives are EC26-HIST, EC26-CMIP and EC23.
+   Specify the climatology you want to use. The default is EC26-CMIP. Alternatives are EC26-HIST and the deprecated EC24 and EC23.
 
 Examples
 ^^^^^^^^
@@ -126,7 +119,12 @@ An example of the output for a single year of the EC-Earth3 historical simulatio
 Climatologies available
 ^^^^^^^^^^^^^^^^^^^^^^^
 
-Currently, three different climatologies are available, EC26, EC24 and EC23, covering different observation periods and based on different datasets.
+Currently, EC26 (EC26-CMIP and EC26-HIST) is the supported climatology. The older EC24 and EC23 are still available but deprecated, and they cover different observation periods and are based on different datasets.
+
+.. warning::
+   EC24 and EC23 are deprecated and will be removed in a future release.
+   Their CMIP6 reference PIs for 3D fields (ta, ua, va, hus) were computed with wrong vertical weights (see issue #150),
+   so relative 3D PIs computed with these climatologies are unreliable. Please use EC26-CMIP or EC26-HIST.
 
 EC26
 ----
@@ -153,10 +151,10 @@ It is aligned with the CMIP6 historical period (1985–2014), ensuring temporal 
 
 Properties of the climatology - such as which interpolation method and which CMIP6 models have been used - can be inspected by looking at the ``ecmean/climatology/EC26/pi_climatology_EC26-CMIP.yml`` file.
 
-EC24
-----
+EC24 (deprecated)
+-----------------
 
-This is an upgrade of EC23 - and currently the default - with the following improvements:
+This is an upgrade of EC23 with the following improvements:
   - It is scaled to 1985-2014, to be consistent with the CMIP6 historical simulations.
   - It removes data above 10hPa for 3D fields, to avoid unrealistic large PIs due to stratospheric low variances.
   - It extend the amount of regions to be considered, allowing also for Northern/Southern Hemisphere, Equatorial and South/North Pole regions.
@@ -166,8 +164,8 @@ Properties of the climatology - such as which interpolation method and which CMI
 
 .. include:: tables/climatology_EC24.rst
 
-EC23
-----
+EC23 (deprecated)
+-----------------
 This is built with high-resolution data (e.g. CRU, ERA5, MSWEP, etc.) and defined on a 1x1 deg resolution for year 1990-2019. It uses a 30-year time window for CMIP6 models.
 
 Properties of the climatology - such as which interpolation method and which CMIP6 models have been used - can be inspected by looking at the ``ecmean/climatology/EC23/pi_climatology_EC23.yml`` file.

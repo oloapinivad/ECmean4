@@ -160,6 +160,14 @@ class UnitsHandler:
         raise ValueError(f"Cannot convert from {self.org_units} to {self.tgt_units}.")
 
 
+def apply_units_conversion(data, offset, factor):
+    """Apply the (offset, factor) pair of UnitsHandler.units_converter() to the data.
+    The converter never returns both a non-zero offset and a factor different from one,
+    so the order of operations is immaterial: it is fixed here as data * factor + offset."""
+
+    return data * factor + offset
+
+
 def units_extra_definition():
     """Add units to the pint registry required by ecmean"""
 

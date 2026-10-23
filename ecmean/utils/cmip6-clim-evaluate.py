@@ -116,7 +116,7 @@ def main(clim="EC26", timeframe="CMIP", nprocs=4, do_definitive=False, do_comput
         for model in models:
             logging.warning("Climatology for model %s", model)
             filein = glob.glob(
-                os.path.join(cfg["dirs"]["tab"], f"PI4_{climname}_{expname}_{model}_r1i1p1f*_{year1}_{year2}.yml")
+                os.path.join(cfg["dirs"]["tab"], f"PI_{climname}_{expname}_{model}_r1i1p1f*_{year1}_{year2}.yml")
             )
             full[model] = load_yaml(filein[0])
 

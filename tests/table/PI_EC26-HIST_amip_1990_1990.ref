@@ -1,0 +1,110 @@
+net_sfc:
+  ALL:
+    Global: 4.922
+    North Midlat: 13.527
+    Tropical: 3.746
+    South Midlat: 2.449
+  JJA:
+    Global: 45.83
+    North Midlat: 208.701
+    Tropical: 10.365
+    South Midlat: 17.604
+tas:
+  ALL:
+    Global: 21.805
+    North Midlat: 14.636
+    Tropical: 28.938
+    South Midlat: 19.173
+  JJA:
+    Global: 301.774
+    North Midlat: 434.414
+    Tropical: 186.055
+    South Midlat: 147.176
+psl:
+  ALL:
+    Global: 4.604
+    North Midlat: 2.475
+    Tropical: 6.33
+    South Midlat: 3.279
+  JJA:
+    Global: 23.561
+    North Midlat: 40.553
+    Tropical: 25.913
+    South Midlat: 1.865
+pr:
+  ALL:
+    Global: 4.959
+    North Midlat: 3.323
+    Tropical: 5.808
+    South Midlat: 4.895
+  JJA:
+    Global: 102.873
+    North Midlat: 35.93
+    Tropical: 186.742
+    South Midlat: 2.077
+tauu:
+  ALL:
+    Global: 6.737
+    North Midlat: 6.506
+    Tropical: 8.842
+    South Midlat: 3.245
+  JJA:
+    Global: 11.252
+    North Midlat: 24.295
+    Tropical: 12.828
+    South Midlat: 1.23
+tauv:
+  ALL:
+    Global: 6.009
+    North Midlat: 6.411
+    Tropical: 7.097
+    South Midlat: 3.912
+  JJA:
+    Global: 11.258
+    North Midlat: 16.743
+    Tropical: 15.397
+    South Midlat: 1.06
+ta:
+  ALL:
+    Global: 19.54
+    North Midlat: 20.699
+    Tropical: 6.434
+    South Midlat: 44.592
+  JJA:
+    Global: 175.676
+    North Midlat: 442.142
+    Tropical: 66.729
+    South Midlat: 127.104
+ua:
+  ALL:
+    Global: 5.556
+    North Midlat: 5.512
+    Tropical: 6.088
+    South Midlat: 4.535
+  JJA:
+    Global: 61.215
+    North Midlat: 82.588
+    Tropical: 78.569
+    South Midlat: 5.134
+va:
+  ALL:
+    Global: 3.447
+    North Midlat: 3.088
+    Tropical: 2.883
+    South Midlat: 4.935
+  JJA:
+    Global: 25.721
+    North Midlat: 24.059
+    Tropical: 36.848
+    South Midlat: 5.129
+hus:
+  ALL:
+    Global: 19.441
+    North Midlat: 8.204
+    Tropical: 9.582
+    South Midlat: 50.394
+  JJA:
+    Global: 144.701
+    North Midlat: 176.177
+    Tropical: 110.85
+    South Midlat: 180.928

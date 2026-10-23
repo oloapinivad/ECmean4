@@ -18,12 +18,12 @@ global_mean:
               rsns, rlns, hfss, hfls, net_sfc_nosn, net_sfc,
               toamsfc_nosn, toamsfc]
     oce: [tos, sos, zos, wfo]
-    ice: [siconc_north, siconc_south]
+    ice: [siconc]
     tab: [rsnt, rlnt, net_toa, rsns, rlns, hfss, hfls, swcf, lwcf, net_sfc, toamsfc,
               tas, clt, cll, clm, clh, pr, pme, psl]
   regions: ['Global', 'North Midlat', 'Tropical', 'South Midlat']
   seasons: ['ALL', 'DJF', 'JJA']
-  reference: EC23
+  reference: EC26-CMIP
 
 performance_indices:
   variables:
@@ -34,4 +34,4 @@ performance_indices:
   regions: ['Global', 'North Midlat', 'Tropical', 'South Midlat']
   seasons: ['ALL', 'DJF', 'JJA']
   resolution: r360x180
-  climatology: EC24
+  climatology: EC26-CMIP

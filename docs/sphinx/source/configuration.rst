@@ -46,9 +46,10 @@ Modifications to this are not necessary, but please be aware that the variable c
 
 **seasons**:
 	the list of seasons on which to compute the PI. Four standard seasons are supported, expressed as 3-character strings (e.g. ``DJF``). ``ALL`` defines the yearly average. Default includes yearly, winter and summer.
+	``ALL`` and the ``Global`` region are mandatory for the global mean, since its tables and plots rely on them: an error is raised if they are missing.
 
 **reference**:
-	the global mean reference climatology. EC23 (without the tas global variable and for the period 1990-2020), HIST26 (with the tas global variable and for the period 1980-2010) and PDAY26 (with the tas global variable available and for the period 2000-2024) are available.
+	the global mean reference climatology. EC26-CMIP (default, for the period 1985-2014), EC26-HIST (for the period 1981-2010) and EC26-PDAY (for the period 2000-2024) are available. EC23 (without the tas global variable and for the period 1990-2020) is deprecated.
 
 Performance indices configuration
 ---------------------------------
@@ -68,7 +69,10 @@ Modifications to this are not necessary, but please be aware that the variable c
 	the list of seasons on which to compute the PI. ``ALL`` defines the yearly average. Also ``DJF`` and ``JJA`` are supported.
 
 **climatology**:
-	the climatology to be used. EC23, EC24, HIST26 (for the period 1980-2010) and PDAY26 (for the period 2000-2024) are available.
+	the climatology to be used. EC26-CMIP (default, for the period 1985-2014) and EC26-HIST (for the period 1981-2010) are available. EC24 and EC23 are deprecated.
+
+**resolution**:
+	the horizontal resolution of the climatology. Only ``r360x180`` (default) is currently available, an error is raised otherwise.
 
 
 Interface files
@@ -86,6 +90,52 @@ These latter are used for interpolation and weighted averages. ecmean has a few 
 Of course, if some specific management of the model grid is requested - for example if the model grid does not follow standard naming conventions - it may be necessary to intervene directly within the code.
 A function named ``xr_preproc()``  within ``ecmean/libs/ncfixers.py``  might be adjusted in this case to allow for a correct interpretation of the model grid.
 
+
+Variables in the interface file
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Each entry of the ``variables`` block is named with the CMOR-like name used by |ecmean| (e.g. ``tas``), which is also the variable
+looked for in the model files, and accepts the following keys:
+
+varname
+	A human-readable description of the variable.
+filetype
+	One of the entries of the ``filetype`` block, which defines where the files are and which component (and thus domain, atmosphere or ocean) the variable belongs to.
+units
+	Optional. The units of the model data. If missing, the ``units`` attribute of the netCDF variable is used (for a derived variable, the one of the first variable of the formula);
+	if also this is missing, the variable is assumed to be a fraction. It is converted to the units of the reference/climatology.
+direction
+	Optional, ``up`` or ``down`` (default). It is the sign convention of the fluxes in the model, compared with the one of the reference to flip the sign when needed.
+derived
+	Optional. A formula to compute the variable from other variables stored in the same filetype (see below).
+
+Derived variables
+^^^^^^^^^^^^^^^^^
+
+Variables that are not available in the model output can be computed from other variables with the ``derived`` key.
+The formula is written in terms of variable names, and all the variables it contains are read from the files of the ``filetype`` of the derived variable.
+For example, from ``ecmean/interfaces/interface_CMIP6.yml``::
+
+   net_toa:
+     varname: 'Net TOA'
+     units: W/m2
+     derived: 'rsdt-rsut-rlut'
+     filetype: atm2d
+     direction: down
+
+   net_sfc:
+     varname: 'Net Surface'
+     units: W/m2
+     filetype: atm2d
+     direction: down
+     derived: 'rsds-rsus+rlds-rlus-hfls-hfss-prsn*334000'
+
+The supported syntax is: variable names, numbers (decimals and scientific notation, e.g. ``334000`` or ``3.34e5``),
+the four operations ``+ - * /``, unary minus, parentheses and spaces. Anything else (e.g. functions) raises a ``ValueError``.
+The formulas are evaluated with the ``_eval_formula()`` function of ``ecmean/libs/formula.py``.
+
+.. note::
+	For a derived variable, ``units`` and ``direction`` describe the result of the formula, so set ``units`` explicitly when the first variable of the formula is not in the units of the result.
 
 CMOR compatibility
 ------------------

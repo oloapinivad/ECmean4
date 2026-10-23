@@ -11,21 +11,14 @@ import xarray as xr
 # AREA-WEIGHT FUNCTIONS #
 ##################################
 
-# def cdo_identify_grid(file):
-#     cdogrid = cdo.sinfo(input=os.path.join(dir, file))
-#     for gg in ['unstructured', 'lonlat', 'curvilinear', 'gaussian_reduced', 'gaussian']:
-#         grid_type = [gg for i in cdogrid if gg in i]
-#         if grid_type :
-#             break
-#     return grid_type[0]
-
 loggy = logging.getLogger(__name__)
 
 
 def guess_bounds(axis, name="lon"):
     """Basic function that estimates the boundaries for lon and lat if they are not
     available. Works only with regular grids.
-    It also avoid having values larger than 90N/90S as well as 0 and 10^5 Pa"""
+    It also avoid having values larger than 90N/90S as well as 0 and 10^5 Pa.
+    Works for both ascending and descending axes."""
     # inspired by
     # https://gist.github.com/dennissergeev/60bf7b03443f1b2c8eb96ce0b1880150
 
@@ -39,13 +32,17 @@ def guess_bounds(axis, name="lon"):
     min_bounds = axis - diffs[:-1] * bound_position
     max_bounds = axis + diffs[1:] * (1 - bound_position)
 
-    # safety check, to be generalized
-    if name in "lat":
-        max_bounds[-1] = 90
-        min_bounds[0] = -90
-    if name in "plev":
-        min_bounds[0] = 0
-        max_bounds[-1] = 100000
+    # clamp the outer edges to the physical limits, taking into account the axis orientation:
+    # for a descending axis min_bounds[0] is the upper edge and max_bounds[-1] the lower one
+    limits = {"lat": (-90, 90), "plev": (0, 100000)}
+    if name in limits:
+        lower, upper = limits[name]
+        if axis[0] > axis[-1]:
+            min_bounds[0] = upper
+            max_bounds[-1] = lower
+        else:
+            min_bounds[0] = lower
+            max_bounds[-1] = upper
 
     # should we use a xarray object instead of a numpy?
     bounds = np.array([min_bounds, max_bounds]).transpose()
@@ -99,40 +96,14 @@ class AreaCalculator:
         area = self._vector_spherical_triangle(p1, p2, p3) + self._vector_spherical_triangle(p1, p4, p3)
         return area * self.earth_radius**2
 
-    # def _area_by_trapezoids(self, bounds_lat):
-    #     arclon1 = self.earth_radius *
-    # np.abs(np.cos(np.deg2rad(bounds_lat[:, 0]))) * np.deg2rad(self.dlon)
-    #     arclon2 = self.earth_radius *
-    # np.abs(np.cos(np.deg2rad(bounds_lat[:, 1]))) * np.deg2rad(self.dlon)
-    #     arclat = self.earth_radius * np.deg2rad(self.dlat)
-
-    #     return (arclon1 + arclon2) * arclat / 2
-
-    # def _area_by_squares(self, full_lat):
-
-    #     arclon = self.earth_radius * np.abs(np.cos(np.deg2rad(full_lat))) * np.deg2rad(self.dlon)
-    #     arclat = self.earth_radius * np.deg2rad(self.dlat)
-
-    #     return arclon * arclat
-
     def _area_computation(self, bounds_lon, bounds_lat, formula="triangles", full_lat=None):
         """
         Compute the area of grid cells based on the specified formula.
-        Only triangles is activated, other older method are kept for reference but not tested.
+        Only the triangles formula is available.
         """
 
         if formula == "triangles":
             return self._area_by_triangles(bounds_lon, bounds_lat)
-
-        # self.dlon=abs(bounds_lon[:, 0] - bounds_lon[:, 1])
-        # self.dlat=abs(bounds_lat[:, 0] - bounds_lat[:, 1])
-
-        # if formula == 'trapezoids':
-        #     return self._area_by_trapezoids(bounds_lat)
-        # if formula == 'squares':
-        #     if full_lat is None:
-        #         raise ValueError("full_lat is required for square-based area computation.")
-        #     return self._area_by_squares(full_lat)
 
         raise ValueError(f"Unknown area formula: {formula}")
 

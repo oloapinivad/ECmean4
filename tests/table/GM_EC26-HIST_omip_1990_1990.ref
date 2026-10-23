@@ -1,0 +1,7 @@
+|  Variable  |         Longname          |   Units   |   EC-Earth4 |     Obs.     |                     Dataset                     |   Years   |
+|------------+---------------------------+-----------+-------------+--------------+-------------------------------------------------+-----------|
+|    tos     |  Sea Surface Temperature  |  celsius  | 18.9061     | 18.664±0.12  |                   ESA-CCI-L4                    | 1981-2010 |
+|    sos     |   Sea Surface Salinity    |    PSU    | 34.4368     | 34.544±0.006 | Copernicus Global Analysed Sea Surface Salinity | 1993-2010 |
+|    zos     |            SSH            |     m     |  0.00120878 |      0       |                      None                       |     -     |
+|    wfo     | Net Water Flux into ocean | m/century | -1.40863    |      0       |                      None                       |     -     |
+|   siconc   |       Sea Ice Area        |   Mm^2    | 13.7831     | 19.641±0.373 |                   ESA-CCI-L4                    | 1981-2010 |

@@ -5,7 +5,33 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 ## [Unreleased]
 
-Unreleased is the current development version, which is currently lying in `main` branch.
+Unreleased is the current development version (target v0.3.0), which is currently lying in `main` branch.
+
+*IMPORTANT*: 
+1. 3D performance indices (ta, ua, va, hus) change values
+2. The new default PI climatology is EC26-CMIP6, and the new GM climatology is now EC26-CMIP. Results cannot be compared against previous ecmean version
+
+- Fix vertical weights for 3D performance indices with descending pressure levels (#150)
+- CMIP6 reference PIs for 3D fields regenerated for EC26-CMIP and EC26-HIST; 2D references unchanged (#150)
+- Default PI climatology is now EC26-CMIP; EC23 and EC24 are deprecated (#150)
+- Default global mean reference is now EC26-CMIP; EC23 is deprecated (#150)
+- A variable failing in a worker no longer drops the other variables of the same worker: it is logged and stored as NaN, and dead workers raise an explicit error (#151)
+- `addnan` option and `--addnan` flag of global mean are now forwarded to the plot, so variables without reference are hidden by default (#152)
+- `global_mean --line` no longer crashes when variables of the tuning table are missing, as in OMIP/AMIP runs: they are written as NaN (#153)
+- Remove the unused `silent` argument of `GlobalMean`, `PerformanceIndices`, `Diagnostic` and of the wrapper functions, and the `-s/--silent` command line flag: it never had any effect (breaking for calls passing `silent`)
+- Documentation: document the variable keys and the derived variables of the interface files; complete docstrings of `global_mean()`, `performance_indices()` and `Diagnostic`, add Python API usage to the Sphinx docs and remove the non-working `./script.py` instructions
+- Workers split into per-variable functions, with variable loading shared between GM and PI in `load_variable()` (#151)
+- Formulas of derived variables are parsed with Python's `ast` module instead of a hand-written tokenizer, with the same supported syntax (#157)
+- Performance: input files are opened once per variable, globbed once per variable instead of once per year, and variables are split across workers by total load (#155)
+- Development: ruff pinned to 0.17.1 (pyproject, pre-commit and AGENTS.md)
+- Robustness fixes in `libs/support.py` (#156): `identify_grid` checks `lat.ndim` for curvilinear grids and compares latitude spacings with `np.isclose`; `check_file_exist` raises a clear error for empty strings and for patterns matching no file instead of `IndexError`
+- `Supporter` initialises `atmmask`/`atmarea` to `None`, so an OMIP run with remapping and no ocean mask no longer fails with `AttributeError` (#156)
+- `Diagnostic` raises a clear `ValueError` if the global mean regions do not include `Global` or the seasons do not include `ALL`, which its tables and plots require (#156)
+- The ecmean version printed in the welcome message is now stored in `Diagnostic.ecmean_version`, so `Diagnostic.version` only holds the `*` CMOR filename wildcard (#156)
+- `performance_indices.resolution` is now read from the config file (argument > config > default `r360x180`) and a `ValueError` is raised if it is not in `SUPPORTED_RESOLUTION` (defined in `libs/climatology.py`) (only `r360x180` for now). `Diagnostic.resolution` is now `None` for `GlobalMean`, where it was never used (#156)
+- Without `-c`/`--config`, `config.yml` is now searched in the current directory instead of next to the source tree (`libs/../../config.yml`), with a clear `FileNotFoundError` if it is missing (#156)
+- `ECPlotter.heatmap_plot()` loads `data` and `base` from YAML files when given as paths (`str` or `Path`), as documented, instead of parsing the path string itself (#154)
+- Python 3.9 is no longer supported: the minimum version is now 3.10
 
 ## [v0.2.2]
 - Remove a wrong dependency with esmpy
